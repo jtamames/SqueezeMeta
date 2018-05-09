@@ -1,0 +1,26 @@
+#- Locate execution path of the initial script.
+	#- Done for squeezeM_merged.pl
+
+#- Use proper execution paths in the configuration files. They can be dinamically built once we get the execution path of the initial script.
+
+#- Unify the three initial scripts into a single one.
+
+#- symlink raw fastq into the project folder instead of moving them.
+
+- Adopt semantic versioning for in-house scripts (start from v1.0.0).
+
+- Why raw reads are copied during mapbamsamples.pl??
+
+- CheckM should be installed manually?
+
+- when runing the pipeline, errors during bin_maxbin.pl were silent. If running the script by itself errors raised as expected.
+
+- squeezeM.pl merged mode gives error after assembly.
+
+- Luis' instructions are missing the part in which we create the database
+	- And step 2 (run script) requires step 4 ("descomprimir fichero").
+	- Step 5.2 entiendo que se refiere al directorio temp de la aplicación.
+
+- mysql -u user -p SqueezeM < game.sql
+
+
