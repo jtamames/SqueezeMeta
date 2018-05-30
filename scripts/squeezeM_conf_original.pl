@@ -1,15 +1,15 @@
 
 #-- Generic paths
 
-$databasepath="/media/mcm/jtamames/databases";
-$extdatapath="/media/mcm/jtamames/metagenomic_data";
-$scriptdir="/media/mcm/jtamames/squeezeM";		#-- Scripts directory
-$softdir="/home/jtamames/software";
+#$installpath="";
+$databasepath="$installpath/db";
+$extdatapath="$installpath/data";
+$scriptdir="$installpath/scripts";   #-- Scripts directory
 
 #-- Paths relatives to the project
 
-$projectname="test";
-$basedir="/media/mcm/jtamames";
+$projectname="";
+$basedir=".";
 $datapath="$basedir/$projectname/data";			#-- Directory containing all datafiles
 $resultpath="$basedir/$projectname/results";		#-- Directory for storing results
 $tempdir="$basedir/$projectname/temp";			#-- Temp directory
@@ -48,15 +48,15 @@ $contigtable="$resultpath/18.$projectname.contigtable"; #-- From getcontigs.pl, 
 
 #-- Datafiles
 
-$coglist="$extdatapath/coglist.txt";			#-- COG equivalence file (COGid -> Function -> Functional class)
-$kegglist="$extdatapath/keggfun2.txt";			#-- KEGG equivalence file (KEGGid -> Function -> Functional class)
-$pfamlist="$extdatapath/pfam.dat";			#-- PFAM equivalence file
-$taxlist="$extdatapath/alltaxlist.txt";			#-- Tax equivalence file 
-$nr_db="$databasepath/nr15122017.dmnd";
+$coglist="$extdatapath/coglist.txt";    #-- COG equivalence file (COGid -> Function -> Functional class)
+$kegglist="$extdatapath/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
+$pfamlist="$extdatapath/pfam.dat";      #-- PFAM equivalence file
+$taxlist="$extdatapath/alltaxlist.txt"; #-- Tax equivalence file 
+$nr_db="$databasepath/nr.dmnd";
 $cog_db="$databasepath/eggnog";
 $kegg_db="$databasepath/keggdb";
 $lca_db="$databasepath/LCA_tax/taxid.db";
-$bowtieref="$datapath/$projectname.bowtie";		#-- Reference for Bowtie
+$bowtieref="$datapath/$projectname.bowtie";                     #-- Contigs formateados para Bowtie
 $pfam_db="$databasepath/Pfam-A.hmm";
 
 #-- Variables
@@ -70,21 +70,20 @@ $nobins=0;
 
 #-- External software
 
-$metabat_soft="$softdir/metabat/metabat2";
-$maxbin_soft="$softdir/MaxBin-2.2.4/run_MaxBin.pl";
-$spades_soft="$softdir/SPAdes-3.11.1-Linux/bin/spades.py";
-$barrnap_soft="$softdir/barrnap/bin/barrnap";
-$bowtie2_build_soft="bowtie2-build";
-$bowtie2_x_soft="bowtie2";
-$bedtools_soft="$softdir/bedtools2/bin/bedtools";	#-- WARNING! Needs version <0.24    
-$diamond_soft="$softdir/diamond-linux64/diamond";
-$hmmer_soft="hmmsearch";
-$megahit_soft="$softdir/megahit/megahit";
-$prinseq_soft="$softdir/prinseq-lite-0.20.4/prinseq-lite.pl";
-$prodigal_soft="prodigal";
-$cdhit_soft="cdhit-est";
-$toamos_soft="$softdir/amos-3.1.0/bin/toAmos";
-$minimus2_soft="$softdir/amos-3.1.0/bin/minimus2";
-$checkm_soft="checkm";
-
+$metabat_soft="$installpath/bin/metabat2";
+$maxbin_soft="$installpath/bin/run_MaxBin.pl";
+$spades_soft="$installpath/bin/spades.py";
+$barrnap_soft="$installpath/bin/barrnap";
+$bowtie2_build_soft="$installpath/bin/bowtie2-build";
+$bowtie2_x_soft="$installpath/bin/bowtie2";
+$bedtools_soft="$installpath/bin/bedtools";   #-- IMPORTANT! Needs version <0.24    
+$diamond_soft="$installpath/bin/diamond";
+$hmmer_soft="$installpath/bin/hmmsearch";
+$megahit_soft="$installpath/bin/megahit";
+$prinseq_soft="$installpath/bin/prinseq-lite.pl";
+$prodigal_soft="$installpath/bin/prodigal";
+$cdhit_soft="$installpath/bin/cd-hit-est";
+$toamos_soft="$installpath/bin/toAmos";
+$minimus2_soft="$installpath/bin/minimus2";
+$checkm_soft="$installpath/bin/checkm";
 

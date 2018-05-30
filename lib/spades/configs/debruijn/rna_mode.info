@@ -1,0 +1,192 @@
+mode rna
+
+preserve_raw_paired_index true
+
+calculate_coverage_for_each_lib true
+strand_specificity {
+    ss_enabled false
+    antisense false
+}
+
+
+contig_output {
+    scaffolds_name  transcripts
+    ; none  --- do not output broken scaffolds | break_gaps --- break only by N steches | break_all --- break all with overlap < k
+    output_broken_scaffolds     none
+}
+
+simp
+{
+    ; enable advanced ec removal algo
+    topology_simplif_enabled false
+    tc
+    {
+        ; rctc: tip_cov < rctc * not_tip_cov
+        ; tc_lb: max_tip_length = max((min(k, read_length / 2) * tc_lb), read_length);
+        condition  "{ mmm 3 tc_lb 3.5, cb 100000, rctc 0.1 } { tc_lb 3.5, cb 4, rctc 10000 } { tc_lb 0.1, cb 20, rctc 10000 }"
+    }
+
+    dead_end
+    {
+        condition  "{ tc_lb 3.5, cb 2 }"
+        enabled true
+    }
+
+    ; bulge remover:
+    br
+    {
+        max_additive_length_coefficient 100
+        max_coverage            1000000.0
+        max_relative_coverage       100000.0 ; bulge_cov < this * not_bulge_cov
+    }
+
+    ; erroneous connections remover:
+    ec
+    { 
+       ; ec_lb: max_ec_length = k + ec_lb
+       ; icb: iterative coverage bound
+       ; to_ec_lb: max_ec_length = 2*tip_length(to_ec_lb) - 1
+       ; nbr: use not bulge erroneous connections remover 
+       ; condition               "{ ec_lb 9, icb 40.0, nbr }"
+       condition               "{ ec_lb 30, icb 50 }"
+    }
+
+    ; relative coverage erroneous connections remover:
+    rcec
+    {
+            enabled true
+            rcec_lb 30
+            rcec_cb 0.5
+    }
+
+    rcc
+    {
+        enabled true
+        coverage_gap    20.
+        max_length_coeff    2.0
+        max_length_with_tips_coeff   3.0
+        max_vertex_cnt      30
+        max_ec_length_coefficient   30
+        max_coverage_coeff  5.0
+    }
+
+    ;all topology based erroneous connection removers are off
+    ier
+    {
+        enabled                     false
+    }
+
+    ; hidden ec remover
+    her
+    {
+        enabled                     true
+        uniqueness_length           1500
+        unreliability_threshold     0.2
+        relative_threshold          5
+    }
+
+    init_clean
+    {
+        activation_cov  -1.
+        ier
+        {
+            enabled false
+        }
+
+        tip_condition   ""
+        ec_condition    ""
+    }
+
+}
+
+; disable filtering in rna mode
+de
+{
+    raw_filter_threshold	0
+}
+
+pe {
+debug_output    true
+
+params {
+    multi_path_extend   true
+
+    scaffolding_mode old
+
+    overlap_removal {
+        enabled true
+        end_start_only  true
+        cut_all true
+    }
+
+    extension_options
+    {
+        use_default_single_threshold true
+        single_threshold           0.05
+    }
+
+    scaffolder {
+        cutoff        1
+        hard_cutoff   10
+        cluster_info false
+        min_overlap_for_rna_scaffolding 10
+    }
+
+    path_cleaning_presets "default soft hard"
+    ; All length cutoffs presented in nucleotides
+    ; So edges less than or equal to (relative cutoff * RL - K) or (absolute cutoff - K) will be deleted
+    path_cleaning
+    {
+        enabled true
+        min_length  110
+        isolated_min_length 130
+        isolated_min_cov 4
+        min_length_for_low_covered 140
+        rel_cutoff 1.3
+        rel_isolated_cutoff 1.5
+        rel_low_covered_cutoff 1.6
+        min_coverage 2
+    }
+
+    ; All length cutoffs presented in nucleotides
+    hard_path_cleaning
+    {
+        enabled true
+        min_length  130
+        isolated_min_length 180
+        isolated_min_cov 8
+        min_length_for_low_covered 180
+        rel_cutoff 1.5
+        rel_isolated_cutoff 2.0
+        rel_low_covered_cutoff 2.0
+        min_coverage 3
+    }
+
+    ; All length cutoffs presented in nucleotides
+    soft_path_cleaning
+    {
+        enabled true
+        min_length  85
+        isolated_min_length 100
+        isolated_min_cov 2
+        min_length_for_low_covered 130
+        rel_cutoff 1.05
+        rel_isolated_cutoff 1.2
+        rel_low_covered_cutoff 1.5
+        min_coverage 1
+    }
+
+    use_coordinated_coverage false
+    coordinated_coverage {
+       max_edge_length_repeat 1000
+       delta                  0.5
+       min_path_len           300
+    }
+
+    simple_coverage_resolver {
+        enabled true
+        coverage_delta 0.5
+        min_upper_coverage 2
+    }
+}
+}

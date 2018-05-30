@@ -5,15 +5,17 @@
 
 #-- Input/Output files
 
-my $lca_dir="/media/mcm/jtamames/databases/LCA_tax/";
+my $databasedir=$ARGV[0];
+die if(!$databasedir);
+my $lca_dir="$databasedir/LCA_tax/";
 
-my $inputfile="$lca_dir/nr.taxlist.db";	#-- From nrindex.pl, identification entries -> species
-my $taxatreefile="$lca_dir/taxatree.txt";	#-- From rectaxa.pl, full taxonomy
+my $inputfile="$lca_dir/nr.taxlist.tsv";  #-- From nrindex.pl, identification entries -> species
+my $taxatreefile="$lca_dir/taxatree.txt"; #-- From rectaxa.pl, full taxonomy
 
 my $outfile="$lca_dir/taxid_tree.txt";
 
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
-open(infile1,$taxatreefile) || die;
+open(infile1,$taxatreefile) || die "Cannot open $taxatreefile\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -35,8 +37,8 @@ while(<infile2>) {
 	chomp;
 	next if !$_;
 	%store=();
-	my ($id,$acc,$tax)=split(/\t/,$_);
-	print outfile1 "$id\t$acc";
+	my ($id,$tax)=split(/\t/,$_);
+	print outfile1 "$id";
 	my @k=split(/\;/,$tax);
 	foreach my $l(@k) {
 		$store{'species'}{$l}++;

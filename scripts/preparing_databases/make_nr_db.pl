@@ -3,6 +3,8 @@
 #-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Makes nr database (and nr reduced), ready for diamond usage
 #-- Requires package ncbi-blast+ (for blastdbcmd)
+#
+# - 16-05-2018: Modify to use relative paths (Fernando Puente-Sánchez).
 
 use strict;
 
@@ -10,11 +12,13 @@ $|=1;
 
 my $reduce=0;		#-- Set to 1, make reduced database (not eukaryotes). Set to 0, full database
 
-my $databasedir="/media/mcm/jtamames/temp/db";		#-- THIS MUST POINT TO THE DATABASES DIRECTORY
-my $fastadb="$databasedir/nr.fasta";			#-- Name of the fasta file to create
-my $reducedfastadb="$databasedir/nr_reduced.fasta";	#-- Reduced database (No eukaryotes)
-my $taxdict="/media/mcm/jtamames/metagenomic_data/taxdict.txt";	#-- Resulting from parsing NCBI's taxonomy
+my $databasedir=$ARGV[0];			#-- THIS MUST POINT TO THE DATABASES DIRECTORY
 
+# my $databasedir="/media/mcm/jtamames/temp/db";		#-- THIS MUST POINT TO THE DATABASES DIRECTORY
+my $fastadb="$databasedir/nr.faa";			#-- Name of the fasta file to create
+my $reducedfastadb="$databasedir/nr_reduced.fasta";	#-- Reduced database (No eukaryotes)
+my $taxdict="$databasedir/../data/taxdict.txt";	#-- Resulting from parsing NCBI's taxonomy
+my $bindir="$databasedir/../bin";
 	#-- Getting the raw files from NCBI. This can take long and need 100 Gb disk space
 
 my $command="wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/nr*gz -nc -P $databasedir";
@@ -26,10 +30,10 @@ opendir(indir1,$databasedir) || die;
 my @files=grep(/tar.gz/,readdir indir1);
 closedir indir1;
 
-foreach my $tfile(@files) {
+foreach my $tfile(sort @files) {
 	my @d=split(/\./,$tfile);
 	my $rootname="$d[0]\.$d[1]";
-	my $command="tar xvzf $databasedir/$tfile; blastdbcmd -entry all -outfmt %f -db $databasedir/$rootname -out $databasedir/$rootname.fasta"; 
+	my $command="tar xvzf $databasedir/$tfile -C $databasedir; $bindir/blastdbcmd -entry all -outfmt %f -db $databasedir/$rootname -out $databasedir/$rootname.fasta"; 
 	print "$command\n"; 
 	system $command; 
 	system("rm $databasedir/$rootname.p*");		#-- Deleting unnecessary files
@@ -38,11 +42,11 @@ foreach my $tfile(@files) {
 	#-- Join all files
 	
 system("cat $databasedir/*fasta > $fastadb");
-if((-e $fastadb)  && (!(-z $fastadb))) { system("rm $databasedir/*tar.gz"); } else { die "ERROR: No results in $fastadb\n"; }
+if((-e $fastadb)  && (!(-z $fastadb))) { system("rm $databasedir/nr*tar.gz;rm $databasedir/nr*fasta"); } else { die "ERROR: No results in $fastadb\n"; }
 
 	#-- Format the database
 
-system("/home/jtamames/software/diamond makedb --in $fastadb -d nr -p 8");
+system("$bindir/diamond makedb --in $fastadb -d $databasedir/nr -p 8");
 
 	#-- Make the reduced database
 
@@ -89,5 +93,5 @@ if($reduce) {
 	close infile2;
 	close outfile1;
 	
-	system("/home/jtamames/software/diamond makedb --in $reducedfastadb -d nr_reduced -p 8");
-}
+	system("$bindir/diamond makedb --in $reducedfastadb -d $databasedir/nr_reduced -p 8");
+    }   

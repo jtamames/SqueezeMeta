@@ -1,2 +1,0 @@
-Minumus2: Hay que usar version 4 de mummer, y corregir en amos-3.1.0/bin/minimus2 la opcion -maxmatch, cambiarla por --maxmatch
-MinPath: Poner variable de entorno (path) en el script pyhton

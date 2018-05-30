@@ -1,8 +1,6 @@
 #!/usr/bin/perl
 
 # v0.1.0 07/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
-# v0.1.1 07(05/2018 Added dynamic path detection. FPS.
-
 #-- Restarts interrupted squeezeM processes
 
 
@@ -14,18 +12,14 @@ use Cwd;
 
 #-- Restarts an interrupted pipeline
 
+my $version="0.1.1";
 my $start_run = time();
-
-###scriptdir patch, Fernando Puente-Sánchez, 07-V-2018
-use File::Basename;
-our $scriptdir = dirname(__FILE__);
-our $installpath = "$scriptdir/..";
-###
 
 my $pwd=cwd();	
 
 my $project=$ARGV[0];				#-- THIS MUST POINT TO THE INTERRUPTED PROCESS		
 if(!$project) { die "Please indicate the project to restart\nUsage: restart.pl <project>\n"; }
+$project=~s/\/$//;
 
 my $progress="$pwd/$project/progress";
 
@@ -35,9 +29,10 @@ do "$project/squeezeM_conf.pl";
 
 our($datapath,$assembler,$outassembly,);
 our($nocog,$nokegg,$nopfam,$nobins);
-our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$project,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options);
-our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
+our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options);
+our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
 our %bindirs;  
+
 
 	#-- Read where the process stopped
 
@@ -47,7 +42,7 @@ while(<infile1>) {
 	chomp $_;
 	next if(!$_);
 	if($_=~/^Samples\:(\d+)/) { $numsamples=$1; next; }
-	if($_=~/^Mode\:(\d+)/) { $mode=$1; next; }
+	if($_=~/^Mode\:(\w+)/) { $mode=$1; next; }
 	my $point=$_;
 	($rpoint,my $rest)=split(/\t/,$point);
 	}
@@ -78,245 +73,300 @@ system("rm $tempdir/$project.log");
 		#-- In coassembly mode
 
 	if($mode=~/coassembly/) {
-		print outfile3 "1\trun_assembly.pl ($assembler)\n";
+		my $scriptname="01.run_assembly.pl";
+		print outfile1 "1\t$scriptname ($assembler)\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP1 -> run_assembly.pl ($assembler)\n";
-		print "[",$currtime->pretty,"]: STEP1 -> run_assembly.pl ($assembler)\n";
-		system("perl $scriptdir/run_assembly.pl $project ");
-		if((-e $contigsfna) && (!(-z $contigsfna))) {} else { die "Assembly didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
+		print "[",$currtime->pretty,"]: STEP1 -> RUNNING CO-ASSEMBLY: $scriptname ($assembler)\n";
+		system("perl $scriptdir/$scriptname $project ");
+		if(-s $contigsfna<1000) { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
 		}
 
 		#-- In merged mode. Includes merging assemblies
 
 	elsif($mode=~/merged/) {
-		print outfile3 "1\trun_assembly_merged.pl\n";
+		my $scriptname="01.run_assembly_merged.pl";
+		print outfile1 "1\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP1 -> run_assembly_merged.pl\n";
-		print "[",$currtime->pretty,"]: STEP1 -> run_assembly_merged.pl\n";
-		system("perl $scriptdir/run_assembly_merged.pl $project");
-	
-			#-- Merging individual assemblies
- 
-		print outfile3 "1.5\tmerge_assemblies.pl\n";
-		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP1.5 -> merge_assemblies.pl\n";
-		print "[",$currtime->pretty,"]: STEP1.5 -> merge_assemblies.pl\n";
-		system("perl $scriptdir/merge_assemblies.pl $project");
+		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");	
 		}
 	
 		#-- In sequential mode. 
      
 	elsif($mode=~/sequential/) {
- 		print outfile3 "1\trun_assembly.pl\n";
+ 		my $scriptname="01.run_assembly.pl";
+ 		print outfile1 "1\t$scriptname\n";
  		$currtime=timediff();
- 		print outfile4 "[",$currtime->pretty,"]: STEP1 -> run_assembly.pl\n";
- 		print "[",$currtime->pretty,"]: STEP1 -> run_assembly.pl\n";
- 		system("perl $scriptdir/run_assembly.pl $project");
+ 		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
+ 		print "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname\n";
+ 		system("perl $scriptdir/$scriptname $project");
+		if(-s $contigsfna<1000) { die "Stopping in STEP1 -> $scriptname\n"; }
 		}		
 	}   	
+		
+   #-------------------------------- STEP1.5: Merge assemblies
+
+	if(($mode=~/merged/) && ($rpoint<=1.5)) {
+		my $scriptname="01.merge_assemblies.pl";
+		print outfile1 "1.5\t$scriptname\n";
+		$currtime=timediff();
+		print outfile2 "[",$currtime->pretty,"]: STEP1.5 -> MERGING ASSEMBLIES: $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+	}
+	   	
 		
     #-------------------------------- STEP2: Run RNA prediction
 
 	if($rpoint<=2) {
-		print outfile3 "2\trun_barrnap.pl\n";
+		my $scriptname="02.run_barrnap.pl";
+		print outfile1 "2\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP2 -> run_barrnap.pl\n";
-		print "[",$currtime->pretty,"]: STEP2 -> run_barrnap.pl\n";
-		system("perl $scriptdir/run_barrnap.pl $project");
+		print outfile2 "[",$currtime->pretty,"]: STEP2 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		my $masked="$resultpath/02.$project.maskedrna.fasta";
+		if(-s $masked<1000) { die "Stopping in STEP2 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP3: Run gene prediction
 
 	if($rpoint<=3) {
- 		print outfile3 "3\trun_prodigal.pl\n";
+		my $scriptname="03.run_prodigal.pl";
+ 		print outfile1 "3\t$scriptname\n";
  		$currtime=timediff();
- 		print outfile4 "[",$currtime->pretty,"]: STEP3 -> run_prodigal.pl\n";
- 		print "[",$currtime->pretty,"]: STEP3 -> run_prodigal.pl\n";
- 		system("perl $scriptdir/run_prodigal.pl $project");
-		 if((-e $aafile) && (!(-z $aafile))) {} else { die "Prodigal didn't provide results\n"; }
+ 		print outfile2 "[",$currtime->pretty,"]: STEP3 -> $scriptname\n";
+ 		print "[",$currtime->pretty,"]: STEP3 -> ORF PREDICTION: $scriptname\n";
+ 		system("perl $scriptdir/$scriptname $project");
+		if(-s $aafile<1000) { die "Stopping in STEP3 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP4: Run Diamond for taxa and functions
 
 	if($rpoint<=4) {
-		print outfile3 "4\trundiamond.pl\n";
+		my $scriptname="04.rundiamond.pl";
+		print outfile1 "4\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP4 -> rundiamond.pl\n";
-		print "[",$currtime->pretty,"]: STEP4 -> rundiamond.pl\n";
-		system("perl $scriptdir/rundiamond.pl $project");
-		if((-e $taxdiamond)  && (!(-z $taxdiamond))) {} else { die "Diamond didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP4 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP4 -> HOMOLOGY SEARCHES: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		if(-s $taxdiamond<1000) { die "Stopping in STEP4 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP5: Run hmmer for PFAM annotation
 
 	if($rpoint<=5) {
 		if(!$nopfam) {
-			print outfile3 "5\trunhmmer.pl\n";
+			my $scriptname="05.run_hmmer.pl";
+			print outfile1 "5\t$scriptname\n";
 			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP5 -> runhmmer.pl\n";
-			print "[",$currtime->pretty,"]: STEP5 -> runhmmer.pl\n";
-			system("perl $scriptdir/run_hmmer.pl $project");
-			if((-e $pfamhmmer)  && (!(-z $pfamhmmer))) {} else { die "hmmsearch didn't provide results\n"; }
+			print outfile2 "[",$currtime->pretty,"]: STEP5 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP5 -> HMMER/PFAM: $scriptname\n";
+			system("perl $scriptdir/$scriptname $project");
+			if(-s $pfamhmmer<1000) { die "Stopping in STEP5 -> $scriptname\n"; }
 		}
 	}
 			
     #-------------------------------- STEP6: LCA algorithm for taxa annotation
 
 	if($rpoint<=6) {
-		print outfile3 "6\tlca.pl\n";
+		my $scriptname="06.lca.pl";
+		print outfile1 "6\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP6 -> lca.pl\n";
-		print "[",$currtime->pretty,"]: STEP6 -> lca.pl\n";
-		system("perl $scriptdir/lca.pl $project");
-		if((-e $fun3tax)  && (!(-z $fun3tax))) {} else { die "lca didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP6 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP6 -> TAXONOMIC ASSIGNMENT: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		if(-s $fun3tax<1000) { die "Stopping in STEP6 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP7: fun3 for COGs, KEGG and PFAM annotation
 
 	if($rpoint<=7) {
+		my $scriptname="07.fun3assign.pl";
 		if((!$nocog) || (!$nokegg) || (!$nopfam)) {
-		print outfile3 "7\tfun3assign.pl\n";
+		print outfile1 "7\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP7 -> fun3assign.pl\n";
-		print "[",$currtime->pretty,"]: STEP7 -> fun3assign.pl\n";
-		system("perl $scriptdir/fun3assign.pl $project");
-		if((-e $fun3cog)  && (!(-z $fun3cog))) {} else { die "fun3assign didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP7 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		if((-s $fun3cog<1000) && (-s $fun3kegg<1000) && (-s $fun3pfam<1000)) { die "Stopping in STEP7 -> $scriptname\n"; }
 		}
 	}
 			
     #-------------------------------- STEP8: Taxonomic annotation for the contigs (consensus of gene annotations)
 
 	if($rpoint<=8) {
-		print outfile3 "8\tsummarycontigs3.pl\n";
+		my $scriptname="08.summarycontigs3.pl";
+		print outfile1 "8\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP8 -> summarycontigs3.pl\n";
-		print "[",$currtime->pretty,"]: STEP8 -> summarycontigs3.pl\n";
-		system("perl $scriptdir/summarycontigs3.pl $project");
-		if((-e $alllog)  && (!(-z $alllog))) {} else { die "summarycontigs didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP8 -> CONTIG TAX ASSIGNMENT: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		if(-s $alllog<1000) { die "Stopping in STEP8 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP9: Mapping of reads onto contigs for abundance calculations
 	
 	if($rpoint<=9) {
-		print outfile3 "9\tmapbamsamples.pl\n";
+		my $scriptname="09.mapbamsamples.pl";
+		print outfile1 "9\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP9 -> mapbamsamples.pl\n";
-		print "[",$currtime->pretty,"]: STEP9 -> mapbamsamples.pl\n";
-		system("perl $scriptdir/mapbamsamples.pl $project");
-		if((-e $rpkmfile)  && (!(-z $rpkmfile))) {} else { die "mapbamsamples didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP9 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP9 -> MAPPING READS: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		if(-s $rpkmfile<1000) { die "Stopping in STEP9 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP10: Count of taxa abundances
 	
 	if($rpoint<=10) {
-		print outfile3 "10\tmcount.pl\n";
+		my $scriptname="10.mcount.pl";
+		print outfile1 "10\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP9 -> mcount.pl\n";
-		print "[",$currtime->pretty,"]: STEP9 -> mcount.pl\n";
-		system("perl $scriptdir/mcount.pl $project");
-		if((-e $mcountfile)  && (!(-z $mcountfile))) {} else { die "mcount didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP10 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP10 -> COUNTING TAX ABUNDANCES: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		if(-s $mcountfile<1000) { die "Stopping in STEP10 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP11: Count of function abundances
 	
 	if($rpoint<=11) {
-		print outfile3 "11\tfuncover.pl\n";
+		my $scriptname="11.funcover.pl";
+		print outfile1 "11\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP11 -> funcover.pl\n";
-		print "[",$currtime->pretty,"]: STEP11 -> funcover.pl\n";
-		system("perl $scriptdir/funcover.pl $project");
-		# if((-e $funcoverfile)  && (!(-z $funcoverfile))) {} else { die "funcover didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP11 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP11 -> COUNTING FUNCTION ABUNDANCES: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		my $cogfuncover="$resultpath/11.$project.cog.funcover";
+		my $keggfuncover="$resultpath/11.$project.kegg.funcover";
+		if((-s $cogfuncover<1000) && (-s $keggfuncover<1000)) { die "Stopping in STEP11 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP12: Generation of the gene table
 		
 	if($rpoint<=12) {
-		print outfile3 "12\tmergeannot2.pl\n";
+		my $scriptname="12.mergeannot2.pl";
+		print outfile1 "12\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP12 -> mergeannot2.pl\n";
-		print "[",$currtime->pretty,"]: STEP12 -> mergeannot2.pl\n";
-		system("perl $scriptdir/mergeannot2.pl $project");
-		if((-e $mergedfile) && (!(-z $mergedfile))) {} else { die "mergeannot didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP12 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP12 -> CREATING GENE TABLE: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		if(-s $mergedfile<1000) { die "Stopping in STEP12 -> $scriptname\n"; }
 	}
 			
     #-------------------------------- STEP13: Running Maxbin (only for merged or coassembly modes)		
 	
 	if(($mode!~/sequential/i) && ($numsamples>1) && (!$nobins)) {	       
 		if($rpoint<=13) {
-			print outfile3 "13\tbin_maxbin.pl\n";
+			my $scriptname="13.bin_maxbin.pl";
+			print outfile1 "13\t$scriptname\n";
 			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP13 -> bin_maxbin.pl\n";
-			print "[",$currtime->pretty,"]: STEP13 -> bin_maxbin.pl\n";
-			system("perl $scriptdir/bin_maxbin.pl $project >> $tempdir/$project.log");
+			print outfile2 "[",$currtime->pretty,"]: STEP13 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP13 -> MAXBIN BINNING: $scriptname\n";
+			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			my $dirbin=$bindirs{maxbin};
-			my $firstfile="$dirbin/maxbin.001.fasta";
-			# if((-e $firstfile) && (!(-z $firstfile))) {} else { die "bin_maxbin didn't provide results\n"; }
+			open(indir1,$dirbin);
+			my @binfiles=grep(/fasta/,readdir indir1);
+			closedir indir1;
+			my $firstfile="$dirbin/$binfiles[0]";
+			if(-s $firstfile<1000) { die "Stopping in STEP13 -> $scriptname\n"; }
 		}
 			
     #-------------------------------- STEP14: Running Metabat (only for merged or coassembly modes)		
 	
 		if($rpoint<=14) {
-			print outfile3 "14\tbin_metabat2.pl\n";
+			my $scriptname="14.bin_metabat2.pl";
+			print outfile1 "14\t$scriptname\n";
 			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP14 -> bin_metabat2.pl\n";
-			print "[",$currtime->pretty,"]: STEP14 -> bin_metabat2.pl\n";
-			system("perl $scriptdir/bin_metabat2.pl $project >> $tempdir/$project.log");
+			print outfile2 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP14 -> METABAT BINNING: $scriptname\n";
+			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			my $dirbin=$bindirs{metabat2};
-			my $firstfile="$dirbin/metabat2.1.fa";
-			# if((-e $firstfile) && (!(-z $firstfile))) {} else { die "bin_metabat2 didn't provide results\n"; }
+			open(indir2,$dirbin);
+			my @binfiles=grep(/fasta/,readdir indir2);
+			closedir indir2;
+			my $firstfile="$dirbin/$binfiles[0]";
+			if(-s $firstfile<1000) { die "Stopping in STEP14 -> $scriptname\n"; }
 		}
 			
     #-------------------------------- STEP15: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
 		if($rpoint<=15) {
-			print outfile3 "15\taddtax2.pl\n";
+			my $scriptname="15.addtax2.pl";
+			print outfile1 "15\t$scriptname\n";
 			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP15 -> addtax2.pl\n";
-			print "[",$currtime->pretty,"]: STEP15 -> addtax2.pl\n";
-			system("perl $scriptdir/addtax2.pl $project >> $tempdir/$project.log");
-			if((-e $bintax)  && (!(-z $bintax))) {} else { die "addtax2 didn't provide results\n"; }
+			print outfile2 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP15 -> BIN TAX ASSIGNMENT: $scriptname\n";
+			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			if(-s $bintax<1000) { die "Stopping in STEP15 -> $scriptname\n"; }
 		}
 			
     #-------------------------------- STEP16: Checking of bins for completeness and contamination (checkM)		
 	
 		if($rpoint<=16) {
-			print outfile3 "16\tcheckM_batch.pl\n";
+			my $scriptname="16.checkM_batch.pl";
+			print outfile1 "16\t$scriptname\n";
 			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP16 -> checkM_batch.pl\n";
-			print "[",$currtime->pretty,"]: STEP16 -> checkM_batch.pl\n";
-			system("perl $scriptdir/checkM_batch.pl $project >> $tempdir/$project.log");
-			# if((-e $checkmfile)  && (!(-z $checkmfile))) {} else { die "checkM_batch didn't provide results\n"; }
+			print outfile2 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP16 -> CHECKING BINS: $scriptname\n";
+			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			foreach my $binmethod(keys %bindirs) {
+				$checkmfile="$resultpath/16.$project.$binmethod.checkM";
+				print "Checking for $checkmfile\n";
+				if(-s $checkmfile<1000) { die "Cannot find $checkmfile\nStopping in STEP16 -> $scriptname\n"; }
+				}
 		}
 			
     #-------------------------------- STEP17: Make bin table		
 	
 		if($rpoint<=17) {
-			print outfile3 "17\tgetbins.pl\n";
+			my $scriptname="17.getbins.pl";
+			print outfile1 "17\t$scriptname\n";
 			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP17 -> getbins.pl\n";
-			print "[",$currtime->pretty,"]: STEP17 -> getbins.pl\n";
-			system("perl $scriptdir/getbins.pl $project");
-			if((-e $bincov)  && (!(-z $bincov))) {} else { die "getbins didn't provide results\n"; }
+			print outfile2 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP17 -> CREATING BIN TABLE: $scriptname\n";
+			system("perl $scriptdir/$scriptname $project");
+			if(-s $bintable<1000) { die "Stopping in STEP17 -> $scriptname\n"; }
 		}
 	}
 
     #-------------------------------- STEP18: Make contig table		
 
 	if($rpoint<=18) {
-		print outfile3 "18\tgetcontigs.pl\n";
+		my $scriptname="18.getcontigs.pl";
+		print outfile1 "18\t$scriptname\n";
 		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP18 -> getcontigs.pl\n";
-		print "[",$currtime->pretty,"]: STEP18 -> getcontigs.pl\n";
-		system("perl $scriptdir/getcontigs.pl $project");
-		# if((-e $contigsinbins)  && (!(-z $contigsinbins))) {} else { die "getcontigs didn't provide results\n"; }
+		print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP18 -> CREATING CONTIG TABLE: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		if(-s $contigtable<1000) { die "Stopping in STEP18 -> $scriptname\n"; }
+	}
+
+
+    #-------------------------------- STEP19: Make stats		
+
+	if($rpoint<=19) {
+		my $scriptname="19.stats.pl";
+		print outfile1 "19\t$scriptname\n";
+		$currtime=timediff();
+		print outfile2 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP19 -> MAKING FINAL STATISTICS: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		my $statfile="$resultpath/19.$project.stats";
+		if(-s $statfile<1000) { die "Stopping in STEP19 -> $scriptname\n"; }
 	}
 
     #-------------------------------- END OF PIPELINE		
 
-	print outfile3 "END\n";
+	print outfile1 "END\n";
 	$currtime=timediff();
-	print outfile4 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
+	print outfile2 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
 	print "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
+        close outfile1;
+	close outfile2;
 
 
 

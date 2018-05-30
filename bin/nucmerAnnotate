@@ -1,5 +1,11 @@
 #!/usr/bin/perl
-use lib "/home/fer/Projects/SqueezeM/opt/amosInst/lib";
+#LIBPATH CODE ADDED BY Fernando Puente-Sánchez, 23-V-2018
+
+BEGIN {
+$LIBPATH = $0=~s/nucmerAnnotate/..\/lib/r;
+}
+
+use lib $LIBPATH;
 
 use strict;
 use warnings;

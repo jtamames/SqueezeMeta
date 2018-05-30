@@ -1,0 +1,41 @@
+simp
+{
+    ; bulge remover:
+    br
+    {
+        max_relative_coverage       0.5     ; bulge_cov < this * not_bulge_cov
+        ; parallel false
+    }
+    
+    ; complex bulge remover
+    cbr
+    {
+        enabled false
+    }
+
+    ; bulge remover:
+    final_br
+    {
+        enabled false
+    }
+
+    ; relative coverage erroneous component remover:
+    rcc
+    {
+        enabled false
+    }
+
+    init_clean
+    {
+        early_it_only   true
+
+        activation_cov  -1.
+        ier
+        {
+            enabled                     false
+        }
+
+        tip_condition   ""
+        ec_condition    ""
+    }
+}

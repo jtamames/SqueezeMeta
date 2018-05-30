@@ -8,9 +8,12 @@ use strict;
 
 #-- Output file. MUST POINT TO DATABASE DIRECTORY
 
-my $outfile="/media/mcm/jtamames/databases/LCA_tax/nr.taxlist.db";
+my $databasedir=$ARGV[0];
+my $nrfasta="$databasedir/nr.faa";	#-- Previously downloaded
+
+my $outfile="$databasedir/LCA_tax/nr.taxlist.tsv";
 open(outfile1,">$outfile") || die;
-open(infile1,"/media/mcm/jtamames/databases/nr15122017.fasta") || die;
+open(infile1,$nrfasta) || die;
 my %accum;
 my $specname;
 while(<infile1>) {
@@ -26,7 +29,8 @@ while(<infile1>) {
 		if($wd[0] eq "Candidatus") { $specname="$wd[0] $wd[1] $wd[2]"; } else  { $specname="$wd[0] $wd[1]"; }  
 		$accum{$specname}++;
 		}
-	print outfile1 "$f[1]\t$f[3]\t";
+        $id=~s/^\>//;
+	print outfile1 "$id\t";
 	my $string="";		      
 	foreach my $pr(sort keys %accum) { $string.="$pr;"; }
 	chop $string;
@@ -36,4 +40,5 @@ while(<infile1>) {
 	
 close outfile1;
 close infile1;
-print "File created: $outfile\n";	    
+print "File created: $outfile\n";
+

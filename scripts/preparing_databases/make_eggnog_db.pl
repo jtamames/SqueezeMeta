@@ -6,10 +6,19 @@
 
 use strict;
 
+###scriptdir patch, Fernando Puente-Sánchez, 07-V-2018
+use File::Basename;
+our $dbscriptdir = dirname(__FILE__);
+our $installpath = "$dbscriptdir/../..";
+###
+
+
 $|=1;
 
-my $databasedir="/media/mcm/jtamames/databases"; 	#-- THIS MUST POINT TO THE DATABASES DIRECTORY
-my $software_dir="/home/jtamames/software/";		#-- THIS MUST POINT TO THE DIAMOND DIRECTORY
+my $databasedir=$ARGV[0];			        #-- THIS MUST POINT TO THE DATABASES DIRECTORY
+
+#my $databasedir="/media/mcm/jtamames/databases"; 	#-- THIS MUST POINT TO THE DATABASES DIRECTORY
+my $software_dir="$installpath/bin";		        #-- THIS MUST POINT TO THE DIAMOND DIRECTORY
 
 my $eggnogdb="http://eggnogdb.embl.de/download/eggnog_4.5";	#-- SITE FOR DOWLOADING DATA
 my $outegg="$databasedir/eggnog4.fasta";
@@ -34,9 +43,11 @@ close infile1;
 
 print "Now creating database\n";
 open(outfile1,">$outegg") || die;
-open(infile2,"zcat $databasedir/eggnog4.proteins.all.fa.gz |") || die; 
+open(infile2,"zcat $databasedir/eggnog4.proteins.all.fa.gz |") || die;
+
+my($badid,$cogstr);
+
 while(<infile2>) {
-	my($badid,$cogstr);
 	if($_=~/^\>(.*)/) {
 		my $id=$1;
 		chomp $id;
@@ -57,4 +68,5 @@ print "Removing datafiles\n";
 system("rm $databasedir/eggnog4.proteins.all.fa.gz; rm $databasedir/NOG.members.tsv.gz;");
 print "Formatting database\n";
 system("$software_dir/diamond makedb --in $outegg -d $databasedir/eggnog -p 8");
-print "FINISHED: eggnog database created in $outegg\n";
+system("rm $outegg");
+print "FINISHED: eggnog database created in $databasedir/eggnog.dmnd\n";

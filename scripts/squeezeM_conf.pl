@@ -1,8 +1,8 @@
 
 #-- Generic paths
 
-$installpath="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/home/fer/Projects/SqueezeM";
-$databasepath="$installpath/db";
+#$installpath="";
+$databasepath="/media/disk6/fer/Projects/squeezeM/squeezeM/db"
 $extdatapath="$installpath/data";
 $scriptdir="$installpath/scripts";   #-- Scripts directory
 
@@ -52,7 +52,7 @@ $coglist="$extdatapath/coglist.txt";    #-- COG equivalence file (COGid -> Funct
 $kegglist="$extdatapath/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
 $pfamlist="$extdatapath/pfam.dat";      #-- PFAM equivalence file
 $taxlist="$extdatapath/alltaxlist.txt"; #-- Tax equivalence file 
-$nr_db="$databasepath/nr15122017.dmnd";
+$nr_db="$databasepath/nr.dmnd";
 $cog_db="$databasepath/eggnog";
 $kegg_db="$databasepath/keggdb";
 $lca_db="$databasepath/LCA_tax/taxid.db";
@@ -72,7 +72,7 @@ $nobins=0;
 
 $metabat_soft="$installpath/bin/metabat2";
 $maxbin_soft="$installpath/bin/run_MaxBin.pl";
-$spades_soft="$installpath/opt/SPAdes-3.11.1-Linux/bin/spades.py";
+$spades_soft="$installpath/bin/spades.py";
 $barrnap_soft="$installpath/bin/barrnap";
 $bowtie2_build_soft="$installpath/bin/bowtie2-build";
 $bowtie2_x_soft="$installpath/bin/bowtie2";
@@ -85,4 +85,5 @@ $prodigal_soft="$installpath/bin/prodigal";
 $cdhit_soft="$installpath/bin/cd-hit-est";
 $toamos_soft="$installpath/bin/toAmos";
 $minimus2_soft="$installpath/bin/minimus2";
+$checkm_soft="$installpath/bin/checkm";
 
