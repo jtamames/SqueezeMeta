@@ -88,7 +88,7 @@ close outfile1;
 open(outfile2,">$installpath/scripts/squeezeM_conf.pl") || die;
 open(infile1, "$installpath/scripts/squeezeM_conf_original.pl") || die;
 while(<infile1>) {
-	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath=\"$databasedir\"\n"; }
+	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath=\"$databasedir\";\n"; }
 	else { print outfile2 $_; }
 	}
 close infile1;
