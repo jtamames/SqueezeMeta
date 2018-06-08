@@ -56,7 +56,7 @@ SHOWCOORDS	= $(PATH)/show-coords
 13: $(BINDIR)/dumpreads $(BANK) -m $(REFCOUNT) > $(QRYSEQ)
 
 ## Getting overlaps 
-20: $(NUCMER) -maxmatch -c $(OVERLAP) $(REFSEQ) $(QRYSEQ) -p $(PREFIX)
+20: $(NUCMER) --maxmatch -c $(OVERLAP) $(REFSEQ) $(QRYSEQ) -p $(PREFIX)
 21: $(SHOWCOORDS) -H -c -l -o -r -I $(MINID) $(ALIGN) | $(BINDIR)/nucmerAnnotate | egrep 'BEGIN|END|CONTAIN|IDENTITY' > $(COORDS) 
 22: $(BINDIR)/nucmer2ovl -ignore $(MAXTRIM) -tab $(COORDS) | $(BINDIR)/sort2 > $(OVLTAB)
 

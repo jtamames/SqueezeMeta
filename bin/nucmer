@@ -15,21 +15,21 @@
 #
 #-------------------------------------------------------------------------------
 
-#BASEPATH CODE ADDED BY Fernando Puente-Sánchez, 26-IV-2018
+#BASEPATH CODE ADDED BY Fernando Puente-Sánchez, 08-VI-2018
 BEGIN {
-$BASE_PATH = $0=~s/nucmer/../r;
+$BASEPATH = $0=~s/nucmer/../r;
 }
-my $BASE_PATH = $BASE_PATH;
 
-use lib "$BASE_PATH/lib/TIGR";
+use lib "$BASEPATH/lib/TIGR";
 use Foundation;
 use File::Spec::Functions;
 use strict;
 
 ###PATH INFO MODIFIED BY Fernando Puente-Sánchez 26-IV-2018.
-my $AUX_BIN_DIR = "$BASE_PATH/lib/mummer";
-my $BIN_DIR = "$BASE_PATH/bin";
-my $SCRIPT_DIR = "$BASE_PATH/lib/TIGR";
+my $BASEPATH = $0=~s/nucmer/../r;
+my $AUX_BIN_DIR = "$BASEPATH/lib/mummer";
+my $BIN_DIR = "$BASEPATH/bin";
+my $SCRIPT_DIR = "$BASEPATH/lib/TIGR";
 
 
 my $VERSION_INFO = q~
