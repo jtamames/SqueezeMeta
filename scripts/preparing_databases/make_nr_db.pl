@@ -5,8 +5,14 @@
 #-- Requires package ncbi-blast+ (for blastdbcmd)
 #
 # - 16-05-2018: Modify to use relative paths (Fernando Puente-Sánchez).
+# - 06-06-2018: Add scriptdir patch FPS.
 
 use strict;
+###scriptdir patch, Fernando Puente-Sánchez, 07-V-2018
+use File::Basename;
+our $dbscriptdir = dirname(__FILE__);
+our $installpath = "$dbscriptdir/../..";
+###
 
 $|=1;
 
@@ -17,8 +23,8 @@ my $databasedir=$ARGV[0];			#-- THIS MUST POINT TO THE DATABASES DIRECTORY
 # my $databasedir="/media/mcm/jtamames/temp/db";		#-- THIS MUST POINT TO THE DATABASES DIRECTORY
 my $fastadb="$databasedir/nr.faa";			#-- Name of the fasta file to create
 my $reducedfastadb="$databasedir/nr_reduced.fasta";	#-- Reduced database (No eukaryotes)
-my $taxdict="$databasedir/../data/taxdict.txt";	#-- Resulting from parsing NCBI's taxonomy
-my $bindir="$databasedir/../bin";
+my $taxdict="$installpath/data/taxdict.txt";	#-- Resulting from parsing NCBI's taxonomy
+my $bindir="$installpath/bin";
 	#-- Getting the raw files from NCBI. This can take long and need 100 Gb disk space
 
 my $command="wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/nr*gz -nc -P $databasedir";
@@ -40,8 +46,10 @@ foreach my $tfile(sort @files) {
 	}
 	
 	#-- Join all files
-	
-system("cat $databasedir/*fasta > $fastadb");
+
+system("sed -i -e '\$a\\' $databasedir/nr.*.fasta"); #Add missing newlines at the end of each file if required.
+system("cat $databasedir/nr.*.fasta > $fastadb");
+
 if((-e $fastadb)  && (!(-z $fastadb))) { system("rm $databasedir/nr*tar.gz;rm $databasedir/nr*fasta"); } else { die "ERROR: No results in $fastadb\n"; }
 
 	#-- Format the database

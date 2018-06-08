@@ -40,6 +40,9 @@ system("rm $databasedir/kegg.db");
 print "Downloading and creating nr database. This will take a while (several hours)...\n";
 system "perl make_nr_db.pl $databasedir";
 
+
+
+###Download and create eggnog db.
 print "\nDownloading and creating eggnog database...\n\n";
 system "perl make_eggnog_db.pl $databasedir";
 

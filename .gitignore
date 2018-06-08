@@ -13,3 +13,5 @@ Thumbs.db
 db/*
 test/*
 download/*
+scripts/squeezeM_conf.pl
+lib/checkm/DATA_CONFIG
