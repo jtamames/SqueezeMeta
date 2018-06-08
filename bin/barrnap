@@ -13,7 +13,7 @@ my $VERSION = "0.9-dev";
 my $DESC = "rapid ribosomal RNA prediction";
 my $AUTHOR = 'Torsten Seemann <torsten.seemann@gmail.com>';
 my $URL = 'https://github.com/tseemann/barrnap';
-my $DBDIR = "$FindBin::RealBin/../db"; #Modified by Fernando Puente-Sánchez, 27-IV-2018.
+#my $DBDIR = "$FindBin::RealBin/../db"; #Modified by Fernando Puente-Sánchez, 27-IV-2018.
 my $OPSYS = $^O;
 my $BINDIR = "$FindBin::RealBin"; #Modified by Fernando Puente-Sánchez, 27-IV-2018.
 
@@ -26,9 +26,12 @@ my $MAXLEN = int( 1.2 * max(values %LENG) );
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 # command line options
+# $DBDIR ADDED BY FPS 08-06-2018.
 
-my(@Options, $quiet, $kingdom, $threads, $evalue, $lencutoff, $reject, $incseq, $outseq);
+my(@Options, $quiet, $kingdom, $threads, $evalue, $lencutoff, $reject, $incseq, $outseq, $dbdir);
 setOptions();
+
+my $DBDIR=$dbdir; #FPS
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 # check all is well
@@ -210,6 +213,7 @@ sub setOptions {
     {OPT=>"reject=f",VAR=>\$reject, DEFAULT=>0.5, DESC=>"Proportional length threshold to reject prediction"},
     {OPT=>"evalue=f",VAR=>\$evalue, DEFAULT=>1E-6, DESC=>"Similarity e-value cut-off"},
     {OPT=>"incseq!",  VAR=>\$incseq, DEFAULT=>0, DESC=>"Include FASTA input sequences in GFF3 output"},
+    {OPT=>"dbdir=s", VAR=>\$dbdir, DEFAULT=>"../db", DESC=>"Location of barrnap models"}, #FPS
 #    {OPT=>"outseq!",  VAR=>\$outseq, DEFAULT=>'', DESC=>"Save hits to this FASTA file"},
   );
 

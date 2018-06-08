@@ -16,7 +16,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$contigsfna,$tempdir,$barrnap_soft,$numthreads,$rnafile);
+our($databasepath, $resultpath,$contigsfna,$tempdir,$barrnap_soft,$numthreads,$rnafile);
 
 my %king;
 tie %king,"Tie::IxHash";
@@ -34,7 +34,7 @@ foreach my $kingdom(keys %king) {
 
 	#-- Run barrnap
 
-	my $command="$barrnap_soft --quiet --threads $numthreads --kingdom $kingdom --reject 0.1 $targetfile > $output";
+	my $command="$barrnap_soft --quiet --threads $numthreads --kingdom $kingdom --reject 0.1 $targetfile --dbdir $databasepath > $output";
 	print "Running barrnap for $king{$kingdom}: $command\n";
 	system $command;
 
