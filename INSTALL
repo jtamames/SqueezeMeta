@@ -1,0 +1,42 @@
+###Install gcc5 (Not needed for Ubuntu 16 and higher).
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install gcc-5 g++-5
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+
+
+###System libraries.
+sudo apt-get install git
+sudo apt-get install sqlite3
+sudo apt-get install liblzma-dev libbz2-dev
+
+
+###Perl modules.
+sudo apt-get install libtie-ixhash-perl
+sudo apt-get install libclass-dbi-mysql-perl #And all its dependencies.
+sudo apt-get install libxml-parser-perl #And all its dependencies.
+
+
+###Python modules.
+sudo apt-get install python-pip
+sudo apt-get install python-dev
+sudo apt-get install python-scipy
+sudo apt-get install python-matplotlib
+sudo -H pip install dendropy
+sudo -H pip install pysam
+
+
+###Download squeezeM.
+cd <SOFTWARE_DIR>
+git clone http://github.com/jtamames/squeezeM
+
+
+###Install databases and test data.
+#This will take about a day and require around 300GB free disk space.
+<SQUEEZEM_PATH>/squeezeM/scripts/preparing_databases/make_databases.pl <DATAPATH>
+
+
+###Run squeezeM on test data.
+cd <DATAPATH>/test
+
+perl <SOFTWARE_DIR>/squeezeM/scripts/squeezeM.pl -m merged -p Hadza -s test.samples -f raw/
