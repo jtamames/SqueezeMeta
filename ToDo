@@ -60,6 +60,7 @@
 
 - Add minpath support
 
+- Remove trailing "/" from $project, in particular if we are using restart.pl
 
 #########
 - Luis' instructions are missing the part in which we create the database
