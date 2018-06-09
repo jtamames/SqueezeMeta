@@ -29,7 +29,7 @@ checkProgram();
 
 my $RSCRIPT = "Rscript";
 my $HEATMAP_R = "$Bin/heatmap.r";
-my $MARKERHMM = "$Bin/../db/marker.hmm";
+my $MARKERHMM = "$Bin/../db/marker.hmm"; #This is overriden by a the -markerpath parameter.
 my $MARKERNUM = 107;
 my $MAXBIN = "$Bin/MaxBin";
 my $ABUND_OUTPUT = "";
@@ -272,6 +272,11 @@ sub main
 		elsif ($ARGV[$i] eq "-preserve_intermediate")
 		{
 			$preserve = 1;
+		}
+                elsif ($ARGV[$i] eq "-markerpath") #FPS
+                {
+			$i++;
+                	$MARKERHMM = $ARGV[$i];
 		}
 		elsif ($ARGV[$i] eq "-version" || $ARGV[$i] eq "-v")
 		{

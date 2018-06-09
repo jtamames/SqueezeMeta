@@ -14,7 +14,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,%bindirs,$contigcov,$maxbin_soft,$numthreads);
+our($databasepath, $contigsfna,%bindirs,$contigcov,$maxbin_soft,$numthreads);
 
 my %allcontigs;
 
@@ -60,6 +60,6 @@ foreach my $k(sort keys %tcontigs) { print outfile2 "$k\t0\n"; }
 close outfile2;
 close outfile1;
 
-my $command="perl $maxbin_soft -thread $numthreads -contig $contigsfna -abund_list $abundlist -out $dirbin/maxbin";
+my $command="perl $maxbin_soft -thread $numthreads -contig $contigsfna -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
 print "Now running Maxbin: $command\n";
 system $command;
