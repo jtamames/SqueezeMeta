@@ -16,4 +16,6 @@ download/*
 scripts/squeezeM_conf.pl
 lib/checkm/DATA_CONFIG
 lib/checkm/*pyc
-lib/checkm/*/*pyc
+lib/checkm/*/*.pyc
+bin/*.pyc
+lib/spades/*/*.pyc
