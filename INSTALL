@@ -6,25 +6,15 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /u
 
 
 ###System libraries.
-sudo apt-get install git
-sudo apt-get install sqlite3
-sudo apt-get install liblzma-dev libbz2-dev
-
+sudo apt-get install git sqlite3 liblzma-dev libbz2-dev zlib1g-dev
 
 ###Perl modules.
-sudo apt-get install libtie-ixhash-perl
-sudo apt-get install libclass-dbi-mysql-perl #And all its dependencies.
-sudo apt-get install libxml-parser-perl #And all its dependencies.
-sudo apt-get install libdbd-sqlite3-perl
+sudo apt-get install libtie-ixhash-perl libclass-dbi-mysql-perl libxml-parser-perl libdbd-sqlite3-perl
 
 
 ###Python modules.
-sudo apt-get install python-pip
-sudo apt-get install python-dev
-sudo apt-get install python-scipy
-sudo apt-get install python-matplotlib
-sudo -H pip install dendropy
-sudo -H pip install pysam
+sudo apt-get install python-pip python-dev python-scipy python-matplotlib 
+sudo -H pip install dendropy pysam
 
 
 ###Download squeezeM.
