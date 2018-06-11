@@ -29,5 +29,4 @@ git clone http://github.com/jtamames/squeezeM
 
 ###Run squeezeM on test data.
 cd <DATAPATH>/test
-
 perl <SOFTWARE_DIR>/squeezeM/scripts/squeezeM.pl -m merged -p Hadza -s test.samples -f raw/

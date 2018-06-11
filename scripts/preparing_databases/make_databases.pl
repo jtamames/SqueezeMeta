@@ -38,13 +38,13 @@ system("rm $databasedir/kegg.db");
 
 ###Download and create nr db.
 print "Downloading and creating nr database. This will take a while (several hours)...\n";
-system "perl make_nr_db.pl $databasedir";
+system "perl $dbscriptdir/make_nr_db.pl $databasedir";
 
 
 
 ###Download and create eggnog db.
 print "\nDownloading and creating eggnog database...\n\n";
-system "perl make_eggnog_db.pl $databasedir";
+system "perl $dbscriptdir/make_eggnog_db.pl $databasedir";
 
 
 ###Download and create Pfam db.
@@ -56,20 +56,20 @@ system "wget -P $databasedir ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_rele
 print "\nCreating lca.db...\n";
 system "mkdir $databasedir/LCA_tax";
 print "\n  Running rectaxa.pl\n";
-system "perl rectaxa.pl $databasedir";
+system "perl $dbscriptdir/rectaxa.pl $databasedir";
 print "\n  Running nrindex.pl\n";
-system "perl nrindex.pl $databasedir";
+system "perl $dbscriptdir/nrindex.pl $databasedir";
 print "\n  Running taxid_tree.pl\n";
-system "perl taxid_tree.pl $databasedir";
+system "perl $dbscriptdir/taxid_tree.pl $databasedir";
 
 system ("rm $databasedir/nr.faa");
 
 print "\n  Creating sqlite databases\n\n";
 
-system "sqlite3 $databasedir/LCA_tax/taxid.db < taxid.sql";
+system "sqlite3 $databasedir/LCA_tax/taxid.db < $dbscriptdir/taxid.sql";
 system "echo '.import $databasedir/LCA_tax/taxid_tree.txt taxid' | sqlite3 $databasedir/LCA_tax/taxid.db -cmd '.separator \"\\t\"'";
 
-system "sqlite3 $databasedir/LCA_tax/parents.db < parents.sql";
+system "sqlite3 $databasedir/LCA_tax/parents.db < $dbscriptdir/parents.sql";
 system "echo '.import $databasedir/LCA_tax/parents.txt parents' | sqlite3 $databasedir/LCA_tax/parents.db -cmd '.separator \"\\t\"'";
 
 system("rm $databasedir/LCA_tax/nr.taxlist.tsv $databasedir/LCA_tax/taxid_tree.txt $databasedir/LCA_tax/taxatree.txt");
