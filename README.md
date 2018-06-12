@@ -12,14 +12,17 @@ SqueezeM is a full automatic pipeline for metagenomics/metatranscriptomics, cove
 6) Metatranscriptomic support via mapping of cDNA reads against reference metagenomes 
 
 SqueezeM can be run in three different modes, depending of the type of multi-metagenome support. These modes are:
+
 -Sequential mode: All samples are treated individually and analysed sequentially. This mode does not include binning.
+
 -Coassembly mode: Reads from all samples are pooled and a single assembly is performed. Then reads from individual samples are mapped to the coassembly to obtain gene abundances in each sample. Binning methods allow to obtain genome bins.
+
 -Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw ). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
 
 SqueezeM uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
 1) Assembly 
-2) RNA prediction and annotation
+2) RNA prediction
 3) ORF (CDS) prediction
 4) Homology searching against taxonomic and functional databases
 5) Hmmer searching against Pfam database
@@ -41,7 +44,7 @@ SqueezeM uses a combination of custom scripts and external software packages for
 
 ## 2. Installation
 
-For installing squeezeM, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the squeezeM scripts as well as the third-party software redistributed with squeeze; (see section 6). The INSTALL file contains detailed installation instructions, including all the external libraries required to make squeezeM run in a vanilla Ubuntu 14.04 installation.
+For installing squeezeM, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the squeezeM scripts as well as the third-party software redistributed with squeezeM (see section 6). The INSTALL file contains detailed installation instructions, including all the external libraries required to make squeezeM run in a vanilla Ubuntu 14.04 installation.
  
  
 ## 3. Building databases
@@ -96,13 +99,13 @@ Sample1	readfileA_1.fastq	pair1
 Sample1	readfileA_2.fastq	pair2
 Sample1	readfileB_1.fastq	pair1
 Sample1	readfileB_2.fastq	pair2
-Sample2	readfileC_1.fastq	pair1
-Sample2	readfileC_2	pair2
-Sample3	readfileD_1	pair1	noassembly
-Sample3	readfileD_2	pair2	noassembly
+Sample2	readfileC_1.fastq.gz	pair1
+Sample2	readfileC_2.fastq.gz	pair2
+Sample3	readfileD_1.fastq	pair1	noassembly
+Sample3	readfileD_2.fastq	pair2	noassembly
 ```
 
-The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the "noassembly" value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Notice also that paired reads are expected, and that a sample can have more than one set of paired reads.
+The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the "noassembly" value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Notice also that paired reads are expected, and that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
 
 ### Restart
 
@@ -121,9 +124,9 @@ Also, any individual script of the pipeline can be run in the upper directory to
 The make_databases.pl script also downloads two datasets for testing that the program is running correctly. Assuming make_databases.pl was run with the directory `<datapath>` as its target the test run can be executed with
 
 `cd <datapath>`
-`squeezeM.pl -m merged -p Hadza -s test.samples -f raw/`
+`squeezeM.pl -m coassembly -p Hadza -s test.samples -f raw`
 
-Alternative `-m sequential`, `-m coassembly` or `-a spades` can be used.
+Alternative `-m sequential`, `-m merged` can be used.
 
 ## 6. License and third-party software
 SqueezeM is distributed with a GPL-3 license.
