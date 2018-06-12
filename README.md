@@ -44,7 +44,7 @@ SqueezeM uses a combination of custom scripts and external software packages for
 
 ## 2. Installation
 
-For installing squeezeM, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the squeezeM scripts as well as the third-party software redistributed with squeeze; (see section 6). The INSTALL file contains detailed installation instructions, including all the external libraries required to make squeezeM run in a vanilla Ubuntu 14.04 installation.
+For installing squeezeM, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the squeezeM scripts as well as the third-party software redistributed with squeezeM (see section 6). The INSTALL file contains detailed installation instructions, including all the external libraries required to make squeezeM run in a vanilla Ubuntu 14.04 installation.
  
  
 ## 3. Building databases
