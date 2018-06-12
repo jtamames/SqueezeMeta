@@ -12,7 +12,7 @@ use Cwd;
 
 #-- Restarts an interrupted pipeline
 
-my $version="0.1.1";
+my $version="0.1.3";
 my $start_run = time();
 
 my $pwd=cwd();	
