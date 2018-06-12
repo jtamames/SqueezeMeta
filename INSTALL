@@ -18,12 +18,14 @@ sudo -H pip install dendropy pysam
 
 
 ###Download squeezeM.
-cd <SOFTWARE_DIR>
-git clone http://github.com/jtamames/squeezeM
+#You can download the latest release of squeezeM from https://github.com/jtamames/SqueezeM/releases/latest
+#Alternatively you can clone the github repository.
+#git clone http://github.com/jtamames/squeezeM
+
 
 
 ###Install databases and test data.
-#This will take about a day and require around 300GB free disk space.
+#This will take about a day and require around 300Gb free disk space for building, in the end it will occupy around 130Gb.
 <SQUEEZEM_PATH>/squeezeM/scripts/preparing_databases/make_databases.pl <DATAPATH>
 
 
