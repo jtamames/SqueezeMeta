@@ -124,9 +124,9 @@ Also, any individual script of the pipeline can be run in the upper directory to
 The make_databases.pl script also downloads two datasets for testing that the program is running correctly. Assuming make_databases.pl was run with the directory `<datapath>` as its target the test run can be executed with
 
 `cd <datapath>`
-`squeezeM.pl -m merged -p Hadza -s test.samples -f raw/`
+`squeezeM.pl -m coassembly -p Hadza -s test.samples -f raw`
 
-Alternative `-m sequential`, `-m coassembly` or `-a spades` can be used.
+Alternative `-m sequential`, `-m merged` can be used.
 
 ## 6. License and third-party software
 SqueezeM is distributed with a GPL-3 license.
