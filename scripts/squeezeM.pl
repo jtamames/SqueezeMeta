@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# v0.1.1, (c) Javier Tamames, CNB-CSIC
+# (c) Javier Tamames, CNB-CSIC
 
 $|=1;
 
@@ -10,7 +10,7 @@ use Getopt::Long;
 use Tie::IxHash;
 use strict;
 
-my $version="0.1.3, May 2018";
+my $version="0.1.4, Jun 2018";
 my $start_run = time();
 
 ###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
@@ -147,6 +147,8 @@ if($mode=~/sequential/i) {
 		#-- Creation of the new configuration file for this sample
 	
 		open(outfile5,">$projectdir/squeezeM_conf.pl") || die;
+
+		print outfile5 "\$mode=\"$mode\";\n\n";
                 print outfile5 "\$installpath=\"$installpath\";\n";
 
 		while(<infile2>) {
@@ -229,13 +231,14 @@ if($mode=~/sequential/i) {
 			system($command); 
 		} 
 		else { 
-			my $command="cp $ca1 $par1name"; 
+			#my $command="cp $ca1 $par1name";
+			my $command="ln -s $ca1 $par1name";
 			print "$command\n"; 
 			system($command); 
 		}
  		if($par2files>1) { system("cat $ca2 > $par2name"); } 
-		else { system("cp $ca2 $par2name"); }
-		
+		#else { system("cp $ca2 $par2name"); }
+		else { system("ln -s $ca2 $par2name"); }	
 		#-- CALL TO THE STANDARD PIPELINE
 		
 		pipeline();
@@ -275,6 +278,7 @@ else {
 	open(infile3,"$scriptdir/squeezeM_conf.pl") || die "Cannot open $scriptdir/squeezeM_conf.pl\n";
 	open(outfile6,">$projectdir/squeezeM_conf.pl") || die;
 
+	print outfile6 "\$mode=\"$mode\";\n\n";
         print outfile6 "\$installpath=\"$installpath\";\n";
 	while(<infile3>) {
 		if($_=~/^\$basedir/) { print outfile6 "\$basedir=\"$pwd\";\n"; }

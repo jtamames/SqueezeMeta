@@ -17,7 +17,7 @@ do "$project/squeezeM_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$resultpath,$rpkmfile,$contigcov,$coveragefile,$bowtie2_x_soft,$gff_file,$tempdir,$numthreads,$scriptdir,$bedtools_soft);
+our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mode,$resultpath,$rpkmfile,$contigcov,$coveragefile,$bowtie2_x_soft,$gff_file,$tempdir,$numthreads,$scriptdir,$bedtools_soft);
 
 my $keepsam=1;  #-- Set to one, it keeps SAM files. Set to zero, it deletes them when no longer needed
 
@@ -26,13 +26,6 @@ my $samdir="$datapath/sam";
 
 if(-d $samdir) {} else { system("mkdir $samdir"); }
 
-	#-- Creates Bowtie2 reference for mapping (index the contigs)
-
-if(-e "$bowtieref.1.bt2") {} 
-else { 
-	my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
-	system($bowtie_command);
-	}
  
 	#-- Read the sample's file names
 
@@ -43,16 +36,26 @@ while(<infile1>) {
 	chomp;
 	next if !$_;
 	my @t=split(/\t/,$_);
+	next if(($mode eq "sequential") && ($t[0] ne $project));
 	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } else { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
 	}
 close infile1;
-
-	#-- Prepare output files
 
 my @f=keys %allsamples;
 my $numsamples=$#f+1;
 my $nums;
 print "Metagenomes found: $numsamples\n";
+
+	#-- Creates Bowtie2 reference for mapping (index the contigs)
+
+if(-e "$bowtieref.1.bmy t2") {} 
+else { 
+	my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
+	system($bowtie_command);
+	}
+
+	#-- Prepare output files
+
 if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
 if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
@@ -184,7 +187,7 @@ sub bedtools {
 	print "    Counting reads: $command\n";
 	system $command;	
 
-	#-- Call bedtools for counting reads
+	#-- Call bedtools for counting bases
 
 	$command="$bedtools_soft coverage -a $bedfile -b $bedreference -d > $tempdir/$project.$thissample.currentperbase.bedcount";
 	print "    Counting bases: $command\n";
@@ -207,9 +210,9 @@ sub bedtools {
 	print "  Removing files\n";
 	#system("rm $tempdir/$project.$thissample.current_1.fastq.gz");
 	#system("rm $tempdir/$project.$thissample.current_2.fastq.gz");
-	#system("rm $tempdir/$project.$thissample.current.bedcount");
-	#system("rm $tempdir/$project.$thissample.currentperbase.bedcount"); 
-	#system("rm $tempdir/$project.$thissample.current.bed"); 
+	system("rm $tempdir/$project.$thissample.current.bedcount");
+	system("rm $tempdir/$project.$thissample.currentperbase.bedcount"); 
+	system("rm $tempdir/$project.$thissample.current.bed"); 
 }
 
 

@@ -41,7 +41,7 @@ while(<infile2>) {
 	next if !$_;
 	my @fd=split(/\t/,$_);
 	my $gn=$fd[3]; 
-	my $gcount=$fd[5];                      #-- Bedtools (OJO! v<0.24)
+	my $gcount=$fd[5];                      #-- Bedtools (OJO! v<2.24)
 	my $oid=$ids{$gn};
 	# next if(!$oid);
 	$abun{$oid}+=$gcount;
