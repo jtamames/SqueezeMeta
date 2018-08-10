@@ -16,7 +16,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$mergedfile,$bintable,$evalue,$miniden,$mincontiglen,$assembler);
+our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$mergedfile,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
 
 my %sampledata;
 
@@ -113,35 +113,37 @@ close infile4;
 
 	#-- Statistics on bins (chimerism, assignment..)
 
-my $header;
 my %bins;
-if(-e $bintable) {
-	open(infile5,$bintable) || die "Cannot open $bintable\n";
-	while(<infile5>) {
-		chomp;
-		next if(!$_ || ($_=~/^\#/));
-		if(!$header) { $header=$_; next; }
-		my @k=split(/\t/,$_);
-		my $method=$k[1];
-		$bins{$method}{num}++;
-		my @mtax=split(/\;/,$k[1]);
-		foreach my $p(@mtax) {
-			my($trank,$ttax)=split(/\:/,$p);
-			$bins{$method}{$trank}++;
+if($mode ne "sequential") {
+	my $header;
+	if(-e $bintable) {
+		open(infile5,$bintable) || die "Cannot open $bintable\n";
+		while(<infile5>) {
+			chomp;
+			next if(!$_ || ($_=~/^\#/));
+			if(!$header) { $header=$_; next; }
+			my @k=split(/\t/,$_);
+			my $method=$k[1];
+			$bins{$method}{num}++;
+			my @mtax=split(/\;/,$k[1]);
+			foreach my $p(@mtax) {
+				my($trank,$ttax)=split(/\:/,$p);
+				$bins{$method}{$trank}++;
+				}
+			if($k[8]>=50) { $bins{$method}{complete}{50}++; }
+			if($k[8]>=75) { $bins{$method}{complete}{75}++; }
+			if($k[8]>=90) { $bins{$method}{complete}{90}++; }
+			if($k[9]<10) { $bins{$method}{contamination}{10}++; }
+			if($k[9]>=50) { $bins{$method}{contamination}{50}++; }
+			if($k[7]==0) { $bins{$method}{chimerism}{0}++; }
+			else { $bins{$method}{chimerism}{more0}++; }
+			if($k[7]>=0.1) { $bins{$method}{chimerism}{0.1}++; }
+			if($k[7]>=0.25) { $bins{$method}{chimerism}{0.25}++; }
+			if(($k[8]>=90) && ($k[9]<10)) { $bins{$method}{hiqual}++; }
+			if(($k[8]>=75) && ($k[9]<10)) { $bins{$method}{goodqual}++; }
 			}
-		if($k[7]>=50) { $bins{$method}{complete}{50}++; }
-		if($k[7]>=75) { $bins{$method}{complete}{75}++; }
-		if($k[7]>=90) { $bins{$method}{complete}{90}++; }
-		if($k[8]<10) { $bins{$method}{contamination}{10}++; }
-		if($k[8]>=50) { $bins{$method}{contamination}{50}++; }
-		if($k[6]==0) { $bins{$method}{chimerism}{0}++; }
-		else { $bins{$method}{chimerism}{more0}++; }
-		if($k[6]>=0.1) { $bins{$method}{chimerism}{0.1}++; }
-		if($k[6]>=0.25) { $bins{$method}{chimerism}{0.25}++; }
-		if(($k[7]>=90) && ($k[8]<10)) { $bins{$method}{hiqual}++; }
-		if(($k[7]>=75) && ($k[8]<10)) { $bins{$method}{goodqual}++; }
+		close infile5;
 		}
-	close infile5;
 	}
 
 	#-- Date of the start of the run
@@ -217,42 +219,43 @@ print outfile1 "\n";
 
 	#-- Bins
 
-print outfile1 "\n# Statistics on bins\n#";
-foreach my $method(sort keys %bins) { print outfile1 "\t$method"; }
-print outfile1 "\n";
-print outfile1 "Number of bins";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{num}"; }
-print outfile1 "\n";
-print outfile1 "Complete >= 50%";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{50}"; }
-print outfile1 "\n";
-print outfile1 "Complete >= 75%";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{75}"; }
-print outfile1 "\n";
-print outfile1 "Complete >= 90%";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{90}"; }
-print outfile1 "\n";
-print outfile1 "Contamination < 10%";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{contamination}{10}"; }
-print outfile1 "\n";
-print outfile1 "Contamination >= 50%";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{contamination}{50}"; }
-print outfile1 "\n";
-print outfile1 "Non-chimeric bins";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{0}"; }
-print outfile1 "\n";
-print outfile1 "Chimerism >0";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{more0}"; }
-print outfile1 "\n";
-print outfile1 "Chimerism >= 0.25";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{0.25}"; }
-print outfile1 "\n";
-print outfile1 "Hi-qual bins (>90% complete,<10% contam)";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{hiqual}"; }
-print outfile1 "\n";
-print outfile1 "Good-qual bins (>75% complete,<10% contam)";
-foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{goodqual}"; }
-
+if($mode ne "sequential") {
+	print outfile1 "\n# Statistics on bins\n#";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$method"; }
+	print outfile1 "\n";
+	print outfile1 "Number of bins";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{num}"; }
+	print outfile1 "\n";
+	print outfile1 "Complete >= 50%";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{50}"; }
+	print outfile1 "\n";
+	print outfile1 "Complete >= 75%";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{75}"; }
+	print outfile1 "\n";
+	print outfile1 "Complete >= 90%";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{90}"; }
+	print outfile1 "\n";
+	print outfile1 "Contamination < 10%";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{contamination}{10}"; }
+	print outfile1 "\n";
+	print outfile1 "Contamination >= 50%";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{contamination}{50}"; }
+	print outfile1 "\n";
+	print outfile1 "Non-chimeric bins";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{0}"; }
+	print outfile1 "\n";
+	print outfile1 "Chimerism >0";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{more0}"; }
+	print outfile1 "\n";
+	print outfile1 "Chimerism >= 0.25";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{0.25}"; }
+	print outfile1 "\n";
+	print outfile1 "Hi-qual bins (>90% complete,<10% contam)";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{hiqual}"; }
+	print outfile1 "\n";
+	print outfile1 "Good-qual bins (>75% complete,<10% contam)";
+	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{goodqual}"; }
+	}
 
 close outfile1;
 print "Output in $resultfile\n";

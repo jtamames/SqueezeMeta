@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 
-# v0.1.0 07/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Restarts interrupted squeezeM processes
 
 
@@ -12,7 +11,7 @@ use Cwd;
 
 #-- Restarts an interrupted pipeline
 
-my $version="0.1.3";
+my $version="0.2.0";
 my $start_run = time();
 
 my $pwd=cwd();	
@@ -358,6 +357,19 @@ system("rm $tempdir/$project.log");
 		my $statfile="$resultpath/19.$project.stats";
 		if(-s $statfile<1000) { die "Stopping in STEP19 -> $scriptname\n"; }
 	}
+
+    #-------------------------------- STEP20: Pathways in bins          
+
+        if($rpoint<=20) {
+                my $scriptname="20.minpath.pl";
+                print outfile3 "20\t$scriptname\n";
+                $currtime=timediff();
+                print outfile4 "[",$currtime->pretty,"]: STEP20 -> $scriptname\n";
+                print "[",$currtime->pretty,"]: STEP20 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
+                system("perl $scriptdir/$scriptname $project");
+                my $statfile="$resultpath/20.$project.kegg.pathways";
+                if(-s $statfile<1000) { die "Stopping in STEP20 -> $scriptname\n"; }
+        }
 
     #-------------------------------- END OF PIPELINE		
 

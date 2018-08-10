@@ -7,6 +7,7 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+.ToDo
 
 #      Other         #
 ######################
@@ -19,4 +20,5 @@ lib/checkm/*pyc
 lib/checkm/*/*.pyc
 bin/*.pyc
 lib/spades/*/*.pyc
+lib/classifier/*
 ToDo

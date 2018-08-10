@@ -6,6 +6,7 @@ use strict;
 use File::Basename;
 our $dbscriptdir = dirname(__FILE__);
 our $installpath = "$dbscriptdir/../..";
+our $libpath = "$installpath/lib"
 ###
 
 use Cwd 'abs_path';
@@ -15,13 +16,17 @@ my $databasedir=abs_path($ARGV[0]);
 if(!$databasedir) { die "Usage: perl make_databases.pl <database dir>\n"; }
 
 system("rm $databasedir/test.tar.gz $databasedir/db.tar.gz $databasedir/kegg.dmnd.gz");
-###Download test data.
+
+###Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 print "\nDownloading and unpacking test data...\n\n";
 system("wget -U '' -P $databasedir http://wwwuser.cnb.csic.es/~squeezem/test.tar.gz; tar -xvzf $databasedir/test.tar.gz -C $databasedir; rm $databasedir/test.tar.gz");
 
+###Download rdp classifier.
+print("Downloading and unpacking RDP classifier...\n");
+system("wget -U '' -P $libpath http://wwwuser.cnb.csic.es/~squeezem/classifier.tar.gz; tar -xvzf $libpath/classifier.tar.gz -C $libpath; rm $libpath/classifier.tar.gz");
 
 ###Download general db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
-print "Downloading an unpacking general database tarball...\n";
+print "Downloading and unpacking general database tarball...\n";
 system("wget -U '' -P $databasedir http://wwwuser.cnb.csic.es/~squeezem/db.tar.gz; tar -xvzf $databasedir/db.tar.gz -C $databasedir; rm $databasedir/db.tar.gz");
 
 

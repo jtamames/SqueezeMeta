@@ -10,14 +10,29 @@ $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//;
 
 do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
 our($datapath,$bincov,$contigcov,%bindirs,$contigsinbins,$resultpath,$bintable);
-my(%bins,%contigs,%allsamples,%mapped,%totalreadcount);
+my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna);
 
+	#-- Read 16S in contigs
+
+my $rnafile="$resultpath/02.$project.16S.txt";
+open(infile1,$rnafile) || warn "Cannot open $rnafile\n";
+while(<infile1>) {
+	chomp;
+	next if(!$_ || ($_=~/^\#/));
+	my @t=split(/\t/,$_);
+	my $contigid=$t[0]; 
+	$contigid=~s/\_RNA\d+$//;
+	$taxrna{$contigid}{$t[4]}++;
+	}
+close infile1;
+	
 	#-- Create the bin coverage table and the contigsinbins file
 
 if(-e $bincov) { system("rm $bincov"); }
@@ -41,8 +56,8 @@ foreach my $binmethod(sort keys %bindirs) {
 	
 		#-- Read checkM results for each bin
 	
-	open(infile1,$checkmfile) || warn "Cannot find checkM results in $checkmfile\n";
-	while(<infile1>) {
+	open(infile2,$checkmfile) || warn "Cannot find checkM results in $checkmfile\n";
+	while(<infile2>) {
 		chomp;
 		next if !$_;
 		if(($_=~/^\s+/) && ($_!~/Bin Id/)) {
@@ -57,7 +72,7 @@ foreach my $binmethod(sort keys %bindirs) {
 		$bins{$binmethod}{$bin}{strain}=$k[14];  
 		}
 	}
-	close infile1;
+	close infile2;
 
 	#-- Read data for each bin (tax, size, chimerism)
 
@@ -69,8 +84,8 @@ foreach my $binmethod(sort keys %bindirs) {
 	my $bin=$tfil;
 	$bin=~s/\.fa.tax|\.fasta.tax//g;
 	print "Reading data for bin $bin           \r";
-	open(infile2,"$bindir/$tfil") || die;
-	while(<infile2>) {
+	open(infile3,"$bindir/$tfil") || die;
+	while(<infile3>) {
  		chomp;
 		if($_=~/^Consensus/) {
 			my($consensus,$size,$chimerism)=split(/\t/,$_);
@@ -87,21 +102,24 @@ foreach my $binmethod(sort keys %bindirs) {
 			$contigs{$binmethod}{$t[0]}=$bin; 
 			print outfile2 "$t[0]\t$binmethod\t$bin\n";
 			$bins{$binmethod}{$bin}{contignum}++; 
+			if($taxrna{$t[0]}) {
+				foreach my $cid(sort keys %{ $taxrna{$t[0]} }) { $bins{$binmethod}{$bin}{rna}{$cid}++; }
+				}
 			}
 		}
-	close infile2;
+	close infile3;
 
 	#-- Calculate GC for the bin
 
 	my $fasta=$tfil;
 	$fasta=~s/\.tax//g;
 	my $seq;
-	open(infile3,"$bindir/$fasta");
-	while(<infile3>) { 
+	open(infile4,"$bindir/$fasta");
+	while(<infile4>) { 
 		chomp;
 		if($_!~/\>/) { $seq.=$_; } 
 		}
-	close infile3;
+	close infile4;
 	my @m=($seq=~/G|C/gi);
 	my $gc=(($#m+1)/length $seq)*100;
 	$bins{$binmethod}{$bin}{gc}=$gc;
@@ -111,8 +129,8 @@ foreach my $binmethod(sort keys %bindirs) {
 	#-- Count coverages for the bins
 
 	print "\nCalculating coverages\n";
-	open(infile4,$contigcov) || die "Cannot open contig coverage file $contigcov\n";
-	while(<infile4>) { 
+	open(infile5,$contigcov) || die "Cannot open contig coverage file $contigcov\n";
+	while(<infile5>) { 
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
 		my @k=split(/\t/,$_); 
@@ -125,7 +143,7 @@ foreach my $binmethod(sort keys %bindirs) {
 		$mapped{$binmethod}{$bincorr}{$sample}{reads}+=$k[4];
 		$totalreadcount{$binmethod}{$sample}+=$k[4];
 		}
-	close infile4;
+	close infile5;
 
 	foreach my $binst(sort keys %{ $mapped{$binmethod} }) {
 		foreach my $samps(sort keys %{ $mapped{$binmethod}{$binst} }) {
@@ -148,7 +166,7 @@ foreach my $binmethod(sort keys %bindirs) {
 	#-- Headers
 	
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
-	print outfile3 "Bin ID\tMethod\tTax\tSize\tGC perc\tNum contigs\tChimerism\tCompleteness\tContamination\tStrain Het";
+	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tSize\tGC perc\tNum contigs\tChimerism\tCompleteness\tContamination\tStrain Het";
 	foreach my $countfile(sort keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile"; }
 	print outfile3 "\n";
 	
@@ -156,7 +174,12 @@ foreach my $binmethod(sort keys %bindirs) {
 	
 	foreach my $method(sort keys %bins) {
 		foreach my $thisbin(sort { $bins{$method}{$b}{complete}<=>$bins{$method}{$a}{complete} } keys %{ $bins{$method} }) {
-			printf outfile3 "$thisbin\t$method\t$bins{$method}{$thisbin}{consensus}\t$bins{$method}{$thisbin}{size}\t%.2f\t$bins{$method}{$thisbin}{contignum}\t$bins{$method}{$thisbin}{chimerism}\t$bins{$method}{$thisbin}{complete}\t$bins{$method}{$thisbin}{contamination}\t$bins{$method}{$thisbin}{strain}",$bins{$method}{$thisbin}{gc};			   
+			my $taxrna;
+			foreach my $cd(sort keys %{ $bins{$method}{$thisbin}{rna} }) { 
+				if($cd) { $taxrna.="$cd|"; }
+				}
+			chop $taxrna;
+			printf outfile3 "$thisbin\t$method\t$bins{$method}{$thisbin}{consensus}\t$taxrna\t$bins{$method}{$thisbin}{size}\t%.2f\t$bins{$method}{$thisbin}{contignum}\t$bins{$method}{$thisbin}{chimerism}\t$bins{$method}{$thisbin}{complete}\t$bins{$method}{$thisbin}{contamination}\t$bins{$method}{$thisbin}{strain}",$bins{$method}{$thisbin}{gc};			   
 			foreach my $countfile(sort keys %allsamples) { printf outfile3 "\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{rpkm}{$countfile}; }
 			print outfile3 "\n";
 		}

@@ -10,6 +10,7 @@ use Cwd;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//;
 
 do "$project/squeezeM_conf.pl";
 
@@ -22,6 +23,8 @@ our($datapath,$alllog,$bintax,%bindirs);
 my $mincontigs=1;  		#-- Minimum number of contigs for the bin 
 my $minconsperc_asig=0.6;  	#-- Ratio contigs for the taxon/sum(genes all taxa). Therefore it only considers assigned contigs
 my $minconsperc_total=0.3;  	#-- Ratio contigs for the taxon/number of contigs. Therefore it considers all (assigned+unassigned) contigs
+
+my $verbose=0;
 
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my(%tax,%taxlist);
@@ -61,6 +64,7 @@ foreach my $binmethod(sort keys %bindirs) {		#-- For the current binning method
 	foreach my $k(@files) { 
 		my $tf="$bindir/$k";
 		my $outf="$bindir/$k.tax";
+ 		# next if($k ne "maxbin.002.fasta");
 		
 		#-- We will create an output file for bin, with the contig names and consensus
 		
@@ -92,6 +96,7 @@ foreach my $binmethod(sort keys %bindirs) {		#-- For the current binning method
 		#-- Loop for all ranks
 	
 		foreach my $rank(@ranks) { 
+			print ">>$rank\n" if $verbose;
 			my($totalcount,$totalas,$consf)=0;
 			my %accumtax=();
 		
@@ -103,7 +108,7 @@ foreach my $binmethod(sort keys %bindirs) {		#-- For the current binning method
 				next if(!$ttax);
 				$accumtax{$ttax}++;
 				$totalas++; 
-				if($k eq "maxbin.002.fasta") { print "   $contig $ttax $accumtax{$ttax}\n"; }
+				# if($k eq "maxbin.002.fasta") { print "   $contig $ttax $accumtax{$ttax}\n"; }
 				}
 			next if(!$totalas);		#-- Exit if no contigs with assignment	
 		
@@ -148,16 +153,16 @@ foreach my $binmethod(sort keys %bindirs) {		#-- For the current binning method
 				}
 				my $totch=$chimera+$nonchimera;
 				if($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
-			 	# print "***$mtax $times $percas $perctotal $totalas $chimerism\n";
+				print "***$mtax $times $percas $perctotal $totalas $chimerism\n" if $verbose;
 				$cattax.="$mtax;";
 				$fulltax.="$rank:$mtax;";
 				$consf=1;
 				$strg=$rank;
-				# if($consf && ($k eq "maxbin.002.fasta")) { print "**$fulltax $percas $perctotal -- $times $totalas $totalcount\n"; }
-				# print "**$fulltax $percas $perctotal -- $times $totalas $totalcount\n"; 
-				# if($totalas!=$times) { print "***$contig $totalas $times\n"; }
+			#	 if($consf && ($k eq "maxbin.002.fasta")) { print "**$fulltax $percas $perctotal -- $times $totalas $totalcount\n"; }
+				 print "**$fulltax $percas $perctotal -- $times $totalas $totalcount -- $consf\n" if $verbose; 
+				 if($totalas!=$times) { print "***$k$totalas $times\n" if $verbose; }
 				}
-			last if(!$consf);
+			 last if(!$consf);
 			}
 		if(!$fulltax) { $fulltax="No consensus"; $strg="Unknown"; }
 		
