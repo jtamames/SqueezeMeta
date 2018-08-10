@@ -15,7 +15,7 @@ my $databasedir=abs_path($ARGV[0]);
 
 if(!$databasedir) { die "Usage: perl make_databases.pl <database dir>\n"; }
 
-system("rm $databasedir/test.tar.gz $databasedir/classifier.tar.gz $databasedir/db.tar.gz $databasedir/kegg.dmnd.gz");
+system("rm $databasedir/test.tar.gz $libpath/classifier.tar.gz $databasedir/db.tar.gz $databasedir/kegg.dmnd.gz");
 
 ###Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 print "\nDownloading and unpacking test data...\n\n";
