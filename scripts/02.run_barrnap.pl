@@ -36,7 +36,7 @@ foreach my $kingdom(keys %king) {
 
 	#-- Run barrnap
 
-	my $command="$barrnap_soft --quiet --threads $numthreads --kingdom $kingdom --reject 0.1 $targetfile > $output";
+	my $command="$barrnap_soft --quiet --threads $numthreads --kingdom $kingdom --reject 0.1 $targetfile --dbdir $databasepath > $output";
 	print "Running barrnap for $king{$kingdom}: $command\n";
 	system $command;
 
