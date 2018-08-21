@@ -26,9 +26,9 @@ sudo -H pip install dendropy pysam
 
 ###Install databases and test data.
 #This will take about a day and require around 300Gb free disk space for building, in the end it will occupy around 130Gb.
-<SQUEEZEM_PATH>/squeezeM/scripts/preparing_databases/make_databases.pl <DATAPATH>
+<installpath>/squeezeM/scripts/preparing_databases/make_databases.pl <dbpath>
 
 
 ###Run squeezeM on test data.
-cd <DATAPATH>/test
-perl <SOFTWARE_DIR>/squeezeM/scripts/squeezeM.pl -m merged -p Hadza -s test.samples -f raw/
+cd <dbpath>/test
+perl <installpath>/squeezeM/scripts/squeezeM.pl -m merged -p Hadza -s test.samples -f raw/
