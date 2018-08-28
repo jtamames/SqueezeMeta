@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# v0.1.1, (c) Javier Tamames, CNB-CSIC
+# (c) Javier Tamames, CNB-CSIC
 
 $|=1;
 
@@ -10,7 +10,7 @@ use Getopt::Long;
 use Tie::IxHash;
 use strict;
 
-my $version="0.1.3, May 2018";
+my $version="0.2.0, Ago 2018";
 my $start_run = time();
 
 ###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
@@ -21,7 +21,7 @@ our $installpath = "$scriptdir/..";
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat)="0";
-our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$project,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$ver,$hel);
+our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$ver,$hel);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
 our %bindirs;  
 
@@ -31,6 +31,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "m|mode=s" => \$mode,
                      "c|contiglen=i" => \$mincontiglen,
                      "a=s" => \$assembler,
+                     "map=s" => \$mapper,
+                     "count=s" => \$counter,
                      "p=s" => \$project,
                      "s|samples=s" => \$equivfile,
                      "f|seq=s" => \$rawfastq, 
@@ -53,6 +55,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 if(!$numthreads) { $numthreads=12; }
 if(!$mincontiglen) { $mincontiglen=1200; }
 if(!$assembler) { $assembler="megahit"; }
+if(!$mapper) { $mapper="bowtie"; }
+if(!$counter) { $counter="bedtools"; }
 if(!$evalue) { $evalue=1e-03; }
 if(!$miniden) { $miniden=50; }
 if(!$nocog) { $nocog=0; }
@@ -64,7 +68,7 @@ if(!$nometabat) { $nometabat=0; }
 
 #-- Check if we have all the needed options
 
-my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Assembly:\n  -a: assembler [megahit,spades]  (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n -v: Version number\n -h: help\n"; 
+my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Assembly:\n  -a: assembler [megahit,spades] (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -map: mapper [bowtie,bwa]  (Default: $mapper)\n  -count: counter [bedtools,featurecounts]  (Default: $counter)\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n  -v: Version number\n  -h: help\n";
 
 print "\nSqueezeM v$version - (c) J. Tamames, CNB-CSIC\n\n";
 
@@ -134,24 +138,28 @@ if($mode=~/sequential/i) {
 		$currtime=timediff();
 		print outfile4 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
 		print "Run started ",scalar localtime," in SEQUENTIAL mode\n";
+                my $params = join(" ", @ARGV);
+                print outfile2 "$0 $params\n";
 		print outfile2 "Run started for $thissample, ",scalar localtime,"\n";
 		print outfile4 "Project: $project\n";
 		print outfile4 "Map file: $equivfile\n";
 		print outfile4 "Fastq directory: $rawfastq\n";
-		print outfile4 "[",$currtime->pretty,"]: STEP0 -> preparestuff_sequential.pl\n";
-		print outfile2 "[",$currtime->pretty,"]: STEP0 -> preparestuff_sequential.pl\n";
-	
+                print outfile4 "[",$currtime->pretty,"]: STEP0 -> squeezeM.pl\n";
+                print outfile2 "[",$currtime->pretty,"]: STEP0 -> squeezeM.pl\n";
 		print "Now creating directories\n";
 		open(infile2,"$scriptdir/squeezeM_conf.pl") || die;
 	
 		#-- Creation of the new configuration file for this sample
 	
 		open(outfile5,">$projectdir/squeezeM_conf.pl") || die;
+
+		print outfile5 "\$mode=\"$mode\";\n\n";
                 print outfile5 "\$installpath=\"$installpath\";\n";
 
 		while(<infile2>) {
+                        chomp;
+                        next if !$_;
 			if($_=~/^\$basedir/) { print outfile5 "\$basedir=\"$pwd\";\n"; }
-                        #elsif($_=~/^\$installpath/) { print outfile5 "\$installpath=\"$installpath\";\n"; }
 			elsif($_=~/^\$projectname/) { print outfile5 "\$projectname=\"$project\";\n"; }
 			elsif($_=~/^\$evalue/) { print outfile5 "\$evalue=$evalue;\n"; }
 			elsif($_=~/^\$miniden/) { print outfile5 "\$miniden=$miniden;\n"; }
@@ -165,10 +173,12 @@ if($mode=~/sequential/i) {
         	}
 	 	close infile2; 
 
- 		if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
- 		print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=$assembler;\n";
- 		if($assembler_options) { print outfile5 "\$assembler_options=$assembler_options"; }
- 		close outfile5;
+                if($counter=~/featurecounts/i) { $counter="featureCounts"; }
+                if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
+                print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n";
+                if($assembler_options) { print outfile5 "\$assembler_options=$assembler_options"; }
+                print outfile5 "\$mapper=\"$mapper\"\n\$counter=\"$counter\"\n";
+                close outfile5;
         
 		#-- Creation of directories
 	    
@@ -228,14 +238,16 @@ if($mode=~/sequential/i) {
 			print "$command\n"; 
 			system($command); 
 		} 
-		else { 
-			my $command="cp $ca1 $par1name"; 
-			print "$command\n"; 
-			system($command); 
+		else {
+                        #my $command="cp $ca1 $par1name"; 
+                        my $command="ln -s $ca1 $par1name";
+                        print "$command\n";
+                        system($command);
+ 
 		}
  		if($par2files>1) { system("cat $ca2 > $par2name"); } 
-		else { system("cp $ca2 $par2name"); }
-		
+                else { system("ln -s $ca2 $par2name"); }
+                #else { system("cp $ca2 $par2name"); }
 		#-- CALL TO THE STANDARD PIPELINE
 		
 		pipeline();
@@ -261,13 +273,15 @@ else {
                         
 	open(outfile3,">$pwd/$project/progress") || die;  #-- Un indice que indica en que punto estamos (que procedimientos han terminado)
 	open(outfile4,">$pwd/$project/syslog") || die;
+        my $params = join(" ", @ARGV);
+        print outfile4 "$0 $params\n";
 	print outfile4 "Run started ",scalar localtime," in $mode mode\n";
 	print outfile4 "Command: $commandline\n"; 
 	print outfile4 "Project: $project\n";
 	print outfile4 "Map file: $equivfile\n";
 	print outfile4 "Fastq directory: $rawfastq\n";
 	print outfile4 "Options: threads=$numthreads; contiglen=$mincontiglen; assembler=$assembler;\n";
-	print outfile4 "[",$currtime->pretty,"]: STEP0 -> preparestuff.pl\n";
+	print outfile4 "[",$currtime->pretty,"]: STEP0 -> squeezeM.pl\n";
      
 	print "Now creating directories\n";
 	
@@ -275,10 +289,10 @@ else {
 	open(infile3,"$scriptdir/squeezeM_conf.pl") || die "Cannot open $scriptdir/squeezeM_conf.pl\n";
 	open(outfile6,">$projectdir/squeezeM_conf.pl") || die;
 
+	print outfile6 "\$mode=\"$mode\";\n\n";
         print outfile6 "\$installpath=\"$installpath\";\n";
 	while(<infile3>) {
 		if($_=~/^\$basedir/) { print outfile6 "\$basedir=\"$pwd\";\n"; }
-#                elsif($_=~/^\$installpath/) { print outfile5 "\$installpath=\"$installpath\";\n"; }
 		elsif($_=~/^\$projectname/) { print outfile6 "\$projectname=\"$project\";\n"; }
 		elsif($_=~/^\$evalue/) { print outfile6 "\$evalue=$evalue;\n"; }
 		elsif($_=~/^\$miniden/) { print outfile6 "\$miniden=$miniden;\n"; }
@@ -297,6 +311,7 @@ else {
 	if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
 	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=$assembler;\n";
 	if($assembler_options) { print outfile6 "\$assembler_options=$assembler_options"; }
+        print outfile6 "\$mapper=\"$mapper\";\n\$counter=\"$counter\";\n";
 	close outfile6;
 
 	print "Reading configuration from $projectdir/squeezeM_conf.pl\n";
@@ -695,6 +710,19 @@ sub pipeline {
 		my $statfile="$resultpath/19.$project.stats";
 		if(-s $statfile<1000) { die "Stopping in STEP19 -> $scriptname\n"; }
 	}
+
+    #-------------------------------- STEP20: Pathways in bins          
+
+        if($rpoint<=20) {
+                my $scriptname="20.minpath.pl";
+                print outfile3 "20\t$scriptname\n";
+                $currtime=timediff();
+                print outfile4 "[",$currtime->pretty,"]: STEP20 -> $scriptname\n";
+                print "[",$currtime->pretty,"]: STEP20 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
+                system("perl $scriptdir/$scriptname $project");
+                my $statfile="$resultpath/20.$project.kegg.pathways";
+                if(-s $statfile<1000) { die "Stopping in STEP20 -> $scriptname\n"; }
+        }
 
     #-------------------------------- END OF PIPELINE		
 

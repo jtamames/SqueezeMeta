@@ -18,7 +18,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$fun3tax,$taxlist,$aafile);
+our($datapath,$resultpath,$fun3tax,$taxlist,$aafile,$contigsfna,$rnafile);
 
 #-- Some local configuration variables
 
@@ -49,6 +49,15 @@ close infile1;
 #-- Reading genes in contigs
 
 tie %allcontigs,"Tie::IxHash";
+
+open(infile2,$contigsfna) || die;
+while(<infile2>) {
+	chomp;
+	if($_=~/^\>([^ ]+)/) { $allcontigs{$1}=1; }
+	}
+close infile2;
+
+
 open(infile2,$aafile) || die;
 while(<infile2>) {
 	chomp;
@@ -58,7 +67,21 @@ while(<infile2>) {
 		my $contig=$orf;
 		$contig=~s/\_\d+$//;
 		$numorfs{$contig}++; 
-		$allcontigs{$contig}=1;
+		# $allcontigs{$contig}=1;
+		$orfs{$contig}{$orf}=1;
+		}
+	}
+close infile2;
+
+open(infile2,$rnafile) || die;
+while(<infile2>) {
+	chomp;
+	next if($_!~/^\>/);
+	if($_=~/^\>([\w]+)/) { 
+		my $orf=$1;
+		my $contig=$orf; 
+		$contig=~s/\_RNA\d+$//;
+		$numorfs{$contig}++;
 		$orfs{$contig}{$orf}=1;
 		}
 	}
@@ -197,7 +220,7 @@ foreach my $contig(keys %allcontigs) {
 	#-- Finally, write the output
 		
 	if(!$consensus) { $cattax="No consensus"; $strg="Unknown"; }			
-	printf outfile2 "$contig\t$fulltax\t$strg\tChimerism level: %.3f\n",$chimerism;
+	printf outfile2 "$contig\t$fulltax\t$strg\tChimerism level: %.3f\tGenes: $numorfs{$contig}\n",$chimerism;
                                  }
 close outfile1;
 close outfile2;

@@ -1,0 +1,345 @@
+00010	Glycolysis / Gluconeogenesis
+00020	Citrate cycle (TCA cycle)
+00030	Pentose phosphate pathway
+00031	Inositol metabolism
+00040	Pentose and glucuronate interconversions
+00051	Fructose and mannose metabolism
+00052	Galactose metabolism
+00053	Ascorbate and aldarate metabolism
+00061	Fatty acid biosynthesis
+00062	Fatty acid elongation in mitochondria
+00071	Fatty acid metabolism
+00072	Synthesis and degradation of ketone bodies
+00100	Biosynthesis of steroids
+00120	Bile acid biosynthesis
+00130	Ubiquinone biosynthesis
+00140	C21-Steroid hormone metabolism
+00150	Androgen and estrogen metabolism
+00190	Oxidative phosphorylation
+00195	Photosynthesis
+00196	Photosynthesis - antenna proteins
+00220	Urea cycle and metabolism of amino groups
+00230	Purine metabolism
+00231	Puromycin biosynthesis
+00232	Caffeine metabolism
+00240	Pyrimidine metabolism
+00251	Glutamate metabolism
+00252	Alanine and aspartate metabolism
+00253	Tetracycline biosynthesis
+00260	Glycine, serine and threonine metabolism
+00271	Methionine metabolism
+00272	Cysteine metabolism
+00280	Valine, leucine and isoleucine degradation
+00281	Geraniol degradation
+00290	Valine, leucine and isoleucine biosynthesis
+00300	Lysine biosynthesis
+00310	Lysine degradation
+00311	Penicillin and cephalosporin biosynthesis
+00312	beta-Lactam resistance
+00330	Arginine and proline metabolism
+00331	Clavulanic acid biosynthesis
+00340	Histidine metabolism
+00350	Tyrosine metabolism
+00351	1,1,1-Trichloro-2,2-bis(4-chlorophenyl)ethane (DDT) degradation
+00360	Phenylalanine metabolism
+00361	gamma-Hexachlorocyclohexane degradation
+00362	Benzoate degradation via hydroxylation
+00363	Bisphenol A degradation
+00364	Fluorobenzoate degradation
+00380	Tryptophan metabolism
+00400	Phenylalanine, tyrosine and tryptophan biosynthesis
+00401	Novobiocin biosynthesis
+00402	Benzoxazinone biosynthesis
+00410	beta-Alanine metabolism
+00430	Taurine and hypotaurine metabolism
+00440	Aminophosphonate metabolism
+00450	Selenoamino acid metabolism
+00460	Cyanoamino acid metabolism
+00471	D-Glutamine and D-glutamate metabolism
+00472	D-Arginine and D-ornithine metabolism
+00473	D-Alanine metabolism
+00480	Glutathione metabolism
+00500	Starch and sucrose metabolism
+00510	N-Glycan biosynthesis
+00511	N-Glycan degradation
+00512	O-Glycan biosynthesis
+00513	High-mannose type N-glycan biosynthesis
+00520	Nucleotide sugars metabolism
+00521	Streptomycin biosynthesis
+00522	Biosynthesis of 12-, 14- and 16-membered macrolides
+00523	Polyketide sugar unit biosynthesis
+00530	Aminosugars metabolism
+00531	Glycosaminoglycan degradation
+00532	Chondroitin sulfate biosynthesis
+00533	Keratan sulfate biosynthesis
+00534	Heparan sulfate biosynthesis
+00540	Lipopolysaccharide biosynthesis
+00550	Peptidoglycan biosynthesis
+00561	Glycerolipid metabolism
+00562	Inositol phosphate metabolism
+00563	Glycosylphosphatidylinositol(GPI)-anchor biosynthesis
+00564	Glycerophospholipid metabolism
+00565	Ether lipid metabolism
+00590	Arachidonic acid metabolism
+00591	Linoleic acid metabolism
+00592	alpha-Linolenic acid metabolism
+00600	Sphingolipid metabolism
+00601	Glycosphingolipid biosynthesis - lactoseries
+00602	Glycosphingolipid biosynthesis - neo-lactoseries
+00603	Glycosphingolipid biosynthesis - globoseries
+00604	Glycosphingolipid biosynthesis - ganglioseries
+00620	Pyruvate metabolism
+00621	Biphenyl degradation
+00622	Toluene and xylene degradation
+00623	2,4-Dichlorobenzoate degradation
+00624	1- and 2-Methylnaphthalene degradation
+00625	Tetrachloroethene degradation
+00626	Naphthalene and anthracene degradation
+00627	1,4-Dichlorobenzene degradation
+00628	Fluorene degradation
+00629	Carbazole degradation
+00630	Glyoxylate and dicarboxylate metabolism
+00631	1,2-Dichloroethane degradation
+00632	Benzoate degradation via CoA ligation
+00633	Trinitrotoluene degradation
+00640	Propanoate metabolism
+00641	3-Chloroacrylic acid degradation
+00642	Ethylbenzene degradation
+00643	Styrene degradation
+00650	Butanoate metabolism
+00660	C5-Branched dibasic acid metabolism
+00670	One carbon pool by folate
+00680	Methane metabolism
+00710	Carbon fixation in photosynthetic organisms
+00720	Reductive carboxylate cycle (CO2 fixation)
+00730	Thiamine metabolism
+00740	Riboflavin metabolism
+00750	Vitamin B6 metabolism
+00760	Nicotinate and nicotinamide metabolism
+00770	Pantothenate and CoA biosynthesis
+00780	Biotin metabolism
+00785	Lipoic acid metabolism
+00790	Folate biosynthesis
+00791	Atrazine degradation
+00830	Retinol metabolism
+00860	Porphyrin and chlorophyll metabolism
+00900	Terpenoid biosynthesis
+00901	Indole and ipecac alkaloid biosynthesis
+00902	Monoterpenoid biosynthesis
+00903	Limonene and pinene degradation
+00904	Diterpenoid biosynthesis
+00905	Brassinosteroid biosynthesis
+00906	Carotenoid biosynthesis - General
+00907	Carotenoid biosynthesis - Organism group-specific
+00908	Zeatin biosynthesis
+00910	Nitrogen metabolism
+00920	Sulfur metabolism
+00930	Caprolactam degradation
+00940	Phenylpropanoid biosynthesis
+00941	Flavonoid biosynthesis
+00942	Anthocyanin biosynthesis
+00943	Isoflavonoid biosynthesis
+00944	Flavone and flavonol biosynthesis
+00950	Alkaloid biosynthesis I
+00960	Alkaloid biosynthesis II
+00970	Aminoacyl-tRNA biosynthesis
+00980	Metabolism of xenobiotics by cytochrome P450
+00981	Insect hormone biosynthesis
+00982	Drug metabolism - cytochrome P450
+00983	Drug metabolism - other enzymes
+01010	Overview of biosynthetic pathways
+01020	Protein biosynthesis (bacteria)
+01021	Protein biosynthesis (eukaryotes)
+01022	mRNA biosynthesis (bacteria)
+01023	mRNA biosynthesis (eukaryotes)
+01024	tRNA and rRNA biosynthesis (bacteria)
+01025	tRNA biosynthesis (eukaryotes)
+01026	rRNA biosynthesis (eukaryotes)
+01030	Glycan structures - biosynthesis 1
+01031	Glycan structures - biosynthesis 2
+01032	Glycan structures - degradation
+01040	Biosynthesis of unsaturated fatty acids
+01051	Biosynthesis of ansamycins
+01052	Type I polyketide structures
+01053	Biosynthesis of siderophore group nonribosomal peptides
+01054	Nonribosomal peptide structures
+01055	Biosynthesis of vancomycin group antibiotics
+01056	Biosynthesis of type II polyketide backbone
+01057	Biosynthesis of type II polyketide products
+01058	Acridone alkaloid biosynthesis
+01060	Biosynthesis of plant secondary metabolites
+01061	Biosynthesis of phenylpropanoids
+01062	Biosynthesis of terpenoids and steroids
+01063	Biosynthesis of alkaloids derived from shikimate pathway
+01064	Biosynthesis of alkaloids derived from ornithine, lysine and nicotinic acid
+01065	Biosynthesis of alkaloids derived from histidine and purine
+01066	Biosynthesis of alkaloids derived from terpenoid and polyketide
+01070	Biosynthesis of plant hormones
+01100	Metabolism
+01330	Signaling molecules and interaction
+01430	Cell junctions
+01510	Neurodegenerative diseases
+02010	ABC transporters - General
+02011	ABC transporters - Organism-specific
+02020	Two-component system - General
+02021	Two-component system - Organism-specific
+02030	Bacterial chemotaxis - General
+02031	Bacterial chemotaxis - Organism-specific
+02040	Flagellar assembly
+02060	Phosphotransferase system (PTS)
+03010	Ribosome
+03020	RNA polymerase
+03022	Basal transcription factors
+03030	DNA replication
+03050	Proteasome
+03060	Protein export
+03070	Type III secretion system
+03080	Type IV secretion system
+03090	Type II secretion system
+03320	PPAR signaling pathway
+03410	Base excision repair
+03420	Nucleotide excision repair
+03430	Mismatch repair
+03440	Homologous recombination
+03450	Non-homologous end-joining
+04010	MAPK signaling pathway
+04011	MAPK signaling pathway - yeast
+04012	ErbB signaling pathway
+04013	MAPK signaling pathway - fruit fly
+04020	Calcium signaling pathway
+04060	Cytokine-cytokine receptor interaction
+04070	Phosphatidylinositol signaling system
+04080	Neuroactive ligand-receptor interaction
+04110	Cell cycle
+04111	Cell cycle - yeast
+04115	p53 signaling pathway
+04120	Ubiquitin mediated proteolysis
+04130	SNARE interactions in vesicular transport
+04140	Regulation of autophagy
+04150	mTOR signaling pathway
+04210	Apoptosis
+04310	Wnt signaling pathway
+04320	Dorso-ventral axis formation
+04330	Notch signaling pathway
+04340	Hedgehog signaling pathway
+04350	TGF-beta signaling pathway
+04360	Axon guidance
+04370	VEGF signaling pathway
+04510	Focal adhesion
+04512	ECM-receptor interaction
+04514	Cell adhesion molecules (CAMs)
+04520	Adherens junction
+04530	Tight junction
+04540	Gap junction
+04610	Complement and coagulation cascades
+04612	Antigen processing and presentation
+04614	Renin-angiotensin system
+04620	Toll-like receptor signaling pathway
+04630	Jak-STAT signaling pathway
+04640	Hematopoietic cell lineage
+04650	Natural killer cell mediated cytotoxicity
+04660	T cell receptor signaling pathway
+04662	B cell receptor signaling pathway
+04664	Fc epsilon RI signaling pathway
+04670	Leukocyte transendothelial migration
+04710	Circadian rhythm
+04720	Long-term potentiation
+04730	Long-term depression
+04740	Olfactory transduction
+04742	Taste transduction
+04810	Regulation of actin cytoskeleton
+04910	Insulin signaling pathway
+04912	GnRH signaling pathway
+04914	Progesterone-mediated oocyte maturation
+04916	Melanogenesis
+04920	Adipocytokine signaling pathway
+04930	Type II diabetes mellitus
+04940	Type I diabetes mellitus
+04950	Maturity onset diabetes of the young
+05010	Alzheimer's disease
+05012	Parkinson's disease
+05014	Amyotrophic lateral sclerosis (ALS)
+05040	Huntington's disease
+05050	Dentatorubropallidoluysian atrophy (DRPLA)
+05060	Prion disease
+05110	Vibrio cholerae infection
+05111	Vibrio cholerae pathogenic cycle
+05120	Epithelial cell signaling in Helicobacter pylori infection
+05130	Pathogenic Escherichia coli infection - EHEC
+05131	Pathogenic Escherichia coli infection - EPEC
+05200	Pathways in cancer
+05210	Colorectal cancer
+05211	Renal cell carcinoma
+05212	Pancreatic cancer
+05213	Endometrial cancer
+05214	Glioma
+05215	Prostate cancer
+05216	Thyroid cancer
+05217	Basal cell carcinoma
+05218	Melanoma
+05219	Bladder cancer
+05220	Chronic myeloid leukemia
+05221	Acute myeloid leukemia
+05222	Small cell lung cancer
+05223	Non-small cell lung cancer
+05310	Asthma
+05320	Autoimmune thyroid disease
+05322	Systemic lupus erythematosus
+05330	Allograft rejection
+05332	Graft-versus-host disease
+05340	Primary immunodeficiency
+07011	Penicillins
+07012	Cephalosporins - parenteral agents
+07013	Cephalosporins - oral agents
+07014	Quinolones
+07015	Local analgesics
+07016	Sulfonamide derivatives - sulfa drugs
+07017	Sulfonamide derivatives - diuretics
+07018	Sulfonamide derivatives - hypoglycemic agents
+07019	Tetracyclines
+07020	Macrolides and ketolides
+07021	Aminoglycosides
+07023	Rifamycins
+07024	Statins
+07025	Quinolines
+07026	Azoles
+07027	Antidepressants
+07028	Antipsychotics
+07029	Phenothiazines
+07030	Anxiolytics
+07031	Butyrophenones
+07032	Hypnotics
+07033	Anticonvulsants
+07034	Eicosanoids
+07035	Prostaglandins
+07036	Calcium channel-blocking drugs
+07037	Antiarrhythmic drugs
+07038	Antacids
+07039	Opioid analgesics
+07040	Antineoplastics - alkylating agents
+07041	Antineoplastics - antimetabolic agents
+07042	Antineoplastics - agents from natural products
+07043	Antineoplastics - hormones
+07044	Antiviral
+07045	Antineoplastics - protein kinases inhibitors
+07046	Immunosuppressive agents
+07110	Benzoic acid family
+07111	2-Aminothiazole family
+07112	1,2-Diphenyl substitution family
+07113	Furan family
+07114	Naphthalene family
+07115	Sulfonamide family
+07116	Butyrophenone family
+07117	Benzodiazepine family
+07211	Serotonin receptor agonists/antagonists
+07212	Histamine receptor antagonists
+07213	Dopamine receptor agonists/antagonists
+07214	beta-Adrenergic receptor agonists/antagonists
+07215	alpha-Adrenergic receptor agonists/antagonists
+07216	Catecholamine transferase inhibitors
+07217	Angiotensin antagonists
+07218	HIV protease inhibitors
+07219	Cyclooxygenase inhibitors
+07220	Cholinergic and anticholinergic drugs
+07221	Nicotinic cholinergic receptor antagonists
+09010	Metabolism map

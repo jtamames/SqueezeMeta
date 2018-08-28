@@ -4,19 +4,19 @@
 #-- Runs barrnap for RNA prediction. Sequentially runs model for bacteria, archaea, eukaryote and mitochondria
 
 use strict;
-use warnings;
 use Cwd;
 use Tie::IxHash;
 
 my $pwd=cwd();
 
 my $project=$ARGV[0];
+$project=~s/\/$//;
 
 do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($databasepath, $resultpath,$contigsfna,$tempdir,$barrnap_soft,$numthreads,$rnafile);
+our($resultpath,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath);
 
 my %king;
 tie %king,"Tie::IxHash";
@@ -28,6 +28,8 @@ if(-e $rnafile) { system("rm $rnafile"); }
 
 #-- Loop for all kingdoms (Bac, Arch, Euk) plus mitochondria, looking for the respective RNAs
 
+my %rname;
+open(outfile4,">$tempdir/16S.fasta");
 foreach my $kingdom(keys %king) {
 	my(%rna,%inrna)=();
 	my $output="$tempdir/$kingdom.gff";
@@ -54,6 +56,7 @@ foreach my $kingdom(keys %king) {
 		$rna{$k[0]}{$idx}{molecule}="$mol rRNA";
 		$rna{$k[0]}{$idx}{name}=$newid ; 
 		$rna{$k[0]}{$idx}{kingdom}=$king{$kingdom} ;
+		$rname{$newid}=$king{$kingdom} ;
 		$k[8]="ID=$newid;".$k[8];                  # We must add the ID in the gff, for reading abundances later
 		my $newline=join("\t",@k);
 		print outfile1 "$newline\n";
@@ -81,6 +84,7 @@ foreach my $kingdom(keys %king) {
 				my $replace=('N' x $longr);
 				my $rnaseq=substr($seq,$init-1,$longr,$replace);
 				print outfile2 ">$rna{$current}{$rns}{name}\t$rna{$current}{$rns}{molecule};$current|$rns;$rna{$current}{$rns}{kingdom}\n$rnaseq\n";
+				if($rna{$current}{$rns}{molecule}=~/16S/) { print outfile4 ">$rna{$current}{$rns}{name}\t$rna{$current}{$rns}{molecule};$current|$rns;$rna{$current}{$rns}{kingdom}\n$rnaseq\n"; } 
 				}
 			}
 			if($current) { print outfile3 ">$current\n$seq\n"; }	
@@ -96,6 +100,7 @@ foreach my $kingdom(keys %king) {
 	close outfile3;
 	system("mv contigs.prov $targetfile");
 }
+close outfile4;
 		
 #-- Creating the RNAs gff file
 
@@ -103,3 +108,44 @@ my $gffout="$tempdir/02.$project.rna.gff";
 if(-e $gffout) { system("rm $gffout"); }
 my $command="cat $tempdir/*gff.mod > $gffout";
 system($command);
+
+#-- Running RDP classifier for 16S sequences
+
+$command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f filterbyconf";
+print "Running RDP classifier: $command\n";
+system $command;
+
+my %parents=('Bacteria','superkingdom:Bacteria','Archea','superkingdom:Archaea','Eukaryota','superkingdom:Eukaryota');
+open(infile3,"$databasepath/LCA_tax/parents.txt") || die;
+while(<infile3>) {
+	chomp;
+	next if !$_;
+	my ($tax,$par)=split(/\t/,$_);
+	$tax=~s/ \<.*//g;
+	$parents{$tax}=$par;
+	}
+close infile3;
+
+open(outfile5,">$resultpath/02.$project.16S.txt");
+print outfile5 "#-- Created by $0, ",scalar localtime,"\n# ORF\tModel\tLast tax\tRank\tFull tax\n";
+open(infile4,"$tempdir/16S.out");
+my @ranks=('superkingdom','phylum','class','order','family','genus','species');
+while(<infile4>) {
+	chomp;
+	next if !$_;
+	my @f=split(/\t/,$_);
+	next if(!$f[0]);
+	my $lasttax=$f[$#f];
+	$lasttax=~s/unclassified\_//;	
+	$lasttax=~s/\"//g;
+	$lasttax=~s/\_.*//;
+	my $phyl=$parents{$lasttax};
+	my $rankg;
+	for(my $p=1; $p<=$#f; $p++) {
+		if($f[$p]!~/unclassified/) { $rankg=$ranks[$p-1]; }
+		}
+	if((($lasttax=~/^Gp/) || ($lasttax=~/^Subdivision/)) && (!$phyl) && ($_=~/Cyanobacteria/)) { $phyl="superkingdom:Bacteria;phylum:Cyanobacteria"; }
+	print outfile5 "$f[0]\t$rname{$f[0]}\t$lasttax\t$rankg\t$phyl\n";
+	}
+close infile4;
+close outfile5;

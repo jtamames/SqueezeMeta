@@ -33,7 +33,7 @@ close infile1;
 
 #-- Read mapping file (bedcount file) to count total number of reads 
 
-open(infile2,$bedfile) || die "Cannot open bedtools file $bedfile\n";
+open(infile2,$bedfile) || die "Cannot open counts file $bedfile\n";
 my $totcount;
 while(<infile2>) {
 	chomp;
@@ -41,6 +41,7 @@ while(<infile2>) {
 	my @fd=split(/\t/,$_);
 	my($gn,$gcount);
 	if($bedfile=~/htseq/) { $gn=$fd[0]; $gcount=$fd[1]; } 	#-- HTseq
+	elsif($bedfile=~/fcounts/)  { $gn=$fd[0]; $gcount=$fd[$#fd]; } 	#-- FeatureCounts
 	else { $gn=$fd[3]; $gcount=$fd[4]; } 			#-- Bedtools (Warning! v<0.24)
 	$totcount+=$gcount;
 	}
@@ -57,6 +58,7 @@ while(<infile3>) {
 	my @fd=split(/\t/,$_);
 	my($gn,$gcount);
 	if($bedfile=~/htseq/) { $gn=$fd[0]; $gcount=$fd[1]; } 	#-- HTseq
+	elsif($bedfile=~/fcounts/)  { $gn=$fd[0]; $gcount=$fd[$#fd]; } 	#-- FeatureCounts
 	else { $gn=$fd[3]; $gcount=$fd[4]; }                    #-- Bedtools  (Warning! v<0.24)
 	my $longt=$long{$gn};
 	my $oid=$ids{$gn};

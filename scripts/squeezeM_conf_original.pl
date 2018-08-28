@@ -74,6 +74,7 @@ $metabat_soft="$installpath/bin/metabat2";
 $maxbin_soft="$installpath/bin/run_MaxBin.pl";
 $spades_soft="$installpath/bin/spades.py";
 $barrnap_soft="$installpath/bin/barrnap";
+$rdpclassifier_soft="java -jar $installpath/bin/classifier.jar";
 $bowtie2_build_soft="$installpath/bin/bowtie2-build";
 $bowtie2_x_soft="$installpath/bin/bowtie2";
 $bedtools_soft="$installpath/bin/bedtools";   #-- IMPORTANT! Needs version <0.24    
@@ -86,4 +87,4 @@ $cdhit_soft="$installpath/bin/cd-hit-est";
 $toamos_soft="$installpath/bin/toAmos";
 $minimus2_soft="$installpath/bin/minimus2";
 $checkm_soft="$installpath/bin/checkm";
-
+$minpath_soft="python $installpath/bin/MinPath1.4.py";

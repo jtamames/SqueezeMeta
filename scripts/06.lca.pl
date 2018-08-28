@@ -197,3 +197,4 @@ sub query {
 	print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;
 	if($parents{$lasttax}{noranks}) { $thereareresults=1; }	
 }
+

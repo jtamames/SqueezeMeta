@@ -22,7 +22,7 @@ SqueezeM can be run in three different modes, depending of the type of multi-met
 SqueezeM uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
 1) Assembly 
-2) RNA prediction
+2) RNA prediction and classification
 3) ORF (CDS) prediction
 4) Homology searching against taxonomic and functional databases
 5) Hmmer searching against Pfam database
@@ -40,6 +40,7 @@ SqueezeM uses a combination of custom scripts and external software packages for
 17) Merging of previous results to obtain the bin table
 18) Merging of previous results to obtain the contig table
 19) Final statistics for the run
+20) Prediction of kegg and metacyc patwhays in each bin
 
 
 ## 2. Installation
@@ -51,7 +52,7 @@ For installing squeezeM, download the latest release from the GitHub repository 
 
 SqueezeM uses several databases. GenBank nr for taxonomic assignment, and eggnog, KEGG and Pfam for functional assignment. The script make_databases.pl must be run to download and format all these databases.
 
-`.../squeezeM/scripts/preparing_databases/make_databases.pl <datapath>`
+`<installpath>/squeezeM/scripts/preparing_databases/make_databases.pl <datapath>`
 
 , where `<datapath>` is the destination folder. The process will take about a day. The databases occupy 130Gb, but we recommend having at least 300Gb free disk space during the building process.
 
@@ -145,6 +146,8 @@ Additionally, squeezeM redistributes the following third-party software:
 * [maxbin](https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html)
 * [metabat](https://bitbucket.org/berkeleylab/metabat)
 * [checkm](http://ecogenomics.github.io/CheckM/)
+* [MinPath](http://omics.informatics.indiana.edu/MinPath)
+* [RDP classifier](https://github.com/rdpstaff/classifier)
 
 ## 7. About
 SqueezeM is developed by Javier Tamames with collaboration from Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
