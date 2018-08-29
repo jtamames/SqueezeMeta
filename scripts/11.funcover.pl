@@ -18,7 +18,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$coveragefile,$rpkmfile);
+our($datapath,$resultpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$nokegg,$nocog,$coveragefile,$rpkmfile);
 
 print "Calculating coverage for functions\n";
 my(%funs,%taxf,%validid,%tfun,%totalbases,%totalreads,%allsamples,%funstat,%longorfs,%taxcount);
@@ -92,26 +92,30 @@ close infile3;
 
 	#-- Reading KEGG assignments
 
-open(infile4,$fun3kegg)  || die;
-while(<infile4>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	my @k=split(/\t/,$_);
-	$tfun{$k[0]}{kegg}=$k[1];
+if(!$nokegg) {
+	open(infile4,$fun3kegg) || die "Cannot open KEGG assignments in $fun3kegg\n";;
+	while(<infile4>) {
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		my @k=split(/\t/,$_);
+		$tfun{$k[0]}{kegg}=$k[1];
+		}
+	close infile4;
 	}
-close infile4;
-
+	
 	#-- Reading COG assignments
 
-open(infile5,$fun3cog)  || die;
-while(<infile5>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	my @k=split(/\t/,$_);
-	$tfun{$k[0]}{cog}=$k[1];
+if(!$nocog) {
+	open(infile5,$fun3cog) || die "Cannot open COG assignments in $fun3cog\n";
+	while(<infile5>) {
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		my @k=split(/\t/,$_);
+		$tfun{$k[0]}{cog}=$k[1];
+		}
+	close infile5;
 	}
-close infile5;
-
+	
 	#-- Reading coverages for all genes
 
 print "Reading coverage in $coveragefile\n";

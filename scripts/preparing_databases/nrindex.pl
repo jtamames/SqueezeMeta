@@ -9,11 +9,13 @@ use strict;
 #-- Output file. MUST POINT TO DATABASE DIRECTORY
 
 my $databasedir=$ARGV[0];
-my $nrfasta="$databasedir/nr.faa";	#-- Previously downloaded
+my $nrfasta="$databasedir/nr15122017.fasta";	#-- Previously downloaded
 
-my $outfile="$databasedir/LCA_tax/nr.taxlist.tsv";
+my $resdir="$databasedir/LCA_tax";
+if(-d $resdir) {} else { system("mkdir $resdir"); }
+my $outfile="$resdir/nr.taxlist.db";
 open(outfile1,">$outfile") || die;
-open(infile1,$nrfasta) || die;
+open(infile1,$nrfasta) || die "Cannot open $nrfasta\n";
 my %accum;
 my $specname;
 while(<infile1>) {
@@ -26,10 +28,20 @@ while(<infile1>) {
 		$k=~s/\[|\]//g;
 		my @wd=split(/\s+/,$k);
 		next if(!$wd[1]);
-		if($wd[0] eq "Candidatus") { $specname="$wd[0] $wd[1] $wd[2]"; } else  { $specname="$wd[0] $wd[1]"; }  
+		if($k=~/virus|phage/) { 
+			$specname=$k;
+			$specname=~s/\(.*//g;
+			$specname=~s/ strain //g;
+			$specname=~s/ genotype //g;
+			$specname=~s/\s+$//;
+			$specname=~s/\s+/ /g;
+			 }
+		elsif($wd[0] eq "Candidatus") { $specname="$wd[0] $wd[1] $wd[2]"; } 
+		else  { $specname="$wd[0] $wd[1]"; }  
 		$accum{$specname}++;
 		}
-        $id=~s/^\>//;
+	# print outfile1 "$f[1]\t$f[3]\t";	#-- Old nr, with GIs
+	$id=~s/^\>//;				#-- New nr, unique identifier
 	print outfile1 "$id\t";
 	my $string="";		      
 	foreach my $pr(sort keys %accum) { $string.="$pr;"; }
@@ -40,5 +52,4 @@ while(<infile1>) {
 	
 close outfile1;
 close infile1;
-print "File created: $outfile\n";
-
+print "File created: $outfile\n";	    

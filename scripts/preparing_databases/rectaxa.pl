@@ -109,15 +109,15 @@ while(<infile3>) {
 	my @k=split(/\;/,$_);
 	my $string;
 	for(my $pos1=0; $pos1<=$#k; $pos1++) {
-		my($root,$string)="";
+		my($root,$string,$idroot)="";
 		for(my $pos2=$pos1; $pos2<=$#k; $pos2++) { 
 			my @n=split(/\:/,$k[$pos2]);
 			$string="$n[0]:$n[2];".$string; 
-			if(!$root) { $root="$n[2]"; }
+			if(!$root) { $root="$n[2]"; $idroot=$n[1]; }
 			}
 		chop $string;	
 		$string=~s/ \<prokaryotes\>//;					   
-		if(!$yseen{$root}) { print outfile2 "$root\t$string\n"; }
+		if(!$yseen{$root}) { print outfile2 "$root\t$string\t$idroot\n"; }
 		$yseen{$root}=1;					   
 		}
 	}
