@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of squeezeM distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
 #-- Calculates coverage/RPKM for genes/contigs by mapping back reads to the contigs and count how many fall in each gene/contig
 #-- Uses bowtie2 for mapping, and bedtools for counting. 
 #-- WARNING! Bedtools version must be <0.24!
@@ -98,7 +98,11 @@ foreach my $thissample(keys %allsamples) {
 	print "  Aligning with Bowtie\n";
 	if($keepsam) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
 	if($formatseq eq "fasta") { $formatoption="-f"; }
-	$command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam";
+	
+	#-- Support for single reads
+	
+	if(-z $tempdir/$par2name) { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --quiet -p $numthreads -S $outsam"; }
+	else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam"; }
 	print "$command\n";
 	system $command;
 	

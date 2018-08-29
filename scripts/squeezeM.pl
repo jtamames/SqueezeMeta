@@ -10,7 +10,7 @@ use Getopt::Long;
 use Tie::IxHash;
 use strict;
 
-my $version="0.2.0, Ago 2018";
+my $version="0.3.0, Ago 2018";
 my $start_run = time();
 
 ###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
@@ -246,7 +246,7 @@ if($mode=~/sequential/i) {
  
 		}
  		if($par2files>1) { system("cat $ca2 > $par2name"); } 
-                else { system("ln -s $ca2 $par2name"); }
+                elsif ($par2files==1) { system("ln -s $ca2 $par2name"); }    #-- Support for single reads
                 #else { system("cp $ca2 $par2name"); }
 		#-- CALL TO THE STANDARD PIPELINE
 		
@@ -403,7 +403,7 @@ sub moving {
 		}
 				     
 		if($par1files>1) { system("cat $ca1 > $par1name"); } else { system("ln -s $ca1 $par1name"); }
-		if($par2files>1) { system("cat $ca2 > $par2name"); } else { system("ln -s $ca2 $par2name"); }
+		if($par2files>1) { system("cat $ca2 > $par2name"); } elsif($par2files==1) { system("ln -s $ca2 $par2name"); }  #-- Support for single reads
 	}
 }               #-- END
 
