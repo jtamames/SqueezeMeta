@@ -9,8 +9,8 @@ my $databasedir=$ARGV[0];
 die if(!$databasedir);
 my $lca_dir="$databasedir/LCA_tax/";
 
-my $inputfile="$lca_dir/nr.taxlist.tsv";  #-- From nrindex.pl, identification entries -> species
-my $taxatreefile="$lca_dir/taxatree.txt"; #-- From rectaxa.pl, full taxonomy
+my $inputfile="$lca_dir/nr.taxlist.db";	#-- From nrindex.pl, identification entries -> species
+my $taxatreefile="$lca_dir/taxatree.txt";	#-- From rectaxa.pl, full taxonomy
 
 my $outfile="$lca_dir/taxid_tree.txt";
 
@@ -25,28 +25,29 @@ while(<infile1>) {
 	for(my $pos=1; $pos<=$#k; $pos++) {
 		@p=split(/\:/,$k[$pos]);
 		$tax{$specie}{$p[0]}=$p[2];
-		# print "$specie\t$f[0]\t$f[2]\n";
+		# print "$specie\t$pos\t$k[$pos]\t$p[0]\t$p[2]\n";
 		}
 	}
 close infile1;
 
-open(outfile1,">$outfile") || die;
+open(outfile1,">$outfile") || die "Cannot open output file $outfile\n";
 open(infile2,$inputfile) || die;
 my %store;
 while(<infile2>) {
 	chomp;
 	next if !$_;
 	%store=();
-	my ($id,$tax)=split(/\t/,$_);
-	print outfile1 "$id";
+	my ($id,$acc,$tax)=split(/\t/,$_);
+	print outfile1 "$id\t$acc";
+	# print "*$id\t*$acc\t*$tax\n";
 	my @k=split(/\;/,$tax);
 	foreach my $l(@k) {
 		$store{'species'}{$l}++;
 		foreach my $rk(@ranks) {
 			my $corresp=$tax{$l}{$rk};
+			# print "$l -> $rk -> $corresp\n";
 			next if(!$corresp);
 			$store{$rk}{$corresp}++; 
-			#  print "$l -> $rk -> $corresp\n";
 		}
 	}
 	foreach my $rk(reverse @ranks) {
