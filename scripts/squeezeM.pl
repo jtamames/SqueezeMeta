@@ -68,7 +68,7 @@ if(!$nometabat) { $nometabat=0; }
 
 #-- Check if we have all the needed options
 
-my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Assembly:\n  -a: assembler [megahit,spades] (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -map: mapper [bowtie,bwa]  (Default: $mapper)\n  -count: counter [bedtools,featurecounts]  (Default: $counter)\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n  -v: Version number\n  -h: help\n";
+my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Assembly:\n  -a: assembler [megahit,spades] (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n  -v: Version number\n  -h: help\n";
 
 print "\nSqueezeM v$version - (c) J. Tamames, CNB-CSIC\n\n";
 
@@ -169,7 +169,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nobins/) { print outfile5 "\$nobins=$nobins;\n"; }
 			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
 			elsif($_=~/^\$nometabat/) { print outfile5 "\$nometabat=$nometabat;\n"; }
-			else { print outfile5 $_; }
+			else { print outfile5 "$_\n"; }
         	}
 	 	close infile2; 
 
@@ -177,7 +177,7 @@ if($mode=~/sequential/i) {
                 if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
                 print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n";
                 if($assembler_options) { print outfile5 "\$assembler_options=$assembler_options"; }
-                print outfile5 "\$mapper=\"$mapper\"\n\$counter=\"$counter\"\n";
+                print outfile5 "\$mapper=\"$mapper\";\n\$counter=\"$counter\";\n";
                 close outfile5;
         
 		#-- Creation of directories
