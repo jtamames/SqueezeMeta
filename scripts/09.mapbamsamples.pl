@@ -101,7 +101,7 @@ foreach my $thissample(keys %allsamples) {
 	
 	#-- Support for single reads
 	
-	if(-z $tempdir/$par2name) { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --quiet -p $numthreads -S $outsam"; }
+	if(-z "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --quiet -p $numthreads -S $outsam"; }
 	else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam"; }
 	print "$command\n";
 	system $command;
