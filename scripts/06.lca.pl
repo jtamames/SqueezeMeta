@@ -29,7 +29,7 @@ my $scoreratio=0.8;   #-- Ratio first score/currsent score for the hit to be con
 my $diffiden=10;       #-- Maximim identity difference with the first
 my $flex=0.2;           #-- Allows this PERCENTAGE (if less than one) or NUMBER (if greater than one) of hits from different taxa than LCA
 my $minhits=2;        #-- Minimum number of hits for the taxa (if there is only one valid hit, this value sets to one automatically
-my $verbose=1;
+my $verbose=0;
 my $thereareresults=0;
 
 #-- Prepare the LCA database (containing the acc -> tax correspondence)

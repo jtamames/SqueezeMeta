@@ -67,7 +67,7 @@ system "perl $dbscriptdir/nrindex.pl $databasedir";
 print "\n  Running taxid_tree.pl\n";
 system "perl $dbscriptdir/taxid_tree.pl $databasedir";
 
-system ("rm $databasedir/nr.faa");
+#system ("rm $databasedir/nr.faa");
 
 print "\n  Creating sqlite databases\n\n";
 
@@ -77,13 +77,13 @@ system "echo '.import $databasedir/LCA_tax/taxid_tree.txt taxid' | sqlite3 $data
 system "sqlite3 $databasedir/LCA_tax/parents.db < $dbscriptdir/parents.sql";
 system "echo '.import $databasedir/LCA_tax/parents.txt parents' | sqlite3 $databasedir/LCA_tax/parents.db -cmd '.separator \"\\t\"'";
 
-system("rm $databasedir/LCA_tax/nr.taxlist.tsv $databasedir/LCA_tax/taxid_tree.txt $databasedir/LCA_tax/taxatree.txt");
+#system("rm $databasedir/LCA_tax/nr.taxlist.tsv $databasedir/LCA_tax/taxid_tree.txt $databasedir/LCA_tax/taxatree.txt");
 
 
 ###Update configuration files to reflect new db path.
 print("\nUpdating configuration...\n");
 
-#
+
 my $checkm_manifest = "{\"dataRoot\": \"$databasedir\", \"remoteManifestURL\": \"https://data.ace.uq.edu.au/public/CheckM_databases/\", \"manifestType\": \"CheckM\", \"localManifestName\": \".dmanifest\", \"remoteManifestName\": \".dmanifest\"}\n";
 
 open(outfile1, ">$installpath/lib/checkm/DATA_CONFIG") || die;
