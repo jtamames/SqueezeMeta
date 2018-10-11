@@ -78,7 +78,7 @@ if((!$rawfastq) || (!$equivfile) || (!$mode)) { die "$helptext\n"; }
 if(($mode!~/sequential/i) && (!$project)) { die "$helptext\n"; }
 if(($mode=~/sequential/i) && ($project)) { die "$helptext\nPlease DO NOT specify project name in sequential mode. The name will be read from the samples in $equivfile\n"; }
 if($mode!~/sequential|coassembly|merged/i) { die "$helptext\n"; }
-if($map!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { die "$helptext\n"; }
+if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { die "$helptext\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
 my $currtime=timediff();
@@ -170,6 +170,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nobins/) { print outfile5 "\$nobins=$nobins;\n"; }
 			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
 			elsif($_=~/^\$nometabat/) { print outfile5 "\$nometabat=$nometabat;\n"; }
+                        elsif($_=~/^\$mapper/) { print outfile5 "\$mapper=\"$mapper\";\n"; }
 			else { print outfile5 "$_\n"; }
         	}
 	 	close infile2; 
@@ -178,7 +179,6 @@ if($mode=~/sequential/i) {
                 if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
                 print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n";
                 if($assembler_options) { print outfile5 "\$assembler_options=$assembler_options"; }
-                print outfile5 "\$mapper=\"$mapper\";\n\$counter=\"$counter\";\n";
                 close outfile5;
         
 		#-- Creation of directories
@@ -303,6 +303,7 @@ else {
 		elsif($_=~/^\$nobins/) { print outfile6 "\$nobins=$nobins;\n"; }
 		elsif($_=~/^\$nomaxbin/) { print outfile6 "\$nomaxbin=$nomaxbin;\n"; }
 		elsif($_=~/^\$nometabat/) { print outfile6 "\$nometabat=$nometabat;\n"; }
+                elsif($_=~/^\$mapper/) { print outfile6 "\$mapper=\"$mapper\";\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nomaxbin)) { print outfile6 "\%bindirs=(\"metabat2\",\"\$resultpath/metabat2\");\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nometabat)) { print outfile6 "\%bindirs=(\"maxbin\",\"\$resultpath/maxbin\");\n"; }
 		else { print outfile6 $_; }
@@ -312,7 +313,6 @@ else {
 	if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
 	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=$assembler;\n";
 	if($assembler_options) { print outfile6 "\$assembler_options=$assembler_options"; }
-        print outfile6 "\$mapper=\"$mapper\";\n\$counter=\"$counter\";\n";
 	close outfile6;
 
 	print "Reading configuration from $projectdir/squeezeM_conf.pl\n";
