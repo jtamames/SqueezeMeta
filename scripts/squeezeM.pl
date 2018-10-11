@@ -22,7 +22,7 @@ our $installpath = "$scriptdir/..";
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat)="0";
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$ver,$hel);
-our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
+our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
 our %bindirs;  
 
 #-- Handle variables from command line
@@ -32,7 +32,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "c|contiglen=i" => \$mincontiglen,
                      "a=s" => \$assembler,
                      "map=s" => \$mapper,
-                     "count=s" => \$counter,
+#                     "count=s" => \$counter,
                      "p=s" => \$project,
                      "s|samples=s" => \$equivfile,
                      "f|seq=s" => \$rawfastq, 
@@ -68,7 +68,7 @@ if(!$nometabat) { $nometabat=0; }
 
 #-- Check if we have all the needed options
 
-my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Assembly:\n  -a: assembler [megahit,spades] (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n  -v: Version number\n  -h: help\n";
+my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Assembly:\n  -a: assembler [megahit,spades] (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -map: mapping software [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n  -v: Version number\n  -h: help\n";
 
 print "\nSqueezeM v$version - (c) J. Tamames, CNB-CSIC\n\n";
 
@@ -78,6 +78,7 @@ if((!$rawfastq) || (!$equivfile) || (!$mode)) { die "$helptext\n"; }
 if(($mode!~/sequential/i) && (!$project)) { die "$helptext\n"; }
 if(($mode=~/sequential/i) && ($project)) { die "$helptext\nPlease DO NOT specify project name in sequential mode. The name will be read from the samples in $equivfile\n"; }
 if($mode!~/sequential|coassembly|merged/i) { die "$helptext\n"; }
+if($map!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { die "$helptext\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
 my $currtime=timediff();

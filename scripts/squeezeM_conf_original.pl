@@ -67,6 +67,7 @@ $nocog=0;
 $nokegg=0;
 $nopfam=0;
 $nobins=0;
+$mapper='bowtie';
 
 #-- External software
 
@@ -77,6 +78,8 @@ $barrnap_soft="$installpath/bin/barrnap";
 $rdpclassifier_soft="java -jar $installpath/bin/classifier.jar";
 $bowtie2_build_soft="$installpath/bin/bowtie2-build";
 $bowtie2_x_soft="$installpath/bin/bowtie2";
+$bwa_soft = "$installpath/bin/bwa";
+$minimap2_soft = "$installpath/bin/minimap2";
 $bedtools_soft="$installpath/bin/bedtools";   #-- IMPORTANT! Needs version <0.24    
 $diamond_soft="$installpath/bin/diamond";
 $hmmer_soft="$installpath/bin/hmmsearch";
