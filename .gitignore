@@ -15,10 +15,7 @@ db/*
 test/*
 download/*
 scripts/squeezeM_conf.pl
+*pyc
 lib/checkm/DATA_CONFIG
-lib/checkm/*pyc
-lib/checkm/*/*.pyc
-bin/*.pyc
-lib/spades/*/*.pyc
 lib/classifier/*
 ToDo
