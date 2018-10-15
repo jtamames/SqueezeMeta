@@ -134,7 +134,7 @@ Alternative `-m sequential`, `-m merged` can be used.
 Since version 0.3.0, squeezeM is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the -map *minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling squeezeM.
 
 ## 7. Setting up the mySQL database.
-SqueezeM includes a built in mySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/squeezeM_db.
+SqueezeM includes a built in mySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
 
 ## 8. License and third-party software
 SqueezeM is distributed with a GPL-3 license.
