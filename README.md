@@ -148,7 +148,7 @@ Additionally, squeezeM redistributes the following third-party software:
 * [hmmer](http://hmmer.org/)
 * [diamond](https://github.com/bbuchfink/diamond)
 * [bedtools](https://github.com/arq5x/bedtools2)
-* [bwa] (https://github.com/lh3/bwa)
+* [bwa](https://github.com/lh3/bwa)
 * [minimus2](https://github.com/lh3/minimap2)
 * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 * [barrnap](https://github.com/tseemann/barrnap)
