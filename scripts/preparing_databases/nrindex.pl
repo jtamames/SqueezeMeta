@@ -9,7 +9,7 @@ use strict;
 #-- Output file. MUST POINT TO DATABASE DIRECTORY
 
 my $databasedir=$ARGV[0];
-my $nrfasta="$databasedir/nr15122017.fasta";	#-- Previously downloaded
+my $nrfasta="$databasedir/nr.faa";	#-- Previously downloaded
 
 my $resdir="$databasedir/LCA_tax";
 if(-d $resdir) {} else { system("mkdir $resdir"); }

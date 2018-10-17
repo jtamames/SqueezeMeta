@@ -10,7 +10,7 @@ use Getopt::Long;
 use Tie::IxHash;
 use strict;
 
-my $version="0.2.0, Ago 2018";
+my $version="0.3.0, Ago 2018";
 my $start_run = time();
 
 ###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
@@ -22,7 +22,7 @@ our $installpath = "$scriptdir/..";
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat)="0";
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$ver,$hel);
-our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
+our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
 our %bindirs;  
 
 #-- Handle variables from command line
@@ -32,7 +32,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "c|contiglen=i" => \$mincontiglen,
                      "a=s" => \$assembler,
                      "map=s" => \$mapper,
-                     "count=s" => \$counter,
+#                     "count=s" => \$counter,
                      "p=s" => \$project,
                      "s|samples=s" => \$equivfile,
                      "f|seq=s" => \$rawfastq, 
@@ -68,7 +68,7 @@ if(!$nometabat) { $nometabat=0; }
 
 #-- Check if we have all the needed options
 
-my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Assembly:\n  -a: assembler [megahit,spades] (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n  -v: Version number\n  -h: help\n";
+my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Assembly:\n  -a: assembler [megahit,spades] (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -map: mapping software [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n  -v: Version number\n  -h: help\n";
 
 print "\nSqueezeM v$version - (c) J. Tamames, CNB-CSIC\n\n";
 
@@ -78,6 +78,7 @@ if((!$rawfastq) || (!$equivfile) || (!$mode)) { die "$helptext\n"; }
 if(($mode!~/sequential/i) && (!$project)) { die "$helptext\n"; }
 if(($mode=~/sequential/i) && ($project)) { die "$helptext\nPlease DO NOT specify project name in sequential mode. The name will be read from the samples in $equivfile\n"; }
 if($mode!~/sequential|coassembly|merged/i) { die "$helptext\n"; }
+if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { die "$helptext\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
 my $currtime=timediff();
@@ -169,6 +170,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nobins/) { print outfile5 "\$nobins=$nobins;\n"; }
 			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
 			elsif($_=~/^\$nometabat/) { print outfile5 "\$nometabat=$nometabat;\n"; }
+                        elsif($_=~/^\$mapper/) { print outfile5 "\$mapper=\"$mapper\";\n"; }
 			else { print outfile5 "$_\n"; }
         	}
 	 	close infile2; 
@@ -177,7 +179,6 @@ if($mode=~/sequential/i) {
                 if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
                 print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n";
                 if($assembler_options) { print outfile5 "\$assembler_options=$assembler_options"; }
-                print outfile5 "\$mapper=\"$mapper\";\n\$counter=\"$counter\";\n";
                 close outfile5;
         
 		#-- Creation of directories
@@ -246,7 +247,7 @@ if($mode=~/sequential/i) {
  
 		}
  		if($par2files>1) { system("cat $ca2 > $par2name"); } 
-                else { system("ln -s $ca2 $par2name"); }
+                elsif ($par2files==1) { system("ln -s $ca2 $par2name"); }    #-- Support for single reads
                 #else { system("cp $ca2 $par2name"); }
 		#-- CALL TO THE STANDARD PIPELINE
 		
@@ -302,6 +303,7 @@ else {
 		elsif($_=~/^\$nobins/) { print outfile6 "\$nobins=$nobins;\n"; }
 		elsif($_=~/^\$nomaxbin/) { print outfile6 "\$nomaxbin=$nomaxbin;\n"; }
 		elsif($_=~/^\$nometabat/) { print outfile6 "\$nometabat=$nometabat;\n"; }
+                elsif($_=~/^\$mapper/) { print outfile6 "\$mapper=\"$mapper\";\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nomaxbin)) { print outfile6 "\%bindirs=(\"metabat2\",\"\$resultpath/metabat2\");\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nometabat)) { print outfile6 "\%bindirs=(\"maxbin\",\"\$resultpath/maxbin\");\n"; }
 		else { print outfile6 $_; }
@@ -311,7 +313,6 @@ else {
 	if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
 	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=$assembler;\n";
 	if($assembler_options) { print outfile6 "\$assembler_options=$assembler_options"; }
-        print outfile6 "\$mapper=\"$mapper\";\n\$counter=\"$counter\";\n";
 	close outfile6;
 
 	print "Reading configuration from $projectdir/squeezeM_conf.pl\n";
@@ -403,7 +404,7 @@ sub moving {
 		}
 				     
 		if($par1files>1) { system("cat $ca1 > $par1name"); } else { system("ln -s $ca1 $par1name"); }
-		if($par2files>1) { system("cat $ca2 > $par2name"); } else { system("ln -s $ca2 $par2name"); }
+		if($par2files>1) { system("cat $ca2 > $par2name"); } elsif($par2files==1) { system("ln -s $ca2 $par2name"); }  #-- Support for single reads
 	}
 }               #-- END
 

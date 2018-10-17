@@ -111,8 +111,8 @@ open(outfile1,">$contigtable") || die;
 
 	#-- Headers
 
-print outfile1 "Created by $0, ",scalar localtime,"\n";
-print outfile1 "#Contig ID\tTax\tChimerism\tGC perc\tLength\tNum genes\tBin ID";
+print outfile1 "#Created by $0, ",scalar localtime,"\n";
+print outfile1 "Contig ID\tTax\tChimerism\tGC perc\tLength\tNum genes\tBin ID";
 foreach my $countfile(sort keys %allsamples) { print outfile1 "\tCoverage $countfile\tRPKM $countfile\tRaw $countfile"; }
 print outfile1 "\n";
 

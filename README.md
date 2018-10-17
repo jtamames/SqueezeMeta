@@ -73,7 +73,8 @@ The command for running squeezeM has the following syntax:
 * -f|-seq: Fastq read files' directory (REQUIRED) 
 * -t: Number of threads (Default:12) 
 * -a: assembler [megahit,spades] (Default:megahit) 
-* -c|-contiglen: Minimum length of contigs (Default:1200) 
+* -c|-contiglen: Minimum length of contigs (Default:1200)
+* -map: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie)
 * --nocog: Skip COG assignment (Default: no) 
 * --nokegg: Skip KEGG assignment (Default: no) 
 * --nopfam: Skip Pfam assignment (Default: no) 
@@ -129,7 +130,13 @@ The make_databases.pl script also downloads two datasets for testing that the pr
 
 Alternative `-m sequential`, `-m merged` can be used.
 
-## 6. License and third-party software
+## 6. Working with Oxford MinION and PacBio reads.
+Since version 0.3.0, squeezeM is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the -map *minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling squeezeM.
+
+## 7. Setting up the mySQL database.
+SqueezeM includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
+
+## 8. License and third-party software
 SqueezeM is distributed with a GPL-3 license.
 Additionally, squeezeM redistributes the following third-party software:
 * [Megahit](https://github.com/voutcn/megahit)
@@ -141,6 +148,8 @@ Additionally, squeezeM redistributes the following third-party software:
 * [hmmer](http://hmmer.org/)
 * [diamond](https://github.com/bbuchfink/diamond)
 * [bedtools](https://github.com/arq5x/bedtools2)
+* [bwa](https://github.com/lh3/bwa)
+* [minimus2](https://github.com/lh3/minimap2)
 * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 * [barrnap](https://github.com/tseemann/barrnap)
 * [maxbin](https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html)
@@ -149,7 +158,7 @@ Additionally, squeezeM redistributes the following third-party software:
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)
 * [RDP classifier](https://github.com/rdpstaff/classifier)
 
-## 7. About
+## 9. About
 SqueezeM is developed by Javier Tamames with collaboration from Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
 
 

@@ -83,7 +83,7 @@ system("rm $databasedir/LCA_tax/nr.taxlist.tsv $databasedir/LCA_tax/taxid_tree.t
 ###Update configuration files to reflect new db path.
 print("\nUpdating configuration...\n");
 
-#
+
 my $checkm_manifest = "{\"dataRoot\": \"$databasedir\", \"remoteManifestURL\": \"https://data.ace.uq.edu.au/public/CheckM_databases/\", \"manifestType\": \"CheckM\", \"localManifestName\": \".dmanifest\", \"remoteManifestName\": \".dmanifest\"}\n";
 
 open(outfile1, ">$installpath/lib/checkm/DATA_CONFIG") || die;

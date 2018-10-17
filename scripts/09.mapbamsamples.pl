@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of squeezeM distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
 #-- Calculates coverage/RPKM for genes/contigs by mapping back reads to the contigs and count how many fall in each gene/contig
 #-- Uses bowtie2 for mapping, and bedtools for counting. 
 #-- WARNING! Bedtools version must be <0.24!
@@ -17,7 +17,8 @@ do "$project/squeezeM_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mode,$resultpath,$rpkmfile,$contigcov,$coveragefile,$bowtie2_x_soft,$gff_file,$tempdir,$numthreads,$scriptdir,$bedtools_soft);
+our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mode,$resultpath,$rpkmfile,$contigcov,$coveragefile,$bowtie2_x_soft,
+    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$bedtools_soft);
 
 my $keepsam=1;  #-- Set to one, it keeps SAM files. Set to zero, it deletes them when no longer needed
 
@@ -37,7 +38,8 @@ while(<infile1>) {
 	next if !$_;
 	my @t=split(/\t/,$_);
 	next if(($mode eq "sequential") && ($t[0] ne $project));
-	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } else { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
+	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } 
+	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
 	}
 close infile1;
 
@@ -46,13 +48,26 @@ my $numsamples=$#f+1;
 my $nums;
 print "Metagenomes found: $numsamples\n";
 
-	#-- Creates Bowtie2 reference for mapping (index the contigs)
 
-if(-e "$bowtieref.1.bmy t2") {} 
-else { 
-	my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
-	system($bowtie_command);
-	}
+        #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
+
+if($mapper eq "bowtie") {
+        if(-e "$bowtieref.1.bt2") {}
+        else {
+        	print("Creating reference.\n");
+                my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
+                system($bowtie_command);
+                }
+        }
+elsif($mapper eq "bwa") {
+        if(-e "$bowtieref.bwt") {}
+        else {
+        	print("Creating reference.\n");
+                my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
+                system($bwa_command);
+                }
+        }
+
 
 	#-- Prepare output files
 
@@ -81,13 +96,19 @@ foreach my $thissample(keys %allsamples) {
 	if($allsamples{$thissample}{$ifile}==1) { push(@pair1,$ifile); } else { push(@pair2,$ifile); }
 	}
 	my($par1name,$par2name);
-	if($pair1[0]=~/gz/) { $par1name="$project.$thissample.current_1.gz"; $par2name="$project.$thissample.current_2.gz"; }
-	else { $par1name="$project.$thissample.current_1"; $par2name="$project.$thissample.current_2";}
-	if($#pair1==0) { $command="ln -s $pair1[0] $tempdir/$par1name; ln -s $pair2[0] $tempdir/$par2name;"; }
-	else { 
+	if($pair1[0]=~/gz/) { $par1name="$project.$thissample.current_1.gz"; } 
+	else { $par1name="$project.$thissample.current_1"; }
+	if($pair2[0]=~/gz/) { $par2name="$project.$thissample.current_2.gz"; }
+	else { $par2name="$project.$thissample.current_2";}
+	if($#pair1==0) { $command="ln -s $pair1[0] $tempdir/$par1name;"; } 
+	elsif($#pair1>0) { 
 		my $a1=join(" ",@pair1);					
+		$command="cat $a1 > $tempdir/$par1name; ";	
+		}
+	if($#pair2==0) { $command.="ln -s $pair2[0] $tempdir/$par2name;"; }
+	elsif($#pair2>0) { 
 		my $a2=join(" ",@pair2);	
-		$command="cat $a1 > $tempdir/$par1name; cat $a2 > $tempdir/$par2name;";	
+		$command.="cat $a2 > $tempdir/$par2name; cat $a2 > $tempdir/$par2name;";	
 		}
 	print "  Getting raw reads\n";
 	print "$command\n";
@@ -95,10 +116,32 @@ foreach my $thissample(keys %allsamples) {
 	
 	#-- Now we start mapping reads against contigs
 	
-	print "  Aligning with Bowtie\n";
+	print "  Aligning to reference...\n";
 	if($keepsam) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
-	if($formatseq eq "fasta") { $formatoption="-f"; }
-	$command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam";
+	
+	#-- Support for single reads
+        if($mapper eq "bowtie") {
+            if($formatseq eq "fasta") { $formatoption="-f"; }
+    	    if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam"; }
+	    else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --quiet -p $numthreads -S $outsam"; } }
+        elsif($mapper eq "bwa") {
+            #Apparently bwa works seemlesly with fasta files as imput.
+            if(-e "$tempdir/$par2name") { $command="$bwa_soft mem $bowtieref $tempdir/$par1name $tempdir/$par2name -v 1 -t $numthreads > $outsam"; }
+            else { $command="$bwa_soft mem $bowtieref $tempdir/$par1name -v 1 -t $numthreads > $outsam"; } }
+        elsif($mapper eq "minimap2-ont") {
+            #Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
+            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads > $outsam"; }
+            else { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
+        elsif($mapper eq "minimap2-pb") {
+            #Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
+            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads > $outsam"; }
+            else { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
+        elsif($mapper eq "minimap2-sr") {
+            #Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
+            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads > $outsam"; }
+            else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
+
+                                  
 	print "$command\n";
 	system $command;
 	

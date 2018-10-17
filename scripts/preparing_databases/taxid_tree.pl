@@ -37,8 +37,8 @@ while(<infile2>) {
 	chomp;
 	next if !$_;
 	%store=();
-	my ($id,$acc,$tax)=split(/\t/,$_);
-	print outfile1 "$id\t$acc";
+	my ($id,$tax)=split(/\t/,$_);
+	print outfile1 "$id";
 	# print "*$id\t*$acc\t*$tax\n";
 	my @k=split(/\;/,$tax);
 	foreach my $l(@k) {

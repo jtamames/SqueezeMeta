@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of squeezeM distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
 #-- Runs assembly programs (currently megahit or spades) for several metagenomes that will be merged in the next step (merged mode).
 #-- Uses prinseq to filter out contigs by length (excluding small ones).
 
@@ -38,7 +38,7 @@ close infile1;
 
 	#-- Prepare files for the assembly
 
-my($par1name,$par2name);
+my($par1name,$par2name,$command);
 foreach my $thissample(sort keys %samplefiles) {
 	print "Working for sample $thissample\n";
 	my $cat1="cat ";
@@ -52,9 +52,11 @@ foreach my $thissample(sort keys %samplefiles) {
 	my $command="$cat1 > $par1name";
 	print "$command\n";
 	system($command);
-	$command="$cat2 > $par2name";
-	print "$command\n";
-	system($command);
+	if($cat2) {		#-- Support for single reads
+		$command="$cat2 > $par2name";
+		print "$command\n";
+		system($command);
+		}
         my $assemblyname;
 
 	#-- Run the assembly
@@ -63,7 +65,8 @@ foreach my $thissample(sort keys %samplefiles) {
 	if($assembler=~/megahit/i) { 
 		system("rm -r $datapath/megahit"); 
 		$assemblyname="$datapath/megahit/$thissample.final.contigs.fa";
-		my $command="$megahit_soft -1 $par1name -2 $par2name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; 
+		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; }
+		else { $command="$megahit_soft $assembler_options -r $par1name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; }	#-- Support for single reads
 		print "Running Megahit for $thissample: $command\n";
 		system $command;
 		system("mv $datapath/megahit/final.contigs.fa $assemblyname");
@@ -74,7 +77,8 @@ foreach my $thissample(sort keys %samplefiles) {
 	if($assembler=~/spades/i) { 
 		system("rm -r $datapath/spades"); 
 		$assemblyname="$datapath/spades/$thissample.contigs.fasta";
-		my $command="$spades_soft --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades"; 
+		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades"; }
+		else { $command="$spades_soft $assembler_options --meta --s1 $par1name -m 400 -t $numthreads -o $datapath/spades"; } #-- Support for single reads
 		print "Running Spades for $thissample: $command\n";
 		system $command;
 		system("mv $datapath/spades/contigs.fasta $assemblyname");

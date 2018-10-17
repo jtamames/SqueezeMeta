@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of squeezeM distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
 #-- Runs assembly programs (currently megahit or spades). Uses prinseq to filter out contigs by length (excluding small ones).
 
 use strict;
@@ -29,11 +29,13 @@ else { die "Cannot find read files in $datapath/raw_fastq\n"; }
 
 if($assembler=~/megahit/i) { 
 	$outassembly="$datapath/megahit/final.contigs.fa";
-	$command="$megahit_soft $assembler_options -1 $par1name -2 $par2name -t $numthreads -o $datapath/megahit"; 
+	if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name -t $numthreads -o $datapath/megahit"; }
+	else {  $command="$megahit_soft $assembler_options -r $par1name -t $numthreads -o $datapath/megahit"; }  #-- Support for single reads
 	}
 elsif($assembler=~/spades/i) { 
 	$outassembly="$datapath/spades/contigs.fasta";
-	$command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; 
+	if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; }
+	else { $command="$spades_soft $assembler_options --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; } #-- Support for single reads
 	}
 else { die "Unrecognized assembler\n"; }
 
