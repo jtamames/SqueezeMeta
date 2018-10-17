@@ -51,10 +51,10 @@ print "Metagenomes found: $numsamples\n";
 
         #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
 
-print("Creating reference.\n");
 if($mapper eq "bowtie") {
         if(-e "$bowtieref.1.bt2") {}
         else {
+        	print("Creating reference.\n");
                 my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
                 system($bowtie_command);
                 }
@@ -62,6 +62,7 @@ if($mapper eq "bowtie") {
 elsif($mapper eq "bwa") {
         if(-e "$bowtieref.bwt") {}
         else {
+        	print("Creating reference.\n");
                 my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
                 system($bwa_command);
                 }
