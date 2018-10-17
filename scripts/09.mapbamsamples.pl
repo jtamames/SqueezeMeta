@@ -51,7 +51,7 @@ print "Metagenomes found: $numsamples\n";
 
         #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
 
-print('Creating reference.\n');
+print("Creating reference.\n");
 if($mapper eq "bowtie") {
         if(-e "$bowtieref.1.bt2") {}
         else {
