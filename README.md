@@ -149,7 +149,7 @@ Additionally, squeezeM redistributes the following third-party software:
 * [diamond](https://github.com/bbuchfink/diamond)
 * [bedtools](https://github.com/arq5x/bedtools2)
 * [bwa](https://github.com/lh3/bwa)
-* [minimus2](https://github.com/lh3/minimap2)
+* [minimap2](https://github.com/lh3/minimap2)
 * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 * [barrnap](https://github.com/tseemann/barrnap)
 * [maxbin](https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html)
