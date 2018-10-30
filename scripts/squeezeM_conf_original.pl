@@ -91,3 +91,4 @@ $toamos_soft="$installpath/bin/toAmos";
 $minimus2_soft="$installpath/bin/minimus2";
 $checkm_soft="$installpath/bin/checkm";
 $minpath_soft="python $installpath/bin/MinPath1.4.py";
+$canu_soft="$installpath/bin/canu";

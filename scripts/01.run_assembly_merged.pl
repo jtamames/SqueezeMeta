@@ -17,7 +17,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$format);
+our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$format);
 
 #-- Read all the samples and store file names
 
@@ -44,6 +44,7 @@ foreach my $thissample(sort keys %samplefiles) {
 	my $cat1="cat ";
 	my $cat2="cat ";
 	foreach my $thisfile(sort keys %{ $samplefiles{$thissample} }) {
+		system("rm $tempdir/par*fastq*");
 		if($thisfile=~/gz$/) { $par1name="$tempdir/par1.fastq.gz"; $par2name="$tempdir/par2.fastq.gz"; }
 		else { $par1name="$tempdir/par1.fastq"; $par2name="$tempdir/par2.fastq"; }
 		if($ident{$thisfile} eq "pair1") { $cat1.="$datapath/raw_fastq/$thisfile "; } else { $cat2.="$datapath/raw_fastq/$thisfile "; }
@@ -83,6 +84,19 @@ foreach my $thissample(sort keys %samplefiles) {
 		system $command;
 		system("mv $datapath/spades/contigs.fasta $assemblyname");
 	}
+ 
+       #-- For canu
+
+        if($assembler=~/canu/i) {
+                system("rm -r $datapath/canu");
+                $assemblyname="$datapath/spades/$thissample.contigs.fasta";
+		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=32 oeaMemory=32 batMemory=32 mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $datapath/raw_fastq/*fastq";
+                print "Running canu for $thissample: $command\n";
+                system $command;
+                system("mv $datapath/canu/$project.contigs.fasta $assemblyname");
+        }
+
+
 
 
 	#-- Run prinseq_lite for removing short contigs

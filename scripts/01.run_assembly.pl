@@ -15,7 +15,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$format);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$format);
 
 my($seqformat,$outassemby,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
@@ -37,6 +37,12 @@ elsif($assembler=~/spades/i) {
 	if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; }
 	else { $command="$spades_soft $assembler_options --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; } #-- Support for single reads
 	}
+elsif($assembler=~/canu/i) {
+        $outassembly="$datapath/canu/contigs.fasta";
+        $command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=32 oeaMemory=32 batMemory=32 mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $datapath/raw_fastq/*fastq"; 
+        system "mv $datapath/canu/$project.contigs.fasta $outassembly"; 
+        }
+
 else { die "Unrecognized assembler\n"; }
 
 #-- Run it
