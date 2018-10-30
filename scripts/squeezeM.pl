@@ -203,19 +203,6 @@ if($mode=~/sequential/i) {
  			 else { die "Cannot find read file $file (Sample $sample)\n"; }
 
 	system("cp $equivfile $mappingfile");
-			#open(out2,">$mappingfile") || die;     #-- If we gzipped the files, we have to change the mapping file. This is no loger needed with linkage
- 			#open(in2,$equivfile) || die;
- 			#while(<in2>) {
-  				#chomp;
- 				#next if(!$_ || ($_=~/^\#/));
-  				#@u=split(/\t/,$_);
-  				#next if($u[0] ne $thissample);   #-- The new mapping file contains only the files for the current sample
-  				#if($u[1]!~/gz$/) { $u[1].=".gz"; }
-  				#$line=join("\t",@u);
-  				#print out2 "$line\n";
-			#}
-			#close in2;
-			#close out2;
 	
 		}
 
@@ -231,7 +218,7 @@ if($mode=~/sequential/i) {
   			#if($gzfiles!~/gz$/) { $gzfiles.=".gz"; }
  			if($ident{$thissample}{$afiles} eq "pair1") { $ca1.="$datapath/raw_fastq/$gzfiles "; $par1files++; } 
 			else { $ca2.="$datapath/raw_fastq/$gzfiles "; $par2files++; } 
-			if($ident{$thissample}{$afiles}=~/gz$/) { $par1name="$datapath/raw_fastq/par1.fastq.gz"; $par2name="$datapath/raw_fastq/par2.fastq.gz"; }
+			if($gzfiles=~/gz$/) { $par1name="$datapath/raw_fastq/par1.fastq.gz"; $par2name="$datapath/raw_fastq/par2.fastq.gz"; }  # Fixed bug 30/10/2018 JT
 			else { $par1name="$datapath/raw_fastq/par1.fastq"; $par2name="$datapath/raw_fastq/par2.fastq"; }
 		}
 		if($par1files>1) { 
