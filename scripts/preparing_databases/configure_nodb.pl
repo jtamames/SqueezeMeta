@@ -13,7 +13,7 @@ use Cwd 'abs_path';
 my $databasedir=abs_path($ARGV[0]);
 
 if(!$databasedir) { die "Usage: perl install_nodb.pl <database dir>\n"; }
-print("Make sure that $databasedir contains all the database files (nr.dmnd, etc...)\n\n")
+print("Make sure that $databasedir contains all the database files (nr.dmnd, etc...)\n\n");
 
 system("rm $libpath/classifier.tar.gz");
 
