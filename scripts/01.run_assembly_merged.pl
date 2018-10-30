@@ -16,7 +16,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$format);
+our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
 
 #-- Read all the samples and store file names
 
@@ -37,7 +37,7 @@ close infile1;
 
 	#-- Prepare files for the assembly
 
-my($par1name,$par2name,$command);
+my($par1name,$par2name,$command,$trimmomatic_command);
 foreach my $thissample(sort keys %samplefiles) {
 	print "Working for sample $thissample\n";
 	my $cat1="cat ";
@@ -57,11 +57,32 @@ foreach my $thissample(sort keys %samplefiles) {
 		print "$command\n";
 		system($command);
 		}
-        my $assemblyname;
+
+	#-- trimmomatic commands
+
+	if($cleaning) {
+		my $orig1=$par1name;
+		my $orig2=$par2name;
+		$orig1=~s/\.fastq/\.original.fastq/;
+		$orig1=~s/\.fasta/\.original.fasta/;
+		$orig2=~s/\.fastq/\.original.fastq/;
+		$orig2=~s/\.fasta/\.original.fasta/;
+		my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
+		system $tcommand; 
+		if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30 "; }
+		else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30 "; }
+
+		if($cleaning) {
+			print "Running trimmomatic: $trimmomatic_command\n";
+			system $trimmomatic_command;
+			}
+		}
+
 
 	#-- Run the assembly
 	#-- For megahit
 
+        my $assemblyname;
 	if($assembler=~/megahit/i) { 
 		system("rm -r $datapath/megahit"); 
 		$assemblyname="$datapath/megahit/$thissample.final.contigs.fa";
