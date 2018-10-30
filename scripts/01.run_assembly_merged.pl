@@ -4,7 +4,6 @@
 #-- Runs assembly programs (currently megahit or spades) for several metagenomes that will be merged in the next step (merged mode).
 #-- Uses prinseq to filter out contigs by length (excluding small ones).
 
-use warnings;
 use strict;
 use Cwd;
 
