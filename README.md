@@ -145,6 +145,7 @@ Additionally, squeezeM redistributes the following third-party software:
 * [prodigal](https://github.com/hyattpd/Prodigal)
 * [cd-hit](https://github.com/weizhongli/cdhit)
 * [amos](http://www.cs.jhu.edu/~genomics/AMOS/)
+* [mummer](https://github.com/mummer4/mummer/)
 * [hmmer](http://hmmer.org/)
 * [diamond](https://github.com/bbuchfink/diamond)
 * [bedtools](https://github.com/arq5x/bedtools2)
