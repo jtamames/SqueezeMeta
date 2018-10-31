@@ -19,8 +19,6 @@ our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$numthrea
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
-$cleaning=1; 
-
 if(-e "$datapath/raw_fastq/par1.fastq.gz") { $seqformat="fastq"; $par1name="$datapath/raw_fastq/par1.fastq.gz"; $par2name="$datapath/raw_fastq/par2.fastq.gz"; }
 elsif(-e "$datapath/raw_fastq/par1.fasta.gz") { $seqformat="fasta"; $par1name="$datapath/raw_fastq/par1.fasta.gz"; $par2name="$datapath/raw_fastq/par2.fasta.gz"; }
 elsif(-e "$datapath/raw_fastq/par1.fastq") { $seqformat="fastq"; $par1name="$datapath/raw_fastq/par1.fastq"; $par2name="$datapath/raw_fastq/par2.fastq"; }
@@ -38,8 +36,8 @@ if($cleaning) {
 	$orig2=~s/\.fasta/\.original.fasta/;
 	my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
 	system $tcommand; 
-	if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30 "; }
-	else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30 "; }
+	if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions"; }
+	else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name $cleaningoptions"; }
 
 	if($cleaning) {
 		print "Running trimmomatic: $trimmomatic_command\n";

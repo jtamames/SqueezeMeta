@@ -68,8 +68,8 @@ $nokegg=0;
 $nopfam=0;
 $nobins=0;
 $cleaning=0;
+$cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper='bowtie';
-$cleaninoptions="";
 
 #-- External software
 

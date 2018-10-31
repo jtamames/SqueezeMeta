@@ -69,8 +69,8 @@ foreach my $thissample(sort keys %samplefiles) {
 		$orig2=~s/\.fasta/\.original.fasta/;
 		my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
 		system $tcommand; 
-		if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30 "; }
-		else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30 "; }
+		if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions"; }
+		else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name $cleaningoptions"; }
 
 		if($cleaning) {
 			print "Running trimmomatic: $trimmomatic_command\n";

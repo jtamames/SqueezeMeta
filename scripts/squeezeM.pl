@@ -21,9 +21,55 @@ our $installpath = "$scriptdir/..";
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat)="0";
-our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
+our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
 our %bindirs;  
+
+#-- Define help text
+
+my $helptext = <<END_MESSAGE;
+Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>
+
+Arguments:
+
+ Mandatory parameters:
+   -m: Mode (sequential, coassembly, merged) (REQUIRED)
+   -s|-samples: Samples file (REQUIRED)
+   -f|-seq: Fastq read files' directory (REQUIRED)
+   -p: Project name (REQUIRED in coassembly and merged modes)
+   
+ Filtering: 
+   -cleaning: Filters with Trimmomatic (Default: No)
+   -cleaning_options: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
+   
+ Assembly: 
+   -a: assembler [megahit,spades,canu] (Default: $assembler)
+   --assembly_options: Options for required assembler
+   -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)
+   
+ Mapping: 
+   -map: mapping software [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] 
+
+ Annotation:  
+   --nocog: Skip COG assignment (Default: no)
+   --nokegg: Skip KEGG assignment (Default: no)
+   --nopfam: Skip Pfam assignment  (Default: no)
+   -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)
+   -miniden: identity perc for discarding hits in diamond run  (Default: 50)
+   
+ Binning:
+   --nobins: Skip all binning  (Default: no)
+   --nomaxbin: Skip MaxBin binning  (Default: no)
+   --nometabat: Skip MetaBat2 binning  (Default: no)
+   
+ Performance:
+   -t: Number of threads (Default:$numthreads)
+   
+ Information:
+   -v: Version number  
+   -h: This help 
+     
+END_MESSAGE
 
 #-- Handle variables from command line
 
@@ -44,8 +90,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nometabat" => \$nometabat,   
 		     "e|evalue=f" => \$evalue,   
 		     "minidentity=f" => \$miniden,   
-		     "spades_options=s" => \$spadesoptions,
-		     "megahit_options=s" => \$megahitoptions,
+		     "assembly_options=s" => \$assembler_options,
 		     "cleaning" => \$cleaning,
 		     "cleaning_options=s" => \$cleaningoptions,
 		     "v" => \$ver,
@@ -67,13 +112,13 @@ if(!$nopfam) { $nopfam=0; }
 if(!$nobins) { $nobins=0; }
 if(!$nomaxbin) { $nomaxbin=0; }
 if(!$nometabat) { $nometabat=0; }
-if(!$cleaning) { $cleaning=0; } elsif(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; } 
+if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
+if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
 
 #-- Check if we have all the needed options
 
-my $helptext="Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>\n\nArguments:\n\n Mandatory parameters:\n  -m: Mode (sequential, coassembly, merged) (REQUIRED)\n  -s|-samples: Samples file (REQUIRED)\n  -f|-seq: Fastq read files' directory (REQUIRED)\n  -p: Project name (REQUIRED in coassembly and merged modes)\n\n Filtering:\n  -cleaning: Filters with Trimmomatic (Default: No)\n  -cleaning_options: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)\n\n Assembly:\n  -a: assembler [megahit,spades] (Default: $assembler)\n  --megahit_options: Options for megahit assembler\n  --spades_options: Options for spades assembler\n  -map: mapping software [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]\n  -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)\n\n Functional & taxonomic assignments:\n  --nocog: Skip COG assignment (Default: no)\n  --nokegg: Skip KEGG assignment (Default: no)\n  --nopfam: Skip Pfam assignment  (Default: no)\n  -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)\n  -miniden: identity perc for discarding hits in diamond run  (Default: 50)\n\n Binning:\n  --nobins: Skip all binning  (Default: no)\n  --nomaxbin: Skip MaxBin binning  (Default: no)\n  --nometabat: Skip MetaBat2 binning  (Default: no)\n\n Performance:\n  -t: Number of threads (Default:$numthreads)\n\n Information\n  -v: Version number\n  -h: help\n";
 
-print "\nSqueezeM v$version - (c) J. Tamames, CNB-CSIC\n\n";
+print "\nSqueezeM v$version - (c) J. Tamames, CNB-CSIC\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559; doi: https://doi.org/10.1101/347559\n\n";
 
 if($ver) { exit; }
 if($hel) { die "$helptext\n"; } 
@@ -174,14 +219,13 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
 			elsif($_=~/^\$nometabat/) { print outfile5 "\$nometabat=$nometabat;\n"; }
                         elsif($_=~/^\$mapper/) { print outfile5 "\$mapper=\"$mapper\";\n"; }
-                        elsif($_=~/^\$cleaning/) { print outfile5 "\$cleaning=\"$cleaning\";\n"; }
+                        elsif($_=~/^\$cleaning\b/) { print outfile5 "\$cleaning=$cleaning;\n"; }
                         elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
 			else { print outfile5 "$_\n"; }
         	}
 	 	close infile2; 
 
                 if($counter=~/featurecounts/i) { $counter="featureCounts"; }
-                if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
                 print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n";
                 if($assembler_options) { print outfile5 "\$assembler_options=$assembler_options"; }
                 close outfile5;
@@ -296,15 +340,14 @@ else {
 		elsif($_=~/^\$nomaxbin/) { print outfile6 "\$nomaxbin=$nomaxbin;\n"; }
 		elsif($_=~/^\$nometabat/) { print outfile6 "\$nometabat=$nometabat;\n"; }
                 elsif($_=~/^\$mapper/) { print outfile6 "\$mapper=\"$mapper\";\n"; }
-		elsif($_=~/^\$cleaning/) { print outfile5 "\$cleaning=\"$cleaning\";\n"; }
-		elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
+		elsif($_=~/^\$cleaning\b/) { print outfile6 "\$cleaning=\"$cleaning\";\n"; }
+		elsif($_=~/^\$cleaningoptions/) { print outfile6 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nomaxbin)) { print outfile6 "\%bindirs=(\"metabat2\",\"\$resultpath/metabat2\");\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nometabat)) { print outfile6 "\%bindirs=(\"maxbin\",\"\$resultpath/maxbin\");\n"; }
 		else { print outfile6 $_; }
 	 }
 	close infile3;
 
-	if($assembler eq "megahit") { $assembler_options=$megahitoptions; } else { $assembler_options=$spadesoptions; }
 	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=$assembler;\n";
 	if($assembler_options) { print outfile6 "\$assembler_options=$assembler_options"; }
 	close outfile6;
@@ -708,16 +751,18 @@ sub pipeline {
 
     #-------------------------------- STEP20: Pathways in bins          
 
-        if($rpoint<=20) {
-                my $scriptname="20.minpath.pl";
-                print outfile3 "20\t$scriptname\n";
-                $currtime=timediff();
-                print outfile4 "[",$currtime->pretty,"]: STEP20 -> $scriptname\n";
-                print "[",$currtime->pretty,"]: STEP20 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
-                system("perl $scriptdir/$scriptname $project");
-                my $statfile="$resultpath/20.$project.kegg.pathways";
-                if(-s $statfile<1000) { die "Stopping in STEP20 -> $scriptname\n"; }
-        }
+	if(($mode!~/sequential/i) && ($numsamples>1) && (!$nobins)) {	       
+      		if($rpoint<=20) {
+              	  my $scriptname="20.minpath.pl";
+                	print outfile3 "20\t$scriptname\n";
+                	$currtime=timediff();
+                	print outfile4 "[",$currtime->pretty,"]: STEP20 -> $scriptname\n";
+               	 	print "[",$currtime->pretty,"]: STEP20 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
+                	system("perl $scriptdir/$scriptname $project");
+                	my $statfile="$resultpath/20.$project.kegg.pathways";
+                	if(-s $statfile<1000) { die "Stopping in STEP20 -> $scriptname\n"; }
+        	}
+	}
 
     #-------------------------------- END OF PIPELINE		
 
