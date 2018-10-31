@@ -683,12 +683,29 @@ sub pipeline {
 			my $firstfile="$dirbin/$binfiles[0]";
 			if(-s $firstfile<1000) { die "Stopping in STEP14 -> $scriptname\n"; }
 		}
+ 
+    #-------------------------------- STEP15: DAS Tool merging of binning results (only for merged or coassembly modes)		
+	
+		if(($rpoint<=15)) {
+			my $scriptname="15.dastool.pl";
+			print outfile3 "15\t$scriptname\n";
+			$currtime=timediff();
+			print outfile4 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP15 -> DAS_TOOL MERGING: $scriptname\n";
+			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $dirbin=$dasdir{DASTool};
+			open(indir2,$dirbin);
+			my @binfiles=grep(/fa/,readdir indir2);
+			closedir indir2;
+			my $firstfile="$dirbin/$binfiles[0]";
+			if(-s $firstfile<1000) { die "Stopping in STEP15 -> $scriptname\n"; }
+		}
 			
     #-------------------------------- STEP15: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
-		if($rpoint<=15) {
-			my $scriptname="15.addtax2.pl";
-			print outfile3 "15\t$scriptname\n";
+		if($rpoint<=16) {
+			my $scriptname="16.addtax2.pl";
+			print outfile3 "16\t$scriptname\n";
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP15 -> BIN TAX ASSIGNMENT: $scriptname\n";

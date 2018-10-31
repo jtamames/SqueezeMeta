@@ -14,6 +14,8 @@ $datapath="$basedir/$projectname/data";			#-- Directory containing all datafiles
 $resultpath="$basedir/$projectname/results";		#-- Directory for storing results
 $tempdir="$basedir/$projectname/temp";			#-- Temp directory
 %bindirs=("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");	#-- Directories for bins
+%dasdir=("DASTool","$resultpath/DAS/$projectname\_DASTool\_bins");	#-- Directory for DASTool results
+
 
 #-- Result files
 
