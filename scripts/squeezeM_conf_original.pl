@@ -94,4 +94,4 @@ $minimus2_soft="$installpath/bin/minimus2";
 $checkm_soft="$installpath/bin/checkm";
 $minpath_soft="python $installpath/bin/MinPath1.4.py";
 $canu_soft="$installpath/bin/canu";
-$trimmomatic_soft="java -jar /home/jtamames/software/Trimmomatic-0.38/trimmomatic-0.38.jar";
+$trimmomatic_soft="java -jar $installpath/bin/trimmomatic-0.38.jar";
