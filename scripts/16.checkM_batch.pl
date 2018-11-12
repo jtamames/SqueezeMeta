@@ -122,7 +122,7 @@ foreach my $m(@files) {
 		#-- Use already existing tax profile or create it
 	
 		if(-e $marker) {} else { 
-			my $command="export PATH=\"$installpath/bin\":\$PATH; $checkm_soft taxon_set $rank $tax $marker > /dev/null"; #Override $PATH for external dependencies of checkm. (FPS).
+			my $command="export PATH=\"$installpath/bin/pplacer\":\$PATH; $checkm_soft taxon_set $rank $tax $marker > /dev/null"; #Override $PATH for external dependencies of checkm. (FPS).
                         system($command);
 			}
 	
