@@ -16,7 +16,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,$nobins,$contigtable,%bindirs);
+our($datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,$nobins,$contigtable,%bindirs,%dasdir);
 
 my(%contig,%allsamples);
 
@@ -127,7 +127,7 @@ foreach my $p(sort keys %contig) {
 	if(!$nobins) {
 		my $ld=0;
 		$binfield="{\"Bins\": [";
-		foreach my $binmet(sort keys %bindirs) { 
+		foreach my $binmet(sort keys %dasdir) { 
 			if($contig{$p}{bin}{$binmet}) { 
 				if($ld) { $binfield.=","; }
 				$binfield.="{ \"$binmet\":\"$contig{$p}{bin}{$binmet}\" }"; 

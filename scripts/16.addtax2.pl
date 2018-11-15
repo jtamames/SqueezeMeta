@@ -16,7 +16,7 @@ do "$project/squeezeM_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$alllog,$bintax,%bindirs);
+our($datapath,$alllog,$bintax,%bindirs,%dasdir);
 
 	#-- Some configuration values for the algorithm
 	
@@ -49,8 +49,8 @@ close infile1;
 
 
 open(outfile1,">$bintax") || die;
-foreach my $binmethod(sort keys %bindirs) {		#-- For the current binning method
-	my $bindir=$bindirs{$binmethod};
+foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
+	my $bindir=$dasdir{$binmethod};
 	print "Looking for $binmethod bins in $bindir\n";
 
 	#-- Reading bin directories
@@ -77,7 +77,7 @@ foreach my $binmethod(sort keys %bindirs) {		#-- For the current binning method
 		
 		while(<infile2>) {
 			chomp;
-			if($_=~/\>(.*)/) {
+			if($_=~/\>([^ ]+)/) {
 				my $contigid=$1;
 				my $taxid=$tax{$contigid};
 				print outfile2 "$_ $taxid\n";

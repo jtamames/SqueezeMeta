@@ -17,7 +17,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$taxlist,%bindirs,$checkm_soft,$alllog,$resultpath,$tempdir,$numthreads);
+our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$numthreads);
 
 my $minsize=20000;  #-- Minimum size of a bin to be considered
 my $markerdir="$datapath/checkm_markers";
@@ -42,8 +42,8 @@ close infile1;
 
 	#-- Read bin directories
 
-foreach my $binmethod(sort keys %bindirs) {
-	my $bindir=$bindirs{$binmethod};
+foreach my $binmethod(sort keys %dasdir) {
+	my $bindir=$dasdir{$binmethod};
 	print "Looking for $binmethod bins in $bindir\n";
 	
 	#-- Read contigs in bins
@@ -64,7 +64,7 @@ my @files=grep(/tax$/,readdir indir);
 closedir indir;
 
 
-my $checkmfile="$resultpath/16.$project.$binmethod.checkM";	#-- From checkM_batch.pl, checkM results
+my $checkmfile="$resultpath/17.$project.$binmethod.checkM";	#-- From checkM_batch.pl, checkM results
 if(-e $checkmfile) { system("rm $checkmfile"); }
 
 	#-- Working for each bin
@@ -88,7 +88,7 @@ foreach my $m(@files) {
 			$size=~s/Total size\: //g;
 			if($size<$minsize) { print "Skipping bin $bins{$thisfile} because of low size\n"; next; }
 			$consensus{$thisfile}=$cons;
-			my @k=split(/\;/,$_);
+			my @k=split(/\;/,$cons);
 		
 			#-- We store the full taxonomy for the bin because not all taxa have checkm markers
 		
@@ -96,7 +96,7 @@ foreach my $m(@files) {
 				my($ntax,$rank);
 				if($ftax!~/\:/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\:/,$ftax); }
 				$ntax=~s/unclassified //gi;
-				$ntax=~s/ \<.*\>//gi;
+				$ntax=~s/ \<.*\>//gi; 
 				if($tax{$ntax} && ($tax{$ntax} ne "species")  && ($tax{$ntax} ne "no rank")) { 
 				push( @{ $alltaxa{$thisfile} },"$tax{$ntax}:$ntax");
 				#   print "$m\t$ntax\t$tax{$ntax}\n";
@@ -109,9 +109,8 @@ foreach my $m(@files) {
 	my $inloop=1;
 
 	#-- We will find the deepest taxa with checkm markers
-
-	while($inloop) { 
-		my $taxf=shift(@{ $alltaxa{$thisfile}  });
+	while($inloop) {  
+		my $taxf=shift(@{ $alltaxa{$thisfile}  }); 
 		if(!$taxf) { last; $inloop=0; }
 		my($rank,$tax)=split(/\:/,$taxf);
 		$tax=~s/ \<.*//g;

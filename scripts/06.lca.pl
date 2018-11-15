@@ -183,7 +183,7 @@ sub query {
 		print "   $k\n" if $verbose;
 		foreach my $t(keys %{ $accum{$k} }) {
 			print "      $t $accum{$k}{$t}\n" if $verbose;
-			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>=1)) { 	#-- REQUIREMENTS FOR VALID LCA
+			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0)) { 	#-- REQUIREMENTS FOR VALID LCA
 				print "$k -> $t\n" if $verbose;
 				$lasttax=$t; 
 				#  if($t) { $string="$t;$string"; }

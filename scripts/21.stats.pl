@@ -20,7 +20,7 @@ our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigs
 
 my %sampledata;
 
-my $resultfile="$resultpath/19.$project.stats";
+my $resultfile="$resultpath/21.$project.stats";
 open(outfile1,">$resultfile") || die "Cannot open $resultfile\n";
 
 	#-- Read bases and reads

@@ -14,6 +14,8 @@ $datapath="$basedir/$projectname/data";			#-- Directory containing all datafiles
 $resultpath="$basedir/$projectname/results";		#-- Directory for storing results
 $tempdir="$basedir/$projectname/temp";			#-- Temp directory
 %bindirs=("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");	#-- Directories for bins
+%dasdir=("DASTool","$resultpath/DAS/$projectname\_DASTool\_bins");	#-- Directory for DASTool results
+
 
 #-- Result files
 
@@ -39,12 +41,12 @@ $rpkmfile="$resultpath/09.$projectname.bedcount";       #-- From mapbamsamples.p
 $coveragefile="$resultpath/09.$projectname.coverage";   #-- From mapbamsamples.pl, rpkm counts for all samples
 $contigcov="$resultpath/09.$projectname.contigcov";     #-- From mapbamsamples.pl, coverages of  for all samples
 $mcountfile="$resultpath/10.$projectname.mcount";	#-- From mcount.pl, abundances of all taxa
-$mergedfile="$resultpath/12.$projectname.mergedtable";	#-- GEN TABLE FILE
-$bintax="$resultpath/15.$projectname.bintax";           #-- From addtax2.pl
-$bincov="$resultpath/17.$projectname.bincov";           #-- Coverage of bins, from getbins.pl
-$bintable="$resultpath/17.$projectname.bintable";       #-- Mapping of contigs in bins, from getbins.pl
-$contigsinbins="$resultpath/18.$projectname.contigsinbins";
-$contigtable="$resultpath/18.$projectname.contigtable"; #-- From getcontigs.pl, CONTIGS TABLE
+$mergedfile="$resultpath/12.$projectname.orftable";	#-- GEN TABLE FILE
+$bintax="$resultpath/17.$projectname.bintax";           #-- From addtax2.pl
+$bincov="$resultpath/18.$projectname.bincov";           #-- Coverage of bins, from getbins.pl
+$bintable="$resultpath/18.$projectname.bintable";       #-- Mapping of contigs in bins, from getbins.pl
+$contigsinbins="$resultpath/19.$projectname.contigsinbins";
+$contigtable="$resultpath/19.$projectname.contigtable"; #-- From getcontigs.pl, CONTIGS TABLE
 
 #-- Datafiles
 
@@ -95,3 +97,4 @@ $checkm_soft="$installpath/bin/checkm";
 $minpath_soft="python $installpath/bin/MinPath1.4.py";
 $canu_soft="$installpath/bin/canu/canu";
 $trimmomatic_soft="java -jar $installpath/bin/trimmomatic-0.38.jar";
+$dastool_soft="$installpath/DAS_Tool";

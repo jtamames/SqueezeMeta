@@ -16,7 +16,7 @@ do "$project/squeezeM_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$bincov,$contigcov,%bindirs,$contigsinbins,$resultpath,$bintable);
+our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$bintable);
 my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna);
 
 	#-- Read 16S in contigs
@@ -45,14 +45,14 @@ open(outfile2,">>$contigsinbins") || die;
 print outfile2 "#--Created by $0,",scalar localtime,"\n";
 print outfile2 "# Contig\tMethod\tBin ID\n";
 
-foreach my $binmethod(sort keys %bindirs) {
+foreach my $binmethod(sort keys %dasdir) {
 
 	#-- For all the binning methods
 
 	print "Method:$binmethod\n";
-	print "Reading checkM results\n";
-	my $bindir=$bindirs{$binmethod};
-	my $checkmfile="$resultpath/16.$project.$binmethod.checkM";
+	my $bindir=$dasdir{$binmethod};
+	my $checkmfile="$resultpath/17.$project.$binmethod.checkM";
+	print "Reading checkM results in $checkmfile\n";
 	
 		#-- Read checkM results for each bin
 	
@@ -173,7 +173,7 @@ foreach my $binmethod(sort keys %bindirs) {
 	#-- Data
 	
 	foreach my $method(sort keys %bins) {
-		foreach my $thisbin(sort { $bins{$method}{$b}{complete}<=>$bins{$method}{$a}{complete} } keys %{ $bins{$method} }) {
+		foreach my $thisbin(sort { $bins{$method}{$b}{complete}<=>$bins{$method}{$a}{complete} } keys %{ $bins{$method} }) { 
 			my $taxrna;
 			foreach my $cd(sort keys %{ $bins{$method}{$thisbin}{rna} }) { 
 				if($cd) { $taxrna.="$cd|"; }
