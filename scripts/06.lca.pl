@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Last Common Ancestor (LCA) taxonomic assignment from a Diamond file. 
 #-- 20/05/2018 Includes rank-directed identity level checks
 
@@ -14,7 +14,7 @@ use Cwd;
 my $pwd=cwd();
 my $project=$ARGV[0];
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 

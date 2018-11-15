@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/11/2018 Version 0.3.1, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/11/2018 Version 0.3.1, (c) Javier Tamames, CNB-CSIC
 #-- Runs DasTool for combining binning results
 
 use strict;
@@ -11,7 +11,7 @@ $|=1;
 my $pwd=cwd();
 my $project=$ARGV[0];
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 

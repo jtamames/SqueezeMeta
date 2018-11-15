@@ -28,7 +28,7 @@ our(%bindirs,%dasdir);
 #-- Define help text
 
 my $helptext = <<END_MESSAGE;
-Usage: squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>
+Usage: SqueezeMeta.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>
 
 Arguments:
 
@@ -118,7 +118,7 @@ if(!$cleaning) { $cleaning=0; $cleaningoptions=""; }
 #-- Check if we have all the needed options
 
 
-print "\nSqueezeM v$version - (c) J. Tamames, CNB-CSIC\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559; doi: https://doi.org/10.1101/347559\n\n";
+print "\nSqueezeMeta v$version - (c) J. Tamames, CNB-CSIC\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559; doi: https://doi.org/10.1101/347559\n\n";
 
 if($ver) { exit; }
 if($hel) { die "$helptext\n"; } 
@@ -193,14 +193,14 @@ if($mode=~/sequential/i) {
 		print outfile4 "Project: $project\n";
 		print outfile4 "Map file: $equivfile\n";
 		print outfile4 "Fastq directory: $rawfastq\n";
-                print outfile4 "[",$currtime->pretty,"]: STEP0 -> squeezeM.pl\n";
-                print outfile2 "[",$currtime->pretty,"]: STEP0 -> squeezeM.pl\n";
+                print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
+                print outfile2 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
 		print "Now creating directories\n";
-		open(infile2,"$scriptdir/squeezeM_conf.pl") || die;
+		open(infile2,"$scriptdir/SqueezeMeta_conf.pl") || die;
 	
 		#-- Creation of the new configuration file for this sample
 	
-		open(outfile5,">$projectdir/squeezeM_conf.pl") || die;
+		open(outfile5,">$projectdir/SqueezeMeta_conf.pl") || die;
 
 		print outfile5 "\$mode=\"$mode\";\n\n";
                 print outfile5 "\$installpath=\"$installpath\";\n";
@@ -232,8 +232,8 @@ if($mode=~/sequential/i) {
         
 		#-- Creation of directories
 	    
-		print "Reading configuration from $projectdir/squeezeM_conf.pl\n";
-		do "$projectdir/squeezeM_conf.pl";
+		print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";
+		do "$projectdir/SqueezeMeta_conf.pl";
 		system ("mkdir $datapath");
  		system ("mkdir $resultpath");
  		system ("mkdir $tempdir");
@@ -318,13 +318,13 @@ else {
 	print outfile4 "Map file: $equivfile\n";
 	print outfile4 "Fastq directory: $rawfastq\n";
 	print outfile4 "Options: threads=$numthreads; contiglen=$mincontiglen; assembler=$assembler;\n";
-	print outfile4 "[",$currtime->pretty,"]: STEP0 -> squeezeM.pl\n";
+	print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
      
 	print "Now creating directories\n";
 	
 	#-- Creation of the new configuration file for this sample
-	open(infile3,"$scriptdir/squeezeM_conf.pl") || die "Cannot open $scriptdir/squeezeM_conf.pl\n";
-	open(outfile6,">$projectdir/squeezeM_conf.pl") || die;
+	open(infile3,"$scriptdir/SqueezeMeta_conf.pl") || die "Cannot open $scriptdir/SqueezeMeta_conf.pl\n";
+	open(outfile6,">$projectdir/SqueezeMeta_conf.pl") || die;
 
 	print outfile6 "\$mode=\"$mode\";\n\n";
         print outfile6 "\$installpath=\"$installpath\";\n";
@@ -352,8 +352,8 @@ else {
 	if($assembler_options) { print outfile6 "\$assembler_options=$assembler_options"; }
 	close outfile6;
 
-	print "Reading configuration from $projectdir/squeezeM_conf.pl\n";
-	do "$projectdir/squeezeM_conf.pl" || die;
+	print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";
+	do "$projectdir/SqueezeMeta_conf.pl" || die;
 
 	
 	#-- Creation of directories

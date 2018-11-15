@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
 #-- Runs assembly programs (currently megahit or spades). Uses prinseq to filter out contigs by length (excluding small ones).
 
 use strict;
@@ -11,7 +11,7 @@ $|=1;
 my $pwd=cwd();
 my $project=$ARGV[0];
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 

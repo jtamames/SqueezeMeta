@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
 #-- Calculates coverage/RPKM for genes/contigs by mapping back reads to the contigs and count how many fall in each gene/contig
 #-- Uses bowtie2 for mapping, and bedtools for counting. 
 #-- WARNING! Bedtools version must be <0.24!
@@ -13,7 +13,7 @@ use Cwd;
 my $pwd=cwd();
 my $project=$ARGV[0];
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 

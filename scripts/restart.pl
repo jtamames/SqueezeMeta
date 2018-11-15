@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Restarts interrupted squeezeM processes
+#-- Restarts interrupted SqueezeMeta processes
 
 
 $|=1;
@@ -22,7 +22,7 @@ $project=~s/\/$//;
 
 my $progress="$pwd/$project/progress";
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
