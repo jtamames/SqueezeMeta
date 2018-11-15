@@ -11,7 +11,7 @@ use Cwd;
 
 #-- Restarts an interrupted pipeline
 
-my $version="0.2.0";
+my $version="0.4.0";
 my $start_run = time();
 
 my $pwd=cwd();	
@@ -29,8 +29,8 @@ do "$project/squeezeM_conf.pl";
 our($datapath,$assembler,$outassembly,);
 our($nocog,$nokegg,$nopfam,$nobins);
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options);
-our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft);
-our %bindirs;  
+our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
+our(%bindirs,%dasdir);  
 
 
 	#-- Read where the process stopped
@@ -291,72 +291,76 @@ system("rm $tempdir/$project.log");
 			if(-s $firstfile<1000) { die "Stopping in STEP14 -> $scriptname\n"; }
 		}
 			
-    #-------------------------------- STEP15: Taxonomic annotation for the bins (consensus of contig annotations)		
+    #-------------------------------- STEP15: DAS Tool merging of binning results (only for merged or coassembly modes)		
 	
-		if($rpoint<=15) {
-			my $scriptname="15.addtax2.pl";
+		if(($rpoint<=15)) {
+			my $scriptname="15.dastool.pl";
 			print outfile1 "15\t$scriptname\n";
 			$currtime=timediff();
-			print outfile2 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP15 -> BIN TAX ASSIGNMENT: $scriptname\n";
+			print outfile4 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP15 -> DAS_TOOL MERGING: $scriptname\n";
 			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if(-s $bintax<1000) { die "Stopping in STEP15 -> $scriptname\n"; }
+			my $dirbin=$dasdir{DASTool};
+			open(indir2,$dirbin);
+			my @binfiles=grep(/fa/,readdir indir2);
+			closedir indir2;
+			my $firstfile="$dirbin/$binfiles[0]";
+			if(-s $firstfile<1000) { die "Stopping in STEP15 -> $scriptname\n"; }
 		}
 			
-    #-------------------------------- STEP16: Checking of bins for completeness and contamination (checkM)		
+    #-------------------------------- STEP16: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
 		if($rpoint<=16) {
-			my $scriptname="16.checkM_batch.pl";
+			my $scriptname="16.addtax2.pl";
 			print outfile1 "16\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP16 -> CHECKING BINS: $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP16 -> BIN TAX ASSIGNMENT: $scriptname\n";
 			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			foreach my $binmethod(keys %bindirs) {
-				$checkmfile="$resultpath/16.$project.$binmethod.checkM";
-				print "Checking for $checkmfile\n";
-				if(-s $checkmfile<1000) { die "Cannot find $checkmfile\nStopping in STEP16 -> $scriptname\n"; }
-				}
+			if(-s $bintax<1000) { die "Stopping in STEP16 -> $scriptname\n"; }
 		}
 			
-    #-------------------------------- STEP17: Make bin table		
+    #-------------------------------- STEP17: Checking of bins for completeness and contamination (checkM)		
 	
 		if($rpoint<=17) {
-			my $scriptname="17.getbins.pl";
+			my $scriptname="17.checkM_batch.pl";
 			print outfile1 "17\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP17 -> CREATING BIN TABLE: $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP17 -> CHECKING BINS: $scriptname\n";
+			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			foreach my $binmethod(keys %dasdir) {
+				$checkmfile="$resultpath/17.$project.$binmethod.checkM";
+				print "Checking for $checkmfile\n";
+				if(-s $checkmfile<1000) { die "Cannot find $checkmfile\nStopping in STEP17 -> $scriptname\n"; }
+				}
+		}
+			
+    #-------------------------------- STEP18: Make bin table		
+	
+		if($rpoint<=18) {
+			my $scriptname="18.getbins.pl";
+			print outfile1 "18\t$scriptname\n";
+			$currtime=timediff();
+			print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP18 -> CREATING BIN TABLE: $scriptname\n";
 			system("perl $scriptdir/$scriptname $project");
-			if(-s $bintable<1000) { die "Stopping in STEP17 -> $scriptname\n"; }
+			if(-s $bintable<1000) { die "Stopping in STEP18 -> $scriptname\n"; }
 		}
 	}
 
-    #-------------------------------- STEP18: Make contig table		
-
-	if($rpoint<=18) {
-		my $scriptname="18.getcontigs.pl";
-		print outfile1 "18\t$scriptname\n";
-		$currtime=timediff();
-		print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP18 -> CREATING CONTIG TABLE: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
-		if(-s $contigtable<1000) { die "Stopping in STEP18 -> $scriptname\n"; }
-	}
-
-
-    #-------------------------------- STEP19: Make stats		
+    #-------------------------------- STEP19: Make contig table		
 
 	if($rpoint<=19) {
-		my $scriptname="19.stats.pl";
+		my $scriptname="19.getcontigs.pl";
 		print outfile1 "19\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP19 -> MAKING FINAL STATISTICS: $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP19 -> CREATING CONTIG TABLE: $scriptname\n";
 		system("perl $scriptdir/$scriptname $project");
-		my $statfile="$resultpath/19.$project.stats";
-		if(-s $statfile<1000) { die "Stopping in STEP19 -> $scriptname\n"; }
+		if(-s $contigtable<1000) { die "Stopping in STEP19 -> $scriptname\n"; }
 	}
+
 
     #-------------------------------- STEP20: Pathways in bins          
 
@@ -370,6 +374,19 @@ system("rm $tempdir/$project.log");
                 my $statfile="$resultpath/20.$project.kegg.pathways";
                 if(-s $statfile<1000) { die "Stopping in STEP20 -> $scriptname\n"; }
         }
+
+    #-------------------------------- STEP21: Make stats		
+
+	if($rpoint<=21) {
+		my $scriptname="21.stats.pl";
+		print outfile1 "21\t$scriptname\n";
+		$currtime=timediff();
+		print outfile2 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
+		print "[",$currtime->pretty,"]: STEP21 -> MAKING FINAL STATISTICS: $scriptname\n";
+		system("perl $scriptdir/$scriptname $project");
+		my $statfile="$resultpath/21.$project.stats";
+		if(-s $statfile<1000) { die "Stopping in STEP19 -> $scriptname\n"; }
+	}
 
     #-------------------------------- END OF PIPELINE		
 

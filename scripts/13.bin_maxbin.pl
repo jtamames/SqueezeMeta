@@ -97,4 +97,4 @@ close outfile1;
 
 my $command="perl $maxbin_soft -thread $numthreads -contig $tempfasta -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
 print "Now running Maxbin: $command\n";
-system $command;
+#system $command;

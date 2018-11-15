@@ -124,7 +124,7 @@ while(<infile6>) {
 	chomp;
 	if($_=~/^\>([^ ]+)/) {			#-- If we are reading a new ORF, store the data for the last one
 		if($ntseq) { 
-		$gc=gc_count($ntseq);
+		$gc=gc_count($ntseq,$ntorf);
 		$orfdata{$ntorf}{gc}=$gc;
 		}
 	$ntorf=$1;
@@ -133,7 +133,7 @@ while(<infile6>) {
 	else { $ntseq.=$_; }		#-- Otherwise store the sequence of the current			      
 }
 close infile6;
-$gc=gc_count($ntseq);		#-- Last ORF in the file
+if($ntseq) { $gc=gc_count($ntseq); }		#-- Last ORF in the file
 $orfdata{$ntorf}{gc}=$gc; 
 $datafiles{'gc'}=1;
 
@@ -148,7 +148,7 @@ while(<infile7>) {
 		$_=~s/^\>//;
 		my @mt=split(/\t/,$_);
 		if($ntseq) { 
-			$gc=gc_count($ntseq);
+			$gc=gc_count($ntseq,$ntorf);
 			$orfdata{$ntorf}{gc}=$gc; 
 		}
 	$ntorf=$mt[0];
@@ -157,7 +157,7 @@ while(<infile7>) {
 	else { $ntseq.=$_; }		#-- Otherwise store the sequence of the current		      
 }
 close infile7;
-$gc=gc_count($ntseq);
+if($ntseq) { $gc=gc_count($ntseq); }
 $orfdata{$ntorf}{gc}=$gc; 
 
 	#-- Reading taxonomic assignment and chimerism for the contigs
@@ -294,7 +294,10 @@ print "Output created in $mergedfile\n";
 
 sub gc_count {
  my $seq=shift;
+ my $corf=shift;
  my @m=($seq=~/G|C/gi);
+ my $lseq=length $seq;
+ if(!$lseq) { print "Zero length sequence found for $corf\n"; next; }
  my $gc=(($#m+1)/length $seq)*100;
  return $gc;
               }
