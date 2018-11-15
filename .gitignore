@@ -18,4 +18,5 @@ scripts/squeezeM_conf.pl
 *pyc
 lib/checkm/DATA_CONFIG
 lib/classifier/*
+bin/mummer/.libs/*
 ToDo

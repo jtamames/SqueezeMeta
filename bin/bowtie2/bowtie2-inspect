@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+
+"""
+ Copyright 2014, Ben Langmead <langmea@cs.jhu.edu>
+
+ This file is part of Bowtie 2.
+
+ Bowtie 2 is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ Bowtie 2 is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with Bowtie 2.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+
+import os
+import imp
+import inspect
+import logging
+import argparse
+import subprocess
+from collections import deque
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--debug', action='store_true')
+    group.add_argument('--sanitized', action='store_true')
+
+    parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--large-index', action='store_true')
+
+    logging.basicConfig(level=logging.ERROR,
+                        format='%(levelname)s: %(message)s'
+                        )
+    inspect_bin_name      = 'bowtie-inspect'
+    inspect_bin_s         = 'bowtie2-inspect-s'
+    inspect_bin_l         = 'bowtie2-inspect-l'
+    idx_ext_l             = '.1.bt2l'; 
+    idx_ext_s             = '.1.bt2'; 
+    curr_script           = os.path.realpath(inspect.getsourcefile(main))
+    ex_path               = os.path.dirname(curr_script)
+    inspect_bin_spec      = os.path.join(ex_path,inspect_bin_s)
+
+    script_options, argv = parser.parse_known_args()
+    argv = deque(argv)
+
+    if script_options.verbose:
+        logging.getLogger().setLevel(logging.INFO)
+        
+    if script_options.debug:
+        inspect_bin_spec += '-debug'
+        inspect_bin_l += '-debug'
+
+    if script_options.sanitized:
+        inpsect_bin_spec += '-sanitized'
+        inspect_bin_l += '-sanitized'
+        
+    if script_options.large_index:
+        inspect_bin_spec = os.path.join(ex_path,inspect_bin_l)
+    elif len(argv) >= 1:
+        idx_basename = argv[-1]
+        large_idx_exists = os.path.exists(idx_basename + idx_ext_l)
+        small_idx_exists = os.path.exists(idx_basename + idx_ext_s)
+        if large_idx_exists and not small_idx_exists:
+            inspect_bin_spec = os.path.join(ex_path,inspect_bin_l)
+    
+    argv.appendleft('basic-0')
+    argv.appendleft('--wrapper')
+    argv.appendleft(inspect_bin_spec)
+    logging.info('Command: %s' %  ' '.join(argv))
+    subprocess.call(argv)
+        
+if __name__ == '__main__':
+    main()
