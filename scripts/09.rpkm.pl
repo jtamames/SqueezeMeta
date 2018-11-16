@@ -8,6 +8,7 @@ use strict;
 my $bedfile=$ARGV[0];		# htseq|bedtools file
 my $gff_file=$ARGV[1];		# gff file
 my $sample=$ARGV[2];		# Sample ID
+my $totalreads=$ARGV[3];		# Reads in the sample # FIXED BUG that used mapped reads instead of total reads JT 16/11/18
 
 my(%long,%ids);
 
@@ -63,7 +64,7 @@ while(<infile3>) {
 	my $longt=$long{$gn};
 	my $oid=$ids{$gn};
 	next if(!$longt);
-	my $rpkm=(($gcount*1000000000)/($longt*$totcount));
+	my $rpkm=(($gcount*1000000000)/($longt*$totalreads));
 	if(!$rpkm) { print "$oid\t0\t$gcount\t$sample\t$longt\n"; } else { printf "$oid\t%.3f\t$gcount\t$sample\t$longt\n",$rpkm; }
 	}
 close infile3;

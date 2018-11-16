@@ -4,13 +4,15 @@
 
 $|=1;
 
+my $commandline=$0 . " ". (join " ", @ARGV);
+
 use Time::Seconds;
 use Cwd;
 use Getopt::Long;
 use Tie::IxHash;
 use strict;
 
-my $version="0.4.0, Ago 2018";
+my $version="0.4.0, Nov 2018";
 my $start_run = time();
 
 ###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
@@ -78,8 +80,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "c|contiglen=i" => \$mincontiglen,
                      "a=s" => \$assembler,
                      "map=s" => \$mapper,
-#                     "count=s" => \$counter,
-                     "p=s" => \$project,
+                      "p=s" => \$project,
                      "s|samples=s" => \$equivfile,
                      "f|seq=s" => \$rawfastq, 
 		     "nocog" => \$nocog,   
@@ -118,7 +119,7 @@ if(!$cleaning) { $cleaning=0; $cleaningoptions=""; }
 #-- Check if we have all the needed options
 
 
-print "\nSqueezeMeta v$version - (c) J. Tamames, CNB-CSIC\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559; doi: https://doi.org/10.1101/347559\n\n";
+print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente CNB-CSIC\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559; doi: https://doi.org/10.1101/347559\n\n";
 
 if($ver) { exit; }
 if($hel) { die "$helptext\n"; } 
@@ -130,7 +131,6 @@ if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { die "$helptext
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
 my $currtime=timediff();
-my $commandline = join " ", $0, @ARGV;
 print "Run started ",scalar localtime," in $mode mode\n";
 
 
@@ -166,7 +166,6 @@ if($mode=~/sequential/i) {
 	open(outfile1,">$pwd/global_progress") || die;  	#-- An index indicating where are we and which parts of the method finished already. For the global process
 	open(outfile2,">$pwd/global_syslog") || die; 		 #-- A log file for the global proccess
 	print outfile2 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
-	$commandline = join " ", $0, @ARGV;
 	print outfile2 "Command: $commandline\n"; 
 	print outfile2 "Options: threads=$numthreads; contiglen=$mincontiglen; assembler=$assembler; sample file=$equivfile; raw fastq=$rawfastq\n";
 
@@ -219,13 +218,12 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
 			elsif($_=~/^\$nometabat/) { print outfile5 "\$nometabat=$nometabat;\n"; }
                         elsif($_=~/^\$mapper/) { print outfile5 "\$mapper=\"$mapper\";\n"; }
-                        elsif($_=~/^\$cleaning\b/) { print outfile5 "\$cleaning=$cleaning;\n"; }
+                         elsif($_=~/^\$cleaning\b/) { print outfile5 "\$cleaning=$cleaning;\n"; }
                         elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
 			else { print outfile5 "$_\n"; }
         	}
 	 	close infile2; 
 
-                if($counter=~/featurecounts/i) { $counter="featureCounts"; }
                 print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n";
                 if($assembler_options) { print outfile5 "\$assembler_options=$assembler_options"; }
                 close outfile5;
@@ -348,7 +346,7 @@ else {
 	 }
 	close infile3;
 
-	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=$assembler;\n";
+ 	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=$assembler;\n";
 	if($assembler_options) { print outfile6 "\$assembler_options=$assembler_options"; }
 	close outfile6;
 
@@ -625,7 +623,7 @@ sub pipeline {
 			
     #-------------------------------- STEP11: Count of function abundances
 	
-	if($rpoint<=11) {
+	if(($rpoint<=11)) {
 		my $scriptname="11.funcover.pl";
 		print outfile3 "11\t$scriptname\n";
 		$currtime=timediff();
