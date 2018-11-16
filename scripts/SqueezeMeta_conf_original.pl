@@ -97,4 +97,4 @@ $checkm_soft="$installpath/bin/checkm";
 $minpath_soft="python $installpath/bin/MinPath1.4.py";
 $canu_soft="$installpath/bin/canu/canu";
 $trimmomatic_soft="java -jar $installpath/bin/trimmomatic-0.38.jar";
-$dastool_soft="$installpath/DAS_Tool";
+$dastool_soft="$installpath/bin/DAS_Tool/DAS_Tool";

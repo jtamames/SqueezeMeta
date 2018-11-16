@@ -15,7 +15,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$aafile,$contigsfna,%bindirs,$contigcov,$dastool_soft,$alllog,$tempdir,$numthreads);
+our($installpath,$datapath,$databasepath,$resultpath,$aafile,$contigsfna,%bindirs,$contigcov,$dastool_soft,$alllog,$tempdir,$numthreads);
 
 my $score_tres=0.25;	#-- Score threshold for keeping bins (proxy for level of completeness)
 
@@ -54,7 +54,8 @@ chop $methods;
 
 #-- Run DAS tool
 
-my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --proteins $aafile --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project"; 
+my $das_command="PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --proteins $aafile --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath"; 
 print "Running DAS Tool for $methods\n";
+print("$das_command\n");
 system $das_command;
 

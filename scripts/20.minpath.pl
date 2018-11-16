@@ -43,7 +43,6 @@ while(<infile3>) {
 	chomp;
 	next if !$_;
 	my @k=split(/\t/,$_);
-	next if($k[2]!~/maxbin\.00/);
 	$inbin{$k[0]}{$k[2]}=$k[1];
 	}
 close infile3;
