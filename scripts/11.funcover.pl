@@ -11,6 +11,7 @@ $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 my $taxreq=$ARGV[1];	#-- Invoke it with a name of taxon to get just functions for that taxon
 
 do "$project/SqueezeMeta_conf.pl";

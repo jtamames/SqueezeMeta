@@ -12,6 +12,7 @@ my $pwd=cwd();
 $|=1;
 
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file

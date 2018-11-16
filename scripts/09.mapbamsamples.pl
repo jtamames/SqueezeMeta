@@ -12,6 +12,7 @@ use Cwd;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 
 do "$project/SqueezeMeta_conf.pl";
 
