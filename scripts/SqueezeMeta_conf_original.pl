@@ -72,6 +72,7 @@ $nobins=0;
 $cleaning=0;
 $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper='bowtie';
+$counter='bedtools';
 
 #-- External software
 
