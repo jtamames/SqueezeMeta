@@ -47,7 +47,7 @@ Arguments:
  Assembly: 
    -a: assembler [megahit,spades,canu] (Default: $assembler)
    --assembly_options: Options for required assembler
-   -c|-contiglen: Minimum length of contigs (Default:$mincontiglen)
+   -c|-contiglen: Minimum length of contigs (Default: $mincontiglen)
    
  Mapping: 
    -map: mapping software [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] 
@@ -56,6 +56,7 @@ Arguments:
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
+   -b|-block-size: block size for diamond against the nr database (Default: 8)
    -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)
    -miniden: identity perc for discarding hits in diamond run  (Default: 50)
    
@@ -88,7 +89,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nopfam" => \$nopfam,   
 		     "nobins" => \$nobins,   
 		     "nomaxbin" => \$nomaxbin,   
-		     "nometabat" => \$nometabat,   
+		     "nometabat" => \$nometabat,  
+		     "b|block_size=i" => \$blocksize,
 		     "e|evalue=f" => \$evalue,   
 		     "minidentity=f" => \$miniden,   
 		     "assembly_options=s" => \$assembler_options,
@@ -105,6 +107,7 @@ if(!$mincontiglen) { $mincontiglen=1200; }
 if(!$assembler) { $assembler="megahit"; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$counter) { $counter="bedtools"; }
+if(!$blocksize) { $blocksize=8; }
 if(!$evalue) { $evalue=1e-03; }
 if(!$miniden) { $miniden=50; }
 if(!$nocog) { $nocog=0; }
@@ -209,6 +212,7 @@ if($mode=~/sequential/i) {
                         next if !$_;
 			if($_=~/^\$basedir/) { print outfile5 "\$basedir=\"$pwd\";\n"; }
 			elsif($_=~/^\$projectname/) { print outfile5 "\$projectname=\"$project\";\n"; }
+			elsif($_=~/^\$blocksize/) { print outfile5 "\$blocksize=\"$blocksize\";\n"; }
 			elsif($_=~/^\$evalue/) { print outfile5 "\$evalue=$evalue;\n"; }
 			elsif($_=~/^\$miniden/) { print outfile5 "\$miniden=$miniden;\n"; }
 			elsif($_=~/^\$nocog/) { print outfile5 "\$nocog=$nocog;\n"; }
@@ -329,6 +333,7 @@ else {
 	while(<infile3>) {
 		if($_=~/^\$basedir/) { print outfile6 "\$basedir=\"$pwd\";\n"; }
 		elsif($_=~/^\$projectname/) { print outfile6 "\$projectname=\"$project\";\n"; }
+		elsif($_=~/^\$blocksize/) { print outfile6 "\$blocksize=\"$blocksize\";\n"; }
 		elsif($_=~/^\$evalue/) { print outfile6 "\$evalue=$evalue;\n"; }
 		elsif($_=~/^\$miniden/) { print outfile6 "\$miniden=$miniden;\n"; }
 		elsif($_=~/^\$nocog/) { print outfile6 "\$nocog=$nocog;\n"; }
