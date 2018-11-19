@@ -135,8 +135,8 @@ foreach my $m(@files) {
 		$fastafile=~s/.*\///;
 		# print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
 		# system("$checkm_soft analyze -t $numthreads -x $bins{$thisfile} $marker $bindir $checktemp > /dev/null");
-		system("export PATH=\"$installpath/bin\":\$PATH; $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null");
-		system("export PATH=\"$installpath/bin\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp >> $checkmfile"); #Override $PATH for external dependencies of checkm. (FPS).
+		system("export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null");
+		system("export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp >> $checkmfile"); #Override $PATH for external dependencies of checkm. (FPS).
 	#	system("rm -r $checktemp");
 		$inloop=0;
 		}
