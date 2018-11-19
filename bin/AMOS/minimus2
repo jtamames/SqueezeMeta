@@ -8,7 +8,6 @@
 #?		-D CONSERR=<f>		\	# Maximum consensus error (0..1) (Default 0.06)
 #?		-D MINID=<n>		\	# Minimum overlap percent identity for alignments (Default 94)
 #?		-D MAXTRIM=<n>			# Maximum sequence trimming length (Default 20bp)
-#/usr/bin/perl -e $_=$ARGV[0];exec(s/minimus2/runAmos -C @ARGV/r)
 
 #--------------------------------------- USER DEFINED VALUES ------------------#
 
@@ -42,10 +41,13 @@ OUTPUTS = $(CONTIG) $(FASTA)
 
 #------------------------------------------------------------------------------#
 
-BINDIR=$(PATH)
-NUCMER=$(PATH)/../mummer/nucmer
-DELTAFILTER	= $(PATH)/../mummer/delta-filter
-SHOWCOORDS	= $(PATH)/../mummer/show-coords
+## LIBPATH patch added by Fernando Puente-Sánchez, 19-XI-2018. 
+BINDIR          = $(PATH)
+LIBPATH         = $(PATH)/../../lib/mummer 
+NUCMER          = LD_LIBRARY_PATH=$(LIBPATH) $(PATH)/../mummer/nucmer
+DELTAFILTER	= LD_LIBRARY_PATH=$(LIBPATH) $(PATH)/../mummer/delta-filter
+SHOWCOORDS	= LD_LIBRARY_PATH=$(LIBPATH) $(PATH)/../mummer/show-coords
+
 
 #------------------------------------------------------------------------------#
 

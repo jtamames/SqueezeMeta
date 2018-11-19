@@ -22,7 +22,7 @@ our $installpath = "$scriptdir/..";
 ###
 
 our $pwd=cwd();
-our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat)="0";
+our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat,$lowmem)="0";
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
@@ -67,6 +67,7 @@ Arguments:
    
  Performance:
    -t: Number of threads (Default:$numthreads)
+   --lowmem: run on less than 16Gb of memory (Default:no)
    
  Information:
    -v: Version number  
@@ -77,6 +78,7 @@ END_MESSAGE
 #-- Handle variables from command line
 
 my $result = GetOptions ("t=i" => \$numthreads,
+                     "lowmem" => \$lowmem,
                      "m|mode=s" => \$mode,
                      "c|contiglen=i" => \$mincontiglen,
                      "a=s" => \$assembler,
@@ -119,10 +121,13 @@ if(!$nometabat) { $nometabat=0; }
 if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
 if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
 
+#-- Override settings if running on lowmem mode.
+if($lowmem) { $blocksize=2; }
+
 #-- Check if we have all the needed options
 
 
-print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente CNB-CSIC\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559; doi: https://doi.org/10.1101/347559\n\n";
+print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559; doi: https://doi.org/10.1101/347559\n\n";
 
 if($ver) { exit; }
 if($hel) { die "$helptext\n"; } 
