@@ -212,7 +212,7 @@ if($mode=~/sequential/i) {
                         next if !$_;
 			if($_=~/^\$basedir/) { print outfile5 "\$basedir=\"$pwd\";\n"; }
 			elsif($_=~/^\$projectname/) { print outfile5 "\$projectname=\"$project\";\n"; }
-			elsif($_=~/^\$blocksize/) { print outfile5 "\$blocksize=\"$blocksize\";\n"; }
+			elsif($_=~/^\$blocksize/) { print outfile5 "\$blocksize=\$blocksize\;\n"; }
 			elsif($_=~/^\$evalue/) { print outfile5 "\$evalue=$evalue;\n"; }
 			elsif($_=~/^\$miniden/) { print outfile5 "\$miniden=$miniden;\n"; }
 			elsif($_=~/^\$nocog/) { print outfile5 "\$nocog=$nocog;\n"; }
@@ -222,7 +222,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
 			elsif($_=~/^\$nometabat/) { print outfile5 "\$nometabat=$nometabat;\n"; }
                         elsif($_=~/^\$mapper/) { print outfile5 "\$mapper=\"$mapper\";\n"; }
-                         elsif($_=~/^\$cleaning\b/) { print outfile5 "\$cleaning=$cleaning;\n"; }
+                        elsif($_=~/^\$cleaning\b/) { print outfile5 "\$cleaning=$cleaning;\n"; }
                         elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
 			else { print outfile5 "$_\n"; }
         	}
@@ -333,7 +333,7 @@ else {
 	while(<infile3>) {
 		if($_=~/^\$basedir/) { print outfile6 "\$basedir=\"$pwd\";\n"; }
 		elsif($_=~/^\$projectname/) { print outfile6 "\$projectname=\"$project\";\n"; }
-		elsif($_=~/^\$blocksize/) { print outfile6 "\$blocksize=\"$blocksize\";\n"; }
+		elsif($_=~/^\$blocksize/) { print outfile6 "\$blocksize=\$blocksize\;\n"; }
 		elsif($_=~/^\$evalue/) { print outfile6 "\$evalue=$evalue;\n"; }
 		elsif($_=~/^\$miniden/) { print outfile6 "\$miniden=$miniden;\n"; }
 		elsif($_=~/^\$nocog/) { print outfile6 "\$nocog=$nocog;\n"; }
@@ -343,7 +343,7 @@ else {
 		elsif($_=~/^\$nomaxbin/) { print outfile6 "\$nomaxbin=$nomaxbin;\n"; }
 		elsif($_=~/^\$nometabat/) { print outfile6 "\$nometabat=$nometabat;\n"; }
                 elsif($_=~/^\$mapper/) { print outfile6 "\$mapper=\"$mapper\";\n"; }
-		elsif($_=~/^\$cleaning\b/) { print outfile6 "\$cleaning=\"$cleaning\";\n"; }
+		elsif($_=~/^\$cleaning\b/) { print outfile6 "\$cleaning=\$cleaning\;\n"; }
 		elsif($_=~/^\$cleaningoptions/) { print outfile6 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nomaxbin)) { print outfile6 "\%bindirs=(\"metabat2\",\"\$resultpath/metabat2\");\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nometabat)) { print outfile6 "\%bindirs=(\"maxbin\",\"\$resultpath/maxbin\");\n"; }
