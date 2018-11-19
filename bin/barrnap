@@ -41,7 +41,7 @@ msg("Written by $AUTHOR");
 msg("Obtained from $URL");
 msg("Detected operating system: $OPSYS");
 msg("Adding $BINDIR to end of PATH");
-$ENV{PATH} .= ":$BINDIR";
+$ENV{PATH} .= ":$BINDIR/:$BINDIR/hmmer/"; # Modified by Fernando Puente-Sánchez, 19-XI-2018.
 
 my($NHMMER) = qx(which -a nhmmer 2> /dev/null);
 $NHMMER or err("Could not find 'nhmmer' executable in PATH");
