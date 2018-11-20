@@ -11,7 +11,7 @@ $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
-$project=~s/\/$//; 
+$project=~s/\/$//;
 
 do "$project/SqueezeMeta_conf.pl";
 
@@ -28,9 +28,10 @@ open(infile1,$mappingfile) || die "Cannot open samples file $mappingfile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
-	my($sample,$file,$iden)=split(/\t/,$_);
+	my($sample,$file,$iden,$flag)=split(/\t/,$_);
+	next if($flag eq "noassembly");
 	$ident{$file}=$iden;
-	$samplefiles{$sample}{$file}=1;
+	$samplefiles{$sample}{$file}=$iden;
 	}
 close infile1;
 
@@ -38,26 +39,29 @@ close infile1;
 
 	#-- Prepare files for the assembly
 
-my($par1name,$par2name,$command,$trimmomatic_command);
+my($command,$trimmomatic_command);
 foreach my $thissample(sort keys %samplefiles) {
+	my($par1name,$par2name);
 	print "Working for sample $thissample\n";
-	my $cat1="cat ";
-	my $cat2="cat ";
+	system("rm $tempdir/par*fast*");
+	my($seqformat,$gzformat,$numfiles,$cat1,$cat2);
 	foreach my $thisfile(sort keys %{ $samplefiles{$thissample} }) {
-		system("rm $tempdir/par*fastq*");
-		if($thisfile=~/gz$/) { $par1name="$tempdir/par1.fastq.gz"; $par2name="$tempdir/par2.fastq.gz"; }
-		else { $par1name="$tempdir/par1.fastq"; $par2name="$tempdir/par2.fastq"; }
-		if($ident{$thisfile} eq "pair1") { $cat1.="$datapath/raw_fastq/$thisfile "; } else { $cat2.="$datapath/raw_fastq/$thisfile "; }
+		if($thisfile=~/gz$/) { $gzformat=".gz";  }	
+		if($thisfile=~/fasta/) { $seqformat="fasta";  }
+		elsif($thisfile=~/fastq/) { $seqformat="fastq";  }	
+		if($ident{$thisfile} eq "pair1") { $par1name="$tempdir/par1.$seqformat$gzformat"; $cat1.="$thisfile "; $numfiles++; }
+		elsif($ident{$thisfile} eq "pair2") { $par2name="$tempdir/par2.$seqformat$gzformat"; $cat2.="$thisfile "; }
 		}
 	print "Now merging files\n";
-	my $command="$cat1 > $par1name";
+	$command="cat $cat1 > $par1name";
 	print "$command\n";
-	system($command);
+	system $command;		
 	if($cat2) {		#-- Support for single reads
-		$command="$cat2 > $par2name";
+		$command="cat $cat2 > $par2name";
 		print "$command\n";
-		system($command);
+		system $command;		
 		}
+		
 
 	#-- trimmomatic commands
 
