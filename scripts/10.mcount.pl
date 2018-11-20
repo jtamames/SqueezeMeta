@@ -68,11 +68,9 @@ while(<infile3>) {
 		
 		#-- Add also bases and reads
 		
-		foreach my $samp(keys %samples) { 
-			$accumbases{$string}{$samp}+=$abund{$node}{$samp};
-			$accumreads{$string}{$samp}+=$abundreads{$node}{$samp}; 
- 			}
-		}
+		$accumbases{$string}{$sample}+=$abund{$node}{$sample};
+		$accumreads{$string}{$sample}+=$abundreads{$node}{$sample}; 
+ 		}
  
 	#print "$f[0] $sample $f[5]\n";
 	}

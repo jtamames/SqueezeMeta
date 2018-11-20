@@ -202,9 +202,11 @@ close infile7;
 
 	#-- Creating output files
 
+my $rawf;
 foreach my $classfun(sort keys %funstat) {
-	print "Now creating $classfun coverage output\n";
-	open(outfile1,">$resultpath/11.$project.$classfun.funcover") || die;
+	$rawf="$resultpath/11.$project.$classfun.funcover";
+	print "Now creating $classfun coverage output in $rawf\n";
+	open(outfile1,">$rawf") || die;
 	print outfile1 "#-- Created by $0 from $coveragefile, ",scalar localtime;
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
@@ -234,3 +236,37 @@ foreach my $classfun(sort keys %funstat) {
 		}
 close outfile1;
 	}
+
+my $minraw=200;
+foreach my $classfun(sort keys %funstat) {
+	$rawf="$resultpath/11.$project.$classfun.rawcounts";
+	print "Now creating $classfun raw reads output in $rawf\n";
+	open(outfile2,">$rawf") || die;
+	print outfile2 "#-- Created by $0 from $coveragefile, ",scalar localtime;
+	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
+	print outfile2 "\n";
+	print outfile2 "# $classfun ID";
+	foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
+	print outfile2 "\n";
+	foreach my $kid(sort keys %{ $funstat{$classfun} }) {
+		my($cstring,$accum);
+		my $funid="$kid:$funs{$classfun}{$kid}{fun}";
+		# print outfile2 "$funid";
+		$cstring.="$funid";		
+		foreach my $samp(sort keys %allsamples) { 
+			my $rnum=$funstat{$classfun}{$kid}{$samp}{reads} || "0";
+			$accum+=$rnum;
+			$cstring.="\t$rnum"; 
+			#print outfile2 "\t$funstat{$classfun}{$kid}{$samp}{reads}"; 
+			}
+		if($accum>=$minraw) { print outfile2 "$cstring\n"; }
+		# print outfile2 "\n";
+		}
+	close outfile2;
+	}
+
+
+	
+
+
+	
