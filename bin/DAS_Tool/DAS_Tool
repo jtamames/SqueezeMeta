@@ -1,0 +1,459 @@
+#!/bin/bash
+
+# DAS Tool for genome-resolved metagenomics
+# by Christian MK Sieber (csieber@lbl.gov)
+#
+#
+# DAS Tool Copyright (c) 2017, The Regents of the University of California, through Lawrence
+# Berkeley National Laboratory (subject to receipt of any required approvals from the U.S.
+# Dept. of Energy).  All rights reserved.
+#
+# If you have questions about your rights to use or distribute this software, please contact
+# Berkeley Lab's Innovation and Partnerships department at IPO@lbl.gov referring to
+# "DAS Tool (2017-024)".
+#
+# NOTICE.  This software was developed under funding from the U.S. Department of Energy.  As
+# such, the U.S. Government has been granted for itself and others acting on its behalf a
+# paid-up, nonexclusive, irrevocable, worldwide license in the Software to reproduce,
+# prepare derivative works, and perform publicly and display publicly. The U.S. Government
+# is granted for itself and others acting on its behalf a paid-up, nonexclusive,
+# irrevocable, worldwide license in the Software to reproduce, prepare derivative works,
+# distribute copies to the public, perform publicly and display publicly, and to permit
+# others to do so.
+#
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+thisdir=$(pwd)
+
+function display_version() {
+    echo
+    echo "DAS Tool version 1.1.1"
+    echo
+    exit 1
+}
+
+
+function display_help() {
+    echo " "
+    echo "DAS Tool version 1.1.1"
+    echo " "
+    echo "Usage: DAS_Tool -i methodA.scaffolds2bin,...,methodN.scaffolds2bin"
+    echo "                -l methodA,...,methodN -c contigs.fa -o myOutput"
+    echo
+    echo "   -i, --bins                 Comma separated list of tab separated scaffolds to bin tables."
+    echo "   -c, --contigs              Contigs in fasta format."
+    echo "   -o, --outputbasename       Basename of output files."
+    echo "   -l, --labels               Comma separated list of binning prediction names. (optional)"
+    echo "   --search_engine            Engine used for single copy gene identification [blast/diamond/usearch]."
+    echo "                              (default: usearch)"
+    echo "   --write_bin_evals          Write evaluation for each input bin set [0/1]. (default: 1)"
+    echo "   --create_plots             Create binning performance plots [0/1]. (default: 1)"
+    echo "   --write_bins               Export bins as fasta files  [0/1]. (default: 0)"
+    echo "   --write_unbinned           Export unbinned contigs as fasta file. Only has an effect when write_bins==1 [0/1]. (default: 0)"
+    echo "   --proteins                 Predicted proteins in prodigal fasta format (>scaffoldID_geneNo)."
+    echo "                              Gene prediction step will be skipped if given. (optional)"
+    echo "   -t, --threads              Number of threads to use. (default: 1)"
+    echo "   --score_threshold          Score threshold until selection algorithm will keep selecting bins [0..1]."
+    echo "                              (default: 0.5)"
+    echo "   --duplicate_penalty        Penalty for duplicate single copy genes per bin (weight b)."
+    echo "                              Only change if you know what you're doing. [0..3]"
+    echo "                              (default: 0.6)"
+    echo "   --megabin_penalty          Penalty for megabins (weight c). Only change if you know what you're doing. [0..3]"
+    echo "                              (default: 0.5)"
+    echo "   --db_directory             Directory of single copy gene database. (default: install_dir/db)"
+    echo "   --resume                   Use existing predicted single copy gene files from a previous run [0/1]. (default: 0)"
+    echo "   --debug                    Write debug information to log file."
+    echo "   -v, --version              Print version number and exit."
+    echo "   -h, --help                 Show this message."
+    echo
+    echo "Example 1: Run DAS Tool on binning predictions of MetaBAT, MaxBin, CONCOCT and tetraESOMs. Output files will start with the prefix DASToolRun1: "
+    echo  "   DAS_Tool -i sample_data/sample.human.gut_concoct_scaffolds2bin.tsv,sample_data/sample.human.gut_maxbin2_scaffolds2bin.tsv,sample_data/sample.human.gut_metabat_scaffolds2bin.tsv,sample_data/sample.human.gut_tetraESOM_scaffolds2bin.tsv -l concoct,maxbin,metabat,tetraESOM -c sample_data/sample.human.gut_contigs.fa -o sample_output/DASToolRun1"
+    echo
+    echo "Example 2:  Run DAS Tool again with different parameters. Use the proteins predicted in Example 1 to skip the gene prediction step. Set the number of threads to 2 and score threshold to 0.1. Output files will start with the prefix DASToolRun2: "
+    echo  "   DAS_Tool -i sample_data/sample.human.gut_concoct_scaffolds2bin.tsv,sample_data/sample.human.gut_maxbin2_scaffolds2bin.tsv,sample_data/sample.human.gut_metabat_scaffolds2bin.tsv,sample_data/sample.human.gut_tetraESOM_scaffolds2bin.tsv -l concoct,maxbin,metabat,tetraESOM -c sample_data/sample.human.gut_contigs.fa -o sample_output/DASToolRun2 --threads 2 --score_threshold 0.6 --proteins sample_output/DASToolRun1_proteins.faa"
+    echo " "
+    echo " "
+    echo "Please cite: Sieber et al., 2018, Nature Microbiology (https://doi.org/10.1038/s41564-018-0171-1)."
+    echo " "
+    echo " "
+    exit 1
+}
+
+# usage: write_log file_name append write_to_std write_to_file [message for logging...]
+function write_log () {
+if [ $4 = true ]; then
+	if [ $2 = true ]; then
+		echo "${@:5}" >> $1
+	else
+		echo "${@:5}" > $1
+	fi
+fi
+
+if [ $3 = true ]; then
+	echo "${@:5}"
+fi
+
+}
+
+
+
+[ $# -eq 0 ] && { display_help ; exit 1; }
+
+binlabels="NULL"
+contigs="NULL"
+debug=false
+executed_prodigal=0
+resume_scg=0
+score_threshold=0.5
+threads=1
+write_bin_evals=1
+create_plots=1
+write_bins=0
+write_unbinned=0
+search_engine="usearch"
+b_weight=0.6
+c_weight=0.5
+db_dir=$DIR\/db
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -i | --bins )           shift
+                                scaffoldstobins=$1
+                                ;;
+        -l | --labels )         shift
+                                binlabels=$1
+                                ;;
+        -c | --contigs )        shift
+                                contigs=$1
+                                ;;
+        -o | --outputbasename ) shift
+                                outputbasename=$1
+                                ;;
+        --write_bin_evals )     shift
+                                write_bin_evals=$1
+                                ;;
+        --create_plots )        shift
+                                create_plots=$1
+                                ;;
+        --write_bins )          shift
+                                write_bins=$1
+                                ;;
+        --write_unbinned )      shift
+                                write_unbinned=$1
+                                ;;
+        --proteins )            shift
+                                proteins=$1
+                                ;;
+        --score_threshold )     shift
+                                score_threshold=$1
+                                ;;
+        --search_engine )       shift
+                                search_engine=$1
+                                ;;
+        -t | --threads )        shift
+                                threads=$1
+                                ;;
+        -v | --version )        shift
+                                display_version
+                                exit
+                                ;;
+        --duplicate_penalty )   shift
+                                b_weight=$1
+                                ;;
+        --megabin_penalty )     shift
+                                c_weight=$1
+                                ;;
+        --db_directory )        shift
+                                db_dir=$1
+                                ;;
+        --resume )              shift
+                                resume_scg=$1
+                                ;;
+        --debug )               debug=true
+                                ;;
+        -h | --help )           display_help
+                                exit
+                                ;;
+        * )                     display_help
+                                exit 1
+    esac
+    shift
+done
+
+
+if [ "$write_bins" == "0" ] || [ "$write_bins" == "false" ] || [ "$write_bins" == "False" ] || [ "$write_bins" == "f" ]; then
+write_bins="FALSE"
+else
+write_bins="TRUE"
+fi
+if [ "$write_unbinned" == "0" ] || [ "$write_unbinned" == "false" ] || [ "$write_unbinned" == "False" ] || [ "$write_unbinned" == "f" ]; then
+write_unbinned="FALSE"
+else
+write_unbinned="TRUE"
+fi
+if [ "$write_bin_evals" == "0" ] || [ "$write_bin_evals" == "false" ] || [ "$write_bin_evals" == "False" ] || [ "$write_bin_evals" == "f" ]; then
+write_bin_evals="FALSE"
+else
+write_bin_evals="TRUE"
+fi
+if [ "$create_plots" == "0" ] || [ "$create_plots" == "false" ] || [ "$create_plots" == "False" ] || [ "$create_plots" == "f" ]; then
+create_plots="FALSE"
+else
+create_plots="TRUE"
+fi
+if [ "$resume_scg" == "0" ] || [ "$resume_scg" == "false" ] || [ "$resume_scg" == "False" ] || [ "$resume_scg" == "f" ]; then
+resume_scg="FALSE"
+else
+resume_scg="TRUE"
+fi
+
+
+logfile=$outputbasename\_DASTool.log
+
+#
+# 0.1 Load dependencies
+#
+PATH="$PATH:$DASTOOL_PULLSEQ"
+PATH="$PATH:$DASTOOL_PRODIGAL"
+PATH="$PATH:$DASTOOL_DIAMOND"
+PATH="$PATH:$DASTOOL_BLAST"
+PATH="$PATH:$DASTOOL_USEARCH"
+
+
+write_log $logfile false false $debug "DAS Tool run on " $(date)
+write_log $logfile true false $debug ""
+
+write_log $logfile true false $debug "User environment details:"
+write_log $logfile true false $debug "Rscript path: " $(which Rscript)
+write_log $logfile true false $debug "Rscript version: " $(Rscript --version 2>&1)
+write_log $logfile true false $debug "diamond path: " $(which diamond)
+write_log $logfile true false $debug "diamond version: " $(diamond --version)
+write_log $logfile true false $debug "blastp path: " $(which blastp)
+write_log $logfile true false $debug "blastp version: " $(blastp -version)
+write_log $logfile true false $debug "usearch path: " $(which usearch)
+write_log $logfile true false $debug "usearch version: " $(usearch --version)
+write_log $logfile true false $debug "pullseq path: " $(which pullseq)
+write_log $logfile true false $debug "pullseq version: " $(pullseq --version 2>&1 | grep Version)
+write_log $logfile true false $debug "prodigal path: " $(which prodigal)
+write_log $logfile true false $debug "prodigal version: " $(prodigal -v 2>&1)
+write_log $logfile true false $debug "ruby path: " $(which ruby)
+write_log $logfile true false $debug "ruby version: " $(ruby --version)
+write_log $logfile true false $debug ""
+
+
+#Check for R installation
+command -v Rscript >/dev/null 2>&1 || { echo >&2 "Can't find Rscript. Please make sure R (>= 3.2.3) is installed on your system. Aborting."; exit 1; }
+#command -v perl >/dev/null 2>&1 || { echo >&2 "Can't find perl. Please make sure Perl is installed on your system. Aborting."; exit 1; }
+
+#check search engine
+if [ "$search_engine" == "diamond" ] || [ "$search_engine" == "DIAMOND" ] || [ "$search_engine" == "Diamond" ] || [ "$search_engine" == "d" ] || [ "$search_engine" == "D" ]; then
+command -v diamond >/dev/null 2>&1 || { echo >&2 "Can't find diamond. Please make sure DIAMOND is installed on your system. Aborting."; exit 1; }
+search_engine="diamond"
+fi
+if [ "$search_engine" == "blast" ] ||  [ "$search_engine" == "BLAST" ] || [ "$search_engine" == "Blast" ] || [ "$search_engine" == "b" ] || [ "$search_engine" == "B" ] || [ "$search_engine" == "blastp" ]; then
+command -v makeblastdb >/dev/null 2>&1 || { echo >&2 "Can't find makeblastdb. Please make sure BLAST is installed on your system.  Aborting."; exit 1; }
+command -v blastp >/dev/null 2>&1 || { echo >&2 "Can't find blastp. Please make sure BLAST is installed on your system. Aborting."; exit 1; }
+search_engine="blast"
+fi
+if [ "$search_engine" == "usearch" ] || [ "$search_engine" == "USEARCH" ] || [ "$search_engine" == "UBLAST" ] || [ "$search_engine" == "Usearch" ] || [ "$search_engine" == "u" ] || [ "$search_engine" == "U" ] || [ "$search_engine" == "ublast" ] || [ "$search_engine" == "Ublast" ]; then
+command -v usearch >/dev/null 2>&1 || { echo >&2 "Can't find usearch. Please make sure USEARCH is installed on your system. Aborting."; exit 1; }
+search_engine="usearch"
+fi
+
+#
+# 0.2 Check existence of files
+#
+if [ ! -f "$contigs" ]
+then
+  write_log $logfile true true true contig file not found: $contigs
+  write_log $logfile true true true Aborting.
+  exit 1
+fi
+
+if [ ! -z "$proteins" ] &&  [ ! -f "$proteins" ]
+then
+  write_log $logfile true true true proteins file not found: $proteins
+  write_log $logfile true true true Aborting.
+  exit 1
+fi
+
+for i in $(echo $scaffoldstobins | tr "," " ")
+do
+if [ ! -f $i ];
+then
+  write_log $logfile true true true "scaffolds2bin file not found: $i "
+  write_log $logfile true true true Aborting.
+  exit 1
+fi
+done
+
+# Existence and permissions of output directory
+if [ ! -d $(dirname "$outputbasename") ]; then 
+	write_log $logfile true true true "Directory for output files does not exist: $(dirname $outputbasename). Aborting"
+	exit 1
+fi
+
+if [ ! -w $(dirname "$outputbasename") ]; then
+	write_log $logfile true true true "Can't write in output folder: $(dirname $outputbasename). Permission denied. Aborting."
+	exit 1; 
+fi
+
+# Existence of database directory
+if [ ! -f $db_dir\/bac.all.faa ] || [ ! -f $db_dir\/arc.all.faa ] || [ ! -f $db_dir\/bac.scg.faa ] || [ ! -f $db_dir\/arc.scg.faa ]  || [ ! -f $db_dir\/bac.scg.lookup ] || [ ! -f $db_dir\/arc.scg.lookup ]; then
+	write_log $logfile true true true "Database directory does not exist or is incomplete: $(dirname $db_dir)."
+	write_log $logfile true true true "Trying to extract $DIR\/db.zip";
+	unzip -o $DIR\/db.zip -d $db_dir/
+	if [ ! -f $db_dir\/bac.all.faa ] || [ ! -f $db_dir\/arc.all.faa ] || [ ! -f $db_dir\/bac.scg.faa ] || [ ! -f $db_dir\/arc.scg.faa ]  || [ ! -f $db_dir\/bac.scg.lookup ] || [ ! -f $db_dir\/arc.scg.lookup ]; then
+		write_log $logfile true true true "Extraction failed. Aborting."
+		exit 1;
+	fi
+fi
+
+
+write_log $logfile true true $debug "Running DAS Tool using" $threads "threads."
+
+#
+# 1. Run Prodigal
+#
+if [ -z "$proteins" ]
+then
+
+    #check if dependencies for gene prediction are installed
+    command -v pullseq >/dev/null 2>&1 || { echo >&2 "Can't find pullseq. Please make sure pullseq is installed on your system. Aborting."; exit 1; }
+    command -v prodigal >/dev/null 2>&1 || { echo >&2 "Can't find prodigal. Please make sure prodigal is installed on your system. Aborting."; exit 1; }
+
+    proteins=$outputbasename\_proteins.faa
+
+    write_log $logfile true true true "predicting genes using" $(prodigal -v 2>&1)
+    
+    #grep ">" $contigs | perl -pe 's/>//g;' | shuf > $outputbasename\_dastoolthreadstmpheader
+	grep ">" $contigs | sed 's/>//g;' | shuf > $outputbasename\_dastoolthreadstmpheader
+    dastoolthreadstmpheader=$outputbasename\_dastoolthreadstmpheader
+    total_lines=$(wc -l <${dastoolthreadstmpheader})
+    ((lines_per_file = (total_lines + threads - 1) / threads))
+    split --numeric-suffixes --lines=${lines_per_file} ${dastoolthreadstmpheader} $outputbasename\_dastoolthreadstmp.
+    rm $outputbasename\_dastoolthreadstmpheader
+
+    for i in $outputbasename\_dastoolthreadstmp.*
+    do
+    pullseq --input $contigs --names $i > $i\_contigs.fa
+    prodigal -a $i\_partialprot.faa -i $i\_contigs.fa -p meta -m -q > /dev/null 2>&1 &
+    done
+    wait
+    cat $outputbasename\_*_partialprot.faa > $proteins
+    rm $outputbasename\_dastoolthreadstmp.*
+    executed_prodigal=1
+elif [ ! -f $proteins ]
+then
+  echo protein file not found: $proteins
+  echo Aborting
+  exit 1
+fi
+
+
+
+#
+# 2. Predict Single Copy Genes
+#
+bscg=$proteins\.bacteria.scg
+ascg=$proteins\.archaea.scg
+if [ ! -f $bscg ] || [ ! -f $ascg ] || [ $(wc -l < $bscg) -eq 0 ] || [ $(wc -l < $ascg) -eq 0 ] || [ $executed_prodigal -eq 1 ] || [  $resume_scg == 'FALSE' ]; then
+	command -v ruby >/dev/null 2>&1 || { echo >&2 "Can't find ruby. Please make sure ruby is installed on your system. Aborting."; exit 1; }
+	command -v pullseq >/dev/null 2>&1 || { echo >&2 "Can't find pullseq. Please make sure pullseq is installed on your system. Aborting."; exit 1; }
+	if [ "$search_engine" == "usearch" ]; then
+		write_log $logfile true true true "identifying single copy genes using" $(usearch --version)
+	fi
+	if [ "$search_engine" == "blast" ]; then
+		write_log $logfile true true true "identifying single copy genes using" $(blastp -version)
+	fi
+	if [ "$search_engine" == "diamond" ]; then
+		write_log $logfile true true true "identifying single copy genes using" $(diamond --version)
+	fi
+
+	#predict bacterial SCGs
+	ruby $DIR\/src/scg_blank_$search_engine\.rb $search_engine $proteins $db_dir\/bac.all.faa $db_dir\/bac.scg.faa $db_dir\/bac.scg.lookup $threads > /dev/null 2>&1
+	mv $proteins\.scg $bscg
+	#predict archaeal SCGs
+	ruby $DIR\/src/scg_blank_$search_engine\.rb $search_engine $proteins $db_dir\/arc.all.faa $db_dir\/arc.scg.faa $db_dir\/arc.scg.lookup $threads > /dev/null 2>&1
+	mv $proteins\.scg $ascg
+	rm $proteins\.findSCG.b6 $proteins\.scg.candidates.faa $proteins\.all.b6
+else
+	write_log $logfile true true true "found predicted single copy genes:"
+	write_log $logfile true true true "  " $bscg
+	write_log $logfile true true true "  " $ascg
+	write_log $logfile true true true "skipping single copy gene identification"
+fi
+
+# Stop if single copy gene prediction failed
+if [ ! -f $bscg ] || [ ! -f $ascg ]; then
+	write_log $logfile true true true "single copy gene prediction using $search_engine failed. Aborting"
+	exit 1
+fi
+
+# Stop if no single copy genes were predicted
+if [ $(wc -l < $bscg) -eq 0 ] && [ $(wc -l < $ascg) -eq 0 ]; then
+	write_log $logfile true true true "no single copy genes found. Aborting"
+	exit 1
+fi
+
+
+#
+# 3. Calculate Contig Length
+#
+length_table=$outputbasename\.seqlength
+awk '/^>/ {if (x){print x}; print ;x=0;next; } {x += length($0)}END{print x}' $contigs | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n\([^>]\)/?\1/g' | tr '?' '\t' | sed 's/>//g' > $length_table
+
+
+
+#
+# 4. Run DAS Tool
+#
+cd $DIR
+Rscript $DIR\/src/DAS_Tool.R $scaffoldstobins $binlabels $contigs $bscg $ascg $outputbasename $score_threshold $threads $thisdir $length_table $write_bin_evals $create_plots $debug $b_weight $c_weight
+cd $thisdir
+
+
+
+#
+# 5. Extract Bins
+#
+
+if [ "$write_bins" == "TRUE" ]; then
+scaf2bin=$outputbasename\_DASTool_scaffolds2bin.txt
+if test -f $scaf2bin; then
+
+# add unbinned contig names to scaf2bin
+if [ $write_unbinned == "TRUE" ]; then
+grep ">" "$contigs" | tr -d ">" > all_contig_names.txt
+cut -f 1 "$scaf2bin" > DAS_Tool_contig_names.txt
+grep -wf DAS_Tool_contig_names.txt -v all_contig_names.txt | sed 's/$/\tbin.unbinned/g' >> $scaf2bin
+rm all_contig_names.txt DAS_Tool_contig_names.txt
+fi
+
+bin_folder=$outputbasename\_DASTool_bins
+if [ -d "$bin_folder" ]; then
+  rm -r $bin_folder
+fi
+mkdir $bin_folder
+
+write_log $logfile true true true extracting bins to $bin_folder
+while read scaffold bin
+do
+echo $scaffold >> $bin_folder\/$bin\.ctgtmp
+done < $scaf2bin
+
+for i in $bin_folder\/*.ctgtmp
+do
+bin_id=$(echo $i | sed 's/\.ctgtmp//g')
+pullseq -i $contigs -n $i > $bin_id\.contigs.fa
+rm $i
+done
+fi
+fi

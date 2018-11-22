@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Assigns a consensus annotation for the whole contigs using the annotations for the genes it contains
 #-- Also calculates chimerism index for each contig
 #-- 23/05/2018, corrected calculation of chimerism
@@ -13,8 +13,9 @@ $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 

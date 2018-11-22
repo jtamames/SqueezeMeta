@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Counts the coverage of all functions
 
 use strict;
@@ -13,7 +13,8 @@ my $pwd=cwd();
 my $project=$ARGV[0];
 my $taxreq=$ARGV[1];	#-- Invoke it with a name of taxon to get just functions for that taxon
 
-do "$project/squeezeM_conf.pl";
+$project=~s/\/$//;
+do "$project/SqueezeMeta_conf.pl";
 
 
 #-- Configuration variables from conf file
@@ -119,7 +120,7 @@ if(!$nocog) {
 	#-- Reading coverages for all genes
 
 print "Reading coverage in $coveragefile\n";
-open(infile6,$coveragefile) || die;
+open(infile6,$coveragefile) || warn "Cannot open coverages in $coveragefile\n";
 while(<infile6>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -138,30 +139,34 @@ while(<infile6>) {
 		#-- Counting KEGGs
 	
 		if($cfun_kegg) {
-		$funstat{kegg}{$cfun_kegg}{$sample}{copies}++;
-		# $funstat{$cfun_kegg}{$sample}{length}+=$k[4];
-		$funstat{kegg}{$cfun_kegg}{$sample}{length}+=$longorfs{$k[0]}; 
-		$funstat{kegg}{$cfun_kegg}{$sample}{bases}+=$k[1];
-		foreach my $tk(keys %equival) {
-			my $krank=$equival{$tk};
-			my $itax=$taxf{$k[0]}{$krank};
-			if($itax) { $taxcount{kegg}{$cfun_kegg}{$sample}{$krank}{$itax}++; }
+			my @kegglist=split(/\;/,$cfun_kegg);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
+			foreach my $tlist_kegg(@kegglist) {
+				$funstat{kegg}{$tlist_kegg}{$sample}{copies}++;
+				$funstat{kegg}{$tlist_kegg}{$sample}{length}+=$longorfs{$k[0]}; 
+				$funstat{kegg}{$tlist_kegg}{$sample}{bases}+=$k[1];
+				foreach my $tk(keys %equival) {
+					my $krank=$equival{$tk};
+					my $itax=$taxf{$k[0]}{$krank};
+					if($itax) { $taxcount{kegg}{$tlist_kegg}{$sample}{$krank}{$itax}++; }
+					}
+				}
 			}
-		}
 	
 		#-- Counting COGs
 	
 	if($cfun_cog) { 
-		$funstat{cog}{$cfun_cog}{$sample}{copies}++;
-		# $funstat{$cfun_cog}{$sample}{length}+=$k[4];
-		$funstat{cog}{$cfun_cog}{$sample}{length}+=$longorfs{$k[0]}; #-- Para leer las longitudes directamente de las secuencias (para ficheros coverage antiguos que no la tienen)
-		$funstat{cog}{$cfun_cog}{$sample}{bases}+=$k[1];
-		# print "$k[0]*$cfun_cog*$sample*$longorfs{$k[0]}*$funstat{cog}{$cfun_cog}{$sample}{length}\n";
-		foreach my $tk(keys %equival) {
-			my $krank=$equival{$tk};
-			my $itax=$taxf{$k[0]}{$krank};
-			if($itax) { $taxcount{cog}{$cfun_cog}{$sample}{$krank}{$itax}++; }
- 			}
+		my @coglist=split(/\;/,$cfun_cog);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
+		foreach my $tlist_cog(@coglist) {
+			$funstat{cog}{$tlist_cog}{$sample}{copies}++;
+			$funstat{cog}{$tlist_cog}{$sample}{length}+=$longorfs{$k[0]}; #-- Para leer las longitudes directamente de las secuencias (para ficheros coverage antiguos que no la tienen)
+			$funstat{cog}{$tlist_cog}{$sample}{bases}+=$k[1];
+			# print "$k[0]*$cfun_cog*$sample*$longorfs{$k[0]}*$funstat{cog}{$cfun_cog}{$sample}{length}\n";
+			foreach my $tk(keys %equival) {
+				my $krank=$equival{$tk};
+				my $itax=$taxf{$k[0]}{$krank};
+				if($itax) { $taxcount{cog}{$tlist_cog}{$sample}{$krank}{$itax}++; }
+ 				}
+			}
 		}
 	}
 }
@@ -183,17 +188,25 @@ while(<infile7>) {
 	next if((!$cfun_kegg) && (!$cfun_cog));
 	next if($taxreq && (!$validid{$k[0]}));
 	if($k[2]) {
-		if($cfun_kegg) { $funstat{kegg}{$cfun_kegg}{$sample}{reads}+=$k[2]; }
-		if($cfun_cog) { $funstat{cog}{$cfun_cog}{$sample}{reads}+=$k[2]; }  
+		my @kegglist=split(/\;/,$cfun_kegg);
+		my @coglist=split(/\;/,$cfun_cog);
+		foreach my $tlist_kegg(@kegglist) { 
+			if($tlist_kegg) { $funstat{kegg}{$tlist_kegg}{$sample}{reads}+=$k[2]; }
+			}
+		foreach my $tlist_cog(@coglist) { 
+			if($tlist_cog) { $funstat{cog}{$tlist_cog}{$sample}{reads}+=$k[2]; }  
+			}
 		}
 	}
 close infile7;
 
 	#-- Creating output files
 
+my $rawf;
 foreach my $classfun(sort keys %funstat) {
-	print "Now creating $classfun coverage output\n";
-	open(outfile1,">$resultpath/11.$project.$classfun.funcover") || die;
+	$rawf="$resultpath/11.$project.$classfun.funcover";
+	print "Now creating $classfun coverage output in $rawf\n";
+	open(outfile1,">$rawf") || die;
 	print outfile1 "#-- Created by $0 from $coveragefile, ",scalar localtime;
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
@@ -207,6 +220,7 @@ foreach my $classfun(sort keys %funstat) {
 			my $cover=$funstat{$classfun}{$kid}{$samp}{bases}/$funstat{$classfun}{$kid}{$samp}{length};
 			my $normcover=(($funstat{$classfun}{$kid}{$samp}{bases}*1000000000)/($funstat{$classfun}{$kid}{$samp}{length}*$totalbases{$samp}));
 			my $normcoverpercopy=$normcover*$funstat{$classfun}{$kid}{$samp}{copies};
+			# print "$classfun*$kid*$samp*$funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}\n";
 			my $rpkm=(($funstat{$classfun}{$kid}{$samp}{reads}*1000000000)/($funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}));
  
 			my $stringtax=""; 
@@ -222,3 +236,37 @@ foreach my $classfun(sort keys %funstat) {
 		}
 close outfile1;
 	}
+
+my $minraw=200;
+foreach my $classfun(sort keys %funstat) {
+	$rawf="$resultpath/11.$project.$classfun.rawcounts";
+	print "Now creating $classfun raw reads output in $rawf\n";
+	open(outfile2,">$rawf") || die;
+	print outfile2 "#-- Created by $0 from $coveragefile, ",scalar localtime;
+	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
+	print outfile2 "\n";
+	print outfile2 "# $classfun ID";
+	foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
+	print outfile2 "\n";
+	foreach my $kid(sort keys %{ $funstat{$classfun} }) {
+		my($cstring,$accum);
+		my $funid="$kid:$funs{$classfun}{$kid}{fun}";
+		# print outfile2 "$funid";
+		$cstring.="$funid";		
+		foreach my $samp(sort keys %allsamples) { 
+			my $rnum=$funstat{$classfun}{$kid}{$samp}{reads} || "0";
+			$accum+=$rnum;
+			$cstring.="\t$rnum"; 
+			#print outfile2 "\t$funstat{$classfun}{$kid}{$samp}{reads}"; 
+			}
+		if($accum>=$minraw) { print outfile2 "$cstring\n"; }
+		# print outfile2 "\n";
+		}
+	close outfile2;
+	}
+
+
+	
+
+
+	

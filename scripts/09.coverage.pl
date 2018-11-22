@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Calculates coverage for genes by counting bases mapped to each feature
 
 use strict;

@@ -9,11 +9,11 @@ my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//;
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$bintable,%bindirs);
+our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$bintable,%bindirs,%dasdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
 my $minfraction=0.1;	# Minimum percentage of genes from a pathway to be present
@@ -43,7 +43,6 @@ while(<infile3>) {
 	chomp;
 	next if !$_;
 	my @k=split(/\t/,$_);
-	next if($k[2]!~/maxbin\.00/);
 	$inbin{$k[0]}{$k[2]}=$k[1];
 	}
 close infile3;

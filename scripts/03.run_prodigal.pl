@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Runs Prodigal software for predicting ORFs
 
 use strict;
@@ -10,8 +10,9 @@ use Cwd;
 my $pwd=cwd();
 
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 our($resultpath,$tempdir,$aafile,$ntfile,$gff_file,$prodigal_soft);
 

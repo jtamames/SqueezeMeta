@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
 #-- Runs assembly programs (currently megahit or spades). Uses prinseq to filter out contigs by length (excluding small ones).
 
 use strict;
@@ -10,12 +10,13 @@ $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
@@ -59,7 +60,7 @@ elsif($assembler=~/spades/i) {
 	}
 elsif($assembler=~/canu/i) {
         $outassembly="$datapath/canu/contigs.fasta";
-        $command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=32 oeaMemory=32 batMemory=32 mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $datapath/raw_fastq/*fastq;"; 
+        $command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name;"; 
 	$command.="mv $datapath/canu/$project.contigs.fasta $outassembly"; 
         }
 

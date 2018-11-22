@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Runs Diamond for homology searches, against nr, COGs and KEGG databases
 
 use strict;
@@ -11,12 +11,13 @@ $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$cog_db,$kegg_db,$nr_db,$evalue,$miniden,$cogdiamond,$keggdiamond,$taxdiamond);
+our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$cog_db,$kegg_db,$nr_db,$blocksize,$evalue,$miniden,$cogdiamond,$keggdiamond,$taxdiamond);
 my $command;
 
 #-- COG database
@@ -37,6 +38,6 @@ if(!$nokegg) {
 
 #-- nr database
 
-$command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evalue -f tab -b 8 -o $taxdiamond";
+$command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evalue -f tab -b $blocksize -o $taxdiamond";
 print "Running Diamond for taxa: $command\n";
 system $command;

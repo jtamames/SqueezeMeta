@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
 #-- Runs assembly programs (currently megahit or spades) for several metagenomes that will be merged in the next step (merged mode).
 #-- Uses prinseq to filter out contigs by length (excluding small ones).
 
@@ -11,12 +11,13 @@ $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//;
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
+our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
 
 #-- Read all the samples and store file names
 
@@ -27,9 +28,10 @@ open(infile1,$mappingfile) || die "Cannot open samples file $mappingfile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
-	my($sample,$file,$iden)=split(/\t/,$_);
+	my($sample,$file,$iden,$flag)=split(/\t/,$_);
+	next if($flag eq "noassembly");
 	$ident{$file}=$iden;
-	$samplefiles{$sample}{$file}=1;
+	$samplefiles{$sample}{$file}=$iden;
 	}
 close infile1;
 
@@ -37,26 +39,29 @@ close infile1;
 
 	#-- Prepare files for the assembly
 
-my($par1name,$par2name,$command,$trimmomatic_command);
+my($command,$trimmomatic_command);
 foreach my $thissample(sort keys %samplefiles) {
+	my($par1name,$par2name);
 	print "Working for sample $thissample\n";
-	my $cat1="cat ";
-	my $cat2="cat ";
+	system("rm $tempdir/par*fast*");
+	my($seqformat,$gzformat,$numfiles,$cat1,$cat2);
 	foreach my $thisfile(sort keys %{ $samplefiles{$thissample} }) {
-		system("rm $tempdir/par*fastq*");
-		if($thisfile=~/gz$/) { $par1name="$tempdir/par1.fastq.gz"; $par2name="$tempdir/par2.fastq.gz"; }
-		else { $par1name="$tempdir/par1.fastq"; $par2name="$tempdir/par2.fastq"; }
-		if($ident{$thisfile} eq "pair1") { $cat1.="$datapath/raw_fastq/$thisfile "; } else { $cat2.="$datapath/raw_fastq/$thisfile "; }
+		if($thisfile=~/gz$/) { $gzformat=".gz";  }	
+		if($thisfile=~/fasta/) { $seqformat="fasta";  }
+		elsif($thisfile=~/fastq/) { $seqformat="fastq";  }	
+		if($ident{$thisfile} eq "pair1") { $par1name="$tempdir/par1.$seqformat$gzformat"; $cat1.="$datapath/raw_fastq/$thisfile "; $numfiles++; }
+		elsif($ident{$thisfile} eq "pair2") { $par2name="$tempdir/par2.$seqformat$gzformat"; $cat2.="$datapath/raw_fastq/$thisfile "; }
 		}
 	print "Now merging files\n";
-	my $command="$cat1 > $par1name";
+	$command="cat $cat1 > $par1name";
 	print "$command\n";
-	system($command);
+	system $command;		
 	if($cat2) {		#-- Support for single reads
-		$command="$cat2 > $par2name";
+		$command="cat $cat2 > $par2name";
 		print "$command\n";
-		system($command);
+		system $command;		
 		}
+		
 
 	#-- trimmomatic commands
 
@@ -83,13 +88,14 @@ foreach my $thissample(sort keys %samplefiles) {
 	#-- For megahit
 
         my $assemblyname;
+        my $ecode;
 	if($assembler=~/megahit/i) { 
 		system("rm -r $datapath/megahit"); 
 		$assemblyname="$datapath/megahit/$thissample.final.contigs.fa";
 		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; }
 		else { $command="$megahit_soft $assembler_options -r $par1name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; }	#-- Support for single reads
 		print "Running Megahit for $thissample: $command\n";
-		system $command;
+		$ecode = system $command;
 		system("mv $datapath/megahit/final.contigs.fa $assemblyname");
 	}
 
@@ -101,7 +107,7 @@ foreach my $thissample(sort keys %samplefiles) {
 		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades"; }
 		else { $command="$spades_soft $assembler_options --meta --s1 $par1name -m 400 -t $numthreads -o $datapath/spades"; } #-- Support for single reads
 		print "Running Spades for $thissample: $command\n";
-		system $command;
+		$ecode = system $command;
 		system("mv $datapath/spades/contigs.fasta $assemblyname");
 	}
  
@@ -109,10 +115,10 @@ foreach my $thissample(sort keys %samplefiles) {
 
         if($assembler=~/canu/i) {
                 system("rm -r $datapath/canu");
-                $assemblyname="$datapath/spades/$thissample.contigs.fasta";
-		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=32 oeaMemory=32 batMemory=32 mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $datapath/raw_fastq/*fastq";
+                $assemblyname="$datapath/canu/$thissample.contigs.fasta";
+		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw $par1name";
                 print "Running canu for $thissample: $command\n";
-                system $command;
+                $ecode = system $command;
                 system("mv $datapath/canu/$project.contigs.fasta $assemblyname");
         }
 

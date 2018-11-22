@@ -14,9 +14,9 @@ Thumbs.db
 db/*
 test/*
 download/*
-scripts/squeezeM_conf.pl
+scripts/SqueezeMeta_conf.pl
 *pyc
 lib/checkm/DATA_CONFIG
 lib/classifier/*
-bin/.libs/*
+bin/mummer/.libs/*
 ToDo

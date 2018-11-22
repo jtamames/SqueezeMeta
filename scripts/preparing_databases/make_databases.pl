@@ -90,8 +90,8 @@ open(outfile1, ">$installpath/lib/checkm/DATA_CONFIG") || die;
 print outfile1 $checkm_manifest;
 close outfile1;
 
-open(outfile2,">$installpath/scripts/squeezeM_conf.pl") || die;
-open(infile1, "$installpath/scripts/squeezeM_conf_original.pl") || die;
+open(outfile2,">$installpath/scripts/SqueezeMeta_conf.pl") || die;
+open(infile1, "$installpath/scripts/SqueezeMeta_conf_original.pl") || die;
 while(<infile1>) {
 	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath=\"$databasedir\";\n"; }
 	else { print outfile2 $_; }

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Last Common Ancestor (LCA) taxonomic assignment from a Diamond file. 
 #-- 20/05/2018 Includes rank-directed identity level checks
 
@@ -13,8 +13,9 @@ use Cwd;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
@@ -159,13 +160,13 @@ sub query {
 		my @list;
 		while(@list=$sth->fetchrow()) {
 			print "$lastorf\t@list\n" if $verbose;
-			for(my $pos=2; $pos<=8; $pos++) {	#-- We loop on the taxonomic ranks for the hit
-				my $rank=$ranks[$pos-2];	#-- Retrieve the rank
+			for(my $pos=1; $pos<=7; $pos++) {	#-- We loop on the taxonomic ranks for the hit  #-- Fixed bug when updating to new nr db. Missing field makes parsing incorrectly the taxonomy. JT 14/11/18
+				my $rank=$ranks[$pos-1];	#-- Retrieve the rank
 				my $tax=$list[$pos];		#-- and the taxon
 				print "$lastorf $rank $giden{$list[0]} $idenrank{$rank}\n" if $verbose;
 				if($giden{$list[0]}>=$idenrank{$rank}) { $accum{$rank}{$tax}++; }		#-- and add a count for that taxon in that rank
 			}
-		if(($list[8]) && ($giden{$list[0]}>=$idenrank{'superkingdom'})) { $validhits++;  }			#-- Count the number of valid hits
+		if(($list[7]) && ($giden{$list[0]}>=$idenrank{'superkingdom'})) { $validhits++;  }			#-- Count the number of valid hits
 		}
 	}
 
@@ -183,7 +184,7 @@ sub query {
 		print "   $k\n" if $verbose;
 		foreach my $t(keys %{ $accum{$k} }) {
 			print "      $t $accum{$k}{$t}\n" if $verbose;
-			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits)) { 	#-- REQUIREMENTS FOR VALID LCA
+			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0)) { 	#-- REQUIREMENTS FOR VALID LCA
 				print "$k -> $t\n" if $verbose;
 				$lasttax=$t; 
 				#  if($t) { $string="$t;$string"; }

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#-- Part of squeezeM distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Counts the sizes for all taxa in the contiglog file created by summarycontigs3
 
 use strict;
@@ -8,8 +8,9 @@ use Cwd;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+$project=~s/\/$//; 
 
-do "$project/squeezeM_conf.pl";
+do "$project/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 
@@ -67,11 +68,9 @@ while(<infile3>) {
 		
 		#-- Add also bases and reads
 		
-		foreach my $samp(keys %samples) { 
-			$accumbases{$string}{$samp}+=$abund{$node}{$samp};
-			$accumreads{$string}{$samp}+=$abundreads{$node}{$samp}; 
- 			}
-		}
+		$accumbases{$string}{$sample}+=$abund{$node}{$sample};
+		$accumreads{$string}{$sample}+=$abundreads{$node}{$sample}; 
+ 		}
  
 	#print "$f[0] $sample $f[5]\n";
 	}
