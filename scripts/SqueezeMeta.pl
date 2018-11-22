@@ -22,7 +22,7 @@ our $installpath = "$scriptdir/..";
 ###
 
 our $pwd=cwd();
-our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat,$lowmem)="0";
+our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat,$lowmem,$minion)="0";
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
@@ -41,12 +41,12 @@ Arguments:
    -p: Project name (REQUIRED in coassembly and merged modes)
    
  Filtering: 
-   -cleaning: Filters with Trimmomatic (Default: No)
+   --cleaning: Filters with Trimmomatic (Default: No)
    -cleaning_options: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
    
  Assembly: 
    -a: assembler [megahit,spades,canu] (Default: $assembler)
-   --assembly_options: Options for required assembler
+   -assembly_options: Options for required assembler
    -c|-contiglen: Minimum length of contigs (Default: $mincontiglen)
    
  Mapping: 
@@ -68,6 +68,9 @@ Arguments:
  Performance:
    -t: Number of threads (Default:$numthreads)
    --lowmem: run on less than 16Gb of memory (Default:no)
+
+ Other:
+   --minion: Run on MinION reads (use canu and minimap2) (Default: no)
    
  Information:
    -v: Version number  
@@ -98,6 +101,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "assembly_options=s" => \$assembler_options,
 		     "cleaning" => \$cleaning,
 		     "cleaning_options=s" => \$cleaningoptions,
+                     "minion" => \$minion,
 		     "v" => \$ver,
 		     "h" => \$hel
 		    );
@@ -121,8 +125,11 @@ if(!$nometabat) { $nometabat=0; }
 if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
 if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
 
-#-- Override settings if running on lowmem mode.
-if($lowmem) { $blocksize=2; }
+#-- Override settings if running on lowmem or MinION mode.
+my $canumem=32;
+if($lowmem) { $blocksize=3; $canumem=15; }
+
+if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
 
 #-- Check if we have all the needed options
 
@@ -233,8 +240,8 @@ if($mode=~/sequential/i) {
         	}
 	 	close infile2; 
 
-                print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n";
-                if($assembler_options) { print outfile5 "\$assembler_options=$assembler_options"; }
+                print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
+                if($assembler_options) { print outfile5 "\$assembler_options=\"$assembler_options\""; }
                 close outfile5;
         
 		#-- Creation of directories
@@ -356,8 +363,8 @@ else {
 	 }
 	close infile3;
 
- 	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=$assembler;\n";
-	if($assembler_options) { print outfile6 "\$assembler_options=$assembler_options"; }
+ 	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
+	if($assembler_options) { print outfile6 "\$assembler_options=\"$assembler_options\""; }
 	close outfile6;
 
 	print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";
@@ -480,7 +487,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
 		print "[",$currtime->pretty,"]: STEP1 -> RUNNING CO-ASSEMBLY: $scriptname ($assembler)\n";
-		system("perl $scriptdir/$scriptname $project ");
+		my $ecode = system("perl $scriptdir/$scriptname $project ");
+                if($ecode!=0)           { die "Stopping in STEP1 -> $scriptname\n"; }
 		if(-s $contigsfna<1000) { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
 	}
 
@@ -492,7 +500,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0) { die "Stopping in STEP1 -> $scriptname\n"; }
 	
 			#-- Merging individual assemblies
  
@@ -501,7 +510,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP1.5 -> MERGING ASSEMBLIES: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)           { die "Stopping in STEP1.5 -> $scriptname\n"; }
 		if(-s $contigsfna<1000) { die "Stopping in STEP1.5 -> $scriptname\n"; }
 	}
 	
@@ -513,7 +523,8 @@ sub pipeline {
  		$currtime=timediff();
  		print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
  		print "[",$currtime->pretty,"]: STEP1 ->  RUNNING ASSEMBLY: $scriptname\n";
- 		system("perl $scriptdir/$scriptname $project");
+ 		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)           { die "Stopping in STEP1 -> $scriptname\n"; }
 		if(-s $contigsfna<1000) { die "Stopping in STEP1 -> $scriptname\n"; }
 	}		
 			
@@ -525,8 +536,9 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP2 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
 		my $masked="$resultpath/02.$project.maskedrna.fasta";
+                if($ecode!=0)       { die "Stopping in STEP2 -> $scriptname\n"; }
 		if(-s $masked<1000) { die "Stopping in STEP2 -> $scriptname\n"; }
 	}
 			
@@ -538,7 +550,8 @@ sub pipeline {
  		$currtime=timediff();
  		print outfile4 "[",$currtime->pretty,"]: STEP3 -> $scriptname\n";
  		print "[",$currtime->pretty,"]: STEP3 -> ORF PREDICTION: $scriptname\n";
- 		system("perl $scriptdir/$scriptname $project");
+ 		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)       { die "Stopping in STEP3 -> $scriptname\n"; }
 		if(-s $aafile<1000) { die "Stopping in STEP3 -> $scriptname\n"; }
 	}
 			
@@ -550,7 +563,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP4 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP4 -> HOMOLOGY SEARCHES: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)           { die "Stopping in STEP4 -> $scriptname\n"; }
 		if(-s $taxdiamond<1000) { die "Stopping in STEP4 -> $scriptname\n"; }
 	}
 			
@@ -563,7 +577,8 @@ sub pipeline {
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP5 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP5 -> HMMER/PFAM: $scriptname\n";
-			system("perl $scriptdir/$scriptname $project");
+			my $ecode = system("perl $scriptdir/$scriptname $project");
+                        if($ecode!=0)          { die "Stopping in STEP5 -> $scriptname\n"; }
 			if(-s $pfamhmmer<1000) { die "Stopping in STEP5 -> $scriptname\n"; }
 		}
 	}
@@ -590,7 +605,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP7 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)   { die "Stopping in STEP7 -> $scriptname\n"; }
 		if((-s $fun3cog<1000) && (-s $fun3kegg<1000) && (-s $fun3pfam<1000)) { die "Stopping in STEP7 -> $scriptname\n"; }
 		}
 	}
@@ -603,7 +619,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP8 -> CONTIG TAX ASSIGNMENT: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)       { die "Stopping in STEP8 -> $scriptname\n"; }
 		if(-s $alllog<1000) { die "Stopping in STEP8 -> $scriptname\n"; }
 	}
 			
@@ -615,7 +632,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP9 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP9 -> MAPPING READS: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)         { die "Stopping in STEP9 -> $scriptname\n"; }
 		if(-s $rpkmfile<1000) { die "Stopping in STEP9 -> $scriptname\n"; }
 	}
 			
@@ -627,7 +645,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP10 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP10 -> COUNTING TAX ABUNDANCES: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)           { die "Stopping in STEP10 -> $scriptname\n"; }
 		if(-s $mcountfile<1000) { die "Stopping in STEP10 -> $scriptname\n"; }
 	}
 			
@@ -639,9 +658,10 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP11 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP11 -> COUNTING FUNCTION ABUNDANCES: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
 		my $cogfuncover="$resultpath/11.$project.cog.funcover";
 		my $keggfuncover="$resultpath/11.$project.kegg.funcover";
+                if($ecode!=0)     { die "Stopping in STEP11 -> $scriptname\n"; }
 		if((-s $cogfuncover<1000) && (-s $keggfuncover<1000)) { die "Stopping in STEP11 -> $scriptname\n"; }
 	}
 			
@@ -653,7 +673,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP12 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP12 -> CREATING GENE TABLE: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)           { die "Stopping in STEP12 -> $scriptname\n"; }
 		if(-s $mergedfile<1000) { die "Stopping in STEP12 -> $scriptname\n"; }
 	}
 			
@@ -666,12 +687,13 @@ sub pipeline {
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP13 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP13 -> MAXBIN BINNING: $scriptname\n";
-			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			my $dirbin=$bindirs{maxbin};
 			open(indir1,$dirbin);
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
 			closedir indir1;
 			my $firstfile="$dirbin/$binfiles[0]";
+                        if($ecode!=0)          { die "Stopping in STEP13 -> $scriptname\n"; }
 			if(-s $firstfile<1000) { die "Stopping in STEP13 -> $scriptname\n"; }
 		}
 			
@@ -683,12 +705,13 @@ sub pipeline {
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP14 -> METABAT BINNING: $scriptname\n";
-			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			my $dirbin=$bindirs{metabat2};
 			open(indir2,$dirbin);
 			my @binfiles=grep(/fasta/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
+                        if($ecode!=0)          { die "Stopping in STEP14 -> $scriptname\n"; }
 			if(-s $firstfile<1000) { die "Stopping in STEP14 -> $scriptname\n"; }
 		}
  
@@ -700,12 +723,13 @@ sub pipeline {
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP15 -> DAS_TOOL MERGING: $scriptname\n";
-			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			my $dirbin=$dasdir{DASTool};
 			open(indir2,$dirbin);
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
+                        if($ecode!=0)          { die "Stopping in STEP15 -> $scriptname\n"; }
 			if(-s $firstfile<1000) { die "Stopping in STEP15 -> $scriptname\n"; }
 		}
 			
@@ -717,7 +741,8 @@ sub pipeline {
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP16 -> BIN TAX ASSIGNMENT: $scriptname\n";
-			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+                        if($ecode!=0)       { die "Stopping in STEP16 -> $scriptname\n"; }
 			if(-s $bintax<1000) { die "Stopping in STEP16 -> $scriptname\n"; }
 		}
 			
@@ -729,7 +754,8 @@ sub pipeline {
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP17 -> CHECKING BINS: $scriptname\n";
-			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+                        if($ecode!=0) { die "Stopping in STEP17 -> $scriptname\n"; }
 			foreach my $binmethod(keys %bindirs) {
 				$checkmfile="$resultpath/17.$project.$binmethod.checkM";
 				if(-s $checkmfile<1000) { die "Cannot find $checkmfile\nStopping in STEP17 -> $scriptname\n"; }
@@ -744,7 +770,8 @@ sub pipeline {
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP18 -> CREATING BIN TABLE: $scriptname\n";
-			system("perl $scriptdir/$scriptname $project");
+			my $ecode = system("perl $scriptdir/$scriptname $project");
+                        if($ecode!=0)         { die "Stopping in STEP18 -> $scriptname\n"; }
 			if(-s $bintable<1000) { die "Stopping in STEP18 -> $scriptname\n"; }
 		}
 	}
@@ -757,7 +784,8 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP19 -> CREATING CONTIG TABLE: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
+                if($ecode!=0)            { die "Stopping in STEP19 -> $scriptname\n"; }
 		if(-s $contigtable<1000) { die "Stopping in STEP19 -> $scriptname\n"; }
 	}
 
@@ -770,8 +798,9 @@ sub pipeline {
                 	$currtime=timediff();
                 	print outfile4 "[",$currtime->pretty,"]: STEP20 -> $scriptname\n";
                	 	print "[",$currtime->pretty,"]: STEP20 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
-                	system("perl $scriptdir/$scriptname $project");
+                	my $ecode = system("perl $scriptdir/$scriptname $project");
                 	my $statfile="$resultpath/20.$project.kegg.pathways";
+                        if($ecode!=0)         { die "Stopping in STEP20 -> $scriptname\n"; }
                 	if(-s $statfile<1000) { die "Stopping in STEP20 -> $scriptname\n"; }
         	}
 	}
@@ -784,8 +813,9 @@ sub pipeline {
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP21 -> MAKING FINAL STATISTICS: $scriptname\n";
-		system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
 		my $statfile="$resultpath/21.$project.stats";
+                if($ecode!=0)         { die "Stopping in STEP21 -> $scriptname\n"; }
 		if(-s $statfile<1000) { die "Stopping in STEP21 -> $scriptname\n"; }
 	}
 

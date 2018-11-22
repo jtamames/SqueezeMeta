@@ -143,7 +143,9 @@ foreach my $thissample(keys %allsamples) {
 
                                   
 	print "$command\n";
-	if(-e $outsam) { } else { system $command; }
+        my $ecode = 0;
+	if(-e $outsam) {} else { $ecode = system $command; }
+        if($ecode!=0)     { die "An error occurred during mapping!"; }
 
 	#-- Calculating contig coverage/RPKM
 
