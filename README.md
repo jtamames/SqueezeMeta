@@ -23,22 +23,22 @@ SqueezeMeta can be run in three different modes, depending of the type of multi-
 
 SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
-1) Assembly 
-2) RNA prediction and classification
-3) ORF (CDS) prediction
-4) Homology searching against taxonomic and functional databases
-5) Hmmer searching against Pfam database
-6) Taxonomic assignment of genes 
-7) Functional assignment of genes
-8) Taxonomic assignment of contigs, and chimera checking
-9) Coverage and abundance estimation for genes and contigs 
+1)  Assembly 
+2)  RNA prediction and classification
+3)  ORF (CDS) prediction
+4)  Homology searching against taxonomic and functional databases
+5)  Hmmer searching against Pfam database
+6)  Taxonomic assignment of genes 
+7)  Functional assignment of genes
+8)  Taxonomic assignment of contigs, and check for taxonomic disparities
+9)  Coverage and abundance estimation for genes and contigs 
 10) Estimation of taxa abundances
 11) Estimation of function abundances
 12) Merging of previous results to obtain the ORF table
 13) Binning with Maxbin
 14) Binning with metabat2
 15) Binning integration with DAS tool.
-16) Taxonomic assignment of bins, and chimera checking
+16) Taxonomic assignment of bins, and check for taxonomic disparities
 17) Checking of bins with CheckM
 18) Merging of previous results to obtain the bin table
 19) Merging of previous results to obtain the contig table
