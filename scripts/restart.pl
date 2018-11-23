@@ -317,7 +317,7 @@ system("rm $tempdir/$project.log");
 			print outfile2 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP16 -> BIN TAX ASSIGNMENT: $scriptname\n";
 			system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if(-s $bintax<1000) { die "Stopping in STEP16 -> $scriptname\n"; }
+			#if(-s $bintax<1000) { die "Stopping in STEP16 -> $scriptname\n"; }
 		}
 			
     #-------------------------------- STEP17: Checking of bins for completeness and contamination (checkM)		
