@@ -23,7 +23,7 @@ our $installpath = "$scriptdir/..";
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat,$lowmem,$minion)="0";
-our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
@@ -67,6 +67,7 @@ Arguments:
    
  Performance:
    -t: Number of threads (Default:$numthreads)
+   -canumem: memory for canu in Gb (Default: 32)
    --lowmem: run on less than 16Gb of memory (Default:no)
 
  Other:
@@ -82,6 +83,7 @@ END_MESSAGE
 
 my $result = GetOptions ("t=i" => \$numthreads,
                      "lowmem" => \$lowmem,
+		     "canumem=i" => \$canumem,
                      "m|mode=s" => \$mode,
                      "c|contiglen=i" => \$mincontiglen,
                      "a=s" => \$assembler,
@@ -109,6 +111,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 #-- Set some default values
 
 if(!$numthreads) { $numthreads=12; }
+if(!$canumem) { $canumem=32; }
 if(!$mincontiglen) { $mincontiglen=1200; }
 if(!$assembler) { $assembler="megahit"; }
 if(!$mapper) { $mapper="bowtie"; }
@@ -126,7 +129,6 @@ if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:
 if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
 
 #-- Override settings if running on lowmem or MinION mode.
-my $canumem=32;
 if($lowmem) { $blocksize=3; $canumem=15; }
 
 if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
