@@ -1,8 +1,10 @@
-# SqueezeM: a fully automated metagenomics pipeline, from reads to bins
+<img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/logo.svg" width="20%">.
 
-## 1. What is squeezeM?
+# SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
-SqueezeM is a full automatic pipeline for metagenomics/metatranscriptomics, covering all steps of the analysis. SqueezeM includes multi-metagenome support allowing the co-assembly of related metagenomes and the retrieval of individual genomes via binning procedures. Thus, squeezeM features several unique characteristics:
+## 1. What is SqueezeMeta?
+
+SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, covering all steps of the analysis. SqueezeMeta includes multi-metagenome support allowing the co-assembly of related metagenomes and the retrieval of individual genomes via binning procedures. Thus, SqueezeMeta features several unique characteristics:
 
 1) Co-assembly procedure with read mapping for estimation of the abundances of genes in each metagenome
 2) Co-assembly of unlimited number of metagenomes via merging of individual metagenomes
@@ -11,7 +13,7 @@ SqueezeM is a full automatic pipeline for metagenomics/metatranscriptomics, cove
 5) Internal checks for the assembly and binning steps inform about the consistency of contigs and bins, allowing to spot potential chimeras. 
 6) Metatranscriptomic support via mapping of cDNA reads against reference metagenomes 
 
-SqueezeM can be run in three different modes, depending of the type of multi-metagenome support. These modes are:
+SqueezeMeta can be run in three different modes, depending of the type of multi-metagenome support. These modes are:
 
 -Sequential mode: All samples are treated individually and analysed sequentially. This mode does not include binning.
 
@@ -19,7 +21,7 @@ SqueezeM can be run in three different modes, depending of the type of multi-met
 
 -Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw ). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
 
-SqueezeM uses a combination of custom scripts and external software packages for the different steps of the analysis:
+SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
 1) Assembly 
 2) RNA prediction and classification
@@ -35,36 +37,43 @@ SqueezeM uses a combination of custom scripts and external software packages for
 12) Merging of previous results to obtain the ORF table
 13) Binning with Maxbin
 14) Binning with metabat2
-15) Taxonomic assignment of bins, and chimera checking
-16) Checking of bins
-17) Merging of previous results to obtain the bin table
-18) Merging of previous results to obtain the contig table
-19) Final statistics for the run
-20) Prediction of kegg and metacyc patwhays in each bin
+15) Binning integration with DAS tool.
+16) Taxonomic assignment of bins, and chimera checking
+17) Checking of bins with CheckM
+18) Merging of previous results to obtain the bin table
+19) Merging of previous results to obtain the contig table
+20) Prediction of kegg and metacyc patwhays for each bin
+21) Final statistics for the run
 
 
 ## 2. Installation
 
-For installing squeezeM, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the squeezeM scripts as well as the third-party software redistributed with squeezeM (see section 6). The INSTALL file contains detailed installation instructions, including all the external libraries required to make squeezeM run in a vanilla Ubuntu 14.04 installation.
+For installing SqueezeMeta, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL file contains detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 installation.
  
  
 ## 3. Building databases
 
-SqueezeM uses several databases. GenBank nr for taxonomic assignment, and eggnog, KEGG and Pfam for functional assignment. The script make_databases.pl must be run to download and format all these databases.
+SqueezeMeta uses several databases. GenBank nr for taxonomic assignment, and eggnog, KEGG and Pfam for functional assignment. The script make_databases.pl must be run to download and format all these databases.
 
-`<installpath>/squeezeM/scripts/preparing_databases/make_databases.pl <datapath>`
+`<installpath>/SqueezeMeta/scripts/preparing_databases/make_databases.pl <datapath>`
 
 , where `<datapath>` is the destination folder. The process will take about a day. The databases occupy 130Gb, but we recommend having at least 300Gb free disk space during the building process.
 
+If the SqueezeMeta databases are already built in another location in the system, a different copy of SqueezeMeta can be configured to use them with
+
+`<installpath>/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl <database_location>`
+
 
 ## 4. Execution, restart and running scripts
+
 ### Scripts location
-The scripts composing the squeezeM pipeline can be found in the `.../squeezeM/scripts` directory. We recommend adding it to your $PATH environment variable.
+The scripts composing the SqueezeMeta pipeline can be found in the `.../SqueezeMeta/scripts` directory. We recommend adding it to your $PATH environment variable.
+
 ### Execution
 
-The command for running squeezeM has the following syntax:
+The command for running SqueezeMeta has the following syntax:
 
-`squeezeM.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>`
+`SqueezeMeta.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>`
 
 **Arguments**
 * -m: Mode (sequential, coassembly, merged) (REQUIRED) 
@@ -79,12 +88,12 @@ The command for running squeezeM has the following syntax:
 * --nokegg: Skip KEGG assignment (Default: no) 
 * --nopfam: Skip Pfam assignment (Default: no) 
 * --nobins: Skip binning (Default: no) 
-* -e|-evalue: max evalue for diamond run (Default: 1e-03) 
-* -miniden: minimum identity perc for diamond run (Default: 50) 
+* -e|-evalue: max evalue for DIAMOND run (Default: 1e-03) 
+* -miniden: minimum identity perc for DIAMOND run (Default: 50) 
 * --megahit_options: Options for megahit assembler 
 * --spades_options: Options for spades assembler 
 
-**Example squeezeM call:** `squeezeM.pl -m coassembly -p test -s test.samples -f mydir --nopfam -miniden 60`
+**Example SqueezeMeta call:** `SqueezeMeta.pl -m coassembly -p test -s test.samples -f mydir --nopfam -miniden 60`
 
 This will create a project "test" for co-assembling the samples specified in the file "test.samples", using a minimum identity of 60% for taxonomic and functional assignment, and skipping Pfam annotation. The -p parameter indicates the name under which all results and data files will be saved. This is not required for sequential mode, where the name will be taken from the samples file instead. The -f parameter indicates the directory where the read files specified in the sample file are stored.
 
@@ -111,7 +120,7 @@ The first column indicates the sample id (this will be the project name in seque
 
 ### Restart
 
-Any interrupted squeezeM run can be restarted using the program restart.pl. It has the syntax:
+Any interrupted SqueezeMeta run can be restarted using the program restart.pl. It has the syntax:
 
 `restart.pl <projectname>`
 
@@ -120,34 +129,46 @@ This command must be issued in the upper directory to the project <projectname>,
 ### Running scripts
 Also, any individual script of the pipeline can be run in the upper directory to the project using the same syntax: 
 
-`script <projectname>` (for instance, `04.rundiamond.pl <projectname>` to repeat the Diamond run for the project)
+`script <projectname>` (for instance, `04.rundiamond.pl <projectname>` to repeat the DIAMOND run for the project)
 
-## 5. Testing squeezeM
+
+## 5. Testing SqueezeMeta
 The make_databases.pl script also downloads two datasets for testing that the program is running correctly. Assuming make_databases.pl was run with the directory `<datapath>` as its target the test run can be executed with
 
 `cd <datapath>`
-`squeezeM.pl -m coassembly -p Hadza -s test.samples -f raw`
+`SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
 
-Alternative `-m sequential`, `-m merged` can be used.
+Alternatively, `-m sequential` or `-m merged` can be used.
 
-## 6. Working with Oxford MinION and PacBio reads.
-Since version 0.3.0, squeezeM is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the -map *minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling squeezeM.
 
-## 7. Setting up the MySQL database.
-SqueezeM includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
+## 6. Working with Oxford Nanopore MinION and PacBio reads.
+Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
+We also include the canu assembler, which is specially tailored to work with long, noisy reads. It can be selected by including the -a *canu* flag when calling SqueezeMeta.
+As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads.
 
-## 8. License and third-party software
-SqueezeM is distributed with a GPL-3 license.
-Additionally, squeezeM redistributes the following third-party software:
+
+## 7. Working on a low memory environment.
+In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. DIAMOND memory usage can be controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as XXX 2x100 Illumina HiSeq reads on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
+We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limtations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project SRP163045) in less than 4 hours.
+
+
+## 8. Setting up the MySQL database.
+SqueezeMeta includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
+
+
+## 9. License and third-party software
+SqueezeMeta is distributed under a GPL-3 license.
+Additionally, SqueezeMeta redistributes the following third-party software:
 * [Megahit](https://github.com/voutcn/megahit)
-* [Spades](http://cab.spbu.ru/software/spades/)
-* [prinseq](http://prinseq.sourceforge.net/)
+* [Spades](http://cab.spbu.ru/software/spades)
+* [canu](https://github.com/marbl/canu)
+* [prinseq](http://prinseq.sourceforge.net)
 * [prodigal](https://github.com/hyattpd/Prodigal)
 * [cd-hit](https://github.com/weizhongli/cdhit)
-* [amos](http://www.cs.jhu.edu/~genomics/AMOS/)
-* [mummer](https://github.com/mummer4/mummer/)
+* [amos](http://www.cs.jhu.edu/~genomics/AMOS)
+* [mummer](https://github.com/mummer4/mummer)
 * [hmmer](http://hmmer.org/)
-* [diamond](https://github.com/bbuchfink/diamond)
+* [DIAMOND](https://github.com/bbuchfink/diamond)
 * [bedtools](https://github.com/arq5x/bedtools2)
 * [bwa](https://github.com/lh3/bwa)
 * [minimap2](https://github.com/lh3/minimap2)
@@ -155,11 +176,13 @@ Additionally, squeezeM redistributes the following third-party software:
 * [barrnap](https://github.com/tseemann/barrnap)
 * [maxbin](https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html)
 * [metabat](https://bitbucket.org/berkeleylab/metabat)
-* [checkm](http://ecogenomics.github.io/CheckM/)
+* [DAS tool](https://github.com/cmks/DAS_Tool)
+* [checkm](http://ecogenomics.github.io/CheckM)
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)
 * [RDP classifier](https://github.com/rdpstaff/classifier)
 
-## 9. About
-SqueezeM is developed by Javier Tamames with collaboration from Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
+
+## 10. About
+SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
 
 
