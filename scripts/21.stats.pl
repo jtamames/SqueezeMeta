@@ -60,7 +60,7 @@ while(<infile2>) {
 	}
 close infile2;	
 
-	#-- Statistics on contigs (chimerism, assignment..)
+	#-- Statistics on contigs (disparity, assignment..)
 
 open(infile3,$contigtable) || die "Cannot open $contigtable\n";
 while(<infile3>) {
@@ -80,7 +80,7 @@ while(<infile3>) {
 	}
 close infile3;
 
-	#-- Statistics on genes (chimerism, assignment..)
+	#-- Statistics on genes (disparity, assignment..)
 		
 my $header;
 my @head;
@@ -112,7 +112,7 @@ while(<infile4>) {
 	}
 close infile4;
 
-	#-- Statistics on bins (chimerism, assignment..)
+	#-- Statistics on bins (disparity, assignment..)
 
 my %bins;
 if($mode ne "sequential") {
@@ -193,7 +193,7 @@ foreach my $rk(@ranks) {
 	my $nmtax=$#ctk+1;
 	print outfile1 "Contigs at $rk rank\t$contigs{$rk}, in $nmtax taxa\n"; 	
 	}
-print outfile1 "Non-chimeric\t$contigs{chimerism}{0}\nChimerism >0\t$contigs{chimerism}{more0}\nChimerism >= 0.25\t$contigs{chimerism}{0.25}\n";
+print outfile1 "Congruent\t$contigs{chimerism}{0}\nDisparity >0\t$contigs{chimerism}{more0}\nDisparity >= 0.25\t$contigs{chimerism}{0.25}\n";
 print outfile1 "\n";
 
 	#-- Genes
@@ -242,13 +242,13 @@ if($mode ne "sequential") {
 	print outfile1 "Contamination >= 50%";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{contamination}{50}"; }
 	print outfile1 "\n";
-	print outfile1 "Non-chimeric bins";
+	print outfile1 "Congruent bins";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{0}"; }
 	print outfile1 "\n";
-	print outfile1 "Chimerism >0";
+	print outfile1 "Disparity >0";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{more0}"; }
 	print outfile1 "\n";
-	print outfile1 "Chimerism >= 0.25";
+	print outfile1 "Disparity >= 0.25";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{0.25}"; }
 	print outfile1 "\n";
 	print outfile1 "Hi-qual bins (>90% complete,<10% contam)";

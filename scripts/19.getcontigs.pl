@@ -21,7 +21,7 @@ our($datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,
 
 my(%contig,%allsamples);
 
-	#-- Reading taxonomic assignment and chimerism for the contigs
+	#-- Reading taxonomic assignment and disparity for the contigs
 
 open(infile1,$alllog) || warn "Cannot open contiglog file $alllog\n";
 print "Reading taxa for contigs information...";
@@ -30,7 +30,7 @@ while(<infile1>) {
 	next if !$_;
 	my @t=split(/\t/,$_);
 	$contig{$t[0]}{tax}=$t[1]; 
-	if($t[3]=~/Chimerism level\: (.*)/i) { $contig{$t[0]}{chimerism}=$1; }
+	if($t[3]=~/Disparity\: (.*)/i) { $contig{$t[0]}{chimerism}=$1; }
 }
 close infile1;
 
@@ -113,7 +113,7 @@ open(outfile1,">$contigtable") || die;
 	#-- Headers
 
 print outfile1 "#Created by $0, ",scalar localtime,"\n";
-print outfile1 "Contig ID\tTax\tChimerism\tGC perc\tLength\tNum genes\tBin ID";
+print outfile1 "Contig ID\tTax\tDisparity\tGC perc\tLength\tNum genes\tBin ID";
 foreach my $countfile(sort keys %allsamples) { print outfile1 "\tCoverage $countfile\tRPKM $countfile\tRaw $countfile"; }
 print outfile1 "\n";
 

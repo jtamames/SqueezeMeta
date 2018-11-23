@@ -130,7 +130,7 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 			#-- If it does, store the consensus tax and rank
 		
 			if(($percas>=$minconsperc_asig) && ($perctotal>=$minconsperc_total) && ($totalcount>=$mincontigs) && ($times>$times2)) { 
-				#-- Calculation of chimerism for this rank
+				#-- Calculation of disparity for this rank
 				my($chimera,$nonchimera,$unknown)=0;
 				foreach my $contig(sort keys %store) { 
 					my $ttax=$taxlist{$contig}{$rank};
@@ -173,8 +173,8 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		
 		#-- Write output
 		
-		printf outfile2 "Consensus: $fulltax\tTotal size: $size\tChimerism: %.3f\n",$chimerism;
-		printf outfile1 "$binmethod\t$k\tConsensus: $fulltax\tTotal size: $size\tChimerism: %.3f\n",$chimerism;
+		printf outfile2 "Consensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
+		printf outfile1 "$binmethod\t$k\tConsensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
 		close outfile2;
 
  	}

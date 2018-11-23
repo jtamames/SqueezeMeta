@@ -2,8 +2,8 @@
 
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Assigns a consensus annotation for the whole contigs using the annotations for the genes it contains
-#-- Also calculates chimerism index for each contig
-#-- 23/05/2018, corrected calculation of chimerism
+#-- Also calculates disparity index for each contig
+#-- 23/05/2018, corrected calculation of disparity
 
 use strict;
 use Tie::IxHash;
@@ -168,11 +168,11 @@ foreach my $contig(keys %allcontigs) {
 		if(!$times2) { $times2=0; }
 		# if($contig eq "k119_42524") {  printf "  $mtax $rank $accumtax{$mtax} $totalas $totalcount %.2f %.2f\n",$percas,$perctotal; }	      
 
-		#-- And if it does, we also calculate the chimerism index of the contig for this rank
+		#-- And if it does, we also calculate the disparity index of the contig for this rank
 
 		if(($percas>=$minconsperc_asig) && ($perctotal>=$minconsperc_total) && ($totalcount>=$mingenes) && ($times>$times2)) { 
 	
-			#-- Calculation of chimerism for this rank
+			#-- Calculation of disparity for this rank
 			my($chimera,$nonchimera,$unknown)=0;
 			foreach my $orf(sort keys %{ $orfs{$contig} }) { 
 				my $ttax=$taxlist{$contig}{$rank}{$orf}; 
@@ -203,7 +203,7 @@ foreach my $contig(keys %allcontigs) {
 			# print "$chimerism*****\n";
 			# if($contig eq "k119_9990") {  printf "  $mtax $rank $accumtax{$mtax} $totalas $totalcount %.2f %.2f $chimerism\n",$percas,$perctotal; }	      
 			$consensus{$rank}=$mtax; 
-			printf outfile1 "   $rank: $totalas\t$mtax: $times\tChimerism: %.3f\n",$chimerism; 
+			printf outfile1 "   $rank: $totalas\t$mtax: $times\tDisparity: %.3f\n",$chimerism; 
 
 			#-- Then we add the new taxon to the taxa found for previous ranks
 
@@ -221,7 +221,7 @@ foreach my $contig(keys %allcontigs) {
 	#-- Finally, write the output
 		
 	if(!$consensus) { $cattax="No consensus"; $strg="Unknown"; }			
-	printf outfile2 "$contig\t$fulltax\t$strg\tChimerism level: %.3f\tGenes: $numorfs{$contig}\n",$chimerism;
+	printf outfile2 "$contig\t$fulltax\t$strg\tDisparity: %.3f\tGenes: $numorfs{$contig}\n",$chimerism;
                                  }
 close outfile1;
 close outfile2;

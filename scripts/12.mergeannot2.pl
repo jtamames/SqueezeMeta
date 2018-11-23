@@ -161,7 +161,7 @@ close infile7;
 if($ntseq) { $gc=gc_count($ntseq); }
 $orfdata{$ntorf}{gc}=$gc; 
 
-	#-- Reading taxonomic assignment and chimerism for the contigs
+	#-- Reading taxonomic assignment and disparity for the contigs
 
 open(infile8,$alllog) || warn "Cannot open contiglog file $alllog\n";
 print "Reading contig information\n";
@@ -170,7 +170,7 @@ while(<infile8>) {
 	next if(!$_ || ($_=~/\#/));
 	my @t=split(/\t/,$_);
 	$contigdata{$t[0]}{tax}=$t[1]; 
-	if($t[3]=~/Chimerism level\: (.*)/i) { $contigdata{$t[0]}{chimerism}=$1; }
+	if($t[3]=~/Disparity\: (.*)/i) { $contigdata{$t[0]}{chimerism}=$1; }
 	$datafiles{'alllog'}=1;
 }
 close infile8;

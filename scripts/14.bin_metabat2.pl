@@ -31,7 +31,7 @@ while(<infile1>) {
 	next if !$_;
 	my @r=split(/\t/,$_);
 	my($chimlevel,$numgenes);
-	if($r[3]=~/Chimerism level\: (.*)/) { $chimlevel=$1; }
+	if($r[3]=~/Disparity\: (.*)/) { $chimlevel=$1; }
 	if($r[4]=~/Genes\: (.*)/) { $numgenes=$1; } 
 	if(!$numgenes) { $numgenes=0; } 
 	if(($numgenes>=$mingenes) && ($chimlevel<=$maxchimerism)) { push(@allcontigs,$r[0]); $allcontigs{$r[0]}=1; }	

@@ -74,7 +74,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	}
 	close infile2;
 
-	#-- Read data for each bin (tax, size, chimerism)
+	#-- Read data for each bin (tax, size, disparity)
 
 	opendir(indir1,$bindir) || die;
 	my @files=grep(/tax$/,readdir indir1);
@@ -91,7 +91,7 @@ foreach my $binmethod(sort keys %dasdir) {
 			my($consensus,$size,$chimerism)=split(/\t/,$_);
 			$consensus=~s/Consensus\: //g;
 			$size=~s/Total size\: //g;
-			$chimerism=~s/Chimerism\: //g;
+			$chimerism=~s/Disparity\: //g;
 			$bins{$binmethod}{$bin}{consensus}=$consensus;
 			$bins{$binmethod}{$bin}{size}=$size;
 			$bins{$binmethod}{$bin}{chimerism}=$chimerism;
@@ -166,7 +166,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	#-- Headers
 	
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
-	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tSize\tGC perc\tNum contigs\tChimerism\tCompleteness\tContamination\tStrain Het";
+	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tSize\tGC perc\tNum contigs\tDisparity\tCompleteness\tContamination\tStrain Het";
 	foreach my $countfile(sort keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile"; }
 	print outfile3 "\n";
 	
