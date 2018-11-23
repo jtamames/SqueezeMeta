@@ -141,18 +141,18 @@ The make_databases.pl script also downloads two datasets for testing that the pr
 Alternatively, `-m sequential` or `-m merged` can be used.
 
 
-## 6. Working with Oxford Nanopore MinION and PacBio reads.
+## 6. Working with Oxford Nanopore MinION and PacBio reads
 Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
 We also include the canu assembler, which is specially tailored to work with long, noisy reads. It can be selected by including the -a *canu* flag when calling SqueezeMeta.
 As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads.
 
 
-## 7. Working on a low memory environment.
+## 7. Working on a low memory environment
 In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. DIAMOND memory usage can be controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as XXX 2x100 Illumina HiSeq reads on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
 We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limtations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
 
 
-## 8. Setting up the MySQL database.
+## 8. Setting up the MySQL database
 SqueezeMeta includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
 
 
