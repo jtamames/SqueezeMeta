@@ -44,9 +44,8 @@ while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/));
 	my @t=split(/\t/,$_);
-	$funs{cog}{$t[0]}{name}=$t[1];
-	$funs{cog}{$t[0]}{fun}=$t[2];
-	$funs{cog}{$t[0]}{path}=$t[3];
+	$funs{cog}{$t[0]}{fun}=$t[1];
+	$funs{cog}{$t[0]}{path}=$t[2];
 	}
 close infile2;
 
@@ -242,15 +241,16 @@ foreach my $classfun(sort keys %funstat) {
 	$rawf="$resultpath/11.$project.$classfun.rawcounts";
 	print "Now creating $classfun raw reads output in $rawf\n";
 	open(outfile2,">$rawf") || die;
-	print outfile2 "#-- Created by $0 from $coveragefile, ",scalar localtime;
-	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
-	print outfile2 "\n";
-	print outfile2 "# $classfun ID";
-	foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
+	if($classfun eq "cog") { print outfile2 "$classfun class\t$classfun ID"; }
+        else { print outfile2 "$classfun ID"; }
+foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
 	print outfile2 "\n";
 	foreach my $kid(sort keys %{ $funstat{$classfun} }) {
-		my($cstring,$accum);
-		my $funid="$kid:$funs{$classfun}{$kid}{fun}";
+                my($cstring,$accum,$funid,$funclass);
+                $funclass=$funs{$classfun}{$kid}{path};
+                if(!$funclass || ($funclass=~/\|/)) { $funclass="Unclassified"; } 
+                if($classfun eq "cog") { $funid="$funclass\t"; }
+                $funid.="$kid:$funs{$classfun}{$kid}{fun}";
 		# print outfile2 "$funid";
 		$cstring.="$funid";		
 		foreach my $samp(sort keys %allsamples) { 
