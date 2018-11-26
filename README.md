@@ -1,4 +1,4 @@
-<img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/logo.svg" width="20%">.
+<img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/logo.svg" width="20%">
 
 # SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
