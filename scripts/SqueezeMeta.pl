@@ -758,7 +758,7 @@ sub pipeline {
 			print "[",$currtime->pretty,"]: STEP17 -> CHECKING BINS: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
                         if($ecode!=0) { die "Stopping in STEP17 -> $scriptname\n"; }
-			foreach my $binmethod(keys %bindirs) {
+			foreach my $binmethod(keys %dasdir) {
 				$checkmfile="$resultpath/17.$project.$binmethod.checkM";
 				if(-s $checkmfile<1000) { die "Cannot find $checkmfile\nStopping in STEP17 -> $scriptname\n"; }
 				}
