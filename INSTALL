@@ -41,10 +41,10 @@ sudo apt-get install python-pip python-dev python-scipy python-matplotlib
 sudo -H pip install dendropy pysam
 
 
-### Download squeezeM.
-#You can download the latest release of squeezeM from https://github.com/jtamames/SqueezeM/releases/latest
+### Download SqueezeMeta.
+#You can download the latest release of SqueezeMeta from https://github.com/jtamames/SqueezeM/releases/latest
 #Alternatively you can clone the github repository.
-#git clone http://github.com/jtamames/squeezeM
+#git clone http://github.com/jtamames/SqueezeMeta
 
 
 ### Install R packages for DAS tool.
@@ -58,9 +58,9 @@ sudo R CMD INSTALL bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
 
 ### Install databases and test data.
 #This will take about a day and require around 300Gb free disk space for building, in the end it will occupy around 130Gb.
-<installpath>/squeezeM/scripts/preparing_databases/make_databases.pl <dbpath>
+<installpath>/SqueezeMeta/scripts/preparing_databases/make_databases.pl <dbpath>
 
 
-### Run squeezeM on test data.
+### Run SqueezeMeta on test data.
 cd <dbpath>/test
-perl <installpath>/squeezeM/scripts/squeezeM.pl -m merged -p Hadza -s test.samples -f raw/
+perl <installpath>/SqueezeMeta/scripts/SqueezeMeta.pl -m merged -p Hadza -s test.samples -f raw/
