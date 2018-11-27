@@ -745,7 +745,9 @@ sub pipeline {
 			print "[",$currtime->pretty,"]: STEP16 -> BIN TAX ASSIGNMENT: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
                         if($ecode!=0)       { die "Stopping in STEP16 -> $scriptname\n"; }
-			#if(-s $bintax<1000) { die "Stopping in STEP16 -> $scriptname\n"; }
+			my $wc=qx(wc -l $bintax);
+			my($wsize,$rest)=split(/\s+/,$wc);
+			if($wsize<1) { die "Stopping in STEP16 -> $scriptname\n"; }
 		}
 			
     #-------------------------------- STEP17: Checking of bins for completeness and contamination (checkM)		
