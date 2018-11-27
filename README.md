@@ -1,4 +1,4 @@
-<img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/logo.svg" width="20%">.
+<img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/logo.svg" width="20%">
 
 # SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
@@ -7,7 +7,7 @@
 SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, covering all steps of the analysis. SqueezeMeta includes multi-metagenome support allowing the co-assembly of related metagenomes and the retrieval of individual genomes via binning procedures. Thus, SqueezeMeta features several unique characteristics:
 
 1) Co-assembly procedure with read mapping for estimation of the abundances of genes in each metagenome
-2) Co-assembly of unlimited number of metagenomes via merging of individual metagenomes
+2) Co-assembly of a large number of metagenomes via merging of individual metagenomes
 3) Includes binning and bin checking, for retrieving individual genomes 
 4) the results are stored in a database, where they can be easily exported and shared, and can be inspected anywhere using a web interface. 
 5) Internal checks for the assembly and binning steps inform about the consistency of contigs and bins, allowing to spot potential chimeras. 
@@ -15,11 +15,11 @@ SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, c
 
 SqueezeMeta can be run in three different modes, depending of the type of multi-metagenome support. These modes are:
 
--Sequential mode: All samples are treated individually and analysed sequentially. This mode does not include binning.
+- Sequential mode: All samples are treated individually and analysed sequentially. This mode does not include binning.
 
--Coassembly mode: Reads from all samples are pooled and a single assembly is performed. Then reads from individual samples are mapped to the coassembly to obtain gene abundances in each sample. Binning methods allow to obtain genome bins.
+- Coassembly mode: Reads from all samples are pooled and a single assembly is performed. Then reads from individual samples are mapped to the coassembly to obtain gene abundances in each sample. Binning methods allow to obtain genome bins.
 
--Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw ). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
+- Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw ). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
 
 SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
@@ -148,7 +148,7 @@ As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Na
 
 
 ## 7. Working on a low memory environment
-In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. DIAMOND memory usage can be controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as XXX 2x100 Illumina HiSeq reads on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
+In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. DIAMOND memory usage can be controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
 We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limtations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
 
 
