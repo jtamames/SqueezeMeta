@@ -98,4 +98,6 @@ close outfile1;
 
 my $command="perl $maxbin_soft -thread $numthreads -contig $tempfasta -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
 print "Now running Maxbin: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
+

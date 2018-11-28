@@ -42,7 +42,8 @@ if($cleaning) {
 
 	if($cleaning) {
 		print "Running trimmomatic: $trimmomatic_command\n";
-		system $trimmomatic_command;
+		my $ecode = system $trimmomatic_command;
+		if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
 		}
 	}
 
@@ -64,24 +65,31 @@ elsif($assembler=~/canu/i) {
 	$command.="mv $datapath/canu/$project.contigs.fasta $outassembly"; 
         }
 
+
 else { die "Unrecognized assembler\n"; }
 
 	
 #-- Run assembly
 
 print "Running assembly with $assembler: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
+
 
 #-- Run prinseq_lite for removing short contigs
 
 $command="$prinseq_soft -fasta $outassembly -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna";
 print "Running prinseq: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
+
 
 #-- Run prinseq_lite for statistics
 
 $command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $resultpath/01.$project.stats";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
+
 
 #-- Counts length of the contigs (we will need it later)
 

@@ -79,7 +79,8 @@ foreach my $thissample(sort keys %samplefiles) {
 
 		if($cleaning) {
 			print "Running trimmomatic: $trimmomatic_command\n";
-			system $trimmomatic_command;
+			my $ecode = system $trimmomatic_command;
+			if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
 			}
 		}
 
@@ -95,7 +96,8 @@ foreach my $thissample(sort keys %samplefiles) {
 		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; }
 		else { $command="$megahit_soft $assembler_options -r $par1name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; }	#-- Support for single reads
 		print "Running Megahit for $thissample: $command\n";
-		$ecode = system $command;
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
 		system("mv $datapath/megahit/final.contigs.fa $assemblyname");
 	}
 
@@ -107,7 +109,8 @@ foreach my $thissample(sort keys %samplefiles) {
 		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades"; }
 		else { $command="$spades_soft $assembler_options --meta --s1 $par1name -m 400 -t $numthreads -o $datapath/spades"; } #-- Support for single reads
 		print "Running Spades for $thissample: $command\n";
-		$ecode = system $command;
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
 		system("mv $datapath/spades/contigs.fasta $assemblyname");
 	}
  
@@ -118,7 +121,8 @@ foreach my $thissample(sort keys %samplefiles) {
                 $assemblyname="$datapath/canu/$thissample.contigs.fasta";
 		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw $par1name";
                 print "Running canu for $thissample: $command\n";
-                $ecode = system $command;
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
                 system("mv $datapath/canu/$project.contigs.fasta $assemblyname");
         }
 
@@ -131,7 +135,8 @@ foreach my $thissample(sort keys %samplefiles) {
 	$contigslen="$resultpath/01.$project.$thissample.lon";
 	$command="$prinseq_soft -fasta $assemblyname -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna.prov";
 	print "Running prinseq: $command\n";
-	system $command;
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
 
 	#-- Now we need to rename the contigs for minimus2, otherwise there will be contigs with same names in different assemblies
 
@@ -153,7 +158,8 @@ foreach my $thissample(sort keys %samplefiles) {
 	#-- Run prinseq_lite for statistics
 
 	$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $resultpath/01.$project.$thissample.stats";
-	system $command;
+        my $ecode = system $command;
+        if($ecode!=0) { die "Error running command:    $command"; }
 	
 
 	#-- Counts length of the contigs (we will need it later)

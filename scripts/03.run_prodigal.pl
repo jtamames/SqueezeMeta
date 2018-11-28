@@ -22,5 +22,6 @@ my $tempgff="$tempdir/02.$project.cds.gff";
 my $maskedcontigs="$resultpath/02.$project.maskedrna.fasta";
 my $command="$prodigal_soft -q -m -p meta -i $maskedcontigs -a $aafile -d $ntfile -f gff -o $tempgff";
 print "Running prodigal: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 system("cat $tempgff $tempdir/02.$project.rna.gff > $gff_file");

@@ -111,31 +111,33 @@ sub metacyc {
 	foreach my $kbin(sort keys %ecs) {
 		my $outec="$tempdir/minpath.temp";
 		open(outfile1,">$outec") || die;
-	       my $id=0;
-	       foreach my $ecbin(sort keys %{ $ecs{$kbin} }) {
+		my $id=0;
+		foreach my $ecbin(sort keys %{ $ecs{$kbin} }) {
 		       next if !$ecbin;
 		       next if($ecbin=~/\-/);
 		       $ecbin=~s/\*//g;
 		       $id++;
 		       print outfile1 "read$id\t$ecbin\n";
 		       }
-	       close outfile1; 
+		close outfile1; 
 		print "Running MinPath for metacyc: $kbin      \r";
-	       my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
+		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
 		# print "$command\n";
-	       system $command;
-	       open(infile5,"$tempdir/$kbin.minpath.temp.report") || next;
-	       my %accum=();
-	       while(<infile5>) {
-		       chomp;
-		       if($_=~/minpath 1/) {
-			       my @k=split(/\s+/,$_);
-			       my $thisp=$k[$#k];
-			       my $thisonto=$pathid{$thisp};
-			       if($thisonto) { $accum{$thisonto}=1; }
-			       }
-		      }
-	       close infile5;  
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
+
+		open(infile5,"$tempdir/$kbin.minpath.temp.report") || next;
+		my %accum=();
+		while(<infile5>) {
+			chomp;
+			if($_=~/minpath 1/) {
+				my @k=split(/\s+/,$_);
+				my $thisp=$k[$#k];
+				my $thisonto=$pathid{$thisp};
+				if($thisonto) { $accum{$thisonto}=1; }
+				}
+			}
+		close infile5;  
 		open(infile7,"$tempdir/$kbin.metacyc.details") || next;
 			while(<infile7>) {
 			chomp;
@@ -177,7 +179,8 @@ sub kegg {
 		close outfile3;	
 		print "Running MinPath for kegg: $kbin      \r";
 		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $outdir/$kbin.kegg.details > /dev/null";
-		system $command;
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
 		open(infile6,"$tempdir/$kbin.minpath.temp.report") || next;
 		my %accum=();
 		my $pathname;

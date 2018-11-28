@@ -38,7 +38,8 @@ foreach my $kingdom(keys %king) {
 
 	my $command="$barrnap_soft --quiet --threads $numthreads --kingdom $kingdom --reject 0.1 $targetfile --dbdir $databasepath > $output";
 	print "Running barrnap for $king{$kingdom}: $command\n";
-	system $command;
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
 
 	#-- Reformat the output, adding the type of RNA found and the ORF ID
 
@@ -113,7 +114,8 @@ system($command);
 
 $command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f filterbyconf";
 print "Running RDP classifier: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 
 my %parents=('Bacteria','superkingdom:Bacteria','Archea','superkingdom:Archaea','Eukaryota','superkingdom:Eukaryota');
 open(infile3,"$databasepath/LCA_tax/parents.txt") || die;

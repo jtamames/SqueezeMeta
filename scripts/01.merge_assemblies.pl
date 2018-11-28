@@ -33,7 +33,8 @@ if(-z $merged) { die "$merged is empty\n"; }
 my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
 $command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
 print "Running cd-hit-est: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
 
 #-- Uses Amos to chage format to afg (for minimus2)
@@ -41,14 +42,16 @@ if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
 my $afg_format="$tempdir/mergedassemblies.$project.99.afg";
 $command="$toamos_soft -s $merged_clustered -o $afg_format";
 print "Transforming to afg format: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 if(-z $afg_format) { die "$afg_format is empty\n"; }
 
 #-- Uses minimus2 to assemble overlapping contigs
 
 $command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 MINID=95";
 print "Merging with minimus2: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 if(-z $afg_format) { die "$afg_format is empty\n"; }
 
 #-- Create the final result (overlapping contigs plus singletons)
@@ -62,7 +65,8 @@ system("rm -r $tempdir/mergedassemblies*");
 #-- Run prinseq_lite for statistics
 
 $command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $resultpath/01.$project.stats";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 	
 
 #-- Count length of contigs (needed later)

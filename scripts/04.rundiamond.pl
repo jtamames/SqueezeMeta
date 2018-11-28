@@ -26,6 +26,8 @@ if(!$nocog) {
 	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
 	print "Running Diamond for COGS: $command\n";
 	system $command;
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
 }
 
 #-- KEGG database
@@ -33,11 +35,13 @@ if(!$nocog) {
 if(!$nokegg) {
 	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
 	print "Running Diamond for KEGG: $command\n";
-	system $command;
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
 }
 
 #-- nr database
 
 $command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evalue -f tab -b $blocksize -o $taxdiamond";
 print "Running Diamond for taxa: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }

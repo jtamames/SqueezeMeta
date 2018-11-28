@@ -56,7 +56,8 @@ if($mapper eq "bowtie") {
         else {
         	print("Creating reference.\n");
                 my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
-                system($bowtie_command);
+		my $ecode = system $bowtie_command;
+		if($ecode!=0) { die "Error running command:    $bowtie_command"; }
                 }
         }
 elsif($mapper eq "bwa") {
@@ -64,7 +65,8 @@ elsif($mapper eq "bwa") {
         else {
         	print("Creating reference.\n");
                 my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
-                system($bwa_command);
+		my $ecode = system $bwa_command;
+		if($ecode!=0) { die "Error running command:    $bwa_command"; }
                 }
         }
 
@@ -145,7 +147,8 @@ foreach my $thissample(keys %allsamples) {
 	print "$command\n";
         my $ecode = 0;
 	if(-e $outsam) {} else { $ecode = system $command; }
-        if($ecode!=0)     { die "An error occurred during mapping!"; }
+	if($ecode!=0) { die "Error running command:    $command"; }
+
 
 	#-- Calculating contig coverage/RPKM
 
@@ -154,7 +157,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- And then we call the counting
 	
 	# htseq();
-	 system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
+	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
 	if($counter=~/bedtools/i) { bedtools($thissample,$outsam,$totalreads); }
 	# elsif($counter=~/featurecounts/i) {  featurecounts($thissample,$outsam,$totalreads);  }
 	else { die "Unknown counter $counter\n"; }
@@ -259,26 +262,30 @@ sub bedtools {
 	
 	my $command="$bedtools_soft coverage -a $bedfile -b $bedreference > $tempdir/$project.$thissample.current.bedcount";
 	print "    Counting reads: $command\n";
-	system $command;	
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
 
 	#-- Call bedtools for counting bases
 
 	$command="$bedtools_soft coverage -a $bedfile -b $bedreference -d > $tempdir/$project.$thissample.currentperbase.bedcount";
 	print "    Counting bases: $command\n";
-	system $command;
-	
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+
 	#-- Run RPKM calculation (rpkm.pl)
 	
 	print "  Calculating RPKM from Bedtools\n";
 	$command="perl $scriptdir/09.rpkm.pl $tempdir/$project.$thissample.current.bedcount $gff_file $thissample $totalreads >> $rpkmfile";
-	system $command;
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
 
 	#-- Run coverage calculation (coverage.pl)	
 
 	print "  Calculating Coverage from Bedtools\n";
 	$command="perl $scriptdir/09.coverage.pl $tempdir/$project.$thissample.currentperbase.bedcount $gff_file $thissample >> $coveragefile";
-	system $command;
-	
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+
 	#-- Remove files
 	
 	print "  Removing files\n";

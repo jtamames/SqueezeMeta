@@ -20,5 +20,6 @@ our($hmmer_soft,$pfamhmmer,$numthreads,$pfam_db,$aafile);
 
 print "Running hmmer search\n";
 my $command="$hmmer_soft --domtblout $pfamhmmer -E 1e-10 --cpu $numthreads $pfam_db $aafile > /dev/null";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 

@@ -123,7 +123,8 @@ foreach my $m(@files) {
 	
 		if(-e $marker) {} else { 
 			my $command="export PATH=\"$installpath/bin/pplacer\":\$PATH; $checkm_soft taxon_set $rank $tax $marker > /dev/null"; #Override $PATH for external dependencies of checkm. (FPS).
-                        system($command);
+                        my $ecode = system $command;
+			if($ecode!=0) { die "Error running command:    $command"; }
 			}
 	
 		#-- If it was not possible to create the profile, go for the upper rank
@@ -135,8 +136,13 @@ foreach my $m(@files) {
 		$fastafile=~s/.*\///;
 		# print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
 		# system("$checkm_soft analyze -t $numthreads -x $bins{$thisfile} $marker $bindir $checktemp > /dev/null");
-		system("export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null");
-		system("export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp >> $checkmfile"); #Override $PATH for external dependencies of checkm. (FPS).
+		my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null";
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
+
+		my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp >> $checkmfile"; #Override $PATH for external dependencies of checkm. (FPS).
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
 	#	system("rm -r $checktemp");
 		$inloop=0;
 		}
