@@ -59,6 +59,7 @@ system "wget -P $databasedir ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_rele
 
 ###Create lca database from nr data.
 print "\nCreating lca.db...\n";
+system "rm $databasedir/LCA_tax";
 system "mkdir $databasedir/LCA_tax";
 print "\n  Running rectaxa.pl\n";
 system "perl $dbscriptdir/rectaxa.pl $databasedir";
