@@ -9,6 +9,7 @@ my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//;
 
+if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?" ; }
 do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
@@ -68,6 +69,7 @@ while(<infile5>) {
 	}
 	my @u=split(/\t/,$_);
 	my $keggid=$u[6];
+	$keggid=~s/\*//g; # Bug fix, removing * from Kegg annotation in ORF table.
 	my $contigid=$u[1];
 	foreach my $ibin(keys %{ $inbin{$contigid} }) { $kegg{$ibin}{$keggid}++; }
 	foreach my $thisec(keys %{ $ec{$keggid} }) {
@@ -109,7 +111,7 @@ sub outres {
  
 sub metacyc {
 	foreach my $kbin(sort keys %ecs) {
-		my $outec="$tempdir/minpath.temp";
+		my $outec="$tempdir/$kbin.minpath.temp";
 		open(outfile1,">$outec") || die;
 		my $id=0;
 		foreach my $ecbin(sort keys %{ $ecs{$kbin} }) {
@@ -122,7 +124,6 @@ sub metacyc {
 		close outfile1; 
 		print "Running MinPath for metacyc: $kbin      \r";
 		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
-		# print "$command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 
@@ -164,7 +165,6 @@ sub metacyc {
 
 sub kegg {
 	foreach my $kbin(sort keys %kegg) {
-		# next if($kbin!~/maxbin\.00/);
 		my $outkegg="$tempdir/$kbin.minpath.temp.kegg";
 		my($binmethod,$rest)=split(/\./,$kbin);
 		my $outdir="$resultpath/$binmethod";
