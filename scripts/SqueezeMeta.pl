@@ -47,7 +47,7 @@ Arguments:
  Assembly: 
    -a: assembler [megahit,spades,canu] (Default: megahit)
    -assembly_options: Options for required assembler
-   -c|-contiglen: Minimum length of contigs (Default: 1200)
+   -c|-contiglen: Minimum length of contigs (Default: 200)
    
  Mapping: 
    -map: mapping software [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie) 
@@ -112,7 +112,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 
 if(!$numthreads) { $numthreads=12; }
 if(!$canumem) { $canumem=32; }
-if(!$mincontiglen) { $mincontiglen=1200; }
+if(!$mincontiglen) { $mincontiglen=200; }
 if(!$assembler) { $assembler="megahit"; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$counter) { $counter="bedtools"; }

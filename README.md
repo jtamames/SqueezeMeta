@@ -82,7 +82,7 @@ The command for running SqueezeMeta has the following syntax:
 * -f|-seq: Fastq read files' directory (REQUIRED) 
 * -t: Number of threads (Default:12) 
 * -a: assembler [megahit,spades] (Default:megahit) 
-* -c|-contiglen: Minimum length of contigs (Default:1200)
+* -c|-contiglen: Minimum length of contigs (Default:200)
 * -map: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie)
 * --nocog: Skip COG assignment (Default: no) 
 * --nokegg: Skip KEGG assignment (Default: no) 
