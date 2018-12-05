@@ -241,7 +241,8 @@ sub bedtools {
 		next if($_=~/^\@/);
 		my @k=split(/\t/,$_);
 		next if($k[2]=~/\*/);
-		my $cigar=$k[5];                       
+		my $cigar=$k[5];
+		next if($cigar eq "*");
 		my $end=$k[3];
 
 		#-- Calculation of the length match end using CIGAR string
