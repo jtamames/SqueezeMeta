@@ -1,4 +1,9 @@
 #!/usr/bin/perl -w
+
+### Modified from MaxBin version 2.2.4 
+### by Fernando Puente-Sanchez on 2018-APR-27, for compatibility with the SqueezeMeta pipeline.
+### SqueezeMeta is released under the GPL-3 license.
+
 use strict;
 use Cwd;
 use LWP::Simple;

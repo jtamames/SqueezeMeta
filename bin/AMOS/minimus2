@@ -9,6 +9,10 @@
 #?		-D MINID=<n>		\	# Minimum overlap percent identity for alignments (Default 94)
 #?		-D MAXTRIM=<n>			# Maximum sequence trimming length (Default 20bp)
 
+### Modified from AMOS version 3.1.0 
+### by Fernando Puente-Sanchez on 2018-NOV-19, for compatibility with the SqueezeMeta pipeline.
+### SqueezeMeta is released under the GPL-3 license.
+
 #--------------------------------------- USER DEFINED VALUES ------------------#
 
 REFCOUNT= 0

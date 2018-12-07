@@ -12,6 +12,10 @@
 #  * numpy independent
 #  * add detailed output of ko assignments to each pathway
 
+### Modified from MinPath version 1.4 
+### by Fernando Puente-Sanchez on 2018-AUG-08, for compatibility with the SqueezeMeta pipeline.
+### SqueezeMeta is released under the GPL-3 license.
+
 import sys
 import os
 import re
