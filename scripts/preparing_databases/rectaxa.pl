@@ -57,14 +57,15 @@ while(<infile2>) {
 	next if !$_;
 	my @t=split(/\t\|\t/,$_);
 	next if($t[3]!~/scientific/);	#-- Only store scientific names, not synonyms
-	$names{$t[0]}=$t[2];
+	$names{$t[0]}=$t[1];
 	}
 close infile2;
 
 my %seen;
 foreach my $print(sort keys %ranks) {
 	my $specname;
-	# print "*****$print\t$names{$print}\t$ranks{$print}\n";
+        if(!$names{$print}){print "MISSING NAME FOR $print!!\n";}
+	#print "*****$print\t$names{$print}\t$ranks{$print}\n";
 	next if($ranks{$print} ne "species");
 	my @k=split(/\s+/,$names{$print});
 	if($virus{$print}) { $specname=$names{$print}; }
@@ -74,6 +75,7 @@ foreach my $print(sort keys %ranks) {
 	$seen{$specname}=1;
 	my $found=1;
 	my $string="$ranks{$print}:$print:$specname";
+        #print "$string\n";
 	my $current=$print;
 	
 	#-- Travel the taxonomy upwards while we find parents

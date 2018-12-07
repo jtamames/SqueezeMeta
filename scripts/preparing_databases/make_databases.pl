@@ -68,7 +68,7 @@ system "perl $dbscriptdir/nrindex.pl $databasedir";
 print "\n  Running taxid_tree.pl\n";
 system "perl $dbscriptdir/taxid_tree.pl $databasedir";
 
-system ("rm $databasedir/nr.faa");
+system ("rm -r $databasedir/nr.faa");
 
 print "\n  Creating sqlite databases\n\n";
 
