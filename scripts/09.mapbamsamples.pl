@@ -160,10 +160,10 @@ foreach my $thissample(keys %allsamples) {
 	if($counter=~/bedtools/i) { bedtools($thissample,$outsam,$totalreads); }
 	# elsif($counter=~/featurecounts/i) {  featurecounts($thissample,$outsam,$totalreads);  }
 	else { die "Unknown counter $counter\n"; }
+	
+	if(!$keepsam) {system("rm $outsam");}
 }
 close outfile1;
-
-if(!$keepsam) {system("rm $outsam");}
 
 
 #----------------- htseq counting (deprecated)
