@@ -119,7 +119,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- Now we start mapping reads against contigs
 	
 	print "  Aligning to reference...\n";
-	$outsam="$samdir/$project.$thissample.sam"; 
+	my $outsam="$samdir/$project.$thissample.sam"; 
 	#-- Support for single reads
         if($mapper eq "bowtie") {
             if($formatseq eq "fasta") { $formatoption="-f"; }
