@@ -119,8 +119,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- Now we start mapping reads against contigs
 	
 	print "  Aligning to reference...\n";
-	if($keepsam) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
-	
+	$outsam="$samdir/$project.$thissample.sam"; 
 	#-- Support for single reads
         if($mapper eq "bowtie") {
             if($formatseq eq "fasta") { $formatoption="-f"; }
@@ -163,7 +162,8 @@ foreach my $thissample(keys %allsamples) {
 	else { die "Unknown counter $counter\n"; }
 }
 close outfile1;
-system("rm $samdir/current.sam");   
+
+if(!$keepsam) {system("rm $outsam");}
 
 
 #----------------- htseq counting (deprecated)
