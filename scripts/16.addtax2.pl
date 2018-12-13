@@ -7,6 +7,7 @@ $|=1;
 
 use strict;
 use Cwd;
+use lib ".";
 
 my $pwd=cwd();
 my $project=$ARGV[0];

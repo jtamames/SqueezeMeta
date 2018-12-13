@@ -8,6 +8,7 @@ $|=1;
 use strict;
 use Time::Seconds;
 use Cwd;
+use lib ".";
 
 #-- Restarts an interrupted pipeline
 

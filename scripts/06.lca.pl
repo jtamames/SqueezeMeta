@@ -10,6 +10,7 @@ use strict;
 use DBI;
 use Tie::IxHash;
 use Cwd;
+use lib ".";
 
 my $pwd=cwd();
 my $project=$ARGV[0];

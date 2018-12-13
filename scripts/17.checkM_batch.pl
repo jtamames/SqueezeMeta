@@ -7,6 +7,7 @@
 
 use strict;
 use Cwd;
+use lib ".";
 
 $|=1;
 

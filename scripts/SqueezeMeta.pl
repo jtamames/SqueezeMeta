@@ -10,6 +10,7 @@ use Time::Seconds;
 use Cwd;
 use Getopt::Long;
 use Tie::IxHash;
+use lib ".";
 use strict;
 
 my $version="0.4.0, Nov 2018";

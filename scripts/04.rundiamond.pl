@@ -6,6 +6,7 @@
 use strict;
 use warnings;
 use Cwd;
+use lib ".";
 
 $|=1;
 
