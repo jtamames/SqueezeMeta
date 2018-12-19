@@ -86,7 +86,7 @@ if(!$nocog) {
 			}
 		next if($count{$khit} && ($count{$khit}>=$maxhits));	#-- If we have already $maxhits hits for that COG, skip this hit
 		$count{$khit}++;
-		$accum{$khit}+=$f[$#f];
+		$accum{$khit}+=$f[7];
 		}
 		
 	close infile1;
@@ -164,7 +164,7 @@ if(!$nokegg) {
 			}
 		next if($count{$khit}>=$maxhits);	#-- If we have already $maxhits hits for that KEGG, skip this hit
 		$count{$khit}++;
-		$accum{$khit}+=$f[$#f];
+		$accum{$khit}+=$f[7];
 	     }
 	close infile2;
 
