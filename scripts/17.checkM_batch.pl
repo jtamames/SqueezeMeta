@@ -116,6 +116,7 @@ foreach my $m(@files) {
 		if(!$taxf) { last; $inloop=0; }
 		my($rank,$tax)=split(/\:/,$taxf);
 		$tax=~s/ \<.*//g;
+                $tax=~s/\s+/\_/g;
 		if($rank eq "superkingdom") { $rank="domain"; }
 		print "Using profile for rank $rank: $tax for $thisfile\n";   
 		my $marker="$markerdir/$tax.ms"; 
