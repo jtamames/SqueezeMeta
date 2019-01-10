@@ -1,0 +1,42 @@
+git clone http://github.com/jtamames/SqueezeMeta
+<installpath>/SqueezeMeta/scripts/preparing_databases/make_databases.pl <dbpath>
+
+### Enable Extended Packages for Enterprise Linux
+sudo yum -y install epel-release
+sudo yum update
+
+
+### Install Ruby
+sudo yum -y install ruby
+
+
+### Install Perl modules
+sudo yum -y install perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl-DBD-SQLite perl-Time-Piece
+
+
+###Install Python modules
+sudo yum -y install python-pip
+sudo yum -y install python-matplotlib
+sudo python -m pip install scipy dendropy pysam
+
+
+### Install R
+sudo yum -y install R
+
+
+### Install R packages for DAS tool.
+sudo R
+install.packages("doMC")
+install.packages("ggplot2")
+install.packages("data.table")
+quit(save='no')
+sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
+
+
+##
+sudo yum -y install centos-release-scl
+sudo yum -y install devtoolset-7-gcc*
+scl enable devtoolset-7 bash
+which gcc
+gcc --version
+
