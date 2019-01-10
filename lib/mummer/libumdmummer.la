@@ -28,7 +28,7 @@ age=0
 revision=0
 
 # Is this an already installed library?
-installed=no
+installed=yes
 
 # Should we warn about portability when linking against -modules?
 shouldnotlink=no

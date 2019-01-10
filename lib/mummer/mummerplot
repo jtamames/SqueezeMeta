@@ -23,7 +23,7 @@ use IO::Socket;
 
 my $BIN_DIR     = "/usr/local/bin";
 my $LIB_DIR     = "/usr/local/lib/mummer";
-my $GNUPLOT_EXE = "/usr/bin/gnuplot";
+my $GNUPLOT_EXE = "false";
 
 
 #================================================================= Globals ====#
