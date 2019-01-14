@@ -9,9 +9,8 @@ use strict;
 
 $|=1;
 
-my $databasedir=$ARGV[0];
-die if(!$databasedir);
-my $lca_dir="$databasedir/LCA_tax";
+my $lca_dir=$ARGV[0];
+die if(!$lca_dir);
 
 	#-- Output files
 

@@ -60,33 +60,36 @@ system "perl $dbscriptdir/make_eggnog_db.pl $databasedir";
 print "\nDownloading Pfam database...\n\n";
 system "wget -P $databasedir ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz; gunzip $databasedir/Pfam-A.hmm.gz";
 
-
+my $lca_dir = "$databasedir/LCA_tax";
 ###Create lca database from nr data.
 print "\nCreating lca.db...\n";
-system "rm $databasedir/LCA_tax";
-system "mkdir $databasedir/LCA_tax";
+system "rm $lca_dir";
+system "mkdir $lca_dir";
 
 print "\n  Running rectaxa.pl\n";
-system "perl $dbscriptdir/rectaxa.pl $databasedir";
-if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
+system "perl $dbscriptdir/rectaxa.pl $lca_dir";
 
 print "\n  Running nrindex.pl\n";
 system "perl $dbscriptdir/nrindex.pl $databasedir";
 
 print "\n  Running taxid_tree.pl\n";
-system "perl $dbscriptdir/taxid_tree.pl $databasedir";
-
-if($REMOVE_NR) { system ("rm -r $databasedir/nr.faa"); }
+system "perl $dbscriptdir/taxid_tree.pl $lca_dir";
+system "sed -i \"s/['\\\"]//g\" $lca_dir/taxid_tree.txt"; # Remove quotes for sqlite3.
 
 print "\n  Creating sqlite databases\n\n";
 
-system "sqlite3 $databasedir/LCA_tax/taxid.db < $dbscriptdir/taxid.sql";
-system "echo '.import $databasedir/LCA_tax/taxid_tree.txt taxid' | sqlite3 $databasedir/LCA_tax/taxid.db -cmd '.separator \"\\t\"'";
+system "sqlite3 $lca_dir/taxid.db < $dbscriptdir/taxid.sql";
+system "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db -cmd '.separator \"\\t\"'";
+my $textrows = system "wc -l $lca_dir/taxid_tree.txt";
+my $dbrows = system "echo 'SELECT count(*) FROM taxid; | sqlite3 $lca_dir/taxid.db";
+if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!" }
 
-system "sqlite3 $databasedir/LCA_tax/parents.db < $dbscriptdir/parents.sql";
-system "echo '.import $databasedir/LCA_tax/parents.txt parents' | sqlite3 $databasedir/LCA_tax/parents.db -cmd '.separator \"\\t\"'";
+system "sqlite3 $lca_dir/parents.db < $dbscriptdir/parents.sql";
+system "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/LCA_tax/parents.db -cmd '.separator \"\\t\"'";
 
-if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $databasedir/LCA_tax/nr.taxlist.tsv $databasedir/LCA_tax/taxid_tree.txt $databasedir/LCA_tax/taxatree.txt"); }
+if($REMOVE_NR) { system ("rm -r $databasedir/nr.faa"); }
+if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
+if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $lca_dir/nr.taxlist.tsv $lca_dir/LCA_tax/taxid_tree.txt $lca_dir/taxatree.txt"); }
 
 
 ###Update configuration files to reflect new db path.
