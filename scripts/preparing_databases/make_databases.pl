@@ -3,6 +3,8 @@
 use strict;
 
 my $REMOVE_NR=1;
+my $REMOVE_TAXDUMP=1;
+my $REMOVE_LCA_TAX_INTERMEDIATE=1;
 
 ###scriptdir patch, Fernando Puente-Sánchez, 07-V-2018
 use File::Basename;
@@ -63,10 +65,14 @@ system "wget -P $databasedir ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_rele
 print "\nCreating lca.db...\n";
 system "rm $databasedir/LCA_tax";
 system "mkdir $databasedir/LCA_tax";
+
 print "\n  Running rectaxa.pl\n";
 system "perl $dbscriptdir/rectaxa.pl $databasedir";
+if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
+
 print "\n  Running nrindex.pl\n";
 system "perl $dbscriptdir/nrindex.pl $databasedir";
+
 print "\n  Running taxid_tree.pl\n";
 system "perl $dbscriptdir/taxid_tree.pl $databasedir";
 
@@ -80,7 +86,7 @@ system "echo '.import $databasedir/LCA_tax/taxid_tree.txt taxid' | sqlite3 $data
 system "sqlite3 $databasedir/LCA_tax/parents.db < $dbscriptdir/parents.sql";
 system "echo '.import $databasedir/LCA_tax/parents.txt parents' | sqlite3 $databasedir/LCA_tax/parents.db -cmd '.separator \"\\t\"'";
 
-system("rm $databasedir/LCA_tax/nr.taxlist.tsv $databasedir/LCA_tax/taxid_tree.txt $databasedir/LCA_tax/taxatree.txt");
+if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $databasedir/LCA_tax/nr.taxlist.tsv $databasedir/LCA_tax/taxid_tree.txt $databasedir/LCA_tax/taxatree.txt"); }
 
 
 ###Update configuration files to reflect new db path.
