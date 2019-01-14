@@ -2,6 +2,8 @@
 
 use strict;
 
+my $REMOVE_NR=1;
+
 ###scriptdir patch, Fernando Puente-Sánchez, 07-V-2018
 use File::Basename;
 our $dbscriptdir = dirname(__FILE__);
@@ -68,7 +70,7 @@ system "perl $dbscriptdir/nrindex.pl $databasedir";
 print "\n  Running taxid_tree.pl\n";
 system "perl $dbscriptdir/taxid_tree.pl $databasedir";
 
-system ("rm -r $databasedir/nr.faa");
+if($REMOVE_NR) { system ("rm -r $databasedir/nr.faa"); }
 
 print "\n  Creating sqlite databases\n\n";
 
