@@ -80,15 +80,15 @@ print "\n  Creating sqlite databases\n\n";
 system "sqlite3 $lca_dir/taxid.db < $dbscriptdir/taxid.sql";
 system "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db -cmd '.separator \"\\t\"'";
 my $textrows = `wc -l $lca_dir/taxid_tree.txt`;
-my $dbrows = `echo 'SELECT count(*) FROM taxid; | sqlite3 $lca_dir/taxid.db`;
+my $dbrows = `echo 'SELECT count(*) FROM taxid'; | sqlite3 $lca_dir/taxid.db`;
 if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!" }
 
 system "sqlite3 $lca_dir/parents.db < $dbscriptdir/parents.sql";
-system "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/LCA_tax/parents.db -cmd '.separator \"\\t\"'";
+system "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/parents.db -cmd '.separator \"\\t\"'";
 
 if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
 if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
-if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $lca_dir/nr.taxlist.tsv $lca_dir/LCA_tax/taxid_tree.txt $lca_dir/taxatree.txt"); }
+if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $lca_dir/nr.taxlist.tsv $lca_dir/taxid_tree.txt $lca_dir/taxatree.txt"); }
 
 
 ###Update configuration files to reflect new db path.
