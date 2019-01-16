@@ -88,7 +88,7 @@ system "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/parents.d
 
 if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
 if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
-if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $lca_dir/nr.taxlist.tsv $lca_dir/taxid_tree.txt $lca_dir/taxatree.txt"); }
+if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $lca_dir/nr.taxlist.db $lca_dir/taxid_tree.txt $lca_dir/taxatree.txt"); }
 
 
 ###Update configuration files to reflect new db path.
