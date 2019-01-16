@@ -80,7 +80,7 @@ print "\n  Creating sqlite databases\n\n";
 system "sqlite3 $lca_dir/taxid.db < $dbscriptdir/taxid.sql";
 system "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db -cmd '.separator \"\\t\"'";
 my $textrows = `wc -l $lca_dir/taxid_tree.txt`;
-my $dbrows = `echo 'SELECT count(*) FROM taxid'; | sqlite3 $lca_dir/taxid.db`;
+my $dbrows = `echo 'SELECT count(*) FROM taxid;' | sqlite3 $lca_dir/taxid.db`;
 if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!" }
 
 system "sqlite3 $lca_dir/parents.db < $dbscriptdir/parents.sql";
