@@ -1,26 +1,29 @@
-git clone http://github.com/jtamames/SqueezeMeta
-<installpath>/SqueezeMeta/scripts/preparing_databases/make_databases.pl <dbpath>
+### Download SqueezeMeta.
+# You can download the latest release of SqueezeMeta from https://github.com/jtamames/SqueezeM/releases/latest
+# Alternatively you can clone the github repository.
+#     git clone http://github.com/jtamames/SqueezeMeta
 
-### Enable Extended Packages for Enterprise Linux
+
+### Enable Extended Packages for Enterprise Linux.
 sudo yum -y install epel-release
 sudo yum update
 
 
-### Install Ruby
+### Install Ruby.
 sudo yum -y install ruby
 
 
-### Install Perl modules
+### Install Perl modules.
 sudo yum -y install perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl-DBD-SQLite perl-Time-Piece
 
 
-###Install Python modules
+###Install Python modules.
 sudo yum -y install python-pip
 sudo yum -y install python-matplotlib
 sudo python -m pip install scipy dendropy pysam
 
 
-### Install R
+### Install R.
 sudo yum -y install R
 
 
@@ -33,10 +36,16 @@ quit(save='no')
 sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
 
 
-##
-sudo yum -y install centos-release-scl
-sudo yum -y install devtoolset-7-gcc*
-scl enable devtoolset-7 bash
-which gcc
-gcc --version
+### Patch libpcre so that the Ubuntu-compiled pullseq work in CentOS7.
+sudo link /usr/lib64/libpcre.so.1 /usr/lib64/libpcre.so.3
+
+
+### Install databases and test data.
+# This will take about a day and require around 300Gb free disk space for building, in the end it will occupy around 130Gb.
+<installpath>/SqueezeMeta/scripts/preparing_databases/make_databases.pl <dbpath>
+
+
+### Run SqueezeMeta on test data.
+cd <dbpath>/test
+perl <installpath>/SqueezeMeta/scripts/SqueezeMeta.pl -m merged -p Hadza -s test.samples -f raw/
 
