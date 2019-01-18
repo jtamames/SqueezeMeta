@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 
+### Modified from AMOS version 3.1.0 
+### by Fernando Puente-Sanchez on 2018-APR-26, for compatibility with the SqueezeMeta pipeline.
+### SqueezeMeta is released under the GPL-3 license.
+
 #LIBPATH CODE ADDED BY Fernando Puente-Sánchez, 26-IV-2018
 BEGIN {
 $LIBPATH = $0=~s/ovl2OVL/..\/..\/lib/r;

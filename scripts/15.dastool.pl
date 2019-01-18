@@ -5,13 +5,14 @@
 
 use strict;
 use Cwd;
+use lib ".";
 
 $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//; 
-
+if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
@@ -58,5 +59,6 @@ chop $methods;
 my $das_command="PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --proteins $aafile --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath"; 
 print "Running DAS Tool for $methods\n";
 print("$das_command\n");
-system $das_command;
+my $ecode = system $das_command;
+if($ecode!=0) { die "Error running command:    $das_command"; }
 

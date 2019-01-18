@@ -9,7 +9,7 @@ SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, c
 1) Co-assembly procedure with read mapping for estimation of the abundances of genes in each metagenome
 2) Co-assembly of a large number of metagenomes via merging of individual metagenomes
 3) Includes binning and bin checking, for retrieving individual genomes 
-4) the results are stored in a database, where they can be easily exported and shared, and can be inspected anywhere using a web interface. 
+4) The results are stored in a database, where they can be easily exported and shared, and can be inspected anywhere using a web interface. 
 5) Internal checks for the assembly and binning steps inform about the consistency of contigs and bins, allowing to spot potential chimeras. 
 6) Metatranscriptomic support via mapping of cDNA reads against reference metagenomes 
 
@@ -23,7 +23,7 @@ SqueezeMeta can be run in three different modes, depending of the type of multi-
 
 SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
-1)  Assembly 
+1)  Assembly
 2)  RNA prediction and classification
 3)  ORF (CDS) prediction
 4)  Homology searching against taxonomic and functional databases
@@ -35,9 +35,9 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 10) Estimation of taxa abundances
 11) Estimation of function abundances
 12) Merging of previous results to obtain the ORF table
-13) Binning with Maxbin
-14) Binning with metabat2
-15) Binning integration with DAS tool.
+13) Binning with MaxBin
+14) Binning with MetaBAT
+15) Binning integration with DAS tool
 16) Taxonomic assignment of bins, and check for taxonomic disparities
 17) Checking of bins with CheckM
 18) Merging of previous results to obtain the bin table
@@ -48,7 +48,7 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 
 ## 2. Installation
 
-For installing SqueezeMeta, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL file contains detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 installation.
+For installing SqueezeMeta, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 or CentOS7 (DVD iso) installation.
  
  
 ## 3. Building databases
@@ -82,7 +82,7 @@ The command for running SqueezeMeta has the following syntax:
 * -f|-seq: Fastq read files' directory (REQUIRED) 
 * -t: Number of threads (Default:12) 
 * -a: assembler [megahit,spades] (Default:megahit) 
-* -c|-contiglen: Minimum length of contigs (Default:1200)
+* -c|-contiglen: Minimum length of contigs (Default:200)
 * -map: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie)
 * --nocog: Skip COG assignment (Default: no) 
 * --nokegg: Skip KEGG assignment (Default: no) 
@@ -174,12 +174,13 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [minimap2](https://github.com/lh3/minimap2)
 * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 * [barrnap](https://github.com/tseemann/barrnap)
-* [maxbin](https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html)
-* [metabat](https://bitbucket.org/berkeleylab/metabat)
+* [MaxBin](https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html)
+* [MetaBAT](https://bitbucket.org/berkeleylab/metabat)
 * [DAS tool](https://github.com/cmks/DAS_Tool)
 * [checkm](http://ecogenomics.github.io/CheckM)
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)
 * [RDP classifier](https://github.com/rdpstaff/classifier)
+* [pullseq](https://github.com/bcthomas/pullseq)
 
 
 ## 10. About

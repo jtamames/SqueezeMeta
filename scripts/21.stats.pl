@@ -6,13 +6,14 @@
 
 use strict;
 use Cwd;
+use lib ".";
 
 $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//; 
-
+if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
@@ -45,7 +46,8 @@ close infile1;
 	
 my(%contigs,%contax);
 my $command="$prinseq_soft -stats_info -stats_assembly -stats_len -fasta $contigsfna > $tempdir/stats.txt";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 open(infile2,"$tempdir/stats.txt");
 while(<infile2>) {
 	chomp;

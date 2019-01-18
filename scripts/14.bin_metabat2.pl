@@ -5,11 +5,12 @@
 
 use strict;
 use Cwd;
+use lib ".";
 
 my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//; 
-
+if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
@@ -96,4 +97,6 @@ close outfile1;
 
 my $command="$metabat_soft -t 8 -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
 print "Now running metabat2: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
+

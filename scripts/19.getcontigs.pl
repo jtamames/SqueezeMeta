@@ -6,13 +6,14 @@
 use strict;
 use Cwd;
 use Tie::IxHash;
+use lib ".";
 
 $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//; 
-
+if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
@@ -27,7 +28,7 @@ open(infile1,$alllog) || warn "Cannot open contiglog file $alllog\n";
 print "Reading taxa for contigs information...";
 while(<infile1>) { 
 	chomp;
-	next if !$_;
+	next if(!$_ || ($_=~/^\#/));
 	my @t=split(/\t/,$_);
 	$contig{$t[0]}{tax}=$t[1]; 
 	if($t[3]=~/Disparity\: (.*)/i) { $contig{$t[0]}{chimerism}=$1; }
@@ -41,7 +42,7 @@ open(infile2,$contigsfna) || warn "Cannot open fasta file $contigsfna\n";
 my($thisname,$contigname,$seq);
 while(<infile2>) {
 	chomp;
-	next if !$_;
+	next if(!$_ || ($_=~/^\#/));
 	if($_=~/^\>([^ ]+)/) {		#-- If we are reading a new contig, store the data for the last one
 		$thisname=$1;
 		if($contigname) {
@@ -67,7 +68,7 @@ print "done!\nReading number of genes... ";
 open(infile3,$aafile) || warn "Cannot open aa file $aafile\n";
 while(<infile3>) {
 	chomp;
-	next if !$_;
+	next if(!$_ || ($_=~/^\#/));
 	if($_=~/^\>([^ ]+)/) {
 		my $contigname=$1;
 		$contigname=~s/\_\d+$//; 
@@ -121,7 +122,7 @@ print outfile1 "\n";
 
 foreach my $p(sort keys %contig) { 
 	my $binfield;
-	next if(!$contig{$p}{numgenes});
+	#next if(!$contig{$p}{numgenes});
 
 	#-- bins
 

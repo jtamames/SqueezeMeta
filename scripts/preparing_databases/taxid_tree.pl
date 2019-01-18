@@ -5,9 +5,8 @@
 
 #-- Input/Output files
 
-my $databasedir=$ARGV[0];
-die if(!$databasedir);
-my $lca_dir="$databasedir/LCA_tax/";
+my $lca_dir=$ARGV[0];
+die if(!$lca_dir);
 
 my $inputfile="$lca_dir/nr.taxlist.db";	#-- From nrindex.pl, identification entries -> species
 my $taxatreefile="$lca_dir/taxatree.txt";	#-- From rectaxa.pl, full taxonomy

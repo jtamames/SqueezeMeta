@@ -6,12 +6,13 @@
 use strict;
 use warnings;
 use Cwd;
+use lib ".";
 
 my $pwd=cwd();
 
 my $project=$ARGV[0];
 $project=~s/\/$//; 
-
+if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
 our($resultpath,$tempdir,$aafile,$ntfile,$gff_file,$prodigal_soft);
@@ -22,5 +23,6 @@ my $tempgff="$tempdir/02.$project.cds.gff";
 my $maskedcontigs="$resultpath/02.$project.maskedrna.fasta";
 my $command="$prodigal_soft -q -m -p meta -i $maskedcontigs -a $aafile -d $ntfile -f gff -o $tempgff";
 print "Running prodigal: $command\n";
-system $command;
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 system("cat $tempgff $tempdir/02.$project.rna.gff > $gff_file");

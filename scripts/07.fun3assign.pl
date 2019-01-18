@@ -5,13 +5,14 @@
 
 use strict;
 use Cwd;
+use lib ".";
 
 $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//; 
-
+if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
@@ -85,7 +86,7 @@ if(!$nocog) {
 			}
 		next if($count{$khit} && ($count{$khit}>=$maxhits));	#-- If we have already $maxhits hits for that COG, skip this hit
 		$count{$khit}++;
-		$accum{$khit}+=$f[$#f];
+		$accum{$khit}+=$f[7];
 		}
 		
 	close infile1;
@@ -163,7 +164,7 @@ if(!$nokegg) {
 			}
 		next if($count{$khit}>=$maxhits);	#-- If we have already $maxhits hits for that KEGG, skip this hit
 		$count{$khit}++;
-		$accum{$khit}+=$f[$#f];
+		$accum{$khit}+=$f[7];
 	     }
 	close infile2;
 

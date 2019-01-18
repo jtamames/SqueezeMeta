@@ -21,7 +21,9 @@
 #                                                                             #
 ###############################################################################
 
-### Modified by Fernando Puente-Sanchez for compatibility with the squeezeM pipeline. 30-V-2018.
+### Modified from https://github.com/Ecogenomics/CheckM/archive/v1.0.11.zip 
+### by Fernando Puente-Sanchez on 2018-MAY-30, for compatibility with the SqueezeMeta pipeline.
+### SqueezeMeta is released under the GPL-3 license.
 
 __author__ = "Donovan Parks, Connor Skennerton, Michael Imelfort"
 __copyright__ = "Copyright 2014"
