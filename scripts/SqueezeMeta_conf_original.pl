@@ -37,9 +37,8 @@ $fun3cog="$resultpath/07.$projectname.fun3.cog";	#-- Fun3 annotation, COGs
 $fun3pfam="$resultpath/07.$projectname.fun3.pfam";	#-- Fun3 annotation, Pfams
 $allorfs="$resultpath/08.$projectname.allorfs";         #-- From summary_contigs.pl, allorfs file
 $alllog="$resultpath/08.$projectname.contiglog";	#-- From summary_contigs.pl, contiglog file (formerly alllog file)
-$rpkmfile="$resultpath/09.$projectname.rpkm";       #-- From mapbamsamples.pl, rpkm counts for all samples
-$coveragefile="$resultpath/09.$projectname.coverage";   #-- From mapbamsamples.pl, rpkm counts for all samples
-$contigcov="$resultpath/09.$projectname.contigcov";     #-- From mapbamsamples.pl, coverages of  for all samples
+$mappingfile="$resultpath/09.$projectname.mapcount";	#-- From mapsamples.pl, rpkm and coverage counts for all samples
+$contigcov="$resultpath/09.$projectname.contigcov";     #-- From mapsamples.pl, coverages of contigs for all samples
 $mcountfile="$resultpath/10.$projectname.mcount";	#-- From mcount.pl, abundances of all taxa
 $mergedfile="$resultpath/12.$projectname.orftable";	#-- GEN TABLE FILE
 $bintax="$resultpath/16.$projectname.bintax";           #-- From addtax2.pl
@@ -73,7 +72,6 @@ $nobins=0;
 $cleaning=0;
 $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper='bowtie';
-$counter='bedtools';
 
 #-- External software
 

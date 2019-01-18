@@ -629,7 +629,7 @@ sub pipeline {
     #-------------------------------- STEP9: Mapping of reads onto contigs for abundance calculations
 	
 	if($rpoint<=9) {
-		my $scriptname="09.mapbamsamples.pl";
+		my $scriptname="09.mapsamples.pl";
 		print outfile3 "9\t$scriptname\n";
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP9 -> $scriptname\n";
