@@ -9,7 +9,7 @@ SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, c
 1) Co-assembly procedure with read mapping for estimation of the abundances of genes in each metagenome
 2) Co-assembly of a large number of metagenomes via merging of individual metagenomes
 3) Includes binning and bin checking, for retrieving individual genomes 
-4) the results are stored in a database, where they can be easily exported and shared, and can be inspected anywhere using a web interface. 
+4) The results are stored in a database, where they can be easily exported and shared, and can be inspected anywhere using a web interface. 
 5) Internal checks for the assembly and binning steps inform about the consistency of contigs and bins, allowing to spot potential chimeras. 
 6) Metatranscriptomic support via mapping of cDNA reads against reference metagenomes 
 
