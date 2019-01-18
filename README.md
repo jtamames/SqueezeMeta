@@ -180,6 +180,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [checkm](http://ecogenomics.github.io/CheckM)
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)
 * [RDP classifier](https://github.com/rdpstaff/classifier)
+* [pullseq](https://github.com/bcthomas/pullseq)
 
 
 ## 10. About
