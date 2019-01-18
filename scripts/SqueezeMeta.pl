@@ -13,7 +13,7 @@ use Tie::IxHash;
 use lib ".";
 use strict;
 
-my $version="0.4.0, Nov 2018";
+my $version="0.4.2, Jan 2019";
 my $start_run = time();
 
 ###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
