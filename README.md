@@ -48,7 +48,7 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 
 ## 2. Installation
 
-For installing SqueezeMeta, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL file contains detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 installation.
+For installing SqueezeMeta, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 or CentOS7 (DVD iso) installation.
  
  
 ## 3. Building databases

@@ -9,9 +9,8 @@ use strict;
 
 $|=1;
 
-my $databasedir=$ARGV[0];
-die if(!$databasedir);
-my $lca_dir="$databasedir/LCA_tax";
+my $lca_dir=$ARGV[0];
+die if(!$lca_dir);
 
 	#-- Output files
 
@@ -127,4 +126,3 @@ while(<infile3>) {
 close infile3;
 close outfile2;
 print "Output created in $parentfile\n";
-system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz")
