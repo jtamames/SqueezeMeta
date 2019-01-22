@@ -80,6 +80,9 @@ if(-e $contigcov) { system("rm $contigcov"); }
 open(outfile1,">$resultpath/09.$project.mappingstat") || die;	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
+open(outfile3,">$outfile") || die;
+print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,"\n";
+print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tSample\n";
 
 	#-- Now we start mapping the reads of each sample against the reference
 
@@ -159,6 +162,7 @@ foreach my $thissample(keys %allsamples) {
 close outfile1;
 
 print "Output in $outfile\n";
+close outfile3;
 
 
 #----------------- sqm_counter counting 
@@ -251,16 +255,12 @@ sub sqm_counter {
 	close infile3;
 	print "\n";
 
-	open(outfile3,">$outfile") || die;
-	print outfile3 "# Created by $0 from $samfile and $gff_file, ",scalar localtime,"\n# Total reads: $totalreadcount\n";
-	print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tSample\n";
 	foreach my $print(sort keys %accum) { 
 		my $longt=$long_gen{$print};
 		my $coverage=$accum{$print}{bases}/$longt;
 		my $rpkm=($accum{$print}{reads}*1000000000)/($longt*$totalreadcount);
 		printf outfile3 "$print\t$longt\t$accum{$print}{reads}\t$accum{$print}{bases}\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage; 
 		}
-	close outfile3;
 }
 
 
