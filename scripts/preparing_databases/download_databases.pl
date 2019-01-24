@@ -19,7 +19,7 @@ my $database_dir = "$download_dir/db";
 
 if(!$download_dir) { die "Usage: perl download_databases.pl <download dir>\n"; }
 
-system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db.tar.gz $download_dir/kegg.dmnd.gz");
+system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/SqueezeMetaDB.tar.gz");
 
 
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
