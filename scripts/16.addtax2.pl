@@ -90,16 +90,36 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		
 		#-- Call consensus() to find the consensus taxon
 		
-		my %chimeracheck;
+		my(%chimeracheck,%abundancestax);
 		my($sep,$lasttax,$strg,$fulltax,$cattax)="";
-		my $chimerism=0;
+		my($chimerism,$tcount)=0;
 	
+		foreach my $rank(@ranks) { 
+			my(%accumtax)=();
+			my $tcount=0;
+			foreach my $contig(keys %store) { 
+				my $ttax=$taxlist{$contig}{$rank}; 
+				$tcount++;
+				next if(!$ttax);
+				$accumtax{$ttax}++;
+				}
+		
+			#-- Consider the most abundant taxa, and look if it fulfills the criteria for consensus
+							      
+			my @listtax=sort { $accumtax{$b}<=>$accumtax{$a}; } keys %accumtax;
+			foreach my $ttax(@listtax) {
+				my $perctotal=$accumtax{$ttax}/$tcount;
+		 		$abundancestax{$rank}{$ttax}=$perctotal*100;
+				}
+			}
+				
+		
 		#-- Loop for all ranks
 	
 		foreach my $rank(@ranks) { 
 			print ">>$rank\n" if $verbose;
 			my($totalcount,$totalas,$consf)=0;
-			my %accumtax=();
+			my(%accumtax)=();
 		
 			#-- For all contigs in the bin, count the taxa belonging to that rank
 		
@@ -126,7 +146,6 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 			else { $times2=0; }	
 			my $percas=$times/$totalas;
 			my $perctotal=$times/$totalcount;
-		
 		
 			#-- If it does, store the consensus tax and rank
 		
@@ -163,7 +182,6 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 				 print "**$fulltax $percas $perctotal -- $times $totalas $totalcount -- $consf\n" if $verbose; 
 				 if($totalas!=$times) { print "***$k$totalas $times\n" if $verbose; }
 				}
-			 last if(!$consf);
 			}
 		if(!$fulltax) { $fulltax="No consensus"; $strg="Unknown"; }
 		
@@ -175,6 +193,14 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		#-- Write output
 		
 		printf outfile2 "Consensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
+		print outfile2 "List of taxa (abundance >= 1%): ";
+		foreach my $rank(@ranks) {
+			print outfile2 "$rank:";  
+			foreach my $dom(sort { $abundancestax{$rank}{$b}<=>$abundancestax{$rank}{$a}; } keys % { $abundancestax{$rank} }) {
+				if($abundancestax{$rank}{$dom}>=1) { printf outfile2 " $dom (%.1f)",$abundancestax{$rank}{$dom}; }
+				}
+			print outfile2 ";";
+			}
 		printf outfile1 "$binmethod\t$k\tConsensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
 		close outfile2;
 

@@ -1,14 +1,15 @@
 #!/usr/bin/perl
 
-#-- Part of SqueezeMeta distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 28/01/2019 for version 0.4.3, (c) Javier Tamames, CNB-CSIC
 #-- Calculates coverage/RPKM for genes/contigs by mapping back reads to the contigs and count how many fall in each gene/contig
-#-- Uses bowtie2 for mapping, and bedtools for counting. 
-#-- WARNING! Bedtools version must be <0.24!
+#-- Uses bowtie2 for mapping, and sqmapper for counting. 
 
 $|=1;
 
 use strict;
 use Cwd;
+use Tie::IxHash;
+use lib ".";
 
 my $pwd=cwd();
 my $project=$ARGV[0];
@@ -34,6 +35,7 @@ if(-d $samdir) {} else { system("mkdir $samdir"); }
 	#-- Read the sample's file names
 
 my %allsamples;
+tie %allsamples,"Tie::IxHash";
 open(infile1,$mappingfile) || die "Cannot find mappingfile $mappingfile\n";
 print "Reading mapping file from $mappingfile\n";
 while(<infile1>) {

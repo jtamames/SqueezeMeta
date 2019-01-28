@@ -25,6 +25,7 @@ my $seqsinfile=0;     # Put sequences in the output table (0=no, 1=yes)
 
 my(%orfdata,%contigdata,%cog,%kegg,%datafiles,%mapping);
 tie %orfdata,"Tie::IxHash";
+tie %mapping,"Tie::IxHash";
 
 	#-- Reading data for COGs (names, pathways)
 
