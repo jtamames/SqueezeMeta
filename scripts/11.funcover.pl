@@ -2,6 +2,7 @@
 
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Counts the coverage of all functions
+#-- Modified 18/01/19 JT for working with new mapcount files
 
 use strict;
 use Tie::IxHash;
@@ -21,7 +22,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$nokegg,$nocog,$coveragefile,$rpkmfile);
+our($datapath,$resultpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$nokegg,$nocog,$mapcountfile);
 
 print "Calculating coverage for functions\n";
 my(%funs,%taxf,%validid,%tfun,%totalbases,%totalreads,%allsamples,%funstat,%longorfs,%taxcount);
@@ -120,22 +121,23 @@ if(!$nocog) {
 	
 	#-- Reading coverages for all genes
 
-print "Reading coverage in $coveragefile\n";
-open(infile6,$coveragefile) || warn "Cannot open coverages in $coveragefile\n";
+print "Reading coverage in $mapcountfile\n";
+open(infile6,$mapcountfile) || warn "Cannot open coverages in $mapcountfile\n";
 while(<infile6>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my @k=split(/\t/,$_);
 	my $cfun_kegg=$tfun{$k[0]}{kegg};	#-- Corresponding KEGG for this gene
 	my $cfun_cog=$tfun{$k[0]}{cog}; 	#-- Corresponding COG for this gene
-	my $sample=$k[3];
-	$longorfs{$k[0]}=$k[4];		#-- Length of the gene
+	my $sample=$k[$#k];
+	$longorfs{$k[0]}=$k[1];		#-- Length of the gene
+	my $mapbases=$k[3];
 	# print "$k[0] $cfun_kegg $cfun_cog $sample $longorfs{$k[0]}\n";
-	$totalbases{$sample}+=$k[1];
+	$totalbases{$sample}+=$mapbases;
 	next if((!$cfun_kegg) && (!$cfun_cog));
 	next if($taxreq && (!$validid{$k[0]}));
 	$allsamples{$sample}++;
-	if($k[1]) {
+	if($mapbases) {
 	
 		#-- Counting KEGGs
 	
@@ -144,7 +146,7 @@ while(<infile6>) {
 			foreach my $tlist_kegg(@kegglist) {
 				$funstat{kegg}{$tlist_kegg}{$sample}{copies}++;
 				$funstat{kegg}{$tlist_kegg}{$sample}{length}+=$longorfs{$k[0]}; 
-				$funstat{kegg}{$tlist_kegg}{$sample}{bases}+=$k[1];
+				$funstat{kegg}{$tlist_kegg}{$sample}{bases}+=$mapbases;
 				foreach my $tk(keys %equival) {
 					my $krank=$equival{$tk};
 					my $itax=$taxf{$k[0]}{$krank};
@@ -160,7 +162,7 @@ while(<infile6>) {
 		foreach my $tlist_cog(@coglist) {
 			$funstat{cog}{$tlist_cog}{$sample}{copies}++;
 			$funstat{cog}{$tlist_cog}{$sample}{length}+=$longorfs{$k[0]}; #-- Para leer las longitudes directamente de las secuencias (para ficheros coverage antiguos que no la tienen)
-			$funstat{cog}{$tlist_cog}{$sample}{bases}+=$k[1];
+			$funstat{cog}{$tlist_cog}{$sample}{bases}+=$mapbases;
 			# print "$k[0]*$cfun_cog*$sample*$longorfs{$k[0]}*$funstat{cog}{$cfun_cog}{$sample}{length}\n";
 			foreach my $tk(keys %equival) {
 				my $krank=$equival{$tk};
@@ -176,15 +178,15 @@ close infile6;
 
 	#-- Reading RPKMs for all genes
 
-print "Reading rpkm in $rpkmfile\n";
-open(infile7,$rpkmfile) || die;
+print "Reading rpkm in $mapcountfile\n";
+open(infile7,$mapcountfile) || die;
 while(<infile7>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my @k=split(/\t/,$_);
 	my $cfun_kegg=$tfun{$k[0]}{kegg}; 
 	my $cfun_cog=$tfun{$k[0]}{cog}; 
-	my $sample=$k[3];
+	my $sample=$k[$#k];
 	$totalreads{$sample}+=$k[2];
 	next if((!$cfun_kegg) && (!$cfun_cog));
 	next if($taxreq && (!$validid{$k[0]}));
@@ -208,7 +210,7 @@ foreach my $classfun(sort keys %funstat) {
 	$rawf="$resultpath/11.$project.$classfun.funcover";
 	print "Now creating $classfun coverage output in $rawf\n";
 	open(outfile1,">$rawf") || die;
-	print outfile1 "#-- Created by $0 from $coveragefile, ",scalar localtime;
+	print outfile1 "#-- Created by $0 from $mapcountfile, ",scalar localtime;
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
 	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tDistribution\tName\tFunction\n";

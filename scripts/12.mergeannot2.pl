@@ -2,6 +2,7 @@
 
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Creates gene table putting together all the information from previous steps
+#-- Modified 18/01/19 JT for working with new mapcount files
 
 use strict;
 use Tie::IxHash;
@@ -18,12 +19,13 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$rnafile,$fun3tax,$alllog,$fun3kegg,$fun3cog,$fun3pfam,$rpkmfile,$coveragefile,$mergedfile);
+our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$fun3kegg,$fun3cog,$fun3pfam,$mapcountfile,$mergedfile);
 
 my $seqsinfile=0;     # Put sequences in the output table (0=no, 1=yes)
 
 my(%orfdata,%contigdata,%cog,%kegg,%datafiles,%mapping);
 tie %orfdata,"Tie::IxHash";
+tie %mapping,"Tie::IxHash";
 
 	#-- Reading data for COGs (names, pathways)
 
@@ -178,74 +180,69 @@ close infile8;
 
 	#-- Reading KEGG annotations for the ORFs
 
-open(infile9,$fun3kegg) || warn "Cannot open fun3 KEGG annotation file $fun3kegg\n";
-print "Reading KEGG annotations\n";
-while(<infile9>) {
-	chomp;
-	next if(!$_ || ($_=~/\#/));
-	my($gen,$f,$ko)=split(/\t/,$_);
-	if($f) { 
-		$orfdata{$gen}{kegg}=$f; 
-		$orfdata{$gen}{name}=$kegg{$f}{name};	#-- Name of the gene (symbol), taken from KEGG
-	}		
-	if($ko) { $orfdata{$gen}{keggaver}=1; }	#-- Best aver must be the same than best hit, we just mark if there is best aver or not 
-	$datafiles{'kegg'}=1;
+if(!$nokegg) {
+	open(infile9,$fun3kegg) || warn "Cannot open fun3 KEGG annotation file $fun3kegg\n";
+	print "Reading KEGG annotations\n";
+	while(<infile9>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($gen,$f,$ko)=split(/\t/,$_);
+		if($f) { 
+			$orfdata{$gen}{kegg}=$f; 
+			$orfdata{$gen}{name}=$kegg{$f}{name};	#-- Name of the gene (symbol), taken from KEGG
+		}		
+		if($ko) { $orfdata{$gen}{keggaver}=1; }	#-- Best aver must be the same than best hit, we just mark if there is best aver or not 
+		$datafiles{'kegg'}=1;
+	}
+	close infile9;          
 }
-close infile9;          
   
 	#-- Reading COG annotations for the ORFs
 
-open(infile10,$fun3cog) || warn "Cannot open fun3 COG annotation file $fun3cog\n";;
-print "Reading COGs annotations\n";
-while(<infile10>) { 
-	chomp;
-	next if(!$_ || ($_=~/\#/));
-	my($gen,$f,$co)=split(/\t/,$_);
-	if($f) { $orfdata{$gen}{cog}=$f; }
-	if($co) { $orfdata{$gen}{cogaver}=1; } #-- Best aver must be the same than best hit, we just mark if there is best aver or not
-	$datafiles{'megancog'}=1;
+if(!$nocog) {
+	open(infile10,$fun3cog) || warn "Cannot open fun3 COG annotation file $fun3cog\n";;
+	print "Reading COGs annotations\n";
+	while(<infile10>) { 
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($gen,$f,$co)=split(/\t/,$_);
+		if($f) { $orfdata{$gen}{cog}=$f; }
+		if($co) { $orfdata{$gen}{cogaver}=1; } #-- Best aver must be the same than best hit, we just mark if there is best aver or not
+		$datafiles{'megancog'}=1;
+	}
+	close infile10;            
 }
-close infile10;            
-  
+ 
 	#-- Reading Pfam annotations for the ORFs
 
-open(infile11,$fun3pfam) || warn "Cannot open fun3 Pfam annotation file $fun3cog\n";;
-print "Reading Pfam annotations\n";
-while(<infile11>) { 
-	chomp;
-	next if(!$_ || ($_=~/\#/));
-	my($gen,$co)=split(/\t/,$_);
-	if($co) { $orfdata{$gen}{pfam}=$co; }
-	$datafiles{'pfam'}=1;
-}
-close infile11;            			       
+if(!$nopfam) {
+	open(infile11,$fun3pfam) || warn "Cannot open fun3 Pfam annotation file $fun3pfam\n";;
+	print "Reading Pfam annotations\n";
+	while(<infile11>) { 
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($gen,$co)=split(/\t/,$_);
+		if($co) { $orfdata{$gen}{pfam}=$co; }
+		$datafiles{'pfam'}=1;
+	}
+	close infile11; 
+}           			       
   
-	#-- Reading RPKM values for the ORFs in the different samples
+	#-- Reading RPKM and coverage values for the ORFs in the different samples
 
-open(infile12,$rpkmfile) || warn "Cannot open mapping file $rpkmfile\n";
-print "Reading RPKMs\n";
+open(infile12,$mapcountfile) || warn "Cannot open mapping file $mapcountfile\n";
+print "Reading RPKMs and Coverages\n";
 while(<infile12>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/));
-	my($orf,$fpkm,$raw,$idfile)=split(/\t/,$_);
-	$mapping{$idfile}{$orf}{fpkm}=$fpkm;		#-- RPKM values
-	$mapping{$idfile}{$orf}{raw}=$raw; 		#-- Raw counts
+	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$idfile)=split(/\t/,$_);
+	$mapping{$idfile}{$orf}{rpkm}=$rpkm;		#-- RPKM values
+	$mapping{$idfile}{$orf}{raw}=$rawreads; 		#-- Raw counts
+	$mapping{$idfile}{$orf}{coverage}=$coverage;	#-- Coverage values
+	$mapping{$idfile}{$orf}{rawbases}=$rawbases;	#-- Coverage values
 	#  print "$idfile*$orf*$fpkm\n"
 }
 close infile12;	     
-  
-	#-- Reading coverage values for the ORFs in the different samples
-
-open(infile13,$coveragefile) || warn "Cannot open coverage file $rpkmfile\n";
-print "Reading coverages\n";
-while(<infile13>) {
-	chomp;
-	next if(!$_ || ($_=~/\#/));
-	my($orf,$raw,$coverage,$idfile)=split(/\t/,$_);
-	$mapping{$idfile}{$orf}{coverage}=$coverage;	#-- Coverage values
-	#  print "$idfile*$orf*$fpkm\n"
-}
-close infile13;	     
   
 	#-- CREATING GEN TABLE
 
@@ -258,7 +255,8 @@ print outfile1 "#--Created by $0, ",scalar localtime,"\n";
 print outfile1 "ORF\tCONTIG ID\tLENGTH\tGC perc\tGENNAME\tTAX ORF\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRPKM $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
-foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW COUNTS $cnt"; }
+foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW READ COUNT $cnt"; }
+foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW BASE COUNT $cnt"; }
 if($seqsinfile) { print outfile1 "\tAASEQ"; }
 print outfile1 "\n";
 
@@ -278,9 +276,10 @@ foreach my $orf(sort keys %orfdata) {
 
 	#-- Abundance values
 
-	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'fpkm'}"; }
+	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'rpkm'}"; }
 	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'coverage'}"; }
 	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'raw'}"; }
+	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'rawbases'}"; }
 
 	#-- aa sequences (if requested)
 

@@ -1,37 +1,41 @@
 #!/usr/bin/perl
 
-#-- Part of SqueezeMeta distribution. 28/08/2018 for version 0.3.0, (c) Javier Tamames, CNB-CSIC
+#-- Part of SqueezeMeta distribution. 28/01/2019 for version 0.4.3, (c) Javier Tamames, CNB-CSIC
 #-- Calculates coverage/RPKM for genes/contigs by mapping back reads to the contigs and count how many fall in each gene/contig
-#-- Uses bowtie2 for mapping, and bedtools for counting. 
-#-- WARNING! Bedtools version must be <0.24!
+#-- Uses bowtie2 for mapping, and sqmapper for counting. 
 
 $|=1;
 
 use strict;
 use Cwd;
+use Tie::IxHash;
 use lib ".";
 
 my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//; 
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
+
 do "$project/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 
 our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mode,$resultpath,$rpkmfile,$contigcov,$coveragefile,$bowtie2_x_soft,
-    $mapper, $counter, $bwa_soft, $featurecounts_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$bedtools_soft);
+    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir);
 
 my $keepsam=1;  #-- Set to one, it keeps SAM files. Set to zero, it deletes them when no longer needed
+my $verbose=0;
 
 my $fastqdir="$datapath/raw_fastq";
 my $samdir="$datapath/sam";
 
+my $outfile="$resultpath/09.$project.mapcount";
+
 if(-d $samdir) {} else { system("mkdir $samdir"); }
- 
+
 	#-- Read the sample's file names
 
 my %allsamples;
+tie %allsamples,"Tie::IxHash";
 open(infile1,$mappingfile) || die "Cannot find mappingfile $mappingfile\n";
 print "Reading mapping file from $mappingfile\n";
 while(<infile1>) {
@@ -57,8 +61,7 @@ if($mapper eq "bowtie") {
         else {
         	print("Creating reference.\n");
                 my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
-		my $ecode = system $bowtie_command;
-		if($ecode!=0) { die "Error running command:    $bowtie_command"; }
+                system($bowtie_command);
                 }
         }
 elsif($mapper eq "bwa") {
@@ -66,20 +69,22 @@ elsif($mapper eq "bwa") {
         else {
         	print("Creating reference.\n");
                 my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
-		my $ecode = system $bwa_command;
-		if($ecode!=0) { die "Error running command:    $bwa_command"; }
+                system($bwa_command);
                 }
         }
 
 
 	#-- Prepare output files
 
-if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
-if(-e $rpkmfile) { system("rm $rpkmfile"); }
+#if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
+#if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
 open(outfile1,">$resultpath/09.$project.mappingstat") || die;	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
+open(outfile3,">$outfile") || die;
+print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,"\n";
+print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tSample\n";
 
 	#-- Now we start mapping the reads of each sample against the reference
 
@@ -92,37 +97,34 @@ foreach my $thissample(keys %allsamples) {
 		if(!$formatseq) {
 			if($ifile=~/fasta/) { $formatseq="fasta"; }
 			else { $formatseq="fastq"; }
-		}
+			}
 		
 	#-- Get reads from samples
 		
-	if($allsamples{$thissample}{$ifile}==1) { push(@pair1,$ifile); } else { push(@pair2,$ifile); }
-	}
+		if($allsamples{$thissample}{$ifile}==1) { push(@pair1,$ifile); } else { push(@pair2,$ifile); }
+		}
 	my($par1name,$par2name);
 	if($pair1[0]=~/gz/) { $par1name="$project.$thissample.current_1.gz"; } 
 	else { $par1name="$project.$thissample.current_1"; }
 	if($pair2[0]=~/gz/) { $par2name="$project.$thissample.current_2.gz"; }
 	else { $par2name="$project.$thissample.current_2";}
-	if($#pair1==0) { $command="ln -s $pair1[0] $tempdir/$par1name;"; } 
-	elsif($#pair1>0) { 
-		my $a1=join(" ",@pair1);					
-		$command="cat $a1 > $tempdir/$par1name; ";	
-		}
-	if($#pair2==0) { $command.="ln -s $pair2[0] $tempdir/$par2name;"; }
-	elsif($#pair2>0) { 
+	my $a1=join(" ",@pair1);					
+	$command="cat $a1 > $tempdir/$par1name; ";	
+	if($#pair2>=0) { 
 		my $a2=join(" ",@pair2);	
-		$command.="cat $a2 > $tempdir/$par2name; cat $a2 > $tempdir/$par2name;";	
+		$command.="cat $a2 > $tempdir/$par2name;";	
 		}
 	print "  Getting raw reads\n";
-	print "$command\n";
+	# print "$command\n";
 	system $command; 
 	
 	#-- Now we start mapping reads against contigs
 	
-	print "  Aligning to reference...\n";
-	my $outsam="$samdir/$project.$thissample.sam"; 
+	print "  Aligning to reference with $mapper\n";
+	if($keepsam) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
+	
 	#-- Support for single reads
-        if($mapper eq "bowtie") {
+        if(!$mapper || ($mapper eq "bowtie")) {
             if($formatseq eq "fasta") { $formatoption="-f"; }
     	    if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam"; }
 	    else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --quiet -p $numthreads -S $outsam"; } }
@@ -144,158 +146,123 @@ foreach my $thissample(keys %allsamples) {
             else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
 
                                   
-	print "$command\n";
+	# print "$command\n";
+	system($command);
         my $ecode = 0;
-	if(-e $outsam) {} else { $ecode = system $command; }
-	if($ecode!=0) { die "Error running command:    $command"; }
-
+	#if(-e $outsam) {} else { $ecode = system $command; }
+        #if($ecode!=0)     { die "An error occurred during mapping!"; }
 
 	#-- Calculating contig coverage/RPKM
 
-	my $totalreads=contigcov($thissample,$outsam);
+	 my $totalreads=contigcov($thissample,$outsam);
 	
 	#-- And then we call the counting
 	
-	# htseq();
-	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
-	if($counter=~/bedtools/i) { bedtools($thissample,$outsam,$totalreads); }
-	# elsif($counter=~/featurecounts/i) {  featurecounts($thissample,$outsam,$totalreads);  }
-	else { die "Unknown counter $counter\n"; }
-	
-	if(!$keepsam) {system("rm $outsam");}
+	 system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
+	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
 }
 close outfile1;
 
+print "Output in $outfile\n";
+close outfile3;
 
-#----------------- htseq counting (deprecated)
 
-#sub htseq {
-#	print "  Counting with HTSeq\n";
-#	my $command="htseq-count -m intersection-nonempty -s no -t CDS -i \"ID\" $outsam $gff_file > $project.$thissample.current.htseq";
-#	system $command;
-#	print "  Calculating RPKM from HTseq\n";
-#	$command="perl $scriptdir/09.rpkm.pl $project.$thissample.current.htseq $gff_file $thissample >> $resultpath/06.$project.rpkm";
-#	system $command;
-#}
+#----------------- sqm_counter counting 
 
-#----------------- FeatureCounts counting 
-#
-#sub featurecounts {
-#	print "  Counting with FeatureCounts\n";
-#	my($thissample,$outsam,$totalreads)=@_;
-#	# print "**$thissample**$outsam**\n";
-#	my $command="$featurecounts_soft -a $gff_file -o $tempdir/$project.$thissample.current.fcounts -T $numthreads -t CDS -g ID  -R CORE --Rpath $tempdir $outsam";
-#	print "    Counting reads and bases: $command\n";
-#	system $command;	
-#	
-#	#-- Run RPKM calculation (rpkm.pl)
-#	
-#	$command="perl $scriptdir/09.rpkm.pl $tempdir/$project.$thissample.current.fcounts $gff_file $thissample $totalreads >> $rpkmfile";
-#	print "  Calculating RPKM from FeatureCounts: $command\n";
-#	system $command;
-#
-#	#-- Run coverage calculation (coverage.pl)  NOT WORKING FOR FEATURE COUNTS	
-#
-#	#print "  Calculating Coverage from FeatureCounts\n";
-#	#$command="perl $scriptdir/09.coverage.pl $tempdir/$project.$thissample.currentperbase.bedcount $gff_file $thissample >> $coveragefile";
-#	# system $command;
-#	
-#}
-
-#----------------- bedtools counting 
-
-sub bedtools {
-	print "  Counting with Bedtools\n";
-	my($thissample,$outsam,$totalreads)=@_;
-
-	#-- Creating reference for bedtools from the gff file
-	#-- Reference has the format: <contig_id> <gen init pos> <gen end pos> <gen ID>
-
-	open(infile2,$gff_file) || die "Cannot find gff file $gff_file\n";  
-	# print "Reading gff file from $gff_file\n";
-	my $bedreference=$gff_file;
-	$bedreference=~s/gff/refbed/;
-	print "    Generating reference: $bedreference\n";
-	
-	open(outfile2,">$bedreference") || die;
+sub sqm_counter {
+	print "  Counting with sqm_counter\n";
+	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
+	my(%genesincontigs,%accum,%long_gen);
+	my $countreads;
+	open(infile2,$gff_file) || die;
 	while(<infile2>) {
-		my $gid;
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
-		if($_=~/ID\=([^;]+)\;/) { $gid=$1; }	#-- Orf's ID
 		my @k=split(/\t/,$_);
-		print outfile2 "$k[0]\t$k[3]\t$k[4]\t$gid\n";		# <contig_id> <gen init pos> <gen end pos> <gen ID>
+		my $posinit=$k[3];
+		my $posend=$k[4];
+		my $genid;
+  		my @e=split(/\;/,$k[8]);
+ 		my @n=split(/\_/,$e[0]);
+  		my $ord=$n[$#n];
+ 		$genid="$k[0]\_$ord";
+		$genesincontigs{$k[0]}{$posinit}="$posend:$genid";
+		# print "$k[0]*$posinit*$posend*$genid\n";
+		$long_gen{$genid}=$posend-$posinit+1;
 		}
 	close infile2;
-	close outfile2;
 
-	#-- Creating bedfile from the sam file. It has the format <read id> <init pos match> <end pos match>
-
-	my $bedfile="$tempdir/$project.$thissample.current.bed";
-	print "    Generating Bed file: $bedfile\n";
-	open(outfile3,">$bedfile") || die;
-	open(infile3,$outsam) || die;
-
-	#-- Reading sam file
-
-	while(<infile3>) {
-		next if($_=~/^\@/);
+	open(infile3,$samfile) || die "Cannot open sam file $samfile\n"; ;
+	while(<infile3>) { 
+		chomp;
+		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@SQ/));
 		my @k=split(/\t/,$_);
+		my $readid=$k[0];
 		next if($k[2]=~/\*/);
 		my $cigar=$k[5];
 		next if($cigar eq "*");
-		my $end=$k[3];
-
+		# print "\n$_\n";
+		my $initread=$k[3];                     
+		my $incontig=$k[2];
+		my $endread=$initread;
+		$countreads++;
+		if($countreads%1000000==0) { print "    $countreads reads counted\r"; }
 		#-- Calculation of the length match end using CIGAR string
 
 		while($cigar=~/^(\d+)([IDM])/) {
 			my $mod=$1;
 			my $type=$2;
-			if($type=~/M|D/) { $end+=$mod; }	#-- Update end position according to the match found
-			elsif($type=~/I/) { $end-=$mod; }
+			if($type=~/M|D/) { $endread+=$mod; }	#-- Update end position according to the match found
+			elsif($type=~/I/) { $endread-=$mod; }
 			$cigar=~s/^(\d+)([IDM])//g;
 			}
-		print outfile3 "$k[2]\t$k[3]\t$end\n";		#-- <read id> <init pos match> <end pos match>
+		# print "*$incontig*$init*$end\n";
+		foreach my $initgen(sort { $a<=>$b; } keys %{ $genesincontigs{$incontig} }) {
+			my $basesingen;
+			last if($endread<$initgen);
+			my($endgen,$genname)=split(/\:/,$genesincontigs{$incontig}{$initgen});		
+			# print "  $incontig*$initread-$endread*$initgen-$endgen*\n"; 
+			if((($initread>=$initgen) && ($initread<=$endgen)) && (($endread>=$initgen) && ($endread<=$endgen))) {   #-- El read esta contenido en el gen
+				$basesingen=$endread-$initread;
+				if($verbose) { print "Read contenido: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
+				# print outfile2 "$readid\t$genname\t$basesingen\n";
+				$accum{$genname}{reads}++;
+				$accum{$genname}{bases}+=$basesingen;
+				}
+			elsif(($initread>=$initgen) && ($initread<=$endgen)) {   #-- El read empieza dentro de este gen
+				$basesingen=$endgen-$initread;
+				# print outfile2 "$readid\t$genname\t$basesingen\n";
+				if($verbose) {  print "Inicio read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
+				$accum{$genname}{reads}++;
+				$accum{$genname}{bases}+=$basesingen;
+				}
+ 			elsif(($endread>=$initgen) && ($endread<=$endgen)) {   #-- El read termina dentro de este gen
+				$basesingen=$endread-$initgen;
+				if($verbose) {  print "Final read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
+				# print outfile2 "$readid\t$genname\t$basesingen\n";
+				$accum{$genname}{bases}+=$basesingen;
+				$accum{$genname}{reads}++;
+				}
+			elsif(($initread<=$initgen) && ($endread>=$endgen)) {  #-- El gen esta contenido en el read
+				if($verbose) {  print "Gen contenido: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
+				$basesingen=$endgen-$initgen;
+				# print outfile2 "$readid\t$genname\t$basesingen\n";
+				$accum{$genname}{reads}++;
+				$accum{$genname}{bases}+=$basesingen;
+				}
+			}
+
+		
 		}
 	close infile3;
-	close outfile3;
+	print "\n";
 
-	#-- Call bedtools for counting reads
-	
-	my $command="$bedtools_soft coverage -a $bedfile -b $bedreference > $tempdir/$project.$thissample.current.bedcount";
-	print "    Counting reads: $command\n";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
-
-	#-- Call bedtools for counting bases
-
-	$command="$bedtools_soft coverage -a $bedfile -b $bedreference -d > $tempdir/$project.$thissample.currentperbase.bedcount";
-	print "    Counting bases: $command\n";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
-
-	#-- Run RPKM calculation (rpkm.pl)
-	
-	print "  Calculating RPKM from Bedtools\n";
-	$command="perl $scriptdir/09.rpkm.pl $tempdir/$project.$thissample.current.bedcount $gff_file $thissample $totalreads >> $rpkmfile";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
-
-	#-- Run coverage calculation (coverage.pl)	
-
-	print "  Calculating Coverage from Bedtools\n";
-	$command="perl $scriptdir/09.coverage.pl $tempdir/$project.$thissample.currentperbase.bedcount $gff_file $thissample >> $coveragefile";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
-
-	#-- Remove files
-	
-	print "  Removing files\n";
-	#system("rm $tempdir/$project.$thissample.current_1.fastq.gz");
-	#system("rm $tempdir/$project.$thissample.current_2.fastq.gz");
-	system("rm $tempdir/$project.$thissample.current.bedcount");
-	system("rm $tempdir/$project.$thissample.currentperbase.bedcount"); 
-	system("rm $tempdir/$project.$thissample.current.bed"); 
+	foreach my $print(sort keys %accum) { 
+		my $longt=$long_gen{$print};
+		my $coverage=$accum{$print}{bases}/$longt;
+		my $rpkm=($accum{$print}{reads}*1000000000)/($longt*$totalreadcount);
+		printf outfile3 "$print\t$longt\t$accum{$print}{reads}\t$accum{$print}{bases}\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage; 
+		}
 }
 
 
@@ -311,7 +278,7 @@ sub contigcov {
 
 	#-- Count length of contigs and bases mapped from the sam file
 
-	open(infile4,$outsam);
+	open(infile4,$outsam) || die "Cannot open $outsam\n"; ;
 	while(<infile4>) {
 		chomp;
 		my @t=split(/\t/,$_);

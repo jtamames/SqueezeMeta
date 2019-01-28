@@ -25,7 +25,7 @@ our $installpath = "$scriptdir/..";
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$nobins,$nomaxbin,$nometabat,$lowmem,$minion)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$mapper,$counter,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
-our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$rpkmfile,$coveragefile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
+our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
 #-- Define help text
@@ -137,7 +137,7 @@ if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
 #-- Check if we have all the needed options
 
 
-print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559; doi: https://doi.org/10.1101/347559\n\n";
+print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, bioRxiv 347559 (2018); doi: https://doi.org/10.1101/347559; Tamames & Puente-Sanchez, Frontiers in Microbiology (2019), in press\n\n";
 
 if($ver) { exit; }
 if($hel) { die "$helptext\n"; } 
@@ -655,16 +655,16 @@ sub pipeline {
     #-------------------------------- STEP9: Mapping of reads onto contigs for abundance calculations
 	
 	if($rpoint<=9) {
-		my $scriptname="09.mapbamsamples.pl";
+		my $scriptname="09.mapsamples.pl";
 		print outfile3 "9\t$scriptname\n";
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP9 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP9 -> MAPPING READS: $scriptname\n";
 		my $ecode = system("perl $scriptdir/$scriptname $project");
 		if($ecode!=0)        { die "Stopping in STEP9 -> $scriptname\n"; }
-		my $wc=qx(wc -l $rpkmfile);
+		my $wc=qx(wc -l $mapcountfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<3)         { die "Stopping in STEP9 -> $scriptname. File $rpkmfile is empty!\n"; }
+		if($wsize<3)         { die "Stopping in STEP9 -> $scriptname. File $mapcountfile is empty!\n"; }
 	}
 			
     #-------------------------------- STEP10: Count of taxa abundances
