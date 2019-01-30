@@ -51,13 +51,20 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 For installing SqueezeMeta, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 or CentOS7 (DVD iso) installation.
  
  
-## 3. Building databases
+## 3. Downloading or building databases
 
-SqueezeMeta uses several databases. GenBank nr for taxonomic assignment, and eggnog, KEGG and Pfam for functional assignment. The script make_databases.pl must be run to download and format all these databases.
+SqueezeMeta uses several databases. GenBank nr for taxonomic assignment, and eggnog, KEGG and Pfam for functional assignment. 
+The script *download_databases.pl* can be run to download a pre-formatted version of all the databases required by SqueezeMeta.
+
+`<installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <datapath>`
+
+, where `<datapath>` is the destination folder. This is the recommended option.
+
+Alternatively, the script *make_databases.pl* can be run to download from source and format the latest version of the databases.
 
 `<installpath>/SqueezeMeta/scripts/preparing_databases/make_databases.pl <datapath>`
 
-, where `<datapath>` is the destination folder. The process will take about a day. The databases occupy 130Gb, but we recommend having at least 300Gb free disk space during the building process.
+The databases occupy 200Gb, but we recommend having at least 350Gb free disk space during the building process.
 
 If the SqueezeMeta databases are already built in another location in the system, a different copy of SqueezeMeta can be configured to use them with
 
@@ -133,7 +140,7 @@ Also, any individual script of the pipeline can be run in the upper directory to
 
 
 ## 5. Testing SqueezeMeta
-The make_databases.pl script also downloads two datasets for testing that the program is running correctly. Assuming make_databases.pl was run with the directory `<datapath>` as its target the test run can be executed with
+The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming make_databases.pl was run with the directory `<datapath>` as its target the test run can be executed with
 
 `cd <datapath>`
 `SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
@@ -169,7 +176,6 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [mummer](https://github.com/mummer4/mummer)
 * [hmmer](http://hmmer.org/)
 * [DIAMOND](https://github.com/bbuchfink/diamond)
-* [bedtools](https://github.com/arq5x/bedtools2)
 * [bwa](https://github.com/lh3/bwa)
 * [minimap2](https://github.com/lh3/minimap2)
 * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
