@@ -140,7 +140,7 @@ Also, any individual script of the pipeline can be run in the upper directory to
 
 
 ## 5. Testing SqueezeMeta
-The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming make_databases.pl was run with the directory `<datapath>` as its target the test run can be executed with
+The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `<datapath>` as its target the test run can be executed with
 
 `cd <datapath>`
 `SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
