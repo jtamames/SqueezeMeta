@@ -33,6 +33,7 @@ my $flex=0.2;           #-- Allows this PERCENTAGE (if less than one) or NUMBER 
 my $minhits=2;        #-- Minimum number of hits for the taxa (if there is only one valid hit, this value sets to one automatically
 my $verbose=0;
 my $thereareresults=0;
+my $noidfilter=0;	#-- Set to 1, creates a new set of results with no identity filters
 
 #-- Prepare the LCA database (containing the acc -> tax correspondence)
 
@@ -63,13 +64,20 @@ open(outfile1,">$fun3tax") || die;
 print outfile1 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio, diffiden=$diffiden, flex=$flex, minhits=$minhits\n";
 open(outfile2,">$fun3tax.wranks") || die;
 print outfile2 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio, diffiden=$diffiden, flex=$flex, minhits=$minhits\n";
+if($noidfilter) {
+	open(outfile3,">$fun3tax.noidfilter") || die;
+	print outfile3 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio, diffiden=$diffiden, flex=$flex, minhits=$minhits\n";
+	open(outfile4,">$fun3tax.noidfilter.wranks") || die;
+	print outfile4 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio, diffiden=$diffiden, flex=$flex, minhits=$minhits\n";
+	}
 
 #-- Parsing of the diamond file
 
-my(%provhits,%accum,%providen);
-my($thisorf,$lastorf,$validhits,$tothits,$refscore,$refiden,%giden);
+my(%provhits,%accum,%accumnofilter,%providen);
+my($thisorf,$lastorf,$validhits,$validhitsnofilter,$tothits,$refscore,$refiden,%giden);
 tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
+tie %accumnofilter,"Tie::IxHash";
 
 if($infile=~/gz/) { open(infile2,"zcat $infile|") || die; }			#-- If file is gzipped
 else { open(infile2,$infile) || die "Cannot open Diamond file $infile\n"; }	#-- or if it is not
@@ -117,6 +125,8 @@ query();
 
 close outfile1;
 close outfile2;
+close outfile3;
+close outfile4;
 
 if(!$thereareresults) { die "Tax assignment done in $fun3tax but no results found. Aborting\n"; }
 
@@ -167,8 +177,10 @@ sub query {
 				my $tax=$list[$pos];		#-- and the taxon
 				print "$lastorf $rank $giden{$list[0]} $idenrank{$rank}\n" if $verbose;
 				if($giden{$list[0]}>=$idenrank{$rank}) { $accum{$rank}{$tax}++; }		#-- and add a count for that taxon in that rank
+				$accumnofilter{$rank}{$tax}++; 		#-- Not considering identity filters for ranks
 			}
 		if(($list[7]) && ($giden{$list[0]}>=$idenrank{'superkingdom'})) { $validhits++;  }			#-- Count the number of valid hits
+		if(($list[2])) { $validhitsnofilter++; }
 		}
 	}
 
@@ -178,7 +190,7 @@ sub query {
 	if($validhits==1) { $minreqhits=1; } else { $minreqhits=$minhits; }
 	if($flex<1) { $required=$validhits-($flex*$validhits); } else { $required=$validhits-$flex; }  
 	print "$lastorf Hits: $tothits; Valid: $validhits; Min: $minreqhits; Required: $required\n" if $verbose;
-	my $lasttax="";
+	my($lasttax,$lasttaxnofilter)="";
 		
 	#-- Looping on the ranks from top to bottom, looking if it fulfills the conditions for LCA
 	
@@ -195,8 +207,25 @@ sub query {
 
 		last if($lasttax);		
  		}
+		if($noidfilter) {
+			if($validhitsnofilter==1) { $minreqhits=1; } else { $minreqhits=$minhits; }
+			if($flex<1) { $required=$validhitsnofilter-($flex*$validhitsnofilter); } else { $required=$validhitsnofilter-$flex; }
+			$lasttaxnofilter="";			
+			foreach my $k(@ranks) {
+				foreach my $t(keys %{ $accumnofilter{$k} }) {
+					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits)) { $lasttaxnofilter=$t; }
+					}
+
+				last if($lasttaxnofilter);
+				}
+			}		
+		
 	print outfile1 "$lastorf\t$parents{$lasttax}{noranks}\n";
 	print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
+	if($noidfilter) {
+		print outfile3 "$lastorf\t$parents{$lasttaxnofilter}{noranks}\n";
+		print outfile4 "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";	
+		}	
 	print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;
 	if($parents{$lasttax}{noranks}) { $thereareresults=1; }	
 }
