@@ -50,8 +50,8 @@ sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.
 
 
 ### Install databases and test data.
-# This will take about a day and require around 300Gb free disk space for building, in the end it will occupy around 130Gb.
-<installpath>/SqueezeMeta/scripts/preparing_databases/make_databases.pl <dbpath>
+# This will occupy around 200Gb.
+<installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <dbpath>
 
 
 ### Run SqueezeMeta on test data.
