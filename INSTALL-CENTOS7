@@ -42,10 +42,10 @@ sudo link /usr/lib64/libpcre.so.1 /usr/lib64/libpcre.so.3
 
 ### Install databases and test data.
 # This will occupy around 200Gb.
-<installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <dbpath>
+<installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <datapath>
 
 
 ### Run SqueezeMeta on test data.
-cd <dbpath>/test
+cd <datapath>/test
 perl <installpath>/SqueezeMeta/scripts/SqueezeMeta.pl -m merged -p Hadza -s test.samples -f raw/
 
