@@ -11,13 +11,14 @@ $|=1;
 
 my $pwd=cwd();
 my $project=$ARGV[0];
+my $blastx=$ARGV[1];	#-- If it was called from blastx
 $project=~s/\/$//; 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$nocog,$nokegg,$nopfam,$cogdiamond,$fun3cog,$evalue,$miniden,$keggdiamond,$fun3kegg,$pfamlist,$fun3pfam,$pfamhmmer);
+our($datapath,$nocog,$nokegg,$nopfam,$cogdiamond,$fun3cog,$evalue,$miniden,$keggdiamond,$fun3kegg,$pfamlist,$fun3pfam,$pfamhmmer,$resultpath,$tempdir);
 
 #-- Some local conf variables
 
@@ -34,6 +35,11 @@ print "\n";
 #----------------------------------- COG assignment -------------------------------------
 
 if(!$nocog) {
+	if($blastx) { 
+		$cogdiamond="$tempdir/08.$project.fun3.blastx.cog.m8";
+		$fun3cog="$tempdir/08.$project.fun3.blastx.cog";
+		}
+		
 	open(infile1,$cogdiamond) || die "Cannot open cog file $cogdiamond\n";
 	open(outfile1,">$fun3cog") || die "Cannot open $fun3cog\n";
 	print outfile1 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap\n";
@@ -110,6 +116,10 @@ if(!$nocog) {
 #----------------------------------- KEGG assignment -------------------------------------
 
 if(!$nokegg) {
+	if($blastx) { 
+		$keggdiamond="$tempdir/08.$project.fun3.blastx.kegg.m8";
+		$fun3kegg="$tempdir/08.$project.fun3.blastx.kegg";
+		}
 	open(infile2,$keggdiamond) || die "Cannot open $keggdiamond\n";
 	open(outfile2,">$fun3kegg") || die "Cannot open $fun3kegg\n";
 	print outfile2 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap\n";

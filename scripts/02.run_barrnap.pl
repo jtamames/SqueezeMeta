@@ -38,7 +38,8 @@ foreach my $kingdom(keys %king) {
 	#-- Run barrnap
 
 	my $command="$barrnap_soft --quiet --threads $numthreads --kingdom $kingdom --reject 0.1 $targetfile --dbdir $databasepath > $output";
-	print "Running barrnap for $king{$kingdom}: $command\n";
+	# print "Running barrnap for $king{$kingdom}: $command\n";
+	print "Running barrnap for $king{$kingdom}\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 
@@ -53,7 +54,7 @@ foreach my $kingdom(keys %king) {
 		my @k=split(/\t/,$_);
 		my $idx="$k[3]-$k[4]"; 
 		$inrna{$k[0]}++;
-		my $newid="$k[0]\_RNA$inrna{$k[0]}";
+		my $newid="$k[0]\_$idx";
 		if($k[8]=~/Name\=(.*)?\_/) { $mol=$1; } else  { $mol=""; }
 		$rna{$k[0]}{$idx}{molecule}="$mol rRNA";
 		$rna{$k[0]}{$idx}{name}=$newid ; 
