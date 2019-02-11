@@ -97,8 +97,8 @@ while(<infile2>) {
 		
 		query();
    
-		(%accum,%provhits,%providen,%giden)=();
- 		($validhits,$tothits)=0;
+		(%accum,%accumnofilter,%provhits,%providen,%giden)=();
+ 		($validhits,$validhitsnofilter,$tothits)=0;
 		$string="";
 		$lastorf=$thisorf;	
 		($refscore,$refiden)=0;	
@@ -210,10 +210,14 @@ sub query {
 		if($noidfilter) {
 			if($validhitsnofilter==1) { $minreqhits=1; } else { $minreqhits=$minhits; }
 			if($flex<1) { $required=$validhitsnofilter-($flex*$validhitsnofilter); } else { $required=$validhitsnofilter-$flex; }
+			print "NOFILTER $lastorf Hits: $tothits; Valid: $validhits; Min: $minreqhits; Required: $required\n" if $verbose;
 			$lasttaxnofilter="";			
 			foreach my $k(@ranks) {
+				print "   NOFILTER $k\n" if $verbose;
 				foreach my $t(keys %{ $accumnofilter{$k} }) {
+				print "      NOFILTER $t $accumnofilter{$k}{$t}\n" if $verbose;
 					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits)) { $lasttaxnofilter=$t; }
+					print "NOFILTER $k -> $t\n" if $verbose;
 					}
 
 				last if($lasttaxnofilter);
