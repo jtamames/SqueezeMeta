@@ -162,7 +162,7 @@ sub collapse {
 
 	print "Collapsing hits with blastxcollapse.pl\n";
 	$collapsed="$tempdir/08.$project.nr.blastx.collapsed.m8";
-	my $collapse_command="/home/jtamames/software/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
+	my $collapse_command="$scriptdir/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
 	system $collapse_command;
 	}
 	
@@ -172,7 +172,7 @@ sub merge {
 
 	$collapsedmerged=$collapsed;
 	$collapsedmerged=~s/\.m8/\.merged\.m8/;
-	my $merge_command="/media/mcm/jtamames/squeezeM/repo/SqueezeM/scripts/mergehits.pl $collapsed > $collapsedmerged";
+	my $merge_command="$scriptdir/mergehits.pl $collapsed > $collapsedmerged";
 	print "Merging splitted hits with mergehits.pl\n";
 	system $merge_command;
 	}
@@ -232,7 +232,7 @@ sub lca {
 	#-- Assign with lca_collapsed
 
 	print "Now running lca_collapse.pl\n";
-	system("perl /media/mcm/jtamames/squeezeM/repo/SqueezeM/scripts/lca_collapse.pl $project $collapsedmerged");
+	system("perl $scriptdir/lca_collapse.pl $project $collapsedmerged");
 	}
 
 sub functions {
