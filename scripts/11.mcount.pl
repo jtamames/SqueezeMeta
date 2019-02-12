@@ -40,6 +40,13 @@ while(<infile2>) {
 	if($tax eq "No consensus") { $tax="Unknown"; }
 	if(!$tax) { $tax="Unknown"; }
 	$taxa{$node}=$tax;
+	my $string="";
+	my @tx=split(/\;/,$tax);
+	for(my $n=0; $n<=$#tx; $n++) {
+		$string.="$tx[$n];";
+		$accum{$string}+=$lon{$node};
+		}
+	
 	}
 close infile2;
 
@@ -65,7 +72,7 @@ while(<infile3>) {
 	
 	for(my $n=0; $n<=$#tx; $n++) {
 		$string.="$tx[$n];";
-		$accum{$string}+=$tlong;
+		# $accum{$string}+=$tlong;
 		
 		#-- Add also bases and reads
 		

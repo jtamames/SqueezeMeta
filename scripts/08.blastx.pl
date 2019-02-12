@@ -264,7 +264,7 @@ sub remaketaxtables {
 	print "Merging tax tables\n";
 	my $wranktable="$resultpath/06.$project.fun3.tax.wranks";
 	my $blastxtable;
-	my $newtable=$fun3tax_blastx;
+	my $newtable=$fun3tax_blastx.".wranks";
 	my(%intable,%methods);
 	if($idenfilters) { $blastxtable="$resultpath/08.$project.fun3.blastx.tax.wranks"; }
 	else { $blastxtable="$resultpath/08.$project.fun3.blastx.tax_nofilter.wranks"; }
