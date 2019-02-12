@@ -53,7 +53,7 @@ close infile2;
 		#-- Contigs with no genes are not in the contiglog file, they must be counted apart
 
 foreach my $acg(keys %lon) {
-	if(!$cseen{$acg}) { $accum{"Unknown"}+=$lon{$acg}; }
+	if(!$cseen{$acg}) { $accum{"Unknown;"}+=$lon{$acg}; }
 	}
 
 	#-- Read contigcov file to get abundances of each contig
