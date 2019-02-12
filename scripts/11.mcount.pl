@@ -17,7 +17,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 our($datapath,$resultpath,$contigslen,$alllog,$taxlist,$contigcov,$mcountfile);
 
-my(%lon,%taxa,%abund,%abundreads,%samples,%accum,%accumbases,%accumreads,%taxcorr);
+my(%lon,%taxa,%abund,%abundreads,%samples,%accum,%accumbases,%accumreads,%taxcorr,%cseen);
 
 	#-- Read contig lengths
 
@@ -46,9 +46,15 @@ while(<infile2>) {
 		$string.="$tx[$n];";
 		$accum{$string}+=$lon{$node};
 		}
-	
+	$cseen{$node}=1;	
 	}
 close infile2;
+
+		#-- Contigs with no genes are not in the contiglog file, they must be counted apart
+
+foreach my $acg(keys %lon) {
+	if(!$cseen{$acg}) { $accum{"Unknown"}+=$lon{$acg}; }
+	}
 
 	#-- Read contigcov file to get abundances of each contig
 
