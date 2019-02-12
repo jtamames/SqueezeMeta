@@ -71,7 +71,7 @@ while(<infile3>) {
 	next if(!$_ || ($_=~/^\#/));
 	if($_=~/^\>([^ ]+)/) {
 		my $contigname=$1;
-		$contigname=~s/\_\d+$//; 
+		$contigname=~s/\_\d+\-\d+$//; 
 		$contig{$contigname}{numgenes}++;
 	}
 }
