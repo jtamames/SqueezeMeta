@@ -163,7 +163,13 @@ We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3,
 SqueezeMeta includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
 
 
-## 9. License and third-party software
+## 9. Updating SqueezeMeta
+Assuming your databases are not inside the SqueezeMeta directory, just remove it, download the new version and configure it with
+
+`<installpath>/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl <database_location>`
+
+
+## 10. License and third-party software
 SqueezeMeta is distributed under a GPL-3 license.
 Additionally, SqueezeMeta redistributes the following third-party software:
 * [Megahit](https://github.com/voutcn/megahit)
@@ -189,7 +195,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [pullseq](https://github.com/bcthomas/pullseq)
 
 
-## 10. About
+## 11. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
 
 
