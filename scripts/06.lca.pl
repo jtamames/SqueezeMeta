@@ -33,7 +33,7 @@ my $flex=0.2;           #-- Allows this PERCENTAGE (if less than one) or NUMBER 
 my $minhits=2;        #-- Minimum number of hits for the taxa (if there is only one valid hit, this value sets to one automatically
 my $verbose=0;
 my $thereareresults=0;
-my $noidfilter=0;	#-- Set to 1, creates a new set of results with no identity filters
+my $noidfilter=1;	#-- Set to 1, creates a new set of results with no identity filters
 
 #-- Prepare the LCA database (containing the acc -> tax correspondence)
 
