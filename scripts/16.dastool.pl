@@ -19,7 +19,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 our($installpath,$datapath,$databasepath,$resultpath,$aafile,$contigsfna,%bindirs,$contigcov,$dastool_soft,$alllog,$tempdir,$numthreads);
 
-my $score_tres=0;	#-- Score threshold for keeping bins (proxy for level of completeness)
+my $score_tres=0.25;	#-- Score threshold for keeping bins (proxy for level of completeness)
 
 my $daspath="$resultpath/DAS";
 system("mkdir $daspath");
@@ -58,7 +58,8 @@ print "done\n";
 
 #-- Run DAS tool
 
-my $das_command="PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --proteins $aafile --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath"; 
+#my $das_command="PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --proteins $aafile --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath"; 
+my $das_command="PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath"; 
 print "Running DAS Tool for $methods\n";
  print "$das_command\n";
 my $ecode = system $das_command;
