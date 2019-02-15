@@ -125,6 +125,7 @@ if(!$miniden) { $miniden=50; }
 if(!$nocog) { $nocog=0; }
 if(!$nokegg) { $nokegg=0; }
 if(!$nopfam) { $nopfam=0; }
+if(!$doublepass) { $doublepass=0; }
 if(!$nobins) { $nobins=0; }
 if(!$nomaxbin) { $nomaxbin=0; }
 if(!$nometabat) { $nometabat=0; }
@@ -414,6 +415,7 @@ sub moving {
  		chomp;
  		next if(!$_ || ($_=~/^\#/));
 		my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+		if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile\n"; }
 		$allsamples{$sample}=1;
 		$ident{$file}=$iden;
 		if(($mapreq) && ($mapreq=~/noassembly/i)) { $noassembly{$file}=1; }    #-- Files flagged for no assembly (but they will be mapped)

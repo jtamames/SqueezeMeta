@@ -47,7 +47,7 @@ while(<infile1>) {
 	($rpoint,my $rest)=split(/\t/,$point);
 	}
 close infile1;
-
+cripts/restart.pl
 	#-- Create new progress, append to existing syslog
 
 my $currtime;

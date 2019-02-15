@@ -98,7 +98,9 @@ sub masking() {
 	foreach my $tgene(keys %annotations) {		
 		my @f=split(/\t/,$tgene);
 		my @gpos=split(/\_/,$f[0]);
-		$genpos{"$gpos[0]\_$gpos[1]"}{$gpos[$#gpos]}=$f[0];
+		my $posn=pop @gpos;
+		my $contname=join("_",@gpos);
+		$genpos{$contname}{$posn}=$f[0];
 	
 		#-- If there is taxonomic and/or functional annotation, we consider the gene as correctly predicted
 		if(($annotations{$tgene}{tax}=~/superkingdom/) || ($annotations{$tgene}{cog}) ||  ($annotations{$tgene}{kegg}) || ($annotations{$tgene}{pfam})) {
@@ -153,7 +155,7 @@ sub run_blastx {
 	$blastxout="$resultpath/08.$project.nr.blastx";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evalue -o $blastxout";
 	# print "$blastx_command\n";
-	 system $blastx_command;
+	 #system $blastx_command;
 	}
 
 sub collapse {
@@ -181,6 +183,7 @@ sub getseqs {
 
 	#-- Get new nt sequences
 
+	$collapsedmerged="/media/mcm/jtamames/check/v2/newtestD3merged/temp/08.newtestD3merged.nr.blastx.collapsed.merged.m8";
 	print "Getting nt sequences\n";
 	my %orfstoget;
 	open(infile4,$collapsedmerged) || die;
@@ -189,8 +192,10 @@ sub getseqs {
 		next if(!$_ || ($_=~/^\#/));
 		my @t=split(/\t/,$_);
 		my @w=split(/\_/,$t[0]);
-		$orfstoget{"$w[0]\_$w[1]"}{$w[2]}=1;
-		# print "$w[0]\_$w[1]*$w[2]*\n";
+		my $posn=pop @w;
+		my $contname=join("_",@w);
+		$orfstoget{$contname}{$posn}=1;
+		# print "$contname*$posn*\n";
 		}
 	close infile4;
 
@@ -243,8 +248,8 @@ sub functions {
 		$cogfun="$tempdir/08.$project.fun3.blastx.cog.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
 		print "Running Diamond blastx for COGS: $command\n";
-		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
+		#my $ecode = system $command;
+		#if($ecode!=0) { die "Error running command:    $command"; }
 		}
 
 	#-- KEGG database
@@ -253,8 +258,8 @@ sub functions {
 		$keggfun="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
 		print "Running Diamond blastx for KEGG: $command\n";
-		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
+		#my $ecode = system $command;
+		#if($ecode!=0) { die "Error running command:    $command"; }
 		}
 	print "Assigning with fun3\n";
 	system("perl $scriptdir/07.fun3assign.pl $project blastx");
@@ -433,8 +438,11 @@ sub remakegff {
 
 	my (@listorfs,@sortedorfs);
 	foreach my $orf(keys %allorfs) { 
-		my @y=split(/\_|\-/,$orf);
-		push(@listorfs,{'orf',=>$orf,'contig'=>$y[1],'posinit'=>$y[2]});
+		my @sf=split(/\_/,$orf);
+		my $ipos=pop @sf;
+		my $contname=join("_",@sf);
+		my($poinit,$poend)=split(/\-/,$ipos);
+		push(@listorfs,{'orf',=>$orf,'contig'=>$contname,'posinit'=>$poinit});
 		}
 	@sortedorfs=sort {
 		$a->{'contig'} <=> $b->{'contig'} ||
@@ -446,7 +454,11 @@ sub remakegff {
 		if($gffstore{$orf}) { print outfile6 "$gffstore{$orf}\n"; }
 		else {
 			my @y=split(/\_|\-/,$orf);
-			print outfile6 "$y[0]_$y[1]\tDiamond Blastx\tCDS\t$y[2]\t$y[3]\t?\t?\t?\tID=$orf;\n";
+			my @sf=split(/\_/,$orf);
+			my $ipos=pop @sf;
+			my $contname=join("_",@sf);
+			my($poinit,$poend)=split(/\-/,$ipos);
+			print outfile6 "$contname\tDiamond Blastx\tCDS\t$poinit\t$poend\t?\t?\t?\tID=$orf;\n";
 			}
 	
 		}

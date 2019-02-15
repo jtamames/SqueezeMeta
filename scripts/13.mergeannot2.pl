@@ -163,9 +163,12 @@ if($doublepass) {
 		if($_=~/^\>([^ ]+)/) {			#-- If we are reading a new ORF, store the data for the last one
 			if($ntseq) { 
 			$gc=gc_count($ntseq,$ntorf);
-			my @tg=split(/\_|\-/,$ntorf);
+			my @sf=split(/\_/,$ntorf);
+			my $ipos=pop @sf;
+			my $contname=join("_",@sf);
+			my($poinit,$poend)=split(/\-/,$ipos);
 			$orfdata{$ntorf}{gc}=$gc;
-			$orfdata{$ntorf}{length}=int(($tg[3]-$tg[2]+1)/3);
+			$orfdata{$ntorf}{length}=int(($poend-$poinit+1)/3);
 			$orfdata{$ntorf}{molecule}="CDS";
 			$orfdata{$ntorf}{method}="blastx";
 			}
@@ -275,7 +278,7 @@ open(infile12,$mapcountfile) || warn "Cannot open mapping file $mapcountfile\n";
 print "Reading RPKMs and Coverages\n";
 while(<infile12>) {
 	chomp;
-	next if(!$_ || ($_=~/\#/));
+	next if(!$_ || ($_=~/\#/) || ($_=~/^Gen/));
 	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$idfile)=split(/\t/,$_);
 	$mapping{$idfile}{$orf}{rpkm}=$rpkm;		#-- RPKM values
 	$mapping{$idfile}{$orf}{raw}=$rawreads; 		#-- Raw counts
@@ -307,8 +310,12 @@ print outfile1 "\n";
 
 my (@listorfs,@sortedorfs);
 foreach my $orf(keys %orfdata) {
-	my @y=split(/\_|\-/,$orf);
-	push(@listorfs,{'orf',=>$orf,'contig'=>$y[1],'posinit'=>$y[2]});
+	my @sf=split(/\_/,$orf);
+	my $ipos=pop @sf;
+	my $contname=join("_",@sf);
+	my($poinit,$poend)=split(/\-/,$ipos);
+
+	push(@listorfs,{'orf',=>$orf,'contig'=>$contname,'posinit'=>$poinit});
 	}
 @sortedorfs=sort {
 	$a->{'contig'} <=> $b->{'contig'} ||
@@ -329,10 +336,10 @@ foreach my $orfm(@sortedorfs) {
 
 	#-- Abundance values
 
-	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'rpkm'}"; }
-	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'coverage'}"; }
-	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'raw'}"; }
-	foreach my $cnt(sort keys %mapping) { print outfile1 "\t$mapping{$cnt}{$orf}{'rawbases'}"; }
+	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rpkm'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'coverage'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'raw'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rawbases'} || "0"; print outfile1 "\t$sdat"; }
 
 	#-- aa sequences (if requested)
 
