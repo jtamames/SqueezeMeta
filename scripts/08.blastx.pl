@@ -155,7 +155,7 @@ sub run_blastx {
 	$blastxout="$resultpath/08.$project.nr.blastx";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evalue -o $blastxout";
 	# print "$blastx_command\n";
-	 #system $blastx_command;
+	 system $blastx_command;
 	}
 
 sub collapse {

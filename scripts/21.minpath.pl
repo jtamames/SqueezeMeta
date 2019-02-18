@@ -90,7 +90,7 @@ outres("metacyc");
 sub outres {
 	my $clas=shift;
 	my $totpath;
-	open(outfile5,">$resultpath/20.$project.$clas.pathways");
+	open(outfile5,">$resultpath/21.$project.$clas.pathways");
 	print outfile5 "Bin\tTax\tPathways found";
 	foreach my $pt(sort keys %allpaths) { print outfile5 "\t$pt"; $totpath++; }
 	print outfile5 "\n";
