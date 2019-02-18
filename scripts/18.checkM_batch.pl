@@ -66,7 +66,7 @@ my @files=grep(/tax$/,readdir indir);
 closedir indir;
 
 
-my $checkmfile="$resultpath/17.$project.$binmethod.checkM";	#-- From checkM_batch.pl, checkM results
+my $checkmfile="$resultpath/18.$project.$binmethod.checkM";	#-- From checkM_batch.pl, checkM results
 if(-e $checkmfile) { system("rm $checkmfile"); }
 
 	#-- Working for each bin

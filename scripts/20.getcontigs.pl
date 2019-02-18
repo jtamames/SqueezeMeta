@@ -71,7 +71,7 @@ while(<infile3>) {
 	next if(!$_ || ($_=~/^\#/));
 	if($_=~/^\>([^ ]+)/) {
 		my $contigname=$1;
-		$contigname=~s/\_\d+$//; 
+		$contigname=~s/\_\d+\-\d+$//; 
 		$contig{$contigname}{numgenes}++;
 	}
 }
@@ -120,7 +120,17 @@ print outfile1 "\n";
 
 	#-- Contig data
 
-foreach my $p(sort keys %contig) { 
+my (@listcontigs,@sortedcontigs);
+foreach my $ctg(keys %contig) {
+	my @y=split(/\_/,$ctg);
+	push(@listcontigs,{'contig',=>$ctg,'number'=>$y[1]});
+	}
+@sortedcontigs=sort {
+	$a->{'number'} <=> $b->{'number'}
+	} @listcontigs;
+
+foreach my $ctg(@sortedcontigs) { 
+	my $p=$ctg->{'contig'};
 	my $binfield;
 	#next if(!$contig{$p}{numgenes});
 
