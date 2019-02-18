@@ -24,7 +24,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
+our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$installpath,$numthreads,$scriptdir,$fun3tax,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$blastxout,$collapsed,$collapsedmerged,$ntmerged,$cogfun,$keggfun);
@@ -262,7 +262,7 @@ sub functions {
 
 sub remaketaxtables {
 	print "Merging tax tables\n";
-	my $wranktable="$resultpath/06.$project.fun3.tax.wranks";
+	my $wranktable=$fun3tax.".wranks";
 	my $blastxtable;
 	my $newtable=$fun3tax_blastx.".wranks";
 	my(%intable,%methods);
