@@ -288,7 +288,7 @@ while(<infile12>) {
 }
 close infile12;	     
   
-	#-- CREATING GEN TABLE
+	#-- CREATING GENE TABLE
 
 print "Creating table\n";
 open(outfile1,">$mergedfile") || die "I need an output file\n";

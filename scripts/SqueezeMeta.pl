@@ -142,14 +142,19 @@ if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
 
 print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 
+my $dietext;
 if($ver) { exit; }
 if($hel) { die "$helptext\n"; } 
-if((!$rawfastq) || (!$equivfile) || (!$mode)) { die "$helptext\n"; }
-if(($mode!~/sequential/i) && (!$project)) { die "$helptext\n"; }
-if(($mode=~/sequential/i) && ($project)) { die "$helptext\nPlease DO NOT specify project name in sequential mode. The name will be read from the samples in $equivfile\n"; }
-if($mode!~/sequential|coassembly|merged/i) { die "$helptext\n"; }
-if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { die "$helptext\n"; }
+if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
+if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
+if(!$mode) { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
+if(($mode!~/sequential/i) && (!$project)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
+if(($mode=~/sequential/i) && ($project)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
+if($mode!~/sequential|coassembly|merged/i) { $dietext.="UNRECOGNIZED run mode $mode\n"; }
+if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
+
+if($dietext) { die "$dietext\n$helptext\n"; }
 
 my $currtime=timediff();
 print "Run started ",scalar localtime," in $mode mode\n";
