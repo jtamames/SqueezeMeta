@@ -258,6 +258,7 @@ if($mode ne "sequential") {
 	print outfile1 "\n";
 	print outfile1 "Good-qual bins (>75% complete,<10% contam)";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{goodqual}"; }
+	print outfile1 "\n";
 	}
 
 close outfile1;
