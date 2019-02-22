@@ -28,7 +28,7 @@ our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$blastxout,$collapsed,$collapsedmerged,$ntmerged,$cogfun,$keggfun);
-my(%genpos,%skip,%allorfs,%annotations);
+my(%genpos,%skip,%allorfs,%annotations,%incontig);
 
 my $idenfilters=1;	#-- Set to 1, CONSIDERS identity filters for taxa. Set to 0, it does not
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
@@ -155,7 +155,7 @@ sub run_blastx {
 	$blastxout="$resultpath/08.$project.nr.blastx";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evalue -o $blastxout";
 	# print "$blastx_command\n";
-	 system $blastx_command;
+	# system $blastx_command;
 	}
 
 sub collapse {
@@ -281,6 +281,11 @@ sub remaketaxtables {
 		next if(!$skip{$r[0]});
 		$intable{$r[0]}=$r[1];
 		$methods{$r[0]}="prodigal";
+		my @sf=split(/\_/,$r[0]);
+		my $ipos=pop @sf;
+		my($poinit,$poend)=split(/\-/,$ipos);
+		my $tcontig=join("_",@sf);
+		$incontig{$tcontig}{$poinit}=$poend;
 		}
 	close infile6;
 	open(infile7,$blastxtable) || die "Cannot open blastx wrank $blastxtable\n";
@@ -291,6 +296,11 @@ sub remaketaxtables {
 		next if(!$r[0]);
 		$intable{$r[0]}=$r[1];
 		$methods{$r[0]}="blastx";
+		my @sf=split(/\_/,$r[0]);
+		my $ipos=pop @sf;
+		my($poinit,$poend)=split(/\-/,$ipos);
+		my $tcontig=join("_",@sf);
+		$incontig{$tcontig}{$poinit}=$poend;
 		}
 	close infile7;
 	
@@ -332,6 +342,11 @@ sub remakefuntables {
 			next if(!$skip{$r[0]});
 			$intable{$r[0]}="$r[1]\t$r[2]";
 			$methods{$r[0]}="prodigal";
+			my @sf=split(/\_/,$r[0]);
+			my $ipos=pop @sf;
+			my($poinit,$poend)=split(/\-/,$ipos);
+			my $tcontig=join("_",@sf);
+			$incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile8;
 		open(infile9,$blastxcogtable) || die "Cannot open $blastxcogtable\n";
@@ -342,6 +357,11 @@ sub remakefuntables {
 			next if(!$r[0]);
 			$intable{$r[0]}="$r[1]\t$r[2]";
 			$methods{$r[0]}="blastx";
+			my @sf=split(/\_/,$r[0]);
+			my $ipos=pop @sf;
+			my($poinit,$poend)=split(/\-/,$ipos);
+			my $tcontig=join("_",@sf);
+			$incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile9;
 			#-- Sorting first by contig ID, then by position in contig
@@ -380,6 +400,11 @@ sub remakefuntables {
 			next if(!$skip{$r[0]});
 			$intable{$r[0]}="$r[1]\t$r[2]";
 			$methods{$r[0]}="prodigal";
+			my @sf=split(/\_/,$r[0]);
+			my $ipos=pop @sf;
+			my($poinit,$poend)=split(/\-/,$ipos);
+			my $tcontig=join("_",@sf);
+			$incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile9;
 		open(infile10,$blastxkeggtable) || die "Cannot open $blastxkeggtable\n";
@@ -390,6 +415,11 @@ sub remakefuntables {
 			next if(!$r[0]);
 			$intable{$r[0]}="$r[1]\t$r[2]";
 			$methods{$r[0]}="blastx";
+			my @sf=split(/\_/,$r[0]);
+			my $ipos=pop @sf;
+			my($poinit,$poend)=split(/\-/,$ipos);
+			my $tcontig=join("_",@sf);
+			$incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile10;
 			#-- Sorting first by contig ID, then by position in contig
@@ -430,7 +460,21 @@ sub remakegff {
 		next if(!$_ || ($_=~/^\#/));
 		my @r=split(/\t/,$_);
 		my $orfid;
-		if($r[8]=~/ID\=([^;]+)/) { $gffstore{$1}=$_; }
+		if($r[8]=~/ID\=([^;]+)/) { 
+			my $oid=$1;
+			$gffstore{$oid}=$_; 
+			my @sf=split(/\_/,$oid);
+			my $ipos=pop @sf;
+			my($poinit,$poend)=split(/\-/,$ipos);	#Let's see if this original prodigal CDS overlaps with a new blastx one
+			my $tcontig=join("_",@sf);
+			my $olap=0;
+			foreach my $initpres(sort keys %{ $incontig{$tcontig} }) {
+				my $endpres=$incontig{$tcontig}{$initpres};
+				if(($initpres>=$poinit) && ($initpres<=$poend))  { $olap=1; last; }	# A blastx hit starts into a prodigal CDS
+				if(($endpres>=$poinit) && ($endpres<=$poend)) { $olap=1; last; }	# A blastx hit ends into a prodigal CDS
+				}
+			if(!$olap) { $allorfs{$oid}=1; print "***$oid***\n"; }
+			}
 		}
 	close infile11;
 	
