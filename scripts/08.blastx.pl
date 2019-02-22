@@ -473,7 +473,7 @@ sub remakegff {
 				if(($initpres>=$poinit) && ($initpres<=$poend))  { $olap=1; last; }	# A blastx hit starts into a prodigal CDS
 				if(($endpres>=$poinit) && ($endpres<=$poend)) { $olap=1; last; }	# A blastx hit ends into a prodigal CDS
 				}
-			if(!$olap) { $allorfs{$oid}=1; print "***$oid***\n"; }
+			if(!$olap) { $allorfs{$oid}=1; }
 			}
 		}
 	close infile11;
