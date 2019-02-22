@@ -24,7 +24,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$installpath,$numthreads,$scriptdir,$fun3tax,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
+our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$blastxout,$collapsed,$collapsedmerged,$ntmerged,$cogfun,$keggfun);
@@ -183,7 +183,7 @@ sub getseqs {
 
 	#-- Get new nt sequences
 
-	$collapsedmerged="$tempdir/08.$project.nr.blastx.collapsed.merged.m8";
+	$collapsedmerged="/media/mcm/jtamames/check/v2/newtestD3merged/temp/08.newtestD3merged.nr.blastx.collapsed.merged.m8";
 	print "Getting nt sequences\n";
 	my %orfstoget;
 	open(infile4,$collapsedmerged) || die;
@@ -248,8 +248,8 @@ sub functions {
 		$cogfun="$tempdir/08.$project.fun3.blastx.cog.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
 		print "Running Diamond blastx for COGS: $command\n";
-		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
+		#my $ecode = system $command;
+		#if($ecode!=0) { die "Error running command:    $command"; }
 		}
 
 	#-- KEGG database
@@ -258,8 +258,8 @@ sub functions {
 		$keggfun="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
 		print "Running Diamond blastx for KEGG: $command\n";
-		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
+		#my $ecode = system $command;
+		#if($ecode!=0) { die "Error running command:    $command"; }
 		}
 	print "Assigning with fun3\n";
 	system("perl $scriptdir/07.fun3assign.pl $project blastx");
@@ -267,7 +267,7 @@ sub functions {
 
 sub remaketaxtables {
 	print "Merging tax tables\n";
-	my $wranktable=$fun3tax.".wranks";
+	my $wranktable="$resultpath/06.$project.fun3.tax.wranks";
 	my $blastxtable;
 	my $newtable=$fun3tax_blastx.".wranks";
 	my(%intable,%methods);
