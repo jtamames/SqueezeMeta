@@ -234,7 +234,7 @@ open(infile12,$mapcountfile) || warn "Cannot open mapping file $mapcountfile\n";
 print "Reading RPKMs and Coverages\n";
 while(<infile12>) {
 	chomp;
-	next if(!$_ || ($_=~/\#/));
+	next if(!$_ || ($_=~/\#/) || ($_=~/^Gen/));
 	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$idfile)=split(/\t/,$_);
 	$mapping{$idfile}{$orf}{rpkm}=$rpkm;		#-- RPKM values
 	$mapping{$idfile}{$orf}{raw}=$rawreads; 		#-- Raw counts
