@@ -318,7 +318,7 @@ foreach my $orf(keys %orfdata) {
 	push(@listorfs,{'orf',=>$orf,'contig'=>$contname,'posinit'=>$poinit});
 	}
 @sortedorfs=sort {
-	$a->{'contig'} <=> $b->{'contig'} ||
+	$a->{'contig'} cmp $b->{'contig'} ||
 	$a->{'posinit'} <=> $b->{'posinit'}
 	} @listorfs;
 
