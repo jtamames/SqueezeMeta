@@ -26,7 +26,6 @@ my $command;
 if(!$nocog) {
 	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
 	print "Running Diamond for COGS (This can take a while, please be patient)\n";
-	system $command;
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 }
