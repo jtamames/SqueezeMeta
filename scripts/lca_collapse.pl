@@ -54,7 +54,7 @@ while(<infile1>) {
 close infile1;
 
 my $outname="08.$project.fun3.blastx.tax";
-open(out,">$tempdir/$outname") || die "Cannot open output in /media/mcm/jtamames/temp/$outname\n";
+open(out,">$tempdir/$outname") || die "Cannot open output in $tempdir/$outname\n";
 open(outc,">$resultpath/$outname.wranks") || die;
 open(outnof,">$tempdir/$outname\_nofilter") || die;
 open(outcnof,">$resultpath/$outname\_nofilter.wranks") || die;
