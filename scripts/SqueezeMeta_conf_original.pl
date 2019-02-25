@@ -51,7 +51,7 @@ $mergedfile="$resultpath/13.$projectname.orftable";	#-- GEN TABLE FILE
 $bintax="$resultpath/17.$projectname.bintax";           #-- From addtax2.pl
 $bincov="$resultpath/19.$projectname.bincov";           #-- Coverage of bins, from getbins.pl
 $bintable="$resultpath/19.$projectname.bintable";       #-- Mapping of contigs in bins, from getbins.pl
-$contigsinbins="$resultpath/20.$projectname.contigsinbins";
+$contigsinbins="$resultpath/19.$projectname.contigsinbins";
 $contigtable="$resultpath/20.$projectname.contigtable"; #-- From getcontigs.pl, CONTIGS TABLE
 
 #-- Datafiles

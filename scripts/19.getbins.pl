@@ -97,7 +97,7 @@ foreach my $binmethod(sort keys %dasdir) {
 			$bins{$binmethod}{$bin}{size}=$size;
 			$bins{$binmethod}{$bin}{chimerism}=$chimerism;
 			}
-		else { 
+		elsif($_=~/^\>/) {
 			$_=~s/\>//;
 			my @t=split(/\s+/,$_);
 			$contigs{$binmethod}{$t[0]}=$bin; 
