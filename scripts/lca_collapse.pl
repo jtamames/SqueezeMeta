@@ -104,7 +104,7 @@ sub query {
 	# if($lastorf=~/NODE_1_length_433318_cov_12.8415_1/) { $verbose=1; } else { $verbose=0; }
 	print "refscore: $refscore refiden: $refiden\n" if $verbose; 
 	my (%giden,%bhit)=();
-	my($besthit,$ratoscore,$idendiff,$lasttax);
+	my($besthit,$ratoscore,$idendiff,$lasttax, $nuquery);
 	my $query="select * from taxid where (";
 	foreach my $lhits(keys %provhits) {
 		print ">*>$lhits $provhits{$lhits}\n" if $verbose;
@@ -118,10 +118,12 @@ sub query {
 			# print "  ----- $thishit $thisscore $refscore\n";
 			if($refscore) { $ratioscore=$thisscore/$refscore; }
 			next if($ratioscore<=$scoreratio);
+                        $nuquery++;
+                        last if($nuquery>=100);
 			if($refiden) { $idendiff=$refiden-$thisiden; }
 			next if($idendiff>$diffiden);    
 			if($refcc) { $query.=" or "; }
- 			else { $refcc=1; } 
+ 			else { $refcc=1; }
 			$query.="id=\"$thishit\"";
 			if(!$besthit) { $besthit=$thishit; }
 			}
