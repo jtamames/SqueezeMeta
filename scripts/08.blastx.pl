@@ -33,6 +33,15 @@ my(%genpos,%skip,%allorfs,%annotations,%incontig);
 my $idenfilters=1;	#-- Set to 1, CONSIDERS identity filters for taxa. Set to 0, it does not
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
 
+my $blastxout="$resultpath/08.$project.nr.blastx";
+my $collapsed="$tempdir/08.$project.nr.blastx.collapsed.m8";
+my $collapsedmerged=$collapsed;
+$collapsedmerged=~s/\.m8/\.merged\.m8/;
+
+
+
+
+
 masking();
 run_blastx();
 collapse();
@@ -152,7 +161,6 @@ sub run_blastx {
 	#-- Run Diamond search
 
 	print "Running Diamond BlastX (This can take a while, please be patient)\n";
-	$blastxout="$resultpath/08.$project.nr.blastx";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evalue -o $blastxout";
 	print "$blastx_command\n";
 	system $blastx_command;
@@ -163,7 +171,6 @@ sub collapse {
 	#-- Collapse hits using blastxcollapse.pl
 
 	print "Collapsing hits with blastxcollapse.pl\n";
-	$collapsed="$tempdir/08.$project.nr.blastx.collapsed.m8";
 	my $collapse_command="$scriptdir/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
 	system $collapse_command;
 	}
@@ -172,8 +179,6 @@ sub merge {
 
 	#-- Merge frameshifts
 
-	$collapsedmerged=$collapsed;
-	$collapsedmerged=~s/\.m8/\.merged\.m8/;
 	my $merge_command="$scriptdir/mergehits.pl $collapsed > $collapsedmerged";
 	print "Merging splitted hits with mergehits.pl\n";
 	system $merge_command;

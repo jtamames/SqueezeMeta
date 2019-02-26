@@ -46,7 +46,7 @@ GetOptions (
 	    "s|show-bitscore"      => \$flgs->{'show-bitscore'}
 	    );
 	    
-$blastfile = shift @ARGV;
+$blastfile = pop @ARGV;
 print "#Created by $0, ",scalar localtime,"; Input:$blastfile; "; 
 print "o:$min_overlap d:$min_identity l:$min_alilong b:$flgs->{'best-only'} f:$flgs->{'first-hit'} n:$flgs->{'no-frames'} e:$flgs->{'e-values'} i:$flgs->{'no-identical'} s:$flgs->{'show-bitscore'}\n"; 
 my $score_field = $flgs->{'e-values'} ? 10 : 11;
