@@ -7,6 +7,7 @@ $|=1;
 
 use strict;
 use Time::Seconds;
+use Getopt::Long;
 use Cwd;
 use lib ".";
 
@@ -17,8 +18,24 @@ my $start_run = time();
 
 my $pwd=cwd();	
 
-my $project=$ARGV[0];				#-- THIS MUST POINT TO THE INTERRUPTED PROCESS		
-if(!$project) { die "Please indicate the project to restart\nUsage: restart.pl <project>\n"; }
+my($rpoint,$hel); 
+my $result = GetOptions ("step=i" => \$rpoint,"h" => \$hel);
+
+my $helptext = <<END_MESSAGE;
+Usage: restart.pl [options] project
+
+Options:
+
+      -step: Step of the analysis to restart
+      
+END_MESSAGE
+
+
+
+if($hel) { die "$helptext\n"; } 
+
+my $project=pop @ARGV;				#-- THIS MUST POINT TO THE INTERRUPTED PROCESS		
+if(!$project) { die "Please indicate the project to restart\nUsage: restart.pl  [options] project\n"; }
 $project=~s/\/$//;
 
 my $progress="$pwd/$project/progress";
@@ -31,12 +48,13 @@ our($datapath,$assembler,$outassembly,$nomaxbin,$nometabat,$lowmem,$minion);
 our($nocog,$nokegg,$nopfam,$nobins);
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$doublepass);
 our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$nomaxbin,$contigslen,$mcountfile,$rnafile,$gff_file,$gff_file_blastx,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
-our(%bindirs,%dasdir);  
+our(%bindirs,%dasdir); 
+my($rpoint,$hel); 
 
 
 	#-- Read where the process stopped
 
-my($numsamples,$mode,$rpoint);
+my($numsamples,$mode);
 open(infile1,$progress) || die; 
 while(<infile1>) {
 	chomp $_;
@@ -44,7 +62,7 @@ while(<infile1>) {
 	if($_=~/^Samples\:(\d+)/) { $numsamples=$1; next; }
 	if($_=~/^Mode\:(\w+)/) { $mode=$1; next; }
 	my $point=$_;
-	($rpoint,my $rest)=split(/\t/,$point);
+	if(!$rpoint) {	($rpoint,my $rest)=split(/\t/,$point); }
 	}
 close infile1;
 
