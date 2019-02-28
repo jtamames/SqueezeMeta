@@ -52,7 +52,7 @@ foreach my $binmethod(sort keys %dasdir) {
 
 	print "Method:$binmethod\n";
 	my $bindir=$dasdir{$binmethod};
-	my $checkmfile="$resultpath/17.$project.$binmethod.checkM";
+	my $checkmfile="$resultpath/18.$project.$binmethod.checkM";
 	print "Reading checkM results in $checkmfile\n";
 	
 		#-- Read checkM results for each bin
