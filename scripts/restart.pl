@@ -49,11 +49,11 @@ our($nocog,$nokegg,$nopfam,$nobins);
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$doublepass);
 our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$nomaxbin,$contigslen,$mcountfile,$rnafile,$gff_file,$gff_file_blastx,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir); 
-my($rpoint,$hel); 
 
 
 	#-- Read where the process stopped
 
+my $sflag=$rpoint;
 my($numsamples,$mode);
 open(infile1,$progress) || die; 
 while(<infile1>) {
@@ -62,7 +62,7 @@ while(<infile1>) {
 	if($_=~/^Samples\:(\d+)/) { $numsamples=$1; next; }
 	if($_=~/^Mode\:(\w+)/) { $mode=$1; next; }
 	my $point=$_;
-	if(!$rpoint) {	($rpoint,my $rest)=split(/\t/,$point); }
+	if(!$sflag) {	($rpoint,my $rest)=split(/\t/,$point); }
 	}
 close infile1;
 
