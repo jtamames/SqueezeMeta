@@ -126,7 +126,10 @@ sub metacyc {
 		print "Running MinPath for metacyc: $kbin      \r";
 		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
 		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
+ 		if($ecode!=0) {
+			print "WARNING: Error running command:    $command\n";
+			print "This is normally due to a small bin having no annotations recognizable by MinPath.\n"
+			}
 
 		open(infile5,"$tempdir/$kbin.minpath.temp.report") || next;
 		my %accum=();
@@ -181,7 +184,10 @@ sub kegg {
 		print "Running MinPath for kegg: $kbin      \r";
 		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $outdir/$kbin.kegg.details > /dev/null";
 		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
+ 		if($ecode!=0) {
+			print "WARNING: Error running command:    $command\n";
+			print "This is normally due to a small bin having no annotations recognizable by MinPath.\n"
+			}
 		open(infile6,"$tempdir/$kbin.minpath.temp.report") || next;
 		my %accum=();
 		my $pathname;
