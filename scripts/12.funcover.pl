@@ -246,7 +246,7 @@ close outfile1;
 
 my $minraw=200;
 foreach my $classfun(sort keys %funstat) {
-	$rawf="$resultpath/12.$project.$classfun.rawcounts";
+	$rawf="$resultpath/12.$project.$classfun.stamp";
 	print "Now creating $classfun raw reads output in $rawf\n";
 	open(outfile2,">$rawf") || die;
 	if($classfun eq "cog") { print outfile2 "$classfun class\t$classfun ID"; }

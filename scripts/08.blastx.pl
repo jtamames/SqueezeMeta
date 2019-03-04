@@ -27,7 +27,7 @@ do "$project/SqueezeMeta_conf.pl";
 our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
 
 
-my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$blastxout,$collapsed,$collapsedmerged,$ntmerged,$cogfun,$keggfun);
+my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun);
 my(%genpos,%skip,%allorfs,%annotations,%incontig);
 
 my $idenfilters=1;	#-- Set to 1, CONSIDERS identity filters for taxa. Set to 0, it does not
