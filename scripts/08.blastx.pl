@@ -19,6 +19,8 @@ my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//; 
 if(!$project) { die "Please specify a project name\n"; }
+if(!(-e $project)) { die "Project $project does not exist. Please get sure that you are in the correct directory (the one containing your project)\n"; }
+if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
 
 do "$project/SqueezeMeta_conf.pl";
 
@@ -30,10 +32,9 @@ our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun);
 my(%genpos,%skip,%allorfs,%annotations,%incontig);
 
-my $idenfilters=1;	#-- Set to 1, CONSIDERS identity filters for taxa. Set to 0, it does not
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
 
-my $blastxout="$resultpath/08.$project.nr.blastx";
+my $blastxout="$tempdir/08.$project.nr.blastx";
 my $collapsed="$tempdir/08.$project.nr.blastx.collapsed.m8";
 my $collapsedmerged=$collapsed;
 $collapsedmerged=~s/\.m8/\.merged\.m8/;
@@ -272,64 +273,80 @@ sub functions {
 
 sub remaketaxtables {
 	print "Merging tax tables\n";
-	my $wranktable=$fun3tax.".wranks";
-	my $blastxtable;
-	my $newtable=$fun3tax_blastx.".wranks";
-	my(%intable,%methods);
-	if($idenfilters) { $blastxtable="$resultpath/08.$project.fun3.blastx.tax.wranks"; }
-	else { $blastxtable="$resultpath/08.$project.fun3.blastx.tax_nofilter.wranks"; }
-	open(infile6,$wranktable) || die "Cannot open nr wrank $wranktable\n";
-	while(<infile6>) {
-		chomp;
-		next if(!$_ || ($_=~/^\#/));
-		my @r=split(/\t/,$_);
-		next if(!$skip{$r[0]});
-		$intable{$r[0]}=$r[1];
-		$methods{$r[0]}="prodigal";
-		my @sf=split(/\_/,$r[0]);
-		my $ipos=pop @sf;
-		my($poinit,$poend)=split(/\-/,$ipos);
-		my $tcontig=join("_",@sf);
-		$incontig{$tcontig}{$poinit}=$poend;
-		}
-	close infile6;
-	open(infile7,$blastxtable) || die "Cannot open blastx wrank $blastxtable\n";
-	while(<infile7>) {
-		chomp;
-		next if(!$_ || ($_=~/^\#/));
-		my @r=split(/\t/,$_);
-		next if(!$r[0]);
-		$intable{$r[0]}=$r[1];
-		$methods{$r[0]}="blastx";
-		my @sf=split(/\_/,$r[0]);
-		my $ipos=pop @sf;
-		my($poinit,$poend)=split(/\-/,$ipos);
-		my $tcontig=join("_",@sf);
-		$incontig{$tcontig}{$poinit}=$poend;
-		}
-	close infile7;
+	my %ttables=(
+			'filters' => {
+					'original' => $fun3tax.".wranks",
+					'blastx' => "$resultpath/08.$project.fun3.blastx.tax.wranks",
+					'merged' => $fun3tax_blastx.".wranks"
+					},
+			'noidfilters' => {
+					'original' => $fun3tax.".noidfilter.wranks",
+					'blastx' => "$resultpath/08.$project.fun3.blastx.tax_nofilter.wranks",
+					'merged' => $fun3tax_blastx.".nofilter.wranks"
+					}
+		    );
+					
+			#-- Writing both filter and nofilter tables
+					
+	foreach my $item(keys %ttables) {
+		my(%intable,%methods);
+		my $original_table=$ttables{$item}{original};
+		my $blastx_table=$ttables{$item}{blastx};
+		my $resulting_table=$ttables{$item}{merged};
+	
+		open(infile6,$original_table) || die "Cannot open nr wrank $original_table\n";
+		while(<infile6>) {
+			chomp;
+			next if(!$_ || ($_=~/^\#/));
+			my @r=split(/\t/,$_);
+			next if(!$skip{$r[0]});
+			$intable{$r[0]}=$r[1];
+			$methods{$r[0]}="prodigal";
+			my @sf=split(/\_/,$r[0]);
+			my $ipos=pop @sf;
+			my($poinit,$poend)=split(/\-/,$ipos);
+			my $tcontig=join("_",@sf);
+			$incontig{$tcontig}{$poinit}=$poend;
+			}
+		close infile6;
+		open(infile7,$blastx_table) || die "Cannot open blastx wrank $blastx_table\n";
+		while(<infile7>) {
+			chomp;
+			next if(!$_ || ($_=~/^\#/));
+			my @r=split(/\t/,$_);
+			next if(!$r[0]);
+			$intable{$r[0]}=$r[1];
+			$methods{$r[0]}="blastx";
+			my @sf=split(/\_/,$r[0]);
+			my $ipos=pop @sf;
+			my($poinit,$poend)=split(/\-/,$ipos);
+			my $tcontig=join("_",@sf);
+			$incontig{$tcontig}{$poinit}=$poend;
+			}
+		close infile7;
 	
 			#-- Sorting first by contig ID, then by position in contig
 
-	open(outfile3,">$newtable") || die "Cannot open output in $newtable\n";
-	print outfile3 "# Created by $0 merging $wranktable and $blastxtable,",scalar localtime,"\n";
-	my (@listorfs,@sortedorfs);
-	foreach my $orf(keys %intable) {
-		my @y=split(/\_|\-/,$orf);
-		push(@listorfs,{'orf',=>$orf,'contig'=>$y[1],'posinit'=>$y[2]});
-		}
-	@sortedorfs=sort {
-		$a->{'contig'} <=> $b->{'contig'} ||
-		$a->{'posinit'} <=> $b->{'posinit'}
-		} @listorfs;
+		open(outfile3,">$resulting_table") || die "Cannot open output in $resulting_table\n";
+		print outfile3 "# Created by $0 merging $original_table and $blastx_table,",scalar localtime,"\n";
+		my (@listorfs,@sortedorfs);
+		foreach my $orf(keys %intable) {
+			my @y=split(/\_|\-/,$orf);
+			push(@listorfs,{'orf',=>$orf,'contig'=>$y[1],'posinit'=>$y[2]});
+			}
+		@sortedorfs=sort {
+			$a->{'contig'} <=> $b->{'contig'} ||
+			$a->{'posinit'} <=> $b->{'posinit'}
+			} @listorfs;
 
-	foreach my $orfm(@sortedorfs) { 
-		my $orf=$orfm->{'orf'};
-		# print outfile3 "$orf\t$intable{$orf}\t$methods{$orf}\n";
-		print outfile3 "$orf\t$intable{$orf}\n";
-		$allorfs{$orf}=1; 
+		foreach my $orfm(@sortedorfs) { 
+			my $orf=$orfm->{'orf'};
+			# print outfile3 "$orf\t$intable{$orf}\t$methods{$orf}\n";
+			print outfile3 "$orf\t$intable{$orf}\n";
+			$allorfs{$orf}=1; 
+			}
+		close outfile3;	
 		}
-	close outfile3;	
 	}
 		
 sub remakefuntables {
