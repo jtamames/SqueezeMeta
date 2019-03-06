@@ -109,8 +109,8 @@ while(<infile2>) {
 
 	if(!$refscore) { $refscore=$fields[$#fields]; }
 	if(!$refiden) { $refiden=$fields[2]; }  			   
-	$provhits{$fields[1]}=$fields[$#fields];
-	$providen{$fields[1]}=$fields[2];
+	if($fields[$#fields]>$provhits{$fields[1]}) { $provhits{$fields[1]}=$fields[$#fields]; }
+  	if($fields[2]>$providen{$fields[1]}) { $providen{$fields[1]}=$fields[2]; }
         my @hitfields=split(/\|/,$fields[1]);
         $giden{$fields[1]}=$fields[2];
 	# print "PROVHIT: $fields[1] $provhits{$fields[1]} $providen{$fields[1]}\n";

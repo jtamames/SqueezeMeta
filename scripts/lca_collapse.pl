@@ -86,9 +86,8 @@ while(<infile2>) {
 	if(!$refiden) { $refiden=$fields[2]; }  
 	$posinit=$fields[6];			   
 	$posend=$fields[7];
-			   
-	$provhits{$fields[1]}=$fields[$#fields];
-	$providen{$fields[1]}=$fields[2];
+ 	if($fields[$#fields]>$provhits{$fields[1]}) { $provhits{$fields[1]}=$fields[$#fields]; }
+ 	if($fields[2]>$providen{$fields[1]}) { $providen{$fields[1]}=$fields[2]; }
 	$tothits++;			   
 	}
 close infile2;
