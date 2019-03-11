@@ -13,9 +13,17 @@ use Tie::IxHash;
 use lib ".";
 use strict;
 use File::Basename;
+our $scriptdir = dirname(__FILE__);
+our $installpath = "$scriptdir/..";
 
 my $version="0.1.0, Feb 2019";
 my $start_run = time();
+
+do "$scriptdir/SqueezeMeta_conf.pl";
+#-- Configuration variables from conf file
+our($databasepath);
+
+
 my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime);
 
 my $helptext = <<END_MESSAGE;
@@ -58,11 +66,9 @@ my(%allsamples,%ident,%noassembly,%accum);
 my($sample,$file,$iden,$mapreq);
 tie %allsamples,"Tie::IxHash";
 
-my $databasepath="/home/fpuente/db";
 my $nr_db="$databasepath/nr.dmnd";
 my $cog_db="$databasepath/eggnog";
 my $kegg_db="$databasepath/keggdb";
-my $installpath="/media/mcm/jtamames/squeezeM/repo/SqueezeM/scripts/..";
 my $diamond_soft="$installpath/bin/diamond";
 my $coglist="$installpath/data/coglist.txt";    #-- COG equivalence file (COGid -> Function -> Functional class)
 my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
@@ -102,15 +108,16 @@ foreach my $thissample(keys %allsamples) {
 	my $thissampledir="$resultsdir/$thissample";
 	system("mkdir $thissampledir");
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {
+                
 		print "   File: $thisfile\n\n";
 		$currtime=timediff();
 		print "[",$currtime->pretty,"]: Running Diamond for taxa\n";
 		my $outfile="$thissampledir/$thisfile.tax.m8";
 		my $outfile_tax="$thissampledir/$thisfile.tax.wranks";
-		my $blastx_command="$diamond_soft blastx -q $thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b 8 -o $outfile";
+		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b 8 -o $outfile";
 		#print "Running BlastX: $blastx_command\n";
 		system($blastx_command);
-		my $lca_command="perl /media/mcm/jtamames/check/v2/lca_reads.pl $outfile";
+		my $lca_command="perl $scriptdir/lca_reads.pl $outfile";
 		$currtime=timediff();
 		print "[",$currtime->pretty,"]: Running LCA: $lca_command\n";
 		system($lca_command);
@@ -127,11 +134,11 @@ foreach my $thissample(keys %allsamples) {
 		$currtime=timediff();
 		print "[",$currtime->pretty,"]: Running Diamond for COGs\n";
 		my $outfile="$thissampledir/$thisfile.cogs.m8";
-		my $blastx_command="$diamond_soft blastx -q $thisfile -p $numthreads -d $cog_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 		#print "Running BlastX: $blastx_command\n";
 		system($blastx_command);
 		my $outfile_cog="$thissampledir/$thisfile.cogs";
-		my $func_command="perl /media/mcm/jtamames/check/v2/func.pl $outfile $outfile_cog";
+		my $func_command="perl $scriptdir/func.pl $outfile $outfile_cog";
 		$currtime=timediff();
 		print "[",$currtime->pretty,"]: Running fun3: $func_command\n";
 		system($func_command);
@@ -148,11 +155,11 @@ foreach my $thissample(keys %allsamples) {
 		$currtime=timediff();
 		print "[",$currtime->pretty,"]: Running Diamond for KEGG\n";
 		my $outfile="$thissampledir/$thisfile.kegg.m8";
-		my $blastx_command="$diamond_soft blastx -q $thisfile -p $numthreads -d $kegg_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 		#print "Running BlastX: $blastx_command\n";
 		system($blastx_command);
 		my $outfile_kegg="$thissampledir/$thisfile.kegg";
-		my $func_command="perl /media/mcm/jtamames/check/v2/func.pl $outfile $outfile_kegg";
+		my $func_command="perl $scriptdir/func.pl $outfile $outfile_kegg";
 		$currtime=timediff();
 		print "[",$currtime->pretty,"]: Running fun3: $func_command\n";
 		system($func_command);

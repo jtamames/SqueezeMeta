@@ -9,7 +9,12 @@ use Tie::IxHash;
 use Cwd;
 $pwd=cwd();
 
-my $databasepath="/home/fpuente/db";
+use File::Basename;
+our $scriptdir = dirname(__FILE__);
+
+do "$scriptdir/SqueezeMeta_conf.pl";
+our($databasepath);
+
 my $lca_db="$databasepath/LCA_tax/taxid.db";
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1}) or die $DBI::errstr;
@@ -21,7 +26,7 @@ $diffiden=10;       #-- Maximim identity difference with the first
 $flex=0.2;           #-- Allows this PERCENTAGE (if less than one) or NUMBER (if grater than one) of hits from different taxa than LCA
 $minhits=1;        #-- Minimum number of hits for the taxa (if there is only one valid hit, this value sets to one automatically
 $noidentical=0;  #-- Drops the first 100% identical hit (for mock)
-$miniden=50;
+$miniden=30;
 $verbose=0;
 $bhitforced=0;	#-- Forces that assignment cannot differ from best hit
 
@@ -31,7 +36,7 @@ $outname=~s/\.m8//;
 
 if(!$outname) { die "Usage: lca.pl <infile> <outfile>\n"; }
 
-open(in,"/media/mcm/jtamames/databases/LCA_tax/parents.txt") || die;
+open(in,"$databasepath/LCA_tax/parents.txt") || die;
 while(<in>) {
  chomp;
  next if !$_;
@@ -75,9 +80,9 @@ close in;
 		           }
   if($noidentical && (!$skipidentical) && ($fields[2] eq "100.0")) { $skipidentical=1; next; }			   
   if(!$refscore) { $refscore=$fields[$#fields]; }
-  if(!$refiden) { $refiden=$fields[2]; }  			   
-  $provhits{$fields[1]}=$fields[$#fields];
-  $providen{$fields[1]}=$fields[2];
+  if(!$refiden) { $refiden=$fields[2]; } 
+  if($fields[$#fields]>$provhits{$fields[1]}) { $provhits{$fields[1]}=$fields[$#fields]; }
+  if($fields[2]>$providen{$fields[1]}) { $providen{$fields[1]}=$fields[2]; }
   # print "PROVHIT: $fields[1] $provhits{$fields[1]} $providen{$fields[1]}\n";
   $tothits++;			   
        }
@@ -99,8 +104,8 @@ sub query {
    my $besthit;
   $query="select * from taxid where (";
    foreach my $lhits(keys %provhits) {
-    print ">*>$lhits $provhits{$lhits}\n" if $verbose;
     if($refscore) { $ratioscore=$provhits{$lhits}/$refscore; }
+    print ">*>$lhits $provhits{$lhits} $ratioscore $providen{$lhits}\n" if $verbose;
     next if($ratioscore<=$scoreratio);
     next if($providen{$lhits}<$miniden);
     if($refiden) { $idendiff=$refiden-$providen{$lhits}; }
