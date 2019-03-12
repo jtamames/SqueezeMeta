@@ -306,7 +306,7 @@ sub remaketaxtables {
 			my $ipos=pop @sf;
 			my($poinit,$poend)=split(/\-/,$ipos);
 			my $tcontig=join("_",@sf);
-			$incontig{$tcontig}{$poinit}=$poend;
+			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile6;
 		open(infile7,$blastx_table) || die "Cannot open blastx wrank $blastx_table\n";
@@ -368,7 +368,7 @@ sub remakefuntables {
 			my $ipos=pop @sf;
 			my($poinit,$poend)=split(/\-/,$ipos);
 			my $tcontig=join("_",@sf);
-			$incontig{$tcontig}{$poinit}=$poend;
+			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile8;
 		open(infile9,$blastxcogtable) || die "Cannot open $blastxcogtable\n";
@@ -426,7 +426,7 @@ sub remakefuntables {
 			my $ipos=pop @sf;
 			my($poinit,$poend)=split(/\-/,$ipos);
 			my $tcontig=join("_",@sf);
-			$incontig{$tcontig}{$poinit}=$poend;
+			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile9;
 		open(infile10,$blastxkeggtable) || die "Cannot open $blastxkeggtable\n";
