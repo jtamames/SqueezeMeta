@@ -19,13 +19,30 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$fun3kegg,$fun3cog,$fun3pfam,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass);
+our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass);
 
 my $seqsinfile=0;     # Put sequences in the output table (0=no, 1=yes)
 
 my(%orfdata,%contigdata,%cog,%kegg,%datafiles,%mapping);
 tie %orfdata,"Tie::IxHash";
 tie %mapping,"Tie::IxHash";
+
+
+	#-- Reading gff for getting the list of ORFs
+
+my $gff;
+my %ingff;
+if($doublepass) { $gff=$gff_file_blastx; } else { $gff=$gff_file; }
+open(infile1,$gff) || die "Missing gff file $gff\n";
+print "Reading GFF in $gff\n";
+while(<infile1>) {
+	chomp;
+	next if(!$_ || ($_=~/\#/));
+	if($_=~/ID\=([^;]+)/) { $ingff{$1}=1; }
+	}
+close infile1;
+
+
 
 	#-- Reading data for COGs (names, pathways)
 
@@ -310,6 +327,7 @@ print outfile1 "\n";
 
 my (@listorfs,@sortedorfs);
 foreach my $orf(keys %orfdata) {
+	next if(!$ingff{$orf});		#-- Excluding ORFs not in gff table (removed in doublepass by overlapping hits in blastx)
 	my @sf=split(/\_/,$orf);
 	my $ipos=pop @sf;
 	my $contname=join("_",@sf);
