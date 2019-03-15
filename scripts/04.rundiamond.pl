@@ -18,7 +18,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$cog_db,$kegg_db,$nr_db,$blocksize,$evalue,$miniden,$cogdiamond,$keggdiamond,$taxdiamond);
+our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$cog_db,$kegg_db,$nr_db,$blocksize,$evalue,$miniden,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath);
 my $command;
 
 #-- COG database
@@ -35,6 +35,16 @@ if(!$nocog) {
 if(!$nokegg) {
 	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
 	print "Running Diamond for KEGG (This can take a while, please be patient)\n";
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+}
+
+#-- Optional database
+
+if($opt_db) {
+	my $outdb="$resultpath/04.$project.opt_db.diamond";
+	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $opt_db -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
+	print "Running Diamond for optional database $opt_db (This can take a while, please be patient)\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 }
