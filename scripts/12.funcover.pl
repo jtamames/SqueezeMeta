@@ -22,10 +22,13 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$nokegg,$nocog,$mapcountfile,$doublepass);
+our($datapath,$resultpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass);
+
+my $minraw=200;		#-- Minimum number of raw counts to be included in the STAMP files
+
 
 print "Calculating coverage for functions\n";
-my(%funs,%taxf,%validid,%tfun,%totalbases,%totalreads,%allsamples,%funstat,%longorfs,%taxcount);
+my(%funs,%taxf,%validid,%tfun,%totalbases,%totalreads,%allsamples,%funstat,%longorfs,%taxcount,%optdb);
 
 	#-- Reading KEGG functions and pathways
 
@@ -51,6 +54,32 @@ while(<infile2>) {
 	$funs{cog}{$t[0]}{path}=$t[2];
 	}
 close infile2;
+
+
+	#-- Reading OPT_DB functions and names
+
+if($opt_db) {
+	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$listf)=split(/\t/,$_);
+		if(-e $listf) {
+			open(infile3,$listf) || warn "Cannot open names file for $opt_db\n";
+			while(<infile3>) {
+				chomp;
+				next if(!$_ || ($_=~/\#/));
+				my @t=split(/\t/,$_);
+				$funs{$dbname}{$t[0]}{fun}=$t[1];
+				$funs{$dbname}{$t[0]}{path}=$t[1];
+				# print "*$dbname*$t[0]*path*$funs{$dbname}{$t[0]}{path}*\n";
+				}
+			close infile3;
+			}
+		}
+	close infile0;	
+	}
+
 
 my %equival;
 tie %equival,"Tie::IxHash";
@@ -80,20 +109,6 @@ while(<infile3>) {
 	}
 close infile3;
 
-	#-- Read sequence length from fasta file (old version, now it can be obtained from the coverage file)
-
-#open(in,$ntfile) || die "I need the DNA sequences from the prediction\n";
-#while(<in>) {	
-#	chomp;
-#	if($_=~/^\>([^ ]+)/) { 
-#		if($seq) {  $longorfs{$thisorf}=(length $seq)+1; }
-#		$thisorf=$1;
-#		$seq="";
-#		}
-#	else { $seq.=$_; }		     
-#	}
-#close in;
-#if($seq) { $allorfs{$thisorf}=$seq; }
 
 	#-- Reading KEGG assignments
 
@@ -122,6 +137,31 @@ if(!$nocog) {
 		}
 	close infile5;
 	}
+
+	
+	#-- Reading OPTDB assignments
+
+if($opt_db) {
+	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$dblist)=split(/\t/,$_);
+		$optdb{$dbname}=1;
+		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
+		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
+		open(infile10,$fun3opt) || warn "Cannot open fun3 $dbname annotation file $fun3opt\n";;
+		while(<infile10>) { 
+			chomp;
+			next if(!$_ || ($_=~/\#/));
+			my @k=split(/\t/,$_);
+			$tfun{$k[0]}{$dbname}=$k[1];
+			}
+		close infile10;  
+		}
+	close infile0;          
+}
+
 	
 	#-- Reading coverages for all genes
 
@@ -133,6 +173,7 @@ while(<infile6>) {
 	my @k=split(/\t/,$_);
 	my $cfun_kegg=$tfun{$k[0]}{kegg};	#-- Corresponding KEGG for this gene
 	my $cfun_cog=$tfun{$k[0]}{cog}; 	#-- Corresponding COG for this gene
+	# foreach my $odb(sort keys %optdb) { my $cfun_opt{$k[0]}{$odb}=$tfun{$k[0]}{$o};
 	my $sample=$k[$#k];
 	$longorfs{$k[0]}=$k[1];		#-- Length of the gene
 	my $mapbases=$k[3];
@@ -159,6 +200,25 @@ while(<infile6>) {
 				}
 			}
 	
+		#-- Counting OPT_DB
+	
+		foreach my $odb(sort keys %optdb) {
+			my $cfun_opt=$tfun{$k[0]}{$odb};
+			if($cfun_opt) {
+				my @optlist=split(/\;/,$cfun_opt);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
+				foreach my $tlist_opt(@optlist) {
+					$funstat{$odb}{$tlist_opt}{$sample}{copies}++;
+					$funstat{$odb}{$tlist_opt}{$sample}{length}+=$longorfs{$k[0]}; 
+					$funstat{$odb}{$tlist_opt}{$sample}{bases}+=$mapbases;
+					foreach my $tk(keys %equival) {
+						my $krank=$equival{$tk};
+						my $itax=$taxf{$k[0]}{$krank};
+						if($itax) { $taxcount{$odb}{$tlist_opt}{$sample}{$krank}{$itax}++; }
+						}
+					}
+				}
+			}
+
 		#-- Counting COGs
 	
 	if($cfun_cog) { 
@@ -203,7 +263,12 @@ while(<infile7>) {
 		foreach my $tlist_cog(@coglist) { 
 			if($tlist_cog) { $funstat{cog}{$tlist_cog}{$sample}{reads}+=$k[2]; }  
 			}
+		foreach my $odb(sort keys %optdb) {
+			my $cfun_opt=$tfun{$k[0]}{$odb};
+			if($cfun_opt) { $funstat{$odb}{$cfun_opt}{$sample}{reads}+=$k[2]; }
+			}
 		}
+	
 	}
 close infile7;
 
@@ -244,7 +309,6 @@ foreach my $classfun(sort keys %funstat) {
 close outfile1;
 	}
 
-my $minraw=200;
 foreach my $classfun(sort keys %funstat) {
 	$rawf="$resultpath/12.$project.$classfun.stamp";
 	print "Now creating $classfun raw reads output in $rawf\n";
@@ -258,7 +322,8 @@ foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
                 $funclass=$funs{$classfun}{$kid}{path};
                 if(!$funclass || ($funclass=~/\|/)) { $funclass="Unclassified"; } 
                 if($classfun eq "cog") { $funid="$funclass\t"; }
-                $funid.="$kid:$funs{$classfun}{$kid}{fun}";
+                $funid.="$kid";
+		if($funs{$classfun}{$kid}{fun}) { $funid.=":$funs{$classfun}{$kid}{fun}"; }
 		# print outfile2 "$funid";
 		$cstring.="$funid";		
 		foreach my $samp(sort keys %allsamples) { 

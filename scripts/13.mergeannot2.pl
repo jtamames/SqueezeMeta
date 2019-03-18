@@ -23,7 +23,7 @@ our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,
 
 my $seqsinfile=0;     # Put sequences in the output table (0=no, 1=yes)
 
-my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt);
+my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist);
 tie %orfdata,"Tie::IxHash";
 tie %mapping,"Tie::IxHash";
 
@@ -80,7 +80,7 @@ if($opt_db) {
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$listf)=split(/\t/,$_);
 		if(-e $listf) {
-			print "Reading $dbname list\n";
+			print "Reading $dbname list: $listf\n";
 			open(infile3,$listf) || warn "Cannot open names file for $opt_db\n";
 			while(<infile3>) {
 				chomp;
@@ -294,7 +294,7 @@ if(!$nocog) {
 		my($gen,$f,$co)=split(/\t/,$_);
 		if($f) { $orfdata{$gen}{cog}=$f; }
 		if($co) { $orfdata{$gen}{cogaver}=1; } #-- Best aver must be the same than best hit, we just mark if there is best aver or not
-		$datafiles{'megancog'}=1;
+		$datafiles{'cog'}=1;
 	}
 	close infile10;            
 }
@@ -307,11 +307,11 @@ if($opt_db) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		$opt{$dbname}=1;
+		$optlist{$dbname}=1;
 		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
 		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
-		open(infile10,$fun3opt) || warn "Cannot open fun3 OPT_DB annotation file $fun3opt\n";;
-		print "Reading OPT_DB annotations\n";
+		open(infile10,$fun3opt) || warn "Cannot open fun3 $dbname annotation file $fun3opt\n";;
+		print "Reading $dbname annotations\n";
 		while(<infile10>) { 
 			chomp;
 			next if(!$_ || ($_=~/\#/));
@@ -366,7 +366,7 @@ open(outfile1,">$mergedfile") || die "I need an output file\n";
 print outfile1 "#--Created by $0, ",scalar localtime,"\n";
 print outfile1 "ORF\tCONTIG ID\tMOLECULE\tMETHOD\tLENGTH\tGC perc\tGENNAME\tTAX ORF\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
 if($opt_db) { 
-	foreach my $topt(sort keys %opt) { print outfile1 "\t$topt\t$topt NAME"; }
+	foreach my $topt(sort keys %optlist) { print outfile1 "\t$topt\t$topt NAME"; }
 	}
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRPKM $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
@@ -406,7 +406,7 @@ foreach my $orfm(@sortedorfs) {
 	if($orfdata{$orf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
 	printf outfile1 "$orf\t$ctg\t$orfdata{$orf}{molecule}\t$orfdata{$orf}{method}\t$orfdata{$orf}{length}\t%.2f\t$orfdata{$orf}{name}\t$orfdata{$orf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$orf}{pfam}",$orfdata{$orf}{gc};
 	if($opt_db) { 
-		foreach my $topt(sort keys %opt) { 
+		foreach my $topt(sort keys %optlist) { 
 			my $funoptdb=$orfdata{$orf}{$topt};
 			if($orfdata{$orf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
 			print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 

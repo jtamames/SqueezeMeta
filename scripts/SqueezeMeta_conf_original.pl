@@ -80,7 +80,6 @@ $doublepass=0;
 $cleaning=0;
 $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper="bowtie";
-$counter="bedtools";
 
 #-- External software
 
@@ -93,7 +92,6 @@ $bowtie2_build_soft="$installpath/bin/bowtie2/bowtie2-build";
 $bowtie2_x_soft="$installpath/bin/bowtie2/bowtie2";
 $bwa_soft = "$installpath/bin/bwa";
 $minimap2_soft = "$installpath/bin/minimap2";
-$bedtools_soft="$installpath/bin/bedtools";   #-- IMPORTANT! Needs version <0.24    
 $diamond_soft="$installpath/bin/diamond";
 $hmmer_soft="$installpath/bin/hmmer/hmmsearch";
 $megahit_soft="$installpath/bin/megahit/megahit";
