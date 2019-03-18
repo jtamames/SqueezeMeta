@@ -57,7 +57,7 @@ Arguments:
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
-   --extdb: Annotation for a user-provided database (must be formatted for Diamond)
+   --extdb: Annotations for user-provided databases (must contain a list of databases)
    -b|-block-size: block size for diamond against the nr database (Default: 8)
    -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)
    -miniden: identity perc for discarding hits in diamond run  (Default: 50)

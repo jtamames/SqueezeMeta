@@ -197,27 +197,32 @@ if(!$nokegg) {
 #----------------------------------- OPT DB assignment -------------------------------------
 
 if($opt_db) {
-	my $optdbdiamond="$resultpath/04.$project.opt_db.diamond";
-	my $optdbresult="$resultpath/07.$project.fun3.opt_db";
-	if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.opt_db"; }
+	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$dblist)=split(/\t/,$_);
+		my $optdbdiamond="$resultpath/04.$project.$dbname.diamond";
+		my $optdbresult="$resultpath/07.$project.fun3.$dbname";
+		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
 		
-	open(infile1,$optdbdiamond) || die "Cannot open opt_db file $optdbdiamond\n";
-	open(outfile1,">$optdbresult") || die "Cannot open output in $optdbresult\n";
-	print outfile1 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap\n";
-	print outfile1 "#ORF\tBESTHIT\tBESTAVER\n";
+		open(infile1,$optdbdiamond) || die "Cannot open opt_db file $optdbdiamond\n";
+		open(outfile1,">$optdbresult") || die "Cannot open output in $optdbresult\n";
+		print outfile1 "# Created by $0 for $dbname, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap\n";
+		print outfile1 "#ORF\tBESTHIT\tBESTAVER\n";
 
-	#-- We start reading the Diamond against OPT_DB datafile
+		#-- We start reading the Diamond against OPT_DB datafile
 
-	my($currorf,$minali,$score1,$score2,$dif);
-	my(%accum,%count,%optdb);
-	my @f;
-	while(<infile1>) { 
- 		chomp;
- 		next if(!$_ || ($_=~/^\#/));
- 		@f=split(/\t/,$_);
+		my($currorf,$minali,$score1,$score2,$dif);
+		my(%accum,%count,%optdb);
+		my @f;
+		while(<infile1>) { 
+ 			chomp;
+ 			next if(!$_ || ($_=~/^\#/));
+ 			@f=split(/\t/,$_);
 		
-		#-- If we finished reading the hits for last ORF, we output its best hit,
-		#-- and also calculate and output the best average, if any
+			#-- If we finished reading the hits for last ORF, we output its best hit,
+			#-- and also calculate and output the best average, if any
 		
  		if($currorf && ($f[0] ne $currorf)) {	
 		
@@ -239,38 +244,39 @@ if($opt_db) {
   			(%accum,%count)=();
 			}
 			
-		#-- If we are still reading the hits for current ORF, just store them if they pass the filters
+			#-- If we are still reading the hits for current ORF, just store them if they pass the filters
 
-		$currorf=$f[0];
-		if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
-		my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
-		next if($olap<$minolap);	#-- Partial hits are not allowed
-		my @c=split(/\|/,$f[2]);
-		my $khit=$c[1];			#-- This is the OPT_DB for the hit
-		if(!$optdb{$currorf}{besthit}) {
-			$optdb{$currorf}{besthit}=$khit;	#-- If it is the first hit, then it is best hit
-			# print out "$currorf\t$optdb{$currorf}\n";
+			$currorf=$f[0];
+			if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
+			my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
+			next if($olap<$minolap);	#-- Partial hits are not allowed
+			my @c=split(/\|/,$f[2]);
+			my $khit=$c[$#c];			#-- This is the OPT_DB for the hit
+			if(!$optdb{$currorf}{besthit}) {
+				$optdb{$currorf}{besthit}=$khit;	#-- If it is the first hit, then it is best hit
+				# print out "$currorf\t$optdb{$currorf}\n";
+				}
+			next if($count{$khit} && ($count{$khit}>=$maxhits));	#-- If we have already $maxhits hits for that OPT_DB, skip this hit
+			$count{$khit}++;
+			$accum{$khit}+=$f[7];
 			}
-		next if($count{$khit} && ($count{$khit}>=$maxhits));	#-- If we have already $maxhits hits for that OPT_DB, skip this hit
-		$count{$khit}++;
-		$accum{$khit}+=$f[7];
-		}
 		
-	close infile1;
+		close infile1;
 
-	#-- We need to proccess also the last ORF in the file
+		#-- We need to proccess also the last ORF in the file
 
-	foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }
-	my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
-	$score1=$accum{$list[0]}; 
-	if($score1) {
- 		if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
-		$dif=(($score1-$score2)/$score1); 
-		if($dif>$mindif) { $optdb{$currorf}{bestaver}=$list[0]; }
-		print outfile1 "$currorf\t$optdb{$currorf}{besthit}\t$optdb{$currorf}{bestaver}\n";
+		foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }
+		my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
+		$score1=$accum{$list[0]}; 
+		if($score1) {
+ 			if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
+			$dif=(($score1-$score2)/$score1); 
+			if($dif>$mindif) { $optdb{$currorf}{bestaver}=$list[0]; }
+			print outfile1 "$currorf\t$optdb{$currorf}{besthit}\t$optdb{$currorf}{bestaver}\n";
+			}
+		close outfile1;
 		}
-	close outfile1;
-	
+	close infile0;
 	}		#-- END of OPT DB assignment
 
 

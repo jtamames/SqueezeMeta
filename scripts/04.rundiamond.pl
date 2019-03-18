@@ -39,14 +39,20 @@ if(!$nokegg) {
 	if($ecode!=0) { die "Error running command:    $command"; }
 }
 
-#-- Optional database
+#-- Optional databases
 
 if($opt_db) {
-	my $outdb="$resultpath/04.$project.opt_db.diamond";
-	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $opt_db -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
-	print "Running Diamond for optional database $opt_db (This can take a while, please be patient)\n";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
+	open(infile1,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	while(<infile1>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$dblist)=split(/\t/,$_);
+		my $outdb="$resultpath/04.$project.$dbname.diamond";
+		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
+		print "Running Diamond for optional database $dbname\n";
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
+		}
 }
 
 #-- nr database

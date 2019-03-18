@@ -29,8 +29,8 @@ do "$project/SqueezeMeta_conf.pl";
 our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
 
 
-my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun);
-my(%genpos,%skip,%allorfs,%annotations,%incontig);
+my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun);
+my(%genpos,%skip,%allorfs,%annotations,%incontig,%olist);
 
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
 
@@ -43,7 +43,7 @@ $collapsedmerged=~s/\.m8/\.merged\.m8/;
 
 
 
- masking();
+masking();
 run_blastx();
 collapse();
 merge();
@@ -256,6 +256,7 @@ sub functions {
 		print "Running Diamond blastx for COGS: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
+		$olist{cog}=$fun3cog_blastx;
 		}
 
 	#-- KEGG database
@@ -266,6 +267,26 @@ sub functions {
 		print "Running Diamond blastx for KEGG: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
+		$olist{kegg}=$fun3kegg_blastx;
+		}
+	print "Assigning with fun3\n";
+	system("perl $scriptdir/07.fun3assign.pl $project blastx");
+
+	#-- OPT databases
+
+	if($opt_db) {
+		open(infile1,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+		while(<infile1>) {
+			chomp;
+			next if(!$_ || ($_=~/\#/));
+			my($dbname,$extdb,$dblist)=split(/\t/,$_);
+			$optdbfun="$tempdir/08.$project.fun3.blastx.$dbname.m8";
+			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
+			print "Running Diamond blastx for OPTDB $dbname: $command\n";
+			my $ecode = system $command;
+			if($ecode!=0) { die "Error running command:    $command"; }
+			$olist{$dbname}="$resultpath/08.$project.fun3.$dbname";
+			}
 		}
 	print "Assigning with fun3\n";
 	system("perl $scriptdir/07.fun3assign.pl $project blastx");
@@ -350,10 +371,6 @@ sub remaketaxtables {
 	}
 		
 sub remakefuntables {
-	my %olist;
-	if(!$nocog) { $olist{cog}=$fun3cog_blastx; }
-	if(!$nokegg) { $olist{kegg}=$fun3kegg_blastx; }
-	if($opt_db) { $olist{opt_db}="$resultpath/08.$project.fun3.opt_db"; }
 	foreach my $thisdb(sort keys %olist) {
 		my(%intable,%methods);
 		print "Merging $thisdb tables\n";
