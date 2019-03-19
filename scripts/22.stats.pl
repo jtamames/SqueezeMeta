@@ -18,12 +18,25 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$mergedfile,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
+our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
 
-my %sampledata;
+my(%sampledata,%opt);
+my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
 
 my $resultfile="$resultpath/22.$project.stats";
 open(outfile1,">$resultfile") || die "Cannot open $resultfile\n";
+
+	#-- Read list of external databases
+	
+if($opt_db) {
+	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$listf)=split(/\t/,$_);
+		$opt{$dbname}=1; 
+		}
+	}
 
 	#-- Read bases and reads
 
@@ -94,20 +107,25 @@ while(<infile4>) {
 	if(!$header) { $header=$_; @head=split(/\t/,$header); next; }
 	$genes{totgenes}++;
 	my @k=split(/\t/,$_);
-	if($k[8]) { $genes{kegg}++; }
-	if($k[11]) { $genes{cog}++; }
-	if($k[14]) { $genes{pfam}++; }
-	if($k[2] eq "RNA") { $genes{rnas}++; }
 	foreach(my $pos=0; $pos<=$#k; $pos++) {
 		my $f=$head[$pos];
-		if($f=~/RAW COUNTS (.*)/) {
+		if(($f eq "KEGG ID") && $k[$pos]) { $genes{kegg}++; }
+		if(($f eq "COG ID") && $k[$pos]) { $genes{cog}++; }
+		if(($f eq "PFAM") && $k[$pos]) { $genes{pfam}++; }
+		if(($f eq "MOLECULE") && ($k[$pos] eq "RNA")) { $genes{rnas}++; }
+		if($opt{$f} && $k[$pos]) { $genes{$f}++; }
+		if($f=~/RAW READ COUNT (.*)/) {
 			my $tsam=$1;
 			if($k[$pos]>0) {
 				$genes{$tsam}{totgenes}++;
-				if($k[8]) { $genes{$tsam}{kegg}++; }
-				if($k[11]) { $genes{$tsam}{cog}++; }
-				if($k[14]) { $genes{$tsam}{pfam}++; }
-				if($k[2] eq "RNA") { $genes{$tsam}{rnas}++; }
+				foreach(my $pos2=0; $pos2<=$#k; $pos2++) {
+					my $f2=$head[$pos2];
+					if(($f2 eq "KEGG ID") && $k[$pos2]) { $genes{$tsam}{kegg}++; }
+					if(($f2 eq "COG ID") && $k[$pos2]) { $genes{$tsam}{cog}++; }
+					if(($f2 eq "PFAM") && $k[$pos2]) { $genes{$tsam}{pfam}++; }
+					if(($f2 eq "MOLECULE") && ($k[$pos2] eq "RNA")) { $genes{$tsam}{rnas}++; }
+					if($opt{$f2} && $k[$pos2]) { $genes{$tsam}{$f2}++; }
+					}
 				}
 			}
 		}
@@ -151,8 +169,10 @@ if($mode ne "sequential") {
 
 	#-- Date of the start of the run
 
-open(infile6,"$basedir/$project/syslog");
+open(infile6,"$basedir/$project/syslog") || warn "Cannot open syslog file in $basedir/$project/syslog\n";
+$_=<infile6>;
 my $startdate=<infile6>;
+$startdate.=<infile6>;
 chomp $startdate;
 close infile6; 
 		
@@ -193,9 +213,13 @@ print outfile1 "N50\t$contigs{N50}\nN90\t$contigs{N90}\n";
 foreach my $rk(@ranks) { 
 	my @ctk=keys %{ $contax{$rk} };
 	my $nmtax=$#ctk+1;
-	print outfile1 "Contigs at $rk rank\t$contigs{$rk}, in $nmtax taxa\n"; 	
+	my $pper=($contigs{$rk}/$contigs{num})*100;
+	printf outfile1 "Contigs at $rk rank\t$contigs{$rk} (%.1f%), in $nmtax $pluralrank{$rk}\n",$pper; 	
 	}
-print outfile1 "Congruent\t$contigs{chimerism}{0}\nDisparity >0\t$contigs{chimerism}{more0}\nDisparity >= 0.25\t$contigs{chimerism}{0.25}\n";
+my $pper1=($contigs{chimerism}{0}/$contigs{num})*100;
+my $pper2=($contigs{chimerism}{more0}/$contigs{num})*100;
+my $pper3=($contigs{chimerism}{0.25}/$contigs{num})*100;
+printf outfile1 "Congruent\t$contigs{chimerism}{0} (%.1f%)\nDisparity >0\t$contigs{chimerism}{more0} (%.1f%)\nDisparity >= 0.25\t$contigs{chimerism}{0.25} (%.1f%)\n",$pper1,$pper2,$pper3;
 print outfile1 "\n";
 
 	#-- Genes
@@ -204,60 +228,73 @@ print outfile1 "# Statistics on ORFs\n";
 print outfile1 "#\tAssembly";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$sample"; }
 print outfile1 "\n";
-print outfile1 "ORF Number\t$genes{totgenes}";
+print outfile1 "Number of ORFs\t$genes{totgenes}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{totgenes}"; }
 print outfile1 "\n";
-print outfile1 "RNAs\t$genes{rnas}";
+print outfile1 "Number of RNAs\t$genes{rnas}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{rnas}"; }
 print outfile1 "\n";
-print outfile1 "KEGG annotations\t$genes{kegg}";
-foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{kegg}"; }
-print outfile1 "\n";
-print outfile1 "COG annotations\t$genes{cog}";
-foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{cog}"; }
-print outfile1 "\n";
-print outfile1 "Pfam annotations\t$genes{pfam}";
-foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{pfam}"; }
-print outfile1 "\n";
-
+if($genes{kegg}) {
+	print outfile1 "KEGG annotations\t$genes{kegg}";
+	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{kegg}"; }
+	print outfile1 "\n";
+	}
+if($genes{cog}) {
+	print outfile1 "COG annotations\t$genes{cog}";
+	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{cog}"; }
+	print outfile1 "\n";
+	}
+if($genes{pfam}) {
+	print outfile1 "Pfam annotations\t$genes{pfam}";
+	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{pfam}"; }
+	print outfile1 "\n";
+	}
+foreach my $optdb(sort keys %opt) {
+	if($genes{$optdb}) {
+		print outfile1 "$optdb annotations\t$genes{$optdb}";
+		foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{$optdb}"; }
+		print outfile1 "\n";
+		}
+	}
+	
 	#-- Bins
 
-if($mode ne "sequential") {
+if(($mode ne "sequential") && (!$nobins)) {
 	print outfile1 "\n# Statistics on bins\n#";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$method"; }
 	print outfile1 "\n";
 	print outfile1 "Number of bins";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{num}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{num} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Complete >= 50%";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{50}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{complete}{50} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Complete >= 75%";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{75}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{complete}{75} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Complete >= 90%";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{complete}{90}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{complete}{90} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Contamination < 10%";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{contamination}{10}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{contamination}{10} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Contamination >= 50%";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{contamination}{50}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{contamination}{50} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Congruent bins";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{0}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{chimerism}{0} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Disparity >0";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{more0}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{chimerism}{more0} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Disparity >= 0.25";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{chimerism}{0.25}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{chimerism}{0.25} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Hi-qual bins (>90% complete,<10% contam)";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{hiqual}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{hiqual} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	print outfile1 "Good-qual bins (>75% complete,<10% contam)";
-	foreach my $method(sort keys %bins) { print outfile1 "\t$bins{$method}{goodqual}"; }
+	foreach my $method(sort keys %bins) { my $dat=$bins{$method}{goodqual} || 0; print outfile1 "\t$dat"; }
 	print outfile1 "\n";
 	}
 print outfile1 "\n";
