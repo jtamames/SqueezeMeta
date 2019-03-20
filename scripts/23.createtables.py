@@ -31,18 +31,36 @@ def main(args):
         write_results(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
 
 
-    orf_tax, orf_tax_wranks = parse_tax_table(perlVars['$fun3tax']+'.wranks')
-    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.tsv')
+    orf_tax, orf_tax_wranks = parse_tax_table(perlVars['$fun3tax_blastx']+'.wranks')
+    orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(perlVars['$fun3tax_blastx']+'.nofilter.wranks')
+    
+    orf_tax_prokfilter, orf_tax_prokfilter_wranks = {}, {}
+
+    for orf in orf_tax:
+        tax = orf_tax[orf]
+        tax_nofilter = orf_tax_nofilter[orf]
+        if 'Bacteria' in (tax[0], tax_nofilter[0]) or 'Archaea' in (tax[0], tax_nofilter[0]): # We check both taxonomies.
+            orf_tax_prokfilter       [orf] = tax
+            orf_tax_prokfilter_wranks[orf] = orf_tax_wranks[orf]
+        else:
+            orf_tax_prokfilter       [orf] = tax_nofilter
+            orf_tax_prokfilter_wranks[orf] = orf_tax_nofilter_wranks[orf]
+            
+
+    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
+    write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
+    write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
 
     contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
     write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
 
     for idx, rank in enumerate(TAXRANKS):
-        #tax_abunds_orfs = aggregate_tax_abunds(orf_abunds, orf_tax, idx)
-        #write_results(sampleNames, tax_abunds_orfs, prefix + '{}.abund.orfs.tsv'.format(rank))
+        tax_abunds_orfs = aggregate_tax_abunds(orf_abunds, orf_tax_prokfilter, idx)
+        write_results(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.orfs.tsv'.format(rank))
+
         tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
-        write_results(sampleNames, tax_abunds_contigs, prefix + '{}.abund.tsv'.format(rank))
-        write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.percent.tsv'.format(rank))
+        write_results(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
+        write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 
 
 
