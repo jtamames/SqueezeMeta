@@ -17,13 +17,13 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath);
+our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath);
 
 my %king;
 tie %king,"Tie::IxHash";
 
 %king=('bac','Bacteria','arc','Archaea','euk','Eukaryote','mito','Mitochondrial');
-my $targetfile="$resultpath/02.$project.maskedrna.fasta";
+my $targetfile="$interdir/02.$project.maskedrna.fasta";
 system("cp $contigsfna $targetfile");
 if(-e $rnafile) { system("rm $rnafile"); }
 

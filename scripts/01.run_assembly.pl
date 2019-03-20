@@ -17,7 +17,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
@@ -87,7 +87,7 @@ if($ecode!=0) { die "Error running command:    $command"; }
 
 #-- Run prinseq_lite for statistics
 
-$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $resultpath/01.$project.stats";
+$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 

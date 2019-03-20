@@ -18,7 +18,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
+our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
 
 #-- Read all the samples and store file names
 
@@ -132,9 +132,9 @@ foreach my $thissample(sort keys %samplefiles) {
 
 	#-- Run prinseq_lite for removing short contigs
 
-	$contigsfna="$resultpath/01.$project.$thissample.fasta";	#-- Contig file from assembly
-	$contigslen="$resultpath/01.$project.$thissample.lon";
-	$command="$prinseq_soft -fasta $assemblyname -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna.prov";
+	$contigsfna="$interdir/01.$project.$thissample.fasta";	#-- Contig file from assembly
+	$contigslen="$interdir/01.$project.$thissample.lon";
+	$command="$prinseq_soft -fasta $assemblyname -min_len $mincontiglen -out_good $tempdir/prinseq; mv $tempdir/prinseq.fasta $contigsfna.prov";
 	print "Running prinseq: $command\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
@@ -158,7 +158,7 @@ foreach my $thissample(sort keys %samplefiles) {
 
 	#-- Run prinseq_lite for statistics
 
-	$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $resultpath/01.$project.$thissample.stats";
+	$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$project.$thissample.stats";
         my $ecode = system $command;
         if($ecode!=0) { die "Error running command:    $command"; }
 	

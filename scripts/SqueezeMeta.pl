@@ -25,7 +25,7 @@ our $installpath = "$scriptdir/..";
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
-our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
+our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$interdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
 #-- Define help text
@@ -267,6 +267,8 @@ if($mode=~/sequential/i) {
  		system ("mkdir $resultpath");
  		system ("mkdir $tempdir");
  		system ("mkdir $datapath/raw_fastq"); 
+ 		system ("mkdir $datapath/ext_tables"); 
+		system ("mkdir $interdir");
 	
 		#-- Linkage of files to put them into our data directories
 	
@@ -401,6 +403,8 @@ else {
 	system ("mkdir $resultpath");
 	system ("mkdir $tempdir");
 	system ("mkdir $datapath/raw_fastq"); 
+ 	system ("mkdir $datapath/ext_tables"); 
+	system ("mkdir $interdir");
  
 	#-- Preparing the files for the assembly
 	   

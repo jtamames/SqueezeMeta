@@ -457,6 +457,7 @@ sub remakegff {
 				my $endpres=$incontig{$tcontig}{$initpres};
 				if(($initpres>=$poinit) && ($initpres<=$poend))  { $olap=1; last; }	# A blastx hit starts into a prodigal CDS
 				if(($endpres>=$poinit) && ($endpres<=$poend)) { $olap=1; last; }	# A blastx hit ends into a prodigal CDS
+				if(($poinit>=$initpres) && ($poend<=$endpres))	{ $olap=1; last; }	# A prodigal hit is contained into a blastx hit
 				}
 			 if(!$olap) { $allorfs{$oid}=1; }
 			}

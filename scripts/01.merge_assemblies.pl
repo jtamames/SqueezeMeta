@@ -19,14 +19,14 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$tempdir,$cdhit_soft,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
+our($resultpath,$interdir,$tempdir,$cdhit_soft,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
 
 #-- Merges the assemblies in a single dataset
 
 my $finalcontigs="$resultpath/01.$project.fasta";
 if(-e $finalcontigs) { system("rm $finalcontigs"); }
 my $merged="$tempdir/mergedassemblies.$project.fasta";
-my $command="cat $resultpath/01*fasta > $merged";
+my $command="cat $interdir/01*fasta > $merged";
 system $command;
 if(-z $merged) { die "$merged is empty\n"; }
 

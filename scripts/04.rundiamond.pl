@@ -18,7 +18,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$cog_db,$kegg_db,$nr_db,$blocksize,$evalue,$miniden,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath);
+our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evalue,$miniden,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath);
 my $command;
 
 #-- COG database
@@ -47,7 +47,7 @@ if($opt_db) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		my $outdb="$resultpath/04.$project.$dbname.diamond";
+		my $outdb="$interdir/04.$project.$dbname.diamond";
 		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
 		print "Running Diamond for optional database $dbname\n";
 		my $ecode = system $command;
