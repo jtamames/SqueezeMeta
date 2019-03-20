@@ -19,13 +19,29 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$fun3kegg,$fun3cog,$fun3pfam,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass);
+our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass);
 
 my $seqsinfile=0;     # Put sequences in the output table (0=no, 1=yes)
 
-my(%orfdata,%contigdata,%cog,%kegg,%datafiles,%mapping);
+my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist);
 tie %orfdata,"Tie::IxHash";
 tie %mapping,"Tie::IxHash";
+
+	#-- Reading gff for getting the list of ORFs
+
+my $gff;
+my %ingff;
+if($doublepass) { $gff=$gff_file_blastx; } else { $gff=$gff_file; }
+open(infile1,$gff) || die "Missing gff file $gff\n";
+print "Reading GFF in $gff\n";
+while(<infile1>) {
+	chomp;
+	next if(!$_ || ($_=~/\#/));
+	if($_=~/ID\=([^;]+)/) { $ingff{$1}=1; }
+	}
+close infile1;
+
+
 
 	#-- Reading data for COGs (names, pathways)
 
@@ -53,6 +69,32 @@ while(<infile2>) {
 	$kegg{$t[0]}{path}=$t[3];
 	}
 close infile2;
+
+
+	#-- Reading data for OPT_DB (names)
+
+if($opt_db) {
+	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$listf)=split(/\t/,$_);
+		if(-e $listf) {
+			print "Reading $dbname list: $listf\n";
+			open(infile3,$listf) || warn "Cannot open names file for $opt_db\n";
+			while(<infile3>) {
+				chomp;
+				next if(!$_ || ($_=~/\#/));
+				my @t=split(/\t/,$_);
+				$opt{$t[0]}{fun}=$t[1];
+				}
+			close infile3;
+			}
+		}
+	close infile0;	
+	}
+			
+	
 
 	#-- Reading aa sequences 
 
@@ -252,9 +294,35 @@ if(!$nocog) {
 		my($gen,$f,$co)=split(/\t/,$_);
 		if($f) { $orfdata{$gen}{cog}=$f; }
 		if($co) { $orfdata{$gen}{cogaver}=1; } #-- Best aver must be the same than best hit, we just mark if there is best aver or not
-		$datafiles{'megancog'}=1;
+		$datafiles{'cog'}=1;
 	}
 	close infile10;            
+}
+
+	#-- Reading OPT_DB annotations for the ORFs
+
+if($opt_db) {
+	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$dblist)=split(/\t/,$_);
+		$optlist{$dbname}=1;
+		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
+		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
+		open(infile10,$fun3opt) || warn "Cannot open fun3 $dbname annotation file $fun3opt\n";;
+		print "Reading $dbname annotations\n";
+		while(<infile10>) { 
+			chomp;
+			next if(!$_ || ($_=~/\#/));
+			my($gen,$f,$co)=split(/\t/,$_);
+			if($f) { $orfdata{$gen}{$dbname}=$f; }
+			if($co) { $orfdata{$gen}{$dbname."baver"}=1; } #-- Best aver must be the same than best hit, we just mark if there is best aver or not
+			$datafiles{$dbname}=1;
+			}
+		close infile10;  
+		}
+	close infile0;          
 }
  
 	#-- Reading Pfam annotations for the ORFs
@@ -297,6 +365,9 @@ open(outfile1,">$mergedfile") || die "I need an output file\n";
 
 print outfile1 "#--Created by $0, ",scalar localtime,"\n";
 print outfile1 "ORF\tCONTIG ID\tMOLECULE\tMETHOD\tLENGTH\tGC perc\tGENNAME\tTAX ORF\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
+if($opt_db) { 
+	foreach my $topt(sort keys %optlist) { print outfile1 "\t$topt\t$topt NAME"; }
+	}
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRPKM $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW READ COUNT $cnt"; }
@@ -310,6 +381,7 @@ print outfile1 "\n";
 
 my (@listorfs,@sortedorfs);
 foreach my $orf(keys %orfdata) {
+	next if(!$ingff{$orf});		#-- Excluding ORFs not in gff table (removed in doublepass by overlapping hits in blastx)
 	my @sf=split(/\_/,$orf);
 	my $ipos=pop @sf;
 	my $contname=join("_",@sf);
@@ -324,7 +396,7 @@ foreach my $orf(keys %orfdata) {
 
 foreach my $orfm(@sortedorfs) { 
 	my $orf=$orfm->{'orf'};
-	my($cogprint,$keggprint);
+	my($cogprint,$keggprint,$optprint);
 	my $ctg=$orf;
 	$ctg=~s/\_\d+\-\d+$//;
 	# next if((!$mapping{'s22'}{$orf}{'fpkm'}) && (!$mapping{'st8'}{$orf}{'fpkm'})); 
@@ -333,7 +405,14 @@ foreach my $orfm(@sortedorfs) {
 	if($orfdata{$orf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
 	if($orfdata{$orf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
 	printf outfile1 "$orf\t$ctg\t$orfdata{$orf}{molecule}\t$orfdata{$orf}{method}\t$orfdata{$orf}{length}\t%.2f\t$orfdata{$orf}{name}\t$orfdata{$orf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$orf}{pfam}",$orfdata{$orf}{gc};
-
+	if($opt_db) { 
+		foreach my $topt(sort keys %optlist) { 
+			my $funoptdb=$orfdata{$orf}{$topt};
+			if($orfdata{$orf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
+			print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
+			}
+		}
+	
 	#-- Abundance values
 
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rpkm'} || "0"; print outfile1 "\t$sdat"; }

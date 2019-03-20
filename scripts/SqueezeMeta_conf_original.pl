@@ -13,6 +13,7 @@ $basedir=".";
 $datapath="$basedir/$projectname/data";			#-- Directory containing all datafiles
 $resultpath="$basedir/$projectname/results";		#-- Directory for storing results
 $tempdir="$basedir/$projectname/temp";			#-- Temp directory
+$interdir="$basedir/$projectname/intermediate";			#-- Temp directory
 %bindirs=("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");	#-- Directories for bins
 %dasdir=("DASTool","$resultpath/DAS/$projectname\_DASTool\_bins");	#-- Directory for DASTool results
 
@@ -21,16 +22,15 @@ $tempdir="$basedir/$projectname/temp";			#-- Temp directory
 
 $mappingfile="$datapath/00.$projectname.samples";       #-- Mapping file (samples -> fastq)
 $contigsfna="$resultpath/01.$projectname.fasta";        #-- Contig file from assembly
-$contigslen="$resultpath/01.$projectname.lon";
+$contigslen="$interdir/01.$projectname.lon";
 $rnafile="$resultpath/02.$projectname.rnas";            #-- RNAs from barrnap
 $gff_file="$resultpath/03.$projectname.gff";            #-- gff file from prodigal
 $aafile="$resultpath/03.$projectname.faa";              #-- Aminoacid sequences for genes
 $ntfile="$resultpath/03.$projectname.fna";              #-- Nucleotide sequences for genes
-$daafile="$resultpath/04.$projectname.daa";             #-- Diamond result
-$taxdiamond="$resultpath/04.$projectname.nr.diamond";	#-- Diamond result
-$cogdiamond="$resultpath/04.$projectname.eggnog.diamond";               #-- Diamond result, COGs
-$keggdiamond="$resultpath/04.$projectname.kegg.diamond";                #-- Diamond result, KEGG
-$pfamhmmer="$resultpath/05.$projectname.pfam.hmm";      #-- Hmmer result for Pfam
+$taxdiamond="$interdir/04.$projectname.nr.diamond";	#-- Diamond result
+$cogdiamond="$interdir/04.$projectname.eggnog.diamond";               #-- Diamond result, COGs
+$keggdiamond="$interdir/04.$projectname.kegg.diamond";                #-- Diamond result, KEGG
+$pfamhmmer="$interdir/05.$projectname.pfam.hmm";      #-- Hmmer result for Pfam
 $fun3tax="$resultpath/06.$projectname.fun3.tax";	#-- Fun3 annotations, KEGG
 $fun3kegg="$resultpath/07.$projectname.fun3.kegg";	#-- Fun3 annotations, KEGG
 $fun3cog="$resultpath/07.$projectname.fun3.cog";	#-- Fun3 annotation, COGs
@@ -80,7 +80,6 @@ $doublepass=0;
 $cleaning=0;
 $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper="bowtie";
-$counter="bedtools";
 
 #-- External software
 
@@ -93,7 +92,6 @@ $bowtie2_build_soft="$installpath/bin/bowtie2/bowtie2-build";
 $bowtie2_x_soft="$installpath/bin/bowtie2/bowtie2";
 $bwa_soft = "$installpath/bin/bwa";
 $minimap2_soft = "$installpath/bin/minimap2";
-$bedtools_soft="$installpath/bin/bedtools";   #-- IMPORTANT! Needs version <0.24    
 $diamond_soft="$installpath/bin/diamond";
 $hmmer_soft="$installpath/bin/hmmer/hmmsearch";
 $megahit_soft="$installpath/bin/megahit/megahit";

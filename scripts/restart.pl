@@ -45,7 +45,7 @@ do "$project/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
 
 our($datapath,$assembler,$outassembly,$nomaxbin,$nometabat,$lowmem,$minion);
-our($nocog,$nokegg,$nopfam,$nobins);
+our($nocog,$nokegg,$nopfam,$nobins,$opt_db);
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$doublepass);
 our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$nomaxbin,$contigslen,$mcountfile,$rnafile,$gff_file,$gff_file_blastx,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir); 
@@ -229,7 +229,7 @@ system("rm $tempdir/$project.log");
 
 	if($rpoint<=7) {
 		my $scriptname="07.fun3assign.pl";
-		if((!$nocog) || (!$nokegg) || (!$nopfam)) {
+		if((!$nocog) || (!$nokegg) || (!$nopfam) || ($opt_db)) {
 			print outfile1 "7\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP7 -> $scriptname\n";
@@ -242,7 +242,9 @@ system("rm $tempdir/$project.log");
 			my($wsizeKEGG,$rest)=split(/\s+/,$wc);
 			my $wc=qx(wc -l $fun3pfam);
 			my($wsizePFAM,$rest)=split(/\s+/,$wc);
-			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2)) {
+			my $wc=qx(wc -l $resultpath/07.$project.fun3.opt_db);
+			my($wsizeOPTDB,$rest)=split(/\s+/,$wc);
+			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($wsizeOPTDB<2)) {
 		               die "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; }
 		}
 	}
@@ -315,6 +317,7 @@ system("rm $tempdir/$project.log");
 	
 	if(($rpoint<=12)) {
 		my $scriptname="12.funcover.pl";
+		if((!$nocog) || (!$nokegg) || (!$nopfam)) {
 		print outfile1 "12\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP12 -> $scriptname\n";
@@ -329,6 +332,7 @@ system("rm $tempdir/$project.log");
 		my($wsizeKEGG,$rest)=split(/\s+/,$wc);
 		if(($wsizeCOG<3) && ($wsizeKEGG<3)) {
                                     die "Stopping in STEP12 -> $scriptname. Files $cogfuncover and/or $keggfuncover are empty!\n"; }
+				    }
 	}
 			
     #-------------------------------- STEP13: Generation of the gene table

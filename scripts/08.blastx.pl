@@ -26,11 +26,11 @@ do "$project/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
+our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
 
 
-my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun);
-my(%genpos,%skip,%allorfs,%annotations,%incontig);
+my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun);
+my(%genpos,%skip,%allorfs,%annotations,%incontig,%olist);
 
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
 
@@ -256,6 +256,7 @@ sub functions {
 		print "Running Diamond blastx for COGS: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
+		$olist{cog}=$fun3cog_blastx;
 		}
 
 	#-- KEGG database
@@ -266,6 +267,26 @@ sub functions {
 		print "Running Diamond blastx for KEGG: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
+		$olist{kegg}=$fun3kegg_blastx;
+		}
+	print "Assigning with fun3\n";
+	system("perl $scriptdir/07.fun3assign.pl $project blastx");
+
+	#-- OPT databases
+
+	if($opt_db) {
+		open(infile1,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+		while(<infile1>) {
+			chomp;
+			next if(!$_ || ($_=~/\#/));
+			my($dbname,$extdb,$dblist)=split(/\t/,$_);
+			$optdbfun="$tempdir/08.$project.fun3.blastx.$dbname.m8";
+			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
+			print "Running Diamond blastx for OPTDB $dbname: $command\n";
+			my $ecode = system $command;
+			if($ecode!=0) { die "Error running command:    $command"; }
+			$olist{$dbname}="$resultpath/08.$project.fun3.$dbname";
+			}
 		}
 	print "Assigning with fun3\n";
 	system("perl $scriptdir/07.fun3assign.pl $project blastx");
@@ -306,7 +327,7 @@ sub remaketaxtables {
 			my $ipos=pop @sf;
 			my($poinit,$poend)=split(/\-/,$ipos);
 			my $tcontig=join("_",@sf);
-			$incontig{$tcontig}{$poinit}=$poend;
+			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile6;
 		open(infile7,$blastx_table) || die "Cannot open blastx wrank $blastx_table\n";
@@ -350,12 +371,12 @@ sub remaketaxtables {
 	}
 		
 sub remakefuntables {
-	if(!$nocog) {
+	foreach my $thisdb(sort keys %olist) {
 		my(%intable,%methods);
-		print "Merging COG tables\n";
-		my $oldcogtable="$resultpath/07.$project.fun3.cog";
-		my $blastxcogtable="$tempdir/08.$project.fun3.blastx.cog";
-		my $newcogtable=$fun3cog_blastx;
+		print "Merging $thisdb tables\n";
+		my $oldcogtable="$resultpath/07.$project.fun3.$thisdb";
+		my $blastxcogtable="$tempdir/08.$project.fun3.blastx.$thisdb";
+		my $newcogtable=$olist{$thisdb};
 		open(infile8,$oldcogtable) || die "Cannot open $oldcogtable\n";
 			while(<infile8>) {
 			chomp;
@@ -368,7 +389,7 @@ sub remakefuntables {
 			my $ipos=pop @sf;
 			my($poinit,$poend)=split(/\-/,$ipos);
 			my $tcontig=join("_",@sf);
-			$incontig{$tcontig}{$poinit}=$poend;
+			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile8;
 		open(infile9,$blastxcogtable) || die "Cannot open $blastxcogtable\n";
@@ -408,64 +429,6 @@ sub remakefuntables {
 			}
 		close outfile4;	
 		}
-	if(!$nokegg) {
-		my(%intable,%methods);
-		print "Merging KEGG tables\n";
-		my $oldkeggtable="$resultpath/07.$project.fun3.kegg";
-		my $blastxkeggtable="$tempdir/08.$project.fun3.blastx.kegg";
-		my $newkeggtable=$fun3kegg_blastx;
-		open(infile9,$oldkeggtable) || die "Cannot open $oldkeggtable\n";
-			while(<infile9>) {
-			chomp;
-			next if(!$_ || ($_=~/^\#/));
-			my @r=split(/\t/,$_);
-			next if(!$skip{$r[0]});
-			$intable{$r[0]}="$r[1]\t$r[2]";
-			$methods{$r[0]}="prodigal";
-			my @sf=split(/\_/,$r[0]);
-			my $ipos=pop @sf;
-			my($poinit,$poend)=split(/\-/,$ipos);
-			my $tcontig=join("_",@sf);
-			$incontig{$tcontig}{$poinit}=$poend;
-			}
-		close infile9;
-		open(infile10,$blastxkeggtable) || die "Cannot open $blastxkeggtable\n";
-			while(<infile10>) {
-			chomp;
-			next if(!$_ || ($_=~/^\#/));
-			my @r=split(/\t/,$_);
-			next if(!$r[0]);
-			$intable{$r[0]}="$r[1]\t$r[2]";
-			$methods{$r[0]}="blastx";
-			my @sf=split(/\_/,$r[0]);
-			my $ipos=pop @sf;
-			my($poinit,$poend)=split(/\-/,$ipos);
-			my $tcontig=join("_",@sf);
-			$incontig{$tcontig}{$poinit}=$poend;
-			}
-		close infile10;
-			#-- Sorting first by contig ID, then by position in contig
-
-		open(outfile5,">$newkeggtable") || die "Cannot open output in $newkeggtable\n";
-		print outfile5 "# Created by $0 merging $oldkeggtable and $blastxkeggtable,",scalar localtime,"\n";
-		print outfile5 "#ORF	BESTHIT	BESTAVER\n";
-		my (@listorfs,@sortedorfs);
-		foreach my $orf(keys %intable) {
-			my @y=split(/\_|\-/,$orf);
-			push(@listorfs,{'orf',=>$orf,'contig'=>$y[1],'posinit'=>$y[2]});
-			}
-		@sortedorfs=sort {
-			$a->{'contig'} <=> $b->{'contig'} ||
-			$a->{'posinit'} <=> $b->{'posinit'}
-			} @listorfs;
-
-		foreach my $orfm(@sortedorfs) { 
-			my $orf=$orfm->{'orf'};
-			print outfile5 "$orf\t$intable{$orf}\n";
-			$allorfs{$orf}=1;
-			}
-		close outfile5;	
-		}
 	}
 	
 		
@@ -494,6 +457,7 @@ sub remakegff {
 				my $endpres=$incontig{$tcontig}{$initpres};
 				if(($initpres>=$poinit) && ($initpres<=$poend))  { $olap=1; last; }	# A blastx hit starts into a prodigal CDS
 				if(($endpres>=$poinit) && ($endpres<=$poend)) { $olap=1; last; }	# A blastx hit ends into a prodigal CDS
+				if(($poinit>=$initpres) && ($poend<=$endpres))	{ $olap=1; last; }	# A prodigal hit is contained into a blastx hit
 				}
 			 if(!$olap) { $allorfs{$oid}=1; }
 			}
