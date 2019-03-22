@@ -33,6 +33,20 @@ def main(args):
 
     orf_tax, orf_tax_wranks = parse_tax_table(perlVars['$fun3tax_blastx']+'.wranks')
     orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(perlVars['$fun3tax_blastx']+'.nofilter.wranks')
+
+    # Add ORFs not present in the input tax file.
+    unclass_list = ['Unclassified' for rank in TAXRANKS]
+    unclass_list_wranks = ['{}:Unclassified' for rank in TAXRANKS]
+    for orf in orf_abunds:
+        if orf not in orf_tax:
+            assert orf not in orf_tax_wranks
+            assert orf not in orf_tax_nofilter
+            assert orf not in orf_tax_nofilter_wranks
+            orf_tax[orf] = unclass_list
+            orf_tax_wranks[orf] = unclass_list_wranks
+            orf_tax_nofilter[orf] = unclass_list
+            orf_tax_nofilter_wranks[orf] = unclass_list_wranks
+
     
     orf_tax_prokfilter, orf_tax_prokfilter_wranks = {}, {}
 
