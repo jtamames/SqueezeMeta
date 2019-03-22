@@ -22,7 +22,7 @@ while(<in>) {
   $nh++;
                         }
  else {
-  if($nh>1) { mergehits(); }
+  if($nh>1) { mergehits($last); }
   foreach my $pk(keys %store) { print "$pk\n"; }
   %store=();
   %frames=();
@@ -35,10 +35,11 @@ while(<in>) {
  $last=$current;
             }
 close in;
-if($nh>1) { mergehits(); }
+if($nh>1) { mergehits($last); }
 
 
 sub mergehits {
+ my $currcontig=shift;
  $changes=1;
  $merged=0;
  while($changes) {
@@ -100,8 +101,8 @@ sub mergehits {
       			 
      splice(@newl,8,1,min($fields1[8],$fields2[8]));
      splice(@newl,9,1,max($fields1[9],$fields2[9]));
-     if($newl[6]<$newl[7]) { splice(@newl,0,1,"$current\_$newl[6]-$newl[7]"); }
-     else { splice(@newl,0,1,"$current\_$newl[7]-$newl[6]"); }
+     if($newl[6]<$newl[7]) { splice(@newl,0,1,"$currcontig\_$newl[6]-$newl[7]"); }
+     else { splice(@newl,0,1,"$currcontig\_$newl[7]-$newl[6]"); }
      $newlong=$newl[9]-$newl[8];
      splice(@newl,3,1,$newlong);
      $newline=join("\t",@newl);
