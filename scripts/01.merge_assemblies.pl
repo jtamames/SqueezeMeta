@@ -19,55 +19,62 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$tempdir,$cdhit_soft,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
+our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
 
 #-- Merges the assemblies in a single dataset
 
 my $finalcontigs="$resultpath/01.$project.fasta";
-if(-e $finalcontigs) { system("rm $finalcontigs"); }
-my $merged="$tempdir/mergedassemblies.$project.fasta";
-my $command="cat $interdir/01*fasta > $merged";
-system $command;
-if(-z $merged) { die "$merged is empty\n"; }
+my($ecode,$command);
+if($extassembly) { 
+	print "External assembly provided: $extassembly. Overriding assembly\n";
+	system("cp $extassembly $finalcontigs");
+	}
+else {
+	if(-e $finalcontigs) { system("rm $finalcontigs"); }
+	my $merged="$tempdir/mergedassemblies.$project.fasta";
+	$command="cat $interdir/01*fasta > $merged";
+	system $command;
+	if(-z $merged) { die "$merged is empty\n"; }
 
-#-- Uses cd-hit to identify and remove contigs contained in others
+	#-- Uses cd-hit to identify and remove contigs contained in others
 
-my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
-$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
-print "Running cd-hit-est: $command\n";
-my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
-if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
+	my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
+	$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
+	print "Running cd-hit-est: $command\n";
+	$ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+	if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
 
-#-- Uses Amos to chage format to afg (for minimus2)
+	#-- Uses Amos to chage format to afg (for minimus2)
 
-my $afg_format="$tempdir/mergedassemblies.$project.99.afg";
-$command="$toamos_soft -s $merged_clustered -o $afg_format";
-print "Transforming to afg format: $command\n";
-my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
-if(-z $afg_format) { die "$afg_format is empty\n"; }
+	my $afg_format="$tempdir/mergedassemblies.$project.99.afg";
+	$command="$toamos_soft -s $merged_clustered -o $afg_format";
+	print "Transforming to afg format: $command\n";
+	$ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+	if(-z $afg_format) { die "$afg_format is empty\n"; }
 
-#-- Uses minimus2 to assemble overlapping contigs
+	#-- Uses minimus2 to assemble overlapping contigs
 
-$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 MINID=95";
-print "Merging with minimus2: $command\n";
-my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
-if(-z $afg_format) { die "$afg_format is empty\n"; }
+	$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 MINID=95";
+	print "Merging with minimus2: $command\n";
+	$ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+	if(-z $afg_format) { die "$afg_format is empty\n"; }
 
-#-- Create the final result (overlapping contigs plus singletons)
+	#-- Create the final result (overlapping contigs plus singletons)
 
-system("cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $finalcontigs");
+	system("cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $finalcontigs");
 
-#-- Remove files from temp
+	#-- Remove files from temp
 
-system("rm -r $tempdir/mergedassemblies*");
+	system("rm -r $tempdir/mergedassemblies*");
+	}
 
 #-- Run prinseq_lite for statistics
 
 $command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $resultpath/01.$project.stats";
-my $ecode = system $command;
+$ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 	
 

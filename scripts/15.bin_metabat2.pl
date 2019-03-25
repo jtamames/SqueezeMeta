@@ -12,14 +12,11 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,%bindirs);
-
-my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
-my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
-my $smallnoannot=1;	#-- For excluding contigs with just one gene an no annotation
+our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs);
 
 	#-- Reading contigs
 
@@ -35,8 +32,8 @@ while(<infile1>) {
 	if($r[3]=~/Disparity\: (.*)/) { $chimlevel=$1; }
 	if($r[4]=~/Genes\: (.*)/) { $numgenes=$1; } 
 	if(!$numgenes) { $numgenes=0; } 
-	if(($numgenes>=$mingenes) && ($chimlevel<=$maxchimerism)) { push(@allcontigs,$r[0]); $allcontigs{$r[0]}=1; }	
-	if($smallnoannot && ($numgenes<=1) && ($r[1] eq "Unknown")) { delete $allcontigs{$r[0]}; }
+	if(($numgenes>=$mingenes15) && ($chimlevel<=$maxchimerism15)) { push(@allcontigs,$r[0]); $allcontigs{$r[0]}=1; }	
+	if($smallnoannot15 && ($numgenes<=1) && ($r[1] eq "Unknown")) { delete $allcontigs{$r[0]}; }
 	}
 close infile1;
 

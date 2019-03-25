@@ -18,13 +18,12 @@ my $taxreq=$ARGV[1];	#-- Invoke it with a name of taxon to get just functions fo
 $project=~s/\/$//;
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass);
-
-my $minraw=200;		#-- Minimum number of raw counts to be included in the STAMP files
+our($datapath,$resultpath,$extpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass,$minraw12);
 
 
 print "Calculating coverage for functions\n";
@@ -83,7 +82,7 @@ if($opt_db) {
 
 my %equival;
 tie %equival,"Tie::IxHash";
-%equival=('superkingdom','k','phylum','p','class','c','order','o','family','f','genus','g','species','s');
+%equival=('k','k','p','p','c','c','o','o','f','f','g','g','s','s');
 
 	#-- Read the taxonomic assignment for each gene
 
@@ -99,7 +98,7 @@ while(<infile3>) {
 	#-- Loop for all ranks for the gene
 	
 	foreach my $cm(@t) {
-		my ($rank,$ttax)=split(/\:/,$cm);
+		my ($rank,$ttax)=split(/\_/,$cm);
 		my $cortax=$equival{$rank};
 		next if(!$cortax);
 		$taxf{$k[0]}{$cortax}=$ttax;
@@ -310,7 +309,7 @@ close outfile1;
 	}
 
 foreach my $classfun(sort keys %funstat) {
-	$rawf="$resultpath/12.$project.$classfun.stamp";
+	$rawf="$extpath/12.$project.$classfun.stamp";        #-- Creating STAMP files
 	print "Now creating $classfun raw reads output in $rawf\n";
 	open(outfile2,">$rawf") || die;
 	if($classfun eq "cog") { print outfile2 "$classfun class\t$classfun ID"; }
@@ -332,7 +331,7 @@ foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
 			$cstring.="\t$rnum"; 
 			#print outfile2 "\t$funstat{$classfun}{$kid}{$samp}{reads}"; 
 			}
-		if($accum>=$minraw) { print outfile2 "$cstring\n"; }
+		if($accum>=$minraw12) { print outfile2 "$cstring\n"; }
 		# print outfile2 "\n";
 		}
 	close outfile2;

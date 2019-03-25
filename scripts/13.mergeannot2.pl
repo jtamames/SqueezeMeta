@@ -16,12 +16,11 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass);
-
-my $seqsinfile=0;     # Put sequences in the output table (0=no, 1=yes)
+our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
 
 my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist);
 tie %orfdata,"Tie::IxHash";
@@ -116,11 +115,36 @@ while(<infile3>) {
 	else { $aaseq.=$_; }		#-- Otherwise store the sequence of the current	      
 	}
 close infile3;
+
 if($aaseq) { 
 	$orfdata{$thisorf}{aaseq}=$aaseq; 
 	$orfdata{$thisorf}{length}=(length $aaseq)+1; 
 	$orfdata{$thisorf}{molecule}="CDS";
 	$orfdata{$thisorf}{method}="Prodigal";
+	}
+
+
+	#-- Reading nt sequences 
+
+my @ntfiles=("$ntfile");
+if($doublepass) { push(@ntfiles,$fna_blastx); }
+
+print "Reading nt sequences\n";
+foreach my $thisntfile(@ntfiles) {
+	open(infile3,$thisntfile) || die "I need the nucleotide sequences in file $thisntfile\n";
+	my($thisorf,$ntseq);
+	while(<infile3>) {
+		chomp;
+		if($_=~/^\>([^ ]+)/) {		#-- If we are reading a new ORF, store the data for the last one
+			if($ntseq) { 
+				$orfdata{$thisorf}{lengthnt}=(length $ntseq)+1; 
+				}
+			$thisorf=$1;
+			$ntseq="";
+			}
+		else { $ntseq.=$_; }		#-- Otherwise store the sequence of the current	      
+		}
+	close infile3;
 	}
 
 
@@ -153,6 +177,8 @@ close infile4;
 if($rnaseq) { 
 	$orfdata{$thisrna}{ntseq}=$rnaseq; 
 	$orfdata{$thisrna}{length}=(length $rnaseq)+1;
+	$orfdata{$thisrna}{molecule}="RNA";
+	$orfdata{$thisrna}{method}="barrnap";
 	}
 
 	#-- Reading taxonomic assignments
@@ -364,7 +390,7 @@ open(outfile1,">$mergedfile") || die "I need an output file\n";
 	#-- Headers
 
 print outfile1 "#--Created by $0, ",scalar localtime,"\n";
-print outfile1 "ORF\tCONTIG ID\tMOLECULE\tMETHOD\tLENGTH\tGC perc\tGENNAME\tTAX ORF\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
+print outfile1 "ORF\tCONTIG ID\tMOLECULE\tMETHOD\tLENGTH NT\tLENGTH AA\tGC perc\tGENNAME\tTAX ORF\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
 if($opt_db) { 
 	foreach my $topt(sort keys %optlist) { print outfile1 "\t$topt\t$topt NAME"; }
 	}
@@ -372,7 +398,7 @@ foreach my $cnt(sort keys %mapping) { print outfile1 "\tRPKM $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW READ COUNT $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW BASE COUNT $cnt"; }
-if($seqsinfile) { print outfile1 "\tAASEQ"; }
+if($seqsinfile13) { print outfile1 "\tAASEQ"; }
 print outfile1 "\n";
 
 	#-- ORF data
@@ -404,7 +430,7 @@ foreach my $orfm(@sortedorfs) {
 	my $funkeggm=$orfdata{$orf}{kegg};
 	if($orfdata{$orf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
 	if($orfdata{$orf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
-	printf outfile1 "$orf\t$ctg\t$orfdata{$orf}{molecule}\t$orfdata{$orf}{method}\t$orfdata{$orf}{length}\t%.2f\t$orfdata{$orf}{name}\t$orfdata{$orf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$orf}{pfam}",$orfdata{$orf}{gc};
+	printf outfile1 "$orf\t$ctg\t$orfdata{$orf}{molecule}\t$orfdata{$orf}{method}\t$orfdata{$orf}{lengthnt}\t$orfdata{$orf}{length}\t%.2f\t$orfdata{$orf}{name}\t$orfdata{$orf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$orf}{pfam}",$orfdata{$orf}{gc};
 	if($opt_db) { 
 		foreach my $topt(sort keys %optlist) { 
 			my $funoptdb=$orfdata{$orf}{$topt};
@@ -422,7 +448,7 @@ foreach my $orfm(@sortedorfs) {
 
 	#-- aa sequences (if requested)
 
-	if($seqsinfile) { print outfile1 "\t$orfdata{$orf}{aaseq}"; }
+	if($seqsinfile13) { print outfile1 "\t$orfdata{$orf}{aaseq}"; }
 	print outfile1 "\n";
 }
 close outfile1;

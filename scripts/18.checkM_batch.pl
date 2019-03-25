@@ -16,12 +16,12 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$numthreads);
+our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$minsize18,$numthreads,$interdir);
 
-my $minsize=20000;  #-- Minimum size of a bin to be considered
 my $markerdir="$datapath/checkm_markers";
 my $checktemp="$tempdir/checkm_batch";
 
@@ -66,8 +66,10 @@ my @files=grep(/tax$/,readdir indir);
 closedir indir;
 
 
-my $checkmfile="$resultpath/18.$project.$binmethod.checkM";	#-- From checkM_batch.pl, checkM results
+my $checkmfile;
 if(-e $checkmfile) { system("rm $checkmfile"); }
+$checkmfile="$interdir/18.$project.$binmethod.checkM";	#-- From checkm_batch.pl, checkm results for all bins
+print "Storing results in $checkmfile\n";
 
 	#-- Working for each bin
 
@@ -88,7 +90,7 @@ foreach my $m(@files) {
 			my($cons,$size,$chim,$chimlev)=split(/\t/,$_);
 			$cons=~s/Consensus\: //;
 			$size=~s/Total size\: //g;
-			if($size<$minsize) { print "Skipping bin $bins{$thisfile} because of low size\n"; next; }
+			if($size<$minsize18) { print "Skipping bin $bins{$thisfile} because of low size\n"; next; }
 			$consensus{$thisfile}=$cons;
 			my @k=split(/\;/,$cons);
 		
@@ -96,11 +98,11 @@ foreach my $m(@files) {
 		
 			foreach my $ftax(reverse @k) { 
 				my($ntax,$rank);
-				if($ftax!~/\:/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\:/,$ftax); }
+				if($ftax!~/\_/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\_/,$ftax); }
 				$ntax=~s/unclassified //gi;
 				$ntax=~s/ \<.*\>//gi; 
-				if($tax{$ntax} && ($tax{$ntax} ne "species")  && ($tax{$ntax} ne "no rank")) { 
-				push( @{ $alltaxa{$thisfile} },"$tax{$ntax}:$ntax");
+				if($tax{$ntax} && ($tax{$ntax} ne "species")  && ($tax{$ntax} ne "n")) { 
+				push( @{ $alltaxa{$thisfile} },"$tax{$ntax}\_$ntax");
 				#   print "$m\t$ntax\t$tax{$ntax}\n";
 				}
 			}
@@ -114,10 +116,11 @@ foreach my $m(@files) {
 	while($inloop) {  
 		my $taxf=shift(@{ $alltaxa{$thisfile}  }); 
 		if(!$taxf) { last; $inloop=0; }
-		my($rank,$tax)=split(/\:/,$taxf);
+		my($rank,$tax)=split(/\_/,$taxf);
 		$tax=~s/ \<.*//g;
                 $tax=~s/\s+/\_/g;
-		if($rank eq "superkingdom") { $rank="domain"; }
+		# my $rank=$equival{$grank};
+		# if($rank eq "superkingdom") { $rank="domain"; }
 		print "Using profile for rank $rank: $tax for $thisfile\n";   
 		my $marker="$markerdir/$tax.ms"; 
 	

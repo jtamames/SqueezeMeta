@@ -18,9 +18,11 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
+our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
 
 #-- Read all the samples and store file names
+
+exit if $extassembly;
 
 my %ident;
 my %samplefiles;

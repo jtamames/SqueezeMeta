@@ -17,7 +17,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$bintable);
+our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$interdir,$bintable);
 my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna);
 
 	#-- Read 16S in contigs
@@ -52,7 +52,7 @@ foreach my $binmethod(sort keys %dasdir) {
 
 	print "Method:$binmethod\n";
 	my $bindir=$dasdir{$binmethod};
-	my $checkmfile="$resultpath/18.$project.$binmethod.checkM";
+	my $checkmfile="$interdir/18.$project.$binmethod.checkM";
 	print "Reading checkM results in $checkmfile\n";
 	
 		#-- Read checkM results for each bin

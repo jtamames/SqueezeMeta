@@ -12,13 +12,12 @@ $project=~s/\/$//;
 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$bintable,%bindirs,%dasdir);
+our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$bintable,$minfraction21,%bindirs,%dasdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
-
-my $minfraction=0.1;	# Minimum percentage of genes from a pathway to be present
 
 open(infile1,"$extdatapath/metacyc_pathways_onto.txt") || die;
 while(<infile1>) { 
@@ -58,7 +57,7 @@ while(<infile4>) {
 	}
 close infile4;
 
-my $header;
+my($header,$keggpos);
 open(infile5,$mergedfile)  || die;
 while(<infile5>) {
 	chomp;
@@ -66,10 +65,13 @@ while(<infile5>) {
 	if(!$header) {
 		$header=$_;
 		my @ht=split(/\t/,$header);
+		for(my $cpos=0;$cpos<=$#ht; $cpos++) { 
+			if($ht[$cpos] eq "KEGG ID") { $keggpos=$cpos; last; }
+			}
 		next;
 	}
 	my @u=split(/\t/,$_);
-	my $keggid=$u[8];
+	my $keggid=$u[$keggpos];
 	$keggid=~s/\*//g; # Bug fix, removing * from Kegg annotation in ORF table.
 	my $contigid=$u[1];
 	foreach my $ibin(keys %{ $inbin{$contigid} }) { $kegg{$ibin}{$keggid}++; }
@@ -102,7 +104,7 @@ sub outres {
 		foreach my $pt(sort keys %allpaths) { 
 			my $fraction=$pathgenes{$mt}{$pt}/$pathgenes{total}{$pt};
 			my $pv;
-			if((($fraction>=$minfraction) || ($pathgenes{$mt}{$pt}>=5)) && ($pathways{$mt}{$pt})) { $pv=$pathgenes{$mt}{$pt} } else { $pv="NF"; }
+			if((($fraction>=$minfraction21) || ($pathgenes{$mt}{$pt}>=5)) && ($pathways{$mt}{$pt})) { $pv=$pathgenes{$mt}{$pt} } else { $pv="NF"; }
 			print outfile5 "\t$pv"; 
 			}
 		print outfile5 "\n";
@@ -123,7 +125,7 @@ sub metacyc {
 		       print outfile1 "read$id\t$ecbin\n";
 		       }
 		close outfile1; 
-		print "Running MinPath for metacyc: $kbin      \r";
+		print "Running MinPath for metacyc: $kbin         \r";
 		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
 		my $ecode = system $command;
  		if($ecode!=0) {
@@ -181,7 +183,7 @@ sub kegg {
 			print outfile3 "read$id\t$keggbin\n";
 			}
 		close outfile3;	
-		print "Running MinPath for kegg: $kbin      \r";
+		print "Running MinPath for kegg: $kbin         \r";
 		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $outdir/$kbin.kegg.details > /dev/null";
 		my $ecode = system $command;
  		if($ecode!=0) {

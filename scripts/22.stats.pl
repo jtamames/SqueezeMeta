@@ -18,9 +18,9 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
+our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
 
-my(%sampledata,%opt);
+my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
 
 my $resultfile="$resultpath/22.$project.stats";
@@ -40,7 +40,8 @@ if($opt_db) {
 
 	#-- Read bases and reads
 
-my @ranks=('superkingdom','phylum','class','order','family','genus','species');
+my @ranks=('k','p','c','o','f','g','s');
+my %equirank=('k','superkingdom','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 my($totalbases,$totalreads);
 my $mapfile="$resultpath/10.$project.mappingstat";
 open(infile1,$mapfile) || die "Cannot open $mapfile\n";
@@ -84,7 +85,7 @@ while(<infile3>) {
 	my @k=split(/\t/,$_);
 	my @mtax=split(/\;/,$k[1]);
 	foreach my $p(@mtax) {
-		my($trank,$ttax)=split(/\:/,$p);
+		my($trank,$ttax)=split(/\_/,$p);
 		$contigs{$trank}++;
 		$contax{$trank}{$ttax}++;
 		}
@@ -113,6 +114,7 @@ while(<infile4>) {
 		if(($f eq "COG ID") && $k[$pos]) { $genes{cog}++; }
 		if(($f eq "PFAM") && $k[$pos]) { $genes{pfam}++; }
 		if(($f eq "MOLECULE") && ($k[$pos] eq "RNA")) { $genes{rnas}++; }
+		if($f eq "METHOD") { $genes{method}{$k[$pos]}++; }
 		if($opt{$f} && $k[$pos]) { $genes{$f}++; }
 		if($f=~/RAW READ COUNT (.*)/) {
 			my $tsam=$1;
@@ -123,6 +125,7 @@ while(<infile4>) {
 					if(($f2 eq "KEGG ID") && $k[$pos2]) { $genes{$tsam}{kegg}++; }
 					if(($f2 eq "COG ID") && $k[$pos2]) { $genes{$tsam}{cog}++; }
 					if(($f2 eq "PFAM") && $k[$pos2]) { $genes{$tsam}{pfam}++; }
+					if($f2 eq "METHOD") { $genes{$tsam}{method}{$k[$pos2]}++; }
 					if(($f2 eq "MOLECULE") && ($k[$pos2] eq "RNA")) { $genes{$tsam}{rnas}++; }
 					if($opt{$f2} && $k[$pos2]) { $genes{$tsam}{$f2}++; }
 					}
@@ -131,6 +134,25 @@ while(<infile4>) {
 		}
 	}
 close infile4;
+
+open(infile4,$mcountfile)  || die "Cannot open $mcountfile\n";
+my $cheader=<infile4>;
+chomp $cheader;
+my @chead=split(/\t/,$cheader);
+while(<infile4>) {
+	chomp;
+	next if(!$_ || ($_=~/^\#/));
+	my @k=split(/\t/,$_);
+	my @tp=split(/\_/,$k[1]);
+	my $thistax=$tp[$#tp];
+	for(my $tpos=2; $tpos<=$#k; $tpos++) {
+		my $tfield=$chead[$tpos];
+		next if($tfield!~/bases$/);
+		$tfield=~s/ bases//;
+		$abundance{$k[0]}{$tfield}{$thistax}+=$k[$tpos];
+		}
+	}
+close infile4;	
 
 	#-- Statistics on bins (disparity, assignment..)
 
@@ -214,12 +236,27 @@ foreach my $rk(@ranks) {
 	my @ctk=keys %{ $contax{$rk} };
 	my $nmtax=$#ctk+1;
 	my $pper=($contigs{$rk}/$contigs{num})*100;
-	printf outfile1 "Contigs at $rk rank\t$contigs{$rk} (%.1f%), in $nmtax $pluralrank{$rk}\n",$pper; 	
+	printf outfile1 "Contigs at $equirank{$rk} ($rk) rank\t$contigs{$rk} (%.1f%), in $nmtax $pluralrank{$equirank{$rk}}\n",$pper; 	
 	}
 my $pper1=($contigs{chimerism}{0}/$contigs{num})*100;
 my $pper2=($contigs{chimerism}{more0}/$contigs{num})*100;
 my $pper3=($contigs{chimerism}{0.25}/$contigs{num})*100;
 printf outfile1 "Congruent\t$contigs{chimerism}{0} (%.1f%)\nDisparity >0\t$contigs{chimerism}{more0} (%.1f%)\nDisparity >= 0.25\t$contigs{chimerism}{0.25} (%.1f%)\n",$pper1,$pper2,$pper3;
+print outfile1 "\n";
+
+print outfile1 "Most abundant taxa";
+foreach my $sample(sort keys %sampledata) { print outfile1 "\t$sample"; }
+print outfile1 "\n";
+foreach my $rk(@ranks) {
+	print outfile1 "$equirank{$rk}";
+	foreach my $sample(sort keys %sampledata) { 
+		my @sk=sort { $abundance{$rk}{$sample}{$b}<=>$abundance{$rk}{$sample}{$a}; } keys %{ $abundance{$rk}{$sample} };
+		my $abperc=($abundance{$rk}{$sample}{$sk[0]}/$sampledata{$sample}{bases})*100;
+		# printf outfile1 "\t$sk[0] (%.1f%)",$abperc;
+		 print outfile1 "\t$sk[0]";
+		}
+	print outfile1 "\n";
+	}
 print outfile1 "\n";
 
 	#-- Genes
@@ -234,6 +271,12 @@ print outfile1 "\n";
 print outfile1 "Number of RNAs\t$genes{rnas}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{rnas}"; }
 print outfile1 "\n";
+foreach my $tmet(sort keys %{ $genes{method} }) {
+	print outfile1 "ORFs by $tmet\t$genes{method}{$tmet}";
+	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{method}{$tmet}"; }
+	print outfile1 "\n";
+	}
+
 if($genes{kegg}) {
 	print outfile1 "KEGG annotations\t$genes{kegg}";
 	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{kegg}"; }

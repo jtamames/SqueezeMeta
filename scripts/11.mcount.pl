@@ -70,7 +70,7 @@ while(<infile3>) {
 	my $node=$f[0];
 	my $tlong=$lon{$node};
 	my $tax=$taxa{$node};
-	if(!$tax) { $tax="Unknown"; }
+	if(!$tax) { $tax="n"; }
 	my @tx=split(/\;/,$tax);
 	my $string="";
 	
@@ -117,8 +117,8 @@ foreach my $kk(sort { $accum{$b}<=>$accum{$a}; } keys %accum) {
 	my $k=$kk;
 	$k=~s/\;$//;
 	my @l=split(/\;/,$k);
-	my($rank,$tn)=split(/\:/,$l[$#l]);
-	if(!$rank) { $rank="Unknown"; }				  
+	my($rank,$tn)=split(/\_/,$l[$#l]);
+	if((!$rank) || ($rank eq "Unknown")) { $rank="n"; }				  
 	print outfile1 "$rank\t$k\t$accum{$kk}"; 
 	foreach my $samp(sort keys %samples) { print outfile1 "\t$accumreads{$kk}{$samp}\t$accumbases{$kk}{$samp}"; }
 	print outfile1 "\n";

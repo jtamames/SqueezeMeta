@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 
-# (c) Javier Tamames, January 2019
 
 use strict;
 use warnings;

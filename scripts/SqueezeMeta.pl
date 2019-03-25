@@ -24,8 +24,8 @@ our $installpath = "$scriptdir/..";
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
-our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$interdir,$mappingfile,$contigsfna,$contigslen,$mcountfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
+our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
 #-- Define help text
@@ -49,6 +49,7 @@ Arguments:
    -a: assembler [megahit,spades,canu] (Default: megahit)
    -assembly_options: Options for required assembler
    -c|-contiglen: Minimum length of contigs (Default: 200)
+   -extassembly: External assembly, file containing a fasta file of contigs. It will override all assembly steps.
    
  Mapping: 
    -map: mapping software [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie) 
@@ -93,6 +94,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "map=s" => \$mapper,
                      "p=s" => \$project,
                      "s|samples=s" => \$equivfile,
+                     "extassembly=s" => \$extassembly,
                      "f|seq=s" => \$rawfastq, 
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
@@ -159,7 +161,6 @@ if($dietext) { die "$dietext\n$helptext\n"; }
 
 my $currtime=timediff();
 print "Run started ",scalar localtime," in $mode mode\n";
-
 
 #--------------------------------------------------------------------------------------------------
 #----------------------------------- SEQUENTIAL MODE ----------------------------------------------
@@ -256,6 +257,7 @@ if($mode=~/sequential/i) {
 
                 print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
                 if($assembler_options) { print outfile5 "\$assembler_options=\"$assembler_options\"\n"; }
+		if($extassembly) { print outfile5 "\$extassembly=\"$extassembly\"\n"; }
 		if($opt_db) { print outfile5 "\$opt_db=\"$opt_db\"\n"; }
                 close outfile5;
         
@@ -267,7 +269,7 @@ if($mode=~/sequential/i) {
  		system ("mkdir $resultpath");
  		system ("mkdir $tempdir");
  		system ("mkdir $datapath/raw_fastq"); 
- 		system ("mkdir $datapath/ext_tables"); 
+ 		system ("mkdir $extpath"); 
 		system ("mkdir $interdir");
 	
 		#-- Linkage of files to put them into our data directories
@@ -283,6 +285,8 @@ if($mode=~/sequential/i) {
  			 else { die "Cannot find read file $file (Sample $sample). Please check if it exists\n"; }
 
 	system("cp $equivfile $mappingfile");
+	system("cp $scriptdir/parameters.pl $projectdir");
+
 	
 		}
 
@@ -390,6 +394,7 @@ else {
 
  	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
 	if($assembler_options) { print outfile6 "\$assembler_options=\"$assembler_options\""; }
+	if($extassembly) { print outfile6 "\$extassembly=\"$extassembly\"\n"; }
 	if($opt_db) { print outfile6 "\$opt_db=\"$opt_db\"\n"; }
 	close outfile6;
 
@@ -403,7 +408,7 @@ else {
 	system ("mkdir $resultpath");
 	system ("mkdir $tempdir");
 	system ("mkdir $datapath/raw_fastq"); 
- 	system ("mkdir $datapath/ext_tables"); 
+ 	system ("mkdir $extpath"); 
 	system ("mkdir $interdir");
  
 	#-- Preparing the files for the assembly
@@ -424,6 +429,7 @@ else {
 
 sub moving {
 
+	my $projectdir="$pwd/$project";
 	print "Now moving read files\n";
 	
 	#-- Reading samples from the file specified with -s option
@@ -457,6 +463,7 @@ sub moving {
 	else { print "$numsamples samples found\n"; }
 
 	system("cp $equivfile $mappingfile");
+	system("cp $scriptdir/parameters.pl $projectdir");
 
 	#-- For coassembly mode, we merge all individual files for each pair
 
@@ -514,15 +521,18 @@ sub pipeline {
 		#-- In merged mode. Includes merging assemblies
 
 	elsif($mode=~/merged/) {
-		my $scriptname="01.run_assembly_merged.pl";
-		print outfile3 "1\t$scriptname\n";
-		$currtime=timediff();
-		print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
-		print "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n";
-		my $ecode = system("perl $scriptdir/$scriptname $project");
-		if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; }
+		if(!$extassembly) {
+			my $scriptname="01.run_assembly_merged.pl";
+			print outfile3 "1\t$scriptname\n";
+			$currtime=timediff();
+			print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
+			print "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n";
+			my $ecode = system("perl $scriptdir/$scriptname $project");
+			if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; }
+			}
 	
-			#-- Merging individual assemblies
+			#-- Merging individual assemblies 
+			#-- We still do it in $extassembly for computing contig lengths and prinseq stuff
  
 		my $scriptname="01.merge_assemblies.pl";
 		print outfile3 "1.5\t$scriptname\n";
@@ -560,7 +570,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP2 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n";
 		my $ecode = system("perl $scriptdir/$scriptname $project");
-		my $masked="$resultpath/02.$project.maskedrna.fasta";
+		my $masked="$interdir/02.$project.maskedrna.fasta";
 		if($ecode!=0)        { die "Stopping in STEP2 -> $scriptname\n"; }
 		my $wc=qx(wc -l $masked);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -624,7 +634,7 @@ sub pipeline {
 		print "[",$currtime->pretty,"]: STEP6 -> TAXONOMIC ASSIGNMENT: $scriptname\n";
 		my $ecode = system("perl $scriptdir/$scriptname $project");
 		if($ecode!=0)        { die "Stopping in STEP6 -> $scriptname\n"; }
-		my $wc=qx(wc -l $fun3tax);
+		my $wc=qx(wc -l "$fun3tax.wranks");
 		my($wsize,$rest)=split(/\s+/,$wc);
 		if($wsize<2)         { die "Stopping in STEP6 -> $scriptname. File $fun3tax is empty!\n"; }
 	}
@@ -653,11 +663,18 @@ sub pipeline {
 				my $wc=qx(wc -l $fun3pfam);
 				($wsizePFAM,$rest)=split(/\s+/,$wc);
 				}
+			my $optdbsw;
 			if($opt_db) {
-				my $wc=qx(wc -l $resultpath/07.$project.fun3.opt_db);
-				($wsizeOPTDB,$rest)=split(/\s+/,$wc);
+				open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+				while(<infile0>) {
+					my($dbname,$extdb,$dblist)=split(/\t/,$_);
+					my $wc=qx(wc -l $resultpath/07.$project.fun3.dbname);
+					($wsizeOPTDB,$rest)=split(/\s+/,$wc);
+					if($wsizeOPTDB<2) { $optdbsw=$wsizeOPTDB; }
+					}
+				close infile0;
 				}
-			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($wsizeOPTDB<2)) {
+			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($optdbsw<2)) {
 		               die "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; }
 		}
 	}
@@ -667,16 +684,16 @@ sub pipeline {
 	if($rpoint<=8) {
 		if($doublepass) {
 			my $scriptname="08.blastx.pl";
-			print " DOUBLEPASS: Now starting blastx analysis\n";
+			# print " DOUBLEPASS: Now starting blastx analysis\n";
 			print outfile3 "8\t$scriptname\n";
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP8 -> Doublepass, Blastx analysis: $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP8 -> DOUBLEPASS, Blastx analysis: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project");
 			if($ecode!=0)  { die "Stopping in STEP8 -> $scriptname\n"; }
-			my $wc=qx(wc -l $gff_file);
+			my $wc=qx(wc -l $gff_file_blastx);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2)         { die "Stopping in STEP8 -> $scriptname. File $gff_file is empty!\n"; }
+			if($wsize<2)         { die "Stopping in STEP8 -> $scriptname. File $gff_file_blastx is empty!\n"; }
 			}
 	}
 		
@@ -851,7 +868,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
 			foreach my $binmethod(keys %dasdir) {
-				my $checkmfile="$resultpath/18.$project.$binmethod.checkM";
+				$checkmfile="$interdir/18.$project.$binmethod.checkM";
 				my $wc=qx(wc -l $checkmfile);
 				my($wsize,$rest)=split(/\s+/,$wc);
 				if($wsize<4) {

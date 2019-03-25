@@ -26,10 +26,10 @@ do "$project/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
+our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden,$interdir);
 
 
-my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun);
+my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
 my(%genpos,%skip,%allorfs,%annotations,%incontig,%olist);
 
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
@@ -53,15 +53,7 @@ functions();
 remaketaxtables();
 remakefuntables();
 remakegff();
-
-	#-- Moving old files to tempdir
-	
-#system("mv $resultpath/06.$project.fun3.tax.wranks $tempdir/06.$project.fun3.tax.genepred.wranks;");
-#if(!$nocog) { system("mv $resultpath/07.$project.fun3.cog $tempdir/07.$project.fun3.cog.genepred;"); }
-#if(!$nokegg) { system("mv $resultpath/07.$project.fun3.kegg $tempdir/07.$project.fun3.kegg.genepred;"); }
-#system("mv $resultpath/03.$project.gff $tempdir/03.$project.genepred.gff;");
-
-
+			
 
 sub masking() {
 	print "Getting segments for masking\n";
@@ -367,6 +359,9 @@ sub remaketaxtables {
 			$allorfs{$orf}=1; 
 			}
 		close outfile3;	
+		my $movetable=$original_table;
+		$movetable=~s/$resultpath/$interdir/;
+		$movecommands="mv $original_table $movetable; mv $blastx_table $interdir; ";
 		}
 	}
 		
@@ -428,6 +423,7 @@ sub remakefuntables {
 			$allorfs{$orf}=1;
 			}
 		close outfile4;	
+		$movecommands.="mv $oldcogtable $interdir/07.$project.fun3.$thisdb;";
 		}
 	}
 	
@@ -494,4 +490,9 @@ sub remakegff {
 		}
 	close outfile3;	
 	print "New GFF table created in $newtable\n";
+	$movecommands.="mv $gfftable $interdir/03.$project.gff";
+	my $wc=qx(wc -l $newtable);	#-- Avoid moving files if the script failed (to be able to restart with all files in place)
+	my($wsize,$rest)=split(/\s+/,$wc);
+	print "$movecommands\n";
+	# if($wsize>=2)         { print "Moving old files to dir intermediate: $movecommands\n"; system($movecommands); } 
 	}

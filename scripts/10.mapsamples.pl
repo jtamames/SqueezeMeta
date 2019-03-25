@@ -16,13 +16,13 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mode,$resultpath,$rpkmfile,$contigcov,$coveragefile,$bowtie2_x_soft,
-    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx);
+our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
+    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$keepsam10);
 
-my $keepsam=1;  #-- Set to one, it keeps SAM files. Set to zero, it deletes them when no longer needed
 my $verbose=0;
 
 my $fastqdir="$datapath/raw_fastq";
@@ -84,7 +84,7 @@ if(-e $contigcov) { system("rm $contigcov"); }
 open(outfile1,">$resultpath/10.$project.mappingstat") || die;	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
-open(outfile3,">$outfile") || die;
+open(outfile3,">$mapcountfile") || die;
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,"\n";
 print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tSample\n";
 
@@ -123,7 +123,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- Now we start mapping reads against contigs
 	
 	print "  Aligning to reference with $mapper\n";
-	if($keepsam) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
+	if($keepsam10) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
 	
 	#-- Support for single reads
         if(!$mapper || ($mapper eq "bowtie")) {
@@ -165,7 +165,7 @@ foreach my $thissample(keys %allsamples) {
 }
 close outfile1;
 
-print "Output in $outfile\n";
+print "Output in $mapcountfile\n";
 close outfile3;
 
 

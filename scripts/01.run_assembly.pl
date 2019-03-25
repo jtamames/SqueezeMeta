@@ -17,7 +17,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
@@ -48,34 +48,40 @@ if($cleaning) {
 		}
 	}
 
-#-- Checks the assembler
-
-if($assembler=~/megahit/i) { 
-	$outassembly="$datapath/megahit/final.contigs.fa";
-	if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name -t $numthreads -o $datapath/megahit"; }
-	else {  $command="$megahit_soft $assembler_options -r $par1name -t $numthreads -o $datapath/megahit"; }  #-- Support for single reads
+if($extassembly) {
+	print "External assembly provided: $extassembly. Overriding assembly\n";
+	if(-e $extassembly) {} else { die "Cannot find assembly file $extassembly\n"; }
+	$outassembly=$extassembly; 
 	}
-elsif($assembler=~/spades/i) { 
-	$outassembly="$datapath/spades/contigs.fasta";
-	if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; }
-	else { $command="$spades_soft $assembler_options --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; } #-- Support for single reads
-	}
-elsif($assembler=~/canu/i) {
-        $outassembly="$datapath/canu/contigs.fasta";
-        $command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name;"; 
-	$command.="mv $datapath/canu/$project.contigs.fasta $outassembly"; 
-        }
+else {
+
+	#-- Checks the assembler
+
+	if($assembler=~/megahit/i) { 
+		$outassembly="$datapath/megahit/final.contigs.fa";
+		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name -t $numthreads -o $datapath/megahit"; }
+		else {  $command="$megahit_soft $assembler_options -r $par1name -t $numthreads -o $datapath/megahit"; }  #-- Support for single reads
+		}
+	elsif($assembler=~/spades/i) { 
+		$outassembly="$datapath/spades/contigs.fasta";
+		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; }
+		else { $command="$spades_soft $assembler_options --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades"; } #-- Support for single reads
+		}
+	elsif($assembler=~/canu/i) {
+     	   $outassembly="$datapath/canu/contigs.fasta";
+      	  $command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name;"; 
+		$command.="mv $datapath/canu/$project.contigs.fasta $outassembly"; 
+      	  }
 
 
-else { die "Unrecognized assembler\n"; }
-
+	else { die "Unrecognized assembler\n"; }
 	
-#-- Run assembly
+	#-- Run assembly
 
-print "Running assembly with $assembler: $command\n";
-my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
-
+	print "Running assembly with $assembler: $command\n";
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+	}
 
 #-- Run prinseq_lite for removing short contigs
 
