@@ -274,6 +274,7 @@ close infile7;
 	#-- Creating output files
 
 my $rawf;
+my %rpk;
 foreach my $classfun(sort keys %funstat) {
 	$rawf="$resultpath/12.$project.$classfun.funcover";
 	print "Now creating $classfun coverage output in $rawf\n";
@@ -281,11 +282,20 @@ foreach my $classfun(sort keys %funstat) {
 	print outfile1 "#-- Created by $0 from $mapcountfile, ",scalar localtime;
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
-	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tDistribution\tName\tFunction\n";
+	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tTPM\tDistribution\tName\tFunction\n";
 	
 	#-- Calculation of coverage, norm coverage, and RPKM
 
 	foreach my $samp(sort keys %allsamples) {
+		my $accumrpk;
+		foreach my $kid(sort keys %{ $funstat{$classfun} }) {		#-- For TPM calculation
+			next if(!$funstat{$classfun}{$kid}{$samp}{length}); 
+			my $longt=$funstat{$classfun}{$kid}{$samp}{length}; 
+			$rpk{$kid}=$funstat{$classfun}{$kid}{$samp}{reads}/$longt;
+			$accumrpk+=$rpk{$kid}; 
+			}
+		$accumrpk/=1000000;
+			
 		foreach my $kid(sort keys %{ $funstat{$classfun} }) {
 			next if(!$funstat{$classfun}{$kid}{$samp}{length}); 
 			my $cover=$funstat{$classfun}{$kid}{$samp}{bases}/$funstat{$classfun}{$kid}{$samp}{length};
@@ -293,7 +303,7 @@ foreach my $classfun(sort keys %funstat) {
 			my $normcoverpercopy=$normcover*$funstat{$classfun}{$kid}{$samp}{copies};
 			# print "$classfun*$kid*$samp*$funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}\n";
 			my $rpkm=(($funstat{$classfun}{$kid}{$samp}{reads}*1000000000)/($funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}));
- 
+ 			my $tpm=$rpk{$kid}/$accumrpk;
 			my $stringtax=""; 
 			foreach my $tk(keys %equival) {
 				my $krank=$equival{$tk};
@@ -302,7 +312,7 @@ foreach my $classfun(sort keys %funstat) {
 				$stringtax.="$krank:$countt;";
 				}
 			chop $stringtax;
-			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t%.3f\t$stringtax\t$funs{$classfun}{$kid}{name}\t$funs{$classfun}{$kid}{fun}\n",$cover,$normcover,$normcoverpercopy; 
+			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t%.3f\t%.3f\t$stringtax\t$funs{$classfun}{$kid}{name}\t$funs{$classfun}{$kid}{fun}\n",$cover,$normcover,$normcoverpercopy,$tpm; 
  			}
 		}
 close outfile1;

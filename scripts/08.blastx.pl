@@ -105,7 +105,7 @@ sub masking() {
 		$genpos{$contname}{$posn}=$f[0];
 	
 		#-- If there is taxonomic and/or functional annotation, we consider the gene as correctly predicted
-		if(($annotations{$tgene}{tax}=~/superkingdom/) || ($annotations{$tgene}{cog}) ||  ($annotations{$tgene}{kegg}) || ($annotations{$tgene}{pfam})) {
+		if(($annotations{$tgene}{tax}=~/k\_/) || ($annotations{$tgene}{cog}) ||  ($annotations{$tgene}{kegg}) || ($annotations{$tgene}{pfam})) {
 			$skip{$f[0]}=1;
 			# print "Skip $f[0]\n";
 			}
@@ -306,7 +306,8 @@ sub remaketaxtables {
 		my $original_table=$ttables{$item}{original};
 		my $blastx_table=$ttables{$item}{blastx};
 		my $resulting_table=$ttables{$item}{merged};
-	
+		
+		# print "Merging $original_table and $blastx_table\n";
 		open(infile6,$original_table) || die "Cannot open nr wrank $original_table\n";
 		while(<infile6>) {
 			chomp;
@@ -319,6 +320,7 @@ sub remaketaxtables {
 			my $ipos=pop @sf;
 			my($poinit,$poend)=split(/\-/,$ipos);
 			my $tcontig=join("_",@sf);
+			# print "*$r[0]*$intable{$r[0]}*\n";
 			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile6;

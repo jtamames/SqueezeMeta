@@ -18,7 +18,7 @@ do "$project/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
 
 our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$interdir,$bintable);
-my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna);
+my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna,%rinsample);
 
 	#-- Read 16S in contigs
 
@@ -142,17 +142,30 @@ foreach my $binmethod(sort keys %dasdir) {
 		$allsamples{$sample}=1;
 		$mapped{$binmethod}{$bincorr}{$sample}{bases}+=$mappedbases;
 		$mapped{$binmethod}{$bincorr}{$sample}{reads}+=$k[4];
+		$rinsample{$binmethod}{$sample}{$bincorr}+=$k[4];
 		$totalreadcount{$binmethod}{$sample}+=$k[4];
 		}
 	close infile5;
 
+	my(%rpk,%accumrpk);
+	foreach my $samps(sort keys %{ $rinsample{$binmethod} }) {
+		foreach my $binst(sort keys %{ $rinsample{$binmethod}{$samps} }) {
+		my $longt=$bins{$binmethod}{$binst}{size};
+		$rpk{$binmethod}{$binst}{$samps}=$mapped{$binmethod}{$binst}{$samps}{reads}/$longt;
+		$accumrpk{$samps}+=$rpk{$binmethod}{$binst}{$samps};
+		}
+	$accumrpk{$samps}/=1000000;
+	}
+	
 	foreach my $binst(sort keys %{ $mapped{$binmethod} }) {
 		foreach my $samps(sort keys %{ $mapped{$binmethod}{$binst} }) {
 			my $coverage=$mapped{$binmethod}{$binst}{$samps}{bases}/$bins{$binmethod}{$binst}{size};
 			my $rpkm=($mapped{$binmethod}{$binst}{$samps}{reads}*1000000000)/($bins{$binmethod}{$binst}{size}*$totalreadcount{$binmethod}{$samps});
+			my $tpm=$rpk{$binmethod}{$binst}{$samps}/$accumrpk{$samps};
+			$bins{$binmethod}{$binst}{tpm}{$samps}=$tpm;
 			$bins{$binmethod}{$binst}{coverage}{$samps}=$coverage;
 			$bins{$binmethod}{$binst}{rpkm}{$samps}=$rpkm;
-			printf outfile1 "$binst\t$binmethod\t%.3f\t%.3f\t$samps\n",$coverage,$rpkm;
+			printf outfile1 "$binst\t$binmethod\t%.2f\t%.2f\t%.2f\t$samps\n",$coverage,$rpkm,$tpm;
 			}
 		}
 
@@ -168,7 +181,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
 	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tSize\tGC perc\tNum contigs\tDisparity\tCompleteness\tContamination\tStrain Het";
-	foreach my $countfile(sort keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile"; }
+	foreach my $countfile(sort keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile"; }
 	print outfile3 "\n";
 	
 	#-- Data
@@ -181,7 +194,7 @@ foreach my $binmethod(sort keys %dasdir) {
 				}
 			chop $taxrna;
 			printf outfile3 "$thisbin\t$method\t$bins{$method}{$thisbin}{consensus}\t$taxrna\t$bins{$method}{$thisbin}{size}\t%.2f\t$bins{$method}{$thisbin}{contignum}\t$bins{$method}{$thisbin}{chimerism}\t$bins{$method}{$thisbin}{complete}\t$bins{$method}{$thisbin}{contamination}\t$bins{$method}{$thisbin}{strain}",$bins{$method}{$thisbin}{gc};			   
-			foreach my $countfile(sort keys %allsamples) { printf outfile3 "\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{rpkm}{$countfile}; }
+			foreach my $countfile(sort keys %allsamples) { printf outfile3 "\t%.3f\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{rpkm}{$countfile},$bins{$method}{$thisbin}{tpm}{$countfile}; }
 			print outfile3 "\n";
 		}
 	}

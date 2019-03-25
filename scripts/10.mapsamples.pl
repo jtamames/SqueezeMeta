@@ -36,7 +36,7 @@ if($doublepass) { $gff_file=$gff_file_blastx; }
 
 	#-- Read the sample's file names
 
-my %allsamples;
+my(%allsamples,%rpk);
 tie %allsamples,"Tie::IxHash";
 open(infile1,$mappingfile) || die "Cannot find mappingfile $mappingfile\n";
 print "Reading mapping file from $mappingfile\n";
@@ -86,7 +86,7 @@ print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
 open(outfile3,">$mapcountfile") || die;
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,"\n";
-print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tSample\n";
+print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
 
 	#-- Now we start mapping the reads of each sample against the reference
 
@@ -259,11 +259,20 @@ sub sqm_counter {
 	close infile3;
 	print "\n";
 
+	my $accumrpk;
+	foreach my $print(sort keys %accum) { 
+		my $longt=$long_gen{$print};
+		$rpk{$print}=$accum{$print}{reads}/$longt;
+		$accumrpk+=$rpk{$print};
+		}
+	$accumrpk/=1000000;
+
 	foreach my $print(sort keys %accum) { 
 		my $longt=$long_gen{$print};
 		my $coverage=$accum{$print}{bases}/$longt;
-		my $rpkm=($accum{$print}{reads}*1000000000)/($longt*$totalreadcount);
-		printf outfile3 "$print\t$longt\t$accum{$print}{reads}\t$accum{$print}{bases}\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage; 
+		my $rpkm=($accum{$print}{reads}*1000000)/($longt*$totalreadcount);
+		my $tpm=$rpk{$print}/$accumrpk;
+		printf outfile3 "$print\t$longt\t$accum{$print}{reads}\t$accum{$print}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm; 
 		}
 }
 
@@ -312,6 +321,15 @@ sub contigcov {
 
 	#-- Output RPKM/coverage values
 
+	my $accumrpk;
+	my %rp;
+	foreach my $rc(sort keys %readcount) { 
+		my $longt=$lencontig{$rc};
+		$rp{$print}=$readcount{$rc}{reads}/$longt;
+		$accumrpk+=$rp{$print};
+		}
+	$accumrpk/=1000000;
+
 	print outfile4 "#-- Created by $0, ",scalar localtime,"\n";
 	print outfile4 "# Contig ID\tAv Coverage\tRPKM\tContig length\tRaw reads\tRaw bases\tSample\n";
 	foreach my $rc(sort keys %readcount) { 
@@ -319,8 +337,9 @@ sub contigcov {
 		next if(!$longt);
 		my $coverage=$readcount{$rc}{lon}/$longt;
 		my $rpkm=($readcount{$rc}{reads}*1000000000)/($longt*$totalreadcount);
+		my $tpm=$rp{$rc}/$accumrpk;
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
-		else { printf outfile4 "$rc\t%.3f\t%.3f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm; }
+		else { printf outfile4 "$rc\t%.3f\t%.3f\t%.3f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
 		}
 	close outfile4;	
 	return $totalreadcount;

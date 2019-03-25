@@ -366,15 +366,16 @@ if(!$nopfam) {
 	close infile11; 
 }           			       
   
-	#-- Reading RPKM and coverage values for the ORFs in the different samples
+	#-- Reading RPKM, TPM coverage values for the ORFs in the different samples
 
 open(infile12,$mapcountfile) || warn "Cannot open mapping file $mapcountfile\n";
 print "Reading RPKMs and Coverages\n";
 while(<infile12>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/) || ($_=~/^Gen/));
-	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$idfile)=split(/\t/,$_);
+	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$tpm,$idfile)=split(/\t/,$_);
 	$mapping{$idfile}{$orf}{rpkm}=$rpkm;		#-- RPKM values
+	$mapping{$idfile}{$orf}{tpm}=$tpm;		#-- TPM values
 	$mapping{$idfile}{$orf}{raw}=$rawreads; 		#-- Raw counts
 	$mapping{$idfile}{$orf}{coverage}=$coverage;	#-- Coverage values
 	$mapping{$idfile}{$orf}{rawbases}=$rawbases;	#-- Coverage values
@@ -394,7 +395,7 @@ print outfile1 "ORF\tCONTIG ID\tMOLECULE\tMETHOD\tLENGTH NT\tLENGTH AA\tGC perc\
 if($opt_db) { 
 	foreach my $topt(sort keys %optlist) { print outfile1 "\t$topt\t$topt NAME"; }
 	}
-foreach my $cnt(sort keys %mapping) { print outfile1 "\tRPKM $cnt"; }
+foreach my $cnt(sort keys %mapping) { print outfile1 "\tTPM $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW READ COUNT $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW BASE COUNT $cnt"; }
@@ -425,7 +426,6 @@ foreach my $orfm(@sortedorfs) {
 	my($cogprint,$keggprint,$optprint);
 	my $ctg=$orf;
 	$ctg=~s/\_\d+\-\d+$//;
-	# next if((!$mapping{'s22'}{$orf}{'fpkm'}) && (!$mapping{'st8'}{$orf}{'fpkm'})); 
 	my $funcogm=$orfdata{$orf}{cog};
 	my $funkeggm=$orfdata{$orf}{kegg};
 	if($orfdata{$orf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
@@ -441,7 +441,7 @@ foreach my $orfm(@sortedorfs) {
 	
 	#-- Abundance values
 
-	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rpkm'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'tpm'} || "0"; print outfile1 "\t$sdat"; }
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'coverage'} || "0"; print outfile1 "\t$sdat"; }
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'raw'} || "0"; print outfile1 "\t$sdat"; }
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rawbases'} || "0"; print outfile1 "\t$sdat"; }
