@@ -36,10 +36,6 @@ quit(save='no')
 sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
 
 
-### Patch libpcre so that the Ubuntu-compiled pullseq work in CentOS7.
-sudo link /usr/lib64/libpcre.so.1 /usr/lib64/libpcre.so.3
-
-
 ### Install databases and test data.
 # This will occupy around 200Gb.
 <installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <datapath>
