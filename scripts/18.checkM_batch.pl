@@ -19,7 +19,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$numthreads);
+our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$interdir,$resultpath,$tempdir,$numthreads);
 
 my $minsize=20000;  #-- Minimum size of a bin to be considered
 my $markerdir="$datapath/checkm_markers";
@@ -66,7 +66,7 @@ my @files=grep(/tax$/,readdir indir);
 closedir indir;
 
 
-my $checkmfile="$resultpath/18.$project.$binmethod.checkM";	#-- From checkM_batch.pl, checkM results
+my $checkmfile="$interdir/18.$project.$binmethod.checkM";	#-- From checkM_batch.pl, checkM results
 if(-e $checkmfile) { system("rm $checkmfile"); }
 
 	#-- Working for each bin

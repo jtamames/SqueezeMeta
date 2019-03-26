@@ -16,7 +16,7 @@ $project=~s/\/$//;
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
-our($resultpath,$tempdir,$aafile,$ntfile,$gff_file,$prodigal_soft);
+our($interdir,$resultpath,$tempdir,$aafile,$ntfile,$gff_file,$prodigal_soft);
 
 #-- Runs prodigal and cat the gff file with the RNA's one coming from barrnap (previous step)
 
@@ -25,7 +25,7 @@ my $tempgff2="$tempdir/02.$project.cds.gff";
 my $tempaa="$tempdir/02.$project.aa.temp";
 my $tempnt="$tempdir/02.$project.nt.temp";
 
-my $maskedcontigs="$resultpath/02.$project.maskedrna.fasta";
+my $maskedcontigs="$interdir/02.$project.maskedrna.fasta";
 my $command="$prodigal_soft -q -m -p meta -i $maskedcontigs -a $aafile -d $ntfile -f gff -o $tempgff";
 print "Running prodigal\n";
 my $ecode = system $command;

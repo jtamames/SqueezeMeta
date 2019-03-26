@@ -47,7 +47,7 @@ do "$project/SqueezeMeta_conf.pl";
 our($datapath,$assembler,$outassembly,$nomaxbin,$nometabat,$lowmem,$minion);
 our($nocog,$nokegg,$nopfam,$nobins,$opt_db);
 our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$doublepass);
-our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$nomaxbin,$contigslen,$mcountfile,$rnafile,$gff_file,$gff_file_blastx,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
+our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$interdir,$resultpath,$tempdir,$mappingfile,$contigsfna,$nomaxbin,$contigslen,$mcountfile,$rnafile,$gff_file,$gff_file_blastx,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir); 
 
 
@@ -156,7 +156,7 @@ system("rm $tempdir/$project.log");
 		print outfile2 "[",$currtime->pretty,"]: STEP2 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n";
 		my $ecode = system("perl $scriptdir/$scriptname $project");
-		my $masked="$resultpath/02.$project.maskedrna.fasta";
+		my $masked="$interdir/02.$project.maskedrna.fasta";
 		if($ecode!=0)        { die "Stopping in STEP2 -> $scriptname\n"; }
 		my $wc=qx(wc -l $masked);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -437,7 +437,7 @@ system("rm $tempdir/$project.log");
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
 			foreach my $binmethod(keys %dasdir) {
-				$checkmfile="$resultpath/18.$project.$binmethod.checkM";
+				$checkmfile="$interdir/18.$project.$binmethod.checkM";
 				my $wc=qx(wc -l $checkmfile);
 				my($wsize,$rest)=split(/\s+/,$wc);
 				if($wsize<4) {

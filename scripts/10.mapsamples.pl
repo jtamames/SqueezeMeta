@@ -20,7 +20,7 @@ do "$project/SqueezeMeta_conf.pl";
 	#-- Configuration variables from conf file
 
 our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mode,$resultpath,$rpkmfile,$contigcov,$coveragefile,$bowtie2_x_soft,
-    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx);
+    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$mapcountfile);
 
 my $keepsam=1;  #-- Set to one, it keeps SAM files. Set to zero, it deletes them when no longer needed
 my $verbose=0;
@@ -28,7 +28,7 @@ my $verbose=0;
 my $fastqdir="$datapath/raw_fastq";
 my $samdir="$datapath/sam";
 
-my $outfile="$resultpath/10.$project.mapcount";
+my $outfile=$mapcountfile;
 
 if(-d $samdir) {} else { system("mkdir $samdir"); }
 
