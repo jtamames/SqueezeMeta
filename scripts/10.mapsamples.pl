@@ -325,8 +325,8 @@ sub contigcov {
 	my %rp;
 	foreach my $rc(sort keys %readcount) { 
 		my $longt=$lencontig{$rc};
-		$rp{$print}=$readcount{$rc}{reads}/$longt;
-		$accumrpk+=$rp{$print};
+		$rp{$rc}=$readcount{$rc}{reads}/$longt;
+		$accumrpk+=$rp{$rc};
 		}
 	$accumrpk/=1000000;
 
