@@ -165,7 +165,7 @@ print "Run started ",scalar localtime," in $mode mode\n";
 #----------------------------------- SEQUENTIAL MODE ----------------------------------------------
 
 if($mode=~/sequential/i) { 
-        
+
 	my(%allsamples,%ident,%noassembly);
 	my($sample,$file,$iden,$mapreq);
 	tie %allsamples,"Tie::IxHash";
@@ -202,7 +202,7 @@ if($mode=~/sequential/i) {
 	foreach my $thissample(keys %allsamples) {
 
 		#-- We start creating directories, progress and log files
-         
+
 		$project=$thissample;
 		my $projectdir="$pwd/$thissample";
 		if (-d $projectdir) { die "Project name $projectdir already exists. Please remove it or change the project name\n"; } else { system("mkdir $projectdir"); }
@@ -214,14 +214,14 @@ if($mode=~/sequential/i) {
 		$currtime=timediff();
 		print outfile4 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
 		print "Run started ",scalar localtime," in SEQUENTIAL mode\n";
-                my $params = join(" ", @ARGV);
-                print outfile2 "$0 $params\n";
+		my $params = join(" ", @ARGV);
+		print outfile2 "$0 $params\n";
 		print outfile2 "Run started for $thissample, ",scalar localtime,"\n";
 		print outfile4 "Project: $project\n";
 		print outfile4 "Map file: $equivfile\n";
 		print outfile4 "Fastq directory: $rawfastq\n";
-                print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
-                print outfile2 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
+		print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
+		print outfile2 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
 		print "Now creating directories\n";
 		open(infile2,"$scriptdir/SqueezeMeta_conf.pl") || die "Cannot open conf file $scriptdir/SqueezeMeta_conf.pl";
 	
@@ -230,11 +230,11 @@ if($mode=~/sequential/i) {
 		open(outfile5,">$projectdir/SqueezeMeta_conf.pl") || die "Cannot write in directory $projectdir. Out of space?\n";
 
 		print outfile5 "\$mode=\"$mode\";\n\n";
-                print outfile5 "\$installpath=\"$installpath\";\n";
+		print outfile5 "\$installpath=\"$installpath\";\n";
 
 		while(<infile2>) {
-                        chomp;
-                        next if !$_;
+			chomp;
+			next if !$_;
 			if($_=~/^\$basedir/) { print outfile5 "\$basedir=\"$pwd\";\n"; }
 			elsif($_=~/^\$projectname/) { print outfile5 "\$projectname=\"$project\";\n"; }
 			elsif($_=~/^\$blocksize/) { print outfile5 "\$blocksize=$blocksize;\n"; }
@@ -247,20 +247,20 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nobins/) { print outfile5 "\$nobins=$nobins;\n"; }
 			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
 			elsif($_=~/^\$nometabat/) { print outfile5 "\$nometabat=$nometabat;\n"; }
-                        elsif($_=~/^\$mapper/) { print outfile5 "\$mapper=\"$mapper\";\n"; }
-                        elsif($_=~/^\$cleaning\b/) { print outfile5 "\$cleaning=$cleaning;\n"; }
-                        elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
+			elsif($_=~/^\$mapper/) { print outfile5 "\$mapper=\"$mapper\";\n"; }
+			elsif($_=~/^\$cleaning\b/) { print outfile5 "\$cleaning=$cleaning;\n"; }
+			elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
 			else { print outfile5 "$_\n"; }
-        	}
+		}
 	 	close infile2; 
 
-                print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
-                if($assembler_options) { print outfile5 "\$assembler_options=\"$assembler_options\"\n"; }
+		print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
+		if($assembler_options) { print outfile5 "\$assembler_options=\"$assembler_options\"\n"; }
 		if($opt_db) { print outfile5 "\$opt_db=\"$opt_db\"\n"; }
-                close outfile5;
-        
+		close outfile5;
+
 		#-- Creation of directories
-	    
+ 
 		print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";
 		do "$projectdir/SqueezeMeta_conf.pl";
 		system ("mkdir $datapath");
@@ -307,15 +307,15 @@ if($mode=~/sequential/i) {
 			system($command); 
 		} 
 		else {
-                        #my $command="cp $ca1 $par1name"; 
-                        my $command="ln -s $ca1 $par1name";
-                        print "$command\n";
-                        system($command);
+			#my $command="cp $ca1 $par1name"; 
+			my $command="ln -s $ca1 $par1name";
+			print "$command\n";
+			system($command);
  
 		}
  		if($par2files>1) { system("cat $ca2 > $par2name"); } 
-                elsif ($par2files==1) { system("ln -s $ca2 $par2name"); }    #-- Support for single reads
-                #else { system("cp $ca2 $par2name"); }
+		elsif ($par2files==1) { system("ln -s $ca2 $par2name"); }    #-- Support for single reads
+		#else { system("cp $ca2 $par2name"); }
 		#-- CALL TO THE STANDARD PIPELINE
 		
 		pipeline();
@@ -332,17 +332,17 @@ if($mode=~/sequential/i) {
 #-----------------------------------------------------------------------------------------------------
 #----------------------------------- COASSEMBLY AND MERGED MODES -------------------------------------
 
-else {      
+else {
 
 	my $projectdir="$pwd/$project";
 	if (-d $projectdir) { die "Project name $projectdir already exists. pLease remove it or change project name\n"; } else { system("mkdir $projectdir"); }
 		
 	#-- We start creating directories, progress and log files
-                        
+
 	open(outfile3,">$pwd/$project/progress") || die "Cannot write in $pwd/$project. Wrong permissions, or out of space?\n";  #-- Un indice que indica en que punto estamos (que procedimientos han terminado)
 	open(outfile4,">$pwd/$project/syslog") || die "Cannot write in $pwd/$project. Wrong permissions, or out of space?\n";
-        my $params = join(" ", @ARGV);
-        print outfile4 "$0 $params\n";
+	my $params = join(" ", @ARGV);
+	print outfile4 "$0 $params\n";
 	print outfile4 "Run started ",scalar localtime," in $mode mode\n";
 	print outfile4 "Command: $commandline\n"; 
 	print outfile4 "Project: $project\n";
@@ -357,7 +357,7 @@ else {
 	if($lowmem) { print outfile4 " LOW MEMOERY;"; }
 	print outfile4 "\n";
 	print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
-     
+
 	print "Now creating directories\n";
 	
 	#-- Creation of the new configuration file for this sample
@@ -365,7 +365,7 @@ else {
 	open(outfile6,">$projectdir/SqueezeMeta_conf.pl") || die "Cannot write in directory $projectdir. Wrong permissions, or out of space?\n";
 
 	print outfile6 "\$mode=\"$mode\";\n\n";
-        print outfile6 "\$installpath=\"$installpath\";\n";
+	print outfile6 "\$installpath=\"$installpath\";\n";
 	while(<infile3>) {
 		if($_=~/^\$basedir/) { print outfile6 "\$basedir=\"$pwd\";\n"; }
 		elsif($_=~/^\$projectname/) { print outfile6 "\$projectname=\"$project\";\n"; }
@@ -379,7 +379,7 @@ else {
 		elsif($_=~/^\$nomaxbin/) { print outfile6 "\$nomaxbin=$nomaxbin;\n"; }
 		elsif($_=~/^\$nometabat/) { print outfile6 "\$nometabat=$nometabat;\n"; }
 		elsif($_=~/^\$doublepass/) { print outfile6 "\$doublepass=$doublepass;\n"; }
-                elsif($_=~/^\$mapper/) { print outfile6 "\$mapper=\"$mapper\";\n"; }
+		elsif($_=~/^\$mapper/) { print outfile6 "\$mapper=\"$mapper\";\n"; }
 		elsif($_=~/^\$cleaning\b/) { print outfile6 "\$cleaning=$cleaning;\n"; }
 		elsif($_=~/^\$cleaningoptions/) { print outfile6 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
 		elsif(($_=~/^\%bindirs/) && ($nomaxbin)) { print outfile6 "\%bindirs=(\"metabat2\",\"\$resultpath/metabat2\");\n"; }
@@ -471,7 +471,7 @@ sub moving {
 			else { $par1name="$datapath/raw_fastq/par1.fastq"; $par2name="$datapath/raw_fastq/par2.fastq"; }
 			if($ident{$afiles} eq "pair1") { $ca1.="$datapath/raw_fastq/$gzfiles "; $par1files++; } else { $ca2.="$datapath/raw_fastq/$gzfiles "; $par2files++; } 
 		}
-				     
+  
 		if($par1files>1) { system("cat $ca1 > $par1name"); } else { system("ln -s $ca1 $par1name"); }
 		if($par2files>1) { system("cat $ca2 > $par2name"); } elsif($par2files==1) { system("ln -s $ca2 $par2name"); }  #-- Support for single reads
 	}
@@ -493,6 +493,8 @@ sub pipeline {
 
 	if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 	my $rpoint=0;
+	my $DAS_Tool_empty=0;
+
 
     #-------------------------------- STEP1: Run assembly
 
@@ -537,7 +539,7 @@ sub pipeline {
 	}
 	
 		#-- In sequential mode. 
-     
+
 	elsif($mode=~/sequential/) {
 		my $scriptname="01.run_assembly.pl";
  		print outfile3 "1\t$scriptname\n";
@@ -658,7 +660,7 @@ sub pipeline {
 				($wsizeOPTDB,$rest)=split(/\s+/,$wc);
 				}
 			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($wsizeOPTDB<2)) {
-		               die "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; }
+				die "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; }
 		}
 	}
 			
@@ -745,8 +747,8 @@ sub pipeline {
 		my $wc=qx(wc -l $keggfuncover);
 		my($wsizeKEGG,$rest)=split(/\s+/,$wc);
 		if(($wsizeCOG<3) && ($wsizeKEGG<3)) {
-                                    die "Stopping in STEP12 -> $scriptname. Files $cogfuncover and/or $keggfuncover are empty!\n"; }
-				    }
+			die "Stopping in STEP12 -> $scriptname. Files $cogfuncover and/or $keggfuncover are empty!\n"; }
+		}
 	}
 			
     #-------------------------------- STEP13: Generation of the gene table
@@ -774,7 +776,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP14 -> MAXBIN BINNING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-                        if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
+			if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
 			my $dirbin=$bindirs{maxbin};
 			opendir(indir1,$dirbin);
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
@@ -794,7 +796,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP15 -> METABAT BINNING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-                        if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
+			if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
 			opendir(indir2,$dirbin);
 			my @binfiles=grep(/fa/,readdir indir2);
@@ -814,7 +816,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP16 -> DAS_TOOL MERGING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-                        if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
+			if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
 			opendir(indir2,$dirbin);
 			my @binfiles=grep(/fa/,readdir indir2);
@@ -822,56 +824,70 @@ sub pipeline {
 			my $firstfile="$dirbin/$binfiles[0]";
 			my $wc=qx(wc -l $firstfile);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2) { die "Stopping in STEP16 -> $scriptname. File $firstfile is empty!\n"; }
+			if($wsize<2) {
+				print("WARNING: File $firstfile is empty!. DAStool did not generate results\n");
+				$DAS_Tool_empty = 1;
+				}
 		}
 			
     #-------------------------------- STEP17: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
 		if($rpoint<=17) {
-			my $scriptname="17.addtax2.pl";
-			print outfile3 "17\t$scriptname\n";
-			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP17 -> BIN TAX ASSIGNMENT: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP17 -> $scriptname\n"; }
-			my $wc=qx(wc -l $bintax);
-			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<1) { die "Stopping in STEP17 -> $scriptname. File $bintax is empty!\n"; }
+			if(!$DAS_Tool_empty){
+				my $scriptname="17.addtax2.pl";
+				print outfile3 "17\t$scriptname\n";
+				$currtime=timediff();
+				print outfile4 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
+				print "[",$currtime->pretty,"]: STEP17 -> BIN TAX ASSIGNMENT: $scriptname\n";
+				my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+				if($ecode!=0){ die "Stopping in STEP17 -> $scriptname\n"; }
+				my $wc=qx(wc -l $bintax);
+				my($wsize,$rest)=split(/\s+/,$wc);
+				if($wsize<1) { die "Stopping in STEP17 -> $scriptname. File $bintax is empty!\n"; }
+			}
+			else{ print("Skipping BIN TAX ASSIGNMENT: DAS_Tool did not predict bins.\n"); }
 		}
+
 			
     #-------------------------------- STEP18: Checking of bins for completeness and contamination (checkM)		
 	
 		if($rpoint<=18) {
-			my $scriptname="18.checkM_batch.pl";
-			print outfile3 "18\t$scriptname\n";
-			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
-			foreach my $binmethod(keys %dasdir) {
-				my $checkmfile="$interdir/18.$project.$binmethod.checkM";
-				my $wc=qx(wc -l $checkmfile);
-				my($wsize,$rest)=split(/\s+/,$wc);
-				if($wsize<4) {
-					die "Cannot find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
-				}
+			if(!$DAS_Tool_empty){
+				my $scriptname="18.checkM_batch.pl";
+				print outfile3 "17\t$scriptname\n";
+				$currtime=timediff();
+				print outfile4 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
+				print "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n";
+				my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+				if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
+				foreach my $binmethod(keys %dasdir) {
+					my $checkmfile="$interdir/18.$project.$binmethod.checkM";
+					my $wc=qx(wc -l $checkmfile);
+					my($wsize,$rest)=split(/\s+/,$wc);
+					if($wsize<4) {
+						die "Cannot find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
+					}
+			}
+			else { print("Skipping CHECKM: DAS_Tool did not predict bins.\n") ; }
 		}
+
 			
     #-------------------------------- STEP19: Make bin table		
 	
 		if($rpoint<=19) {
-			my $scriptname="19.getbins.pl";
-			print outfile3 "19\t$scriptname\n";
-			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP19 -> CREATING BIN TABLE: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project");
-			if($ecode!=0){ die "Stopping in STEP19 -> $scriptname\n"; }
-			my $wc=qx(wc -l $bintable);
-			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<3) { die "Stopping in STEP19 -> $scriptname. File $bintable is empty!\n"; }
+			if(!$DAS_Tool_empty){
+				my $scriptname="19.getbins.pl";
+				print outfile3 "19\t$scriptname\n";
+				$currtime=timediff();
+				print outfile4 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
+				print "[",$currtime->pretty,"]: STEP19 -> CREATING BIN TABLE: $scriptname\n";
+				my $ecode = system("perl $scriptdir/$scriptname $project");
+				if($ecode!=0){ die "Stopping in STEP19 -> $scriptname\n"; }
+				my $wc=qx(wc -l $bintable);
+				my($wsize,$rest)=split(/\s+/,$wc);
+				if($wsize<3) { die "Stopping in STEP19 -> $scriptname. File $bintable is empty!\n"; }
+			}
+			else{ print("Skipping BIN TABLE CREATION: DAS_Tool did not predict bins.\n") ; }
 		}
 	}
 
@@ -893,20 +909,24 @@ sub pipeline {
     #-------------------------------- STEP21: Pathways in bins          
 
 	if(($mode!~/sequential/i) && ($numsamples>1) && (!$nobins)) {	       
-      		if($rpoint<=21) {
-              	  my $scriptname="21.minpath.pl";
-                	print outfile3 "21\t$scriptname\n";
-                	$currtime=timediff();
-                	print outfile4 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
-               	 	print "[",$currtime->pretty,"]: STEP21 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project");
-			if($ecode!=0){ die "Stopping in STEP21 -> $scriptname\n"; }
-                	my $minpathfile="$resultpath/21.$project.kegg.pathways";
-			my $wc=qx(wc -l $minpathfile);
-			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<3) { die "Stopping in STEP21 -> $scriptname. File $minpathfile is empty!\n"; }
-        	}
+		if($rpoint<=21) {
+			if(!$DAS_Tool_empty){
+				my $scriptname="21.minpath.pl";
+				print outfile3 "21\t$scriptname\n";
+				$currtime=timediff();
+				print outfile4 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
+				print "[",$currtime->pretty,"]: STEP21 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
+				my $ecode = system("perl $scriptdir/$scriptname $project");
+				if($ecode!=0){ die "Stopping in STEP21 -> $scriptname\n"; }
+				my $minpathfile="$resultpath/21.$project.kegg.pathways";
+				my $wc=qx(wc -l $minpathfile);
+				my($wsize,$rest)=split(/\s+/,$wc);
+				if($wsize<3) { die "Stopping in STEP21 -> $scriptname. File $minpathfile is empty!\n"; }
+			}
+			else{ print("Skipping MINPATH: DAS_Tool did not predict bins.\n") ; }
+		}
 	}
+
 
     #-------------------------------- STEP21: Make stats		
 
