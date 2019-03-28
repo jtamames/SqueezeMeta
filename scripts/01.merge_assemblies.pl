@@ -44,15 +44,15 @@ if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
 my $afg_format="$tempdir/mergedassemblies.$project.99.afg";
 $command="$toamos_soft -s $merged_clustered -o $afg_format";
 print "Transforming to afg format: $command\n";
-my $ecode = system $command;
+$ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 if(-z $afg_format) { die "$afg_format is empty\n"; }
 
 #-- Uses minimus2 to assemble overlapping contigs
 
-$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 MINID=95";
+$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads";
 print "Merging with minimus2: $command\n";
-my $ecode = system $command;
+$ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 if(-z $afg_format) { die "$afg_format is empty\n"; }
 
@@ -67,7 +67,7 @@ system("rm -r $tempdir/mergedassemblies*");
 #-- Run prinseq_lite for statistics
 
 $command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $resultpath/01.$project.stats";
-my $ecode = system $command;
+$ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 	
 
