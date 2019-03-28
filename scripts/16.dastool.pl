@@ -58,8 +58,8 @@ print "done\n";
 
 #-- Run DAS tool
 
-#my $das_command="PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --proteins $aafile --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath"; 
-my $das_command="PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath"; 
+my $das_command="LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
+#my $das_command="LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --proteins $aafile --score_threshold $score_tres --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";  
 print "Running DAS Tool for $methods\n";
  print "$das_command\n";
 my $ecode = system $das_command;
