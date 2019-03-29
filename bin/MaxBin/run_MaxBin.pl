@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
-### Modified from MaxBin version 2.2.4 
-### by Fernando Puente-Sanchez on 2018-APR-27, for compatibility with the SqueezeMeta pipeline.
+### Modified from MaxBin version 2.2.6 
+### by Fernando Puente-Sanchez on 2019-MAR-28, for compatibility with the SqueezeMeta pipeline.
 ### SqueezeMeta is released under the GPL-3 license.
 
 use strict;
@@ -11,7 +11,7 @@ use FindBin qw($Bin);
 
 my $currdir = getcwd;
 
-my $VERSION_NUM = "2.2.4";
+my $VERSION_NUM = "2.2.6";
 
 require("$Bin\/_getmarker.pl");
 require("$Bin\/_getabund.pl");
@@ -22,26 +22,27 @@ my $LOGOUT;
 
 #Path info modified by Fernando Puente-Sánchez, 27-IV-2018
 #my $SETTING_FILE = "setting";
-my $BOWTIE2BUILD = "$Bin/../bowtie2/bowtie2-build";
-my $BOWTIE2 = "$Bin/../bowtie2/bowtie2";
-my $HMMSEARCH = "$Bin/../hmmer/hmmsearch";
-my $RUNFRAG = "$Bin/auxiliary/run_FragGeneScan.pl";
+my $BOWTIE2BUILD = "$Bin\/..\/bowtie2\/bowtie2-build";
+my $BOWTIE2 = "$Bin\/..\/bowtie2\/bowtie2";
+my $HMMSEARCH = "$Bin\/..\/hmmer\/hmmsearch";
+my $RUNFRAG = "$Bin\/auxiliary\/run_FragGeneScan.pl";
 #my $VELVETH = "velveth";
 #my $VELVETG = "velvetg";
-my $IDBA_UD = "$Bin/auxiliary/idba_ud";
+my $IDBA_UD = "$Bin\/auxiliary\/idba_ud";
 
 checkProgram();
 
 my $RSCRIPT = "Rscript";
-my $HEATMAP_R = "$Bin/heatmap.r";
-my $MARKERHMM = "$Bin/../../db/marker.hmm"; #This is overriden by a the -markerpath parameter.
+my $HEATMAP_R = "$Bin\/heatmap.r";
+my $MARKERHMM = "$Bin\/..\/..\/db\/marker.hmm"; #This is overriden by the -markerpath parameter.";
 my $MARKERNUM = 107;
-my $MAXBIN = "$Bin/MaxBin";
+my $MAXBIN = "$Bin\/MaxBin"; # FPS
 my $ABUND_OUTPUT = "";
 my $THREADNUM = 1;
 my $REASSEMBLY = 0;
 my $RPLOT = 0;
 my $KMERLEN = 55;
+my $RECURSION_MAX = 5;
 my $MIN_SEQ_LENGTH = 1000;
 my $MIN_BIN_SIZE = 100000;
 my $FINISH = "FINISH";
@@ -111,6 +112,7 @@ sub main
 	my $j;
 	my $k;
 	my @arr;
+	my @tmparr;
 	my $cmd;
 	my $line;
 	my $tmp;
@@ -278,11 +280,11 @@ sub main
 		{
 			$preserve = 1;
 		}
-                elsif ($ARGV[$i] eq "-markerpath") #FPS
+                elsif ($ARGV[$i] eq "-markerpath") #FPS, PARAMETRIZE DATABASE PATH!
                 {
-			$i++;
-                	$MARKERHMM = $ARGV[$i];
-		}
+                        $i++;
+                        $MARKERHMM = $ARGV[$i];
+                }
 		elsif ($ARGV[$i] eq "-version" || $ARGV[$i] eq "-v")
 		{
 			print "MaxBin $VERSION_NUM\n";
@@ -477,6 +479,7 @@ sub main
 	while ($currnum < $maxnum)
 	{
 		$currbin = $binarr[$currnum];
+
 		if ($currbin eq $contig_f)
 		{
 			$currout = $out_f;
@@ -493,6 +496,11 @@ sub main
 		{
 			$i = gethmmmarker("$contig_f.hmmout", $currbin, $MIN_SEQ_LENGTH, "$currout.seed");
 		}
+		# Check if current file exceeds the current file processing recursion limitation
+		# Check for how many "####.out", in which # represent digits
+		@tmparr = $currbin  =~ /[0-9]{4}.out/g;
+		$j = scalar @tmparr;
+
 		if ($currbin eq $contig_f && $i == -1)
 		{
 			writeLOG("Try harder to dig out marker genes from contigs.\n");
@@ -504,11 +512,21 @@ sub main
 				exit(-1);
 			}
 		}
+		elsif ($currbin ne $contig_f && $j >= $RECURSION_MAX)
+		{
+			$currnum++;
+			next;
+		}
 		elsif ($currbin ne $contig_f && $i == -1)
 		{
 			$currnum++;
 			next;
 		}
+		#elsif ($j > $RECURSION_MAX)
+		#{
+		#	$currnum++;
+		#	next;
+		#}
 		elsif ($i != -1)
 		{
 			$reclassifyarr[$currnum] = 1;
@@ -539,6 +557,7 @@ sub main
 		{
 			system($cmd);
 		}
+
 		if (checkResult("$currout.summary") == -1)
 		{
 			if ($currbin eq $contig_f)
@@ -678,7 +697,7 @@ sub main
 		open(FILE, "<$noclassarr[$i].log");
 		while(defined($line = <FILE>))
 		{
-			writeLOG($line);
+			writeLOG($line, 0);
 		}
 		writeLOG("\n");
 		close(FILE);
@@ -1339,46 +1358,46 @@ sub checkProgram #Modified by Fernando Puente-Sánchez, 27-IV-2018. Settings fil
 {
 	my $line;
 	my $tmpstr;
-	my $tmpname = "tmp_" . time();
+	my $tmpname =  "tmp_" . time();
 
-	#open(FILE, "<$Bin\/$SETTING_FILE");
-	#while(defined($line = <FILE>))
-	#{
-	#	chomp($line);
-	#	if ($line =~ /\[([A-Za-z0-9_]+)\] ([A-Za-z0-9._\(\)\[\]\{\}\|\$\!\=\-\+\\\/]+)/)
-	#	{
-	#		if ($1 eq "FragGeneScan")
-	#		{
-	#			if (-d $2 && -e "$2\/$RUNFRAG")
-	#			{
-	#				$RUNFRAG = $2 . "\/" . $RUNFRAG;
-	#			}
-	#		}
-	#		elsif ($1 eq "Bowtie2")
-	#		{
-	#			if (-d $2 && -e "$2\/$BOWTIE2" && -e "$2\/$BOWTIE2BUILD")
-	#			{
-	#				$BOWTIE2 = $2 . "\/" . $BOWTIE2;
-	#				$BOWTIE2BUILD = $2 . "\/" . $BOWTIE2BUILD;
-	#			}
-	#		}
-	#		elsif ($1 eq "HMMER3")
-	#		{
-	#			if (-d $2 && -e "$2\/$HMMSEARCH")
-	#			{
-	#				$HMMSEARCH = $2 . "\/" . $HMMSEARCH;
-	#			}
-	#		}
-	#		elsif ($1 eq "IDBA_UD")
-	#		{
-	#			if (-d $2 && -e "$2\/$IDBA_UD")
-	#			{
-	#				$IDBA_UD = $2 . "\/" . $IDBA_UD;
-	#			}
-	#		}
-	#	}
-	#}
-	#close(FILE);
+#	open(FILE, "<$Bin\/$SETTING_FILE");
+#	while(defined($line = <FILE>))
+#	{
+#		chomp($line);
+#		if ($line =~ /\[([A-Za-z0-9_]+)\] ([A-Za-z0-9._\(\)\[\]\{\}\|\$\!\=\-\+\\\/]+)/)
+#		{
+#			if ($1 eq "FragGeneScan")
+#			{
+#				if (-d $2 && -e "$2\/$RUNFRAG")
+#				{
+#					$RUNFRAG = $2 . "\/" . $RUNFRAG;
+#				}
+#			}
+#			elsif ($1 eq "Bowtie2")
+#			{
+#				if (-d $2 && -e "$2\/$BOWTIE2" && -e "$2\/$BOWTIE2BUILD")
+#				{
+#					$BOWTIE2 = $2 . "\/" . $BOWTIE2;
+#					$BOWTIE2BUILD = $2 . "\/" . $BOWTIE2BUILD;
+#				}
+#			}
+#			elsif ($1 eq "HMMER3")
+#			{
+#				if (-d $2 && -e "$2\/$HMMSEARCH")
+#				{
+#					$HMMSEARCH = $2 . "\/" . $HMMSEARCH;
+#				}
+#			}
+#			elsif ($1 eq "IDBA_UD")
+#			{
+#				if (-d $2 && -e "$2\/$IDBA_UD")
+#				{
+#					$IDBA_UD = $2 . "\/" . $IDBA_UD;
+#				}
+#			}
+#		}
+#	}
+#	close(FILE);
 
 	# Check program
 	# FragGeneScan
@@ -1544,10 +1563,15 @@ sub openLOG
 	open($LOGOUT, ">$log_f.tmp");
 }
 
+# Currently the writeLOG procedure will NOT write to STDOUT only if there is a second parameter, say 1. Will be revised later.
 sub writeLOG
 {
 	my $msg = $_[0];
-	print $msg;
+	my $is_print = $_[1];
+	if (!(defined($is_print)))
+	{
+		print $msg;
+	}
 	print $LOGOUT $msg;
 }
 
