@@ -53,7 +53,7 @@ close in;
 
  tie %provhits,"Tie::IxHash";
  tie %accum,"Tie::IxHash";
- if($infile=~/gz/) { open(inc,"zcat $infile|") || die; }
+ if($infile=~/\.gz$/) { open(inc,"zcat $infile|") || die; }
  else { open(inc,$infile) || die "Cannot open Diamond file $infile\n"; }
  my $outfilter="$outname.wranks";
  my $outnofilter="$outname\_nofilter.wranks";

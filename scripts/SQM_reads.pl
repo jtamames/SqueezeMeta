@@ -24,7 +24,7 @@ do "$scriptdir/SqueezeMeta_conf.pl";
 our($databasepath);
 
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg);
 
 my $helptext = <<END_MESSAGE;
 Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> <options>
@@ -37,6 +37,8 @@ Arguments:
    -f|-seq: Fastq read files' directory (REQUIRED)
    
  Options:
+   --nocog: Skip COG assignment (Default: no)
+   --nokegg: Skip KEGG assignment (Default: no)
    -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for diamond against the nr database (Default: 8)
@@ -49,7 +51,9 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "s|samples=s" => \$equivfile,
                      "f|seq=s" => \$rawseqs, 
 		     "e|evalue=f" => \$evalue,   
-		     "b|block_size=i" => \$blocksize,
+		     "nocog" => \$nocog,   
+		     "nokegg" => \$nokegg,   
+                     "b|block_size=i" => \$blocksize,
 		    );
 
 if(!$numthreads) { $numthreads=12; }
@@ -96,6 +100,7 @@ close infile1;
 
 my @nmg=keys %allsamples;
 my $numsamples=$#nmg+1;
+my $sampnum;
 print "$numsamples metagenomes found";
 print "\n";
 print outall "# Created by $0 from data in $equivfile", scalar localtime,"\n";
@@ -104,22 +109,23 @@ print outall "# Sample\tRead\tTax\tCOG\tKEGG\n";
 my(%cogaccum,%keggaccum);
 foreach my $thissample(keys %allsamples) {
 	my %store;
-	print "\nSAMPLE: $thissample\n\n"; 
+	$sampnum++;
+	print "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; 
 	my $thissampledir="$resultsdir/$thissample";
 	system("mkdir $thissampledir");
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {
                 
-		print "   File: $thisfile\n\n";
+		print "   File: $thisfile\n";
 		$currtime=timediff();
-		print "[",$currtime->pretty,"]: Running Diamond for taxa\n";
+		print "   [",$currtime->pretty,"]: Running Diamond for taxa\n";
 		my $outfile="$thissampledir/$thisfile.tax.m8";
 		my $outfile_tax="$thissampledir/$thisfile.tax.wranks";
 		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b 8 -o $outfile";
-		#print "Running BlastX: $blastx_command\n";
+		# print "Running BlastX: $blastx_command\n";
 		system($blastx_command);
 		my $lca_command="perl $scriptdir/lca_reads.pl $outfile";
 		$currtime=timediff();
-		print "[",$currtime->pretty,"]: Running LCA: $lca_command\n";
+		print "   [",$currtime->pretty,"]: Running LCA\n";
 		system($lca_command);
 		open(infiletax,$outfile_tax) || die;
 		while(<infiletax>) {
@@ -132,47 +138,53 @@ foreach my $thissample(keys %allsamples) {
 		
 		
 		$currtime=timediff();
-		print "[",$currtime->pretty,"]: Running Diamond for COGs\n";
-		my $outfile="$thissampledir/$thisfile.cogs.m8";
-		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
-		#print "Running BlastX: $blastx_command\n";
-		system($blastx_command);
-		my $outfile_cog="$thissampledir/$thisfile.cogs";
-		my $func_command="perl $scriptdir/func.pl $outfile $outfile_cog";
-		$currtime=timediff();
-		print "[",$currtime->pretty,"]: Running fun3: $func_command\n";
-		system($func_command);
-		open(infilecog,$outfile_cog) || die;
-		while(<infilecog>) {
-			chomp;
-			next if(!$_ || ($_=~/^\#/));
-			my @f=split(/\t/,$_);
-			$store{$f[0]}{cog}=$f[1];
-			if($f[1] eq $f[2]) { $store{$f[0]}{cog}.="*"; }
+		if(!$nocog) {
+			print "   [",$currtime->pretty,"]: Running Diamond for COGs\n";
+			my $outfile="$thissampledir/$thisfile.cogs.m8";
+			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			#print "Running BlastX: $blastx_command\n";
+			system($blastx_command);
+			my $outfile_cog="$thissampledir/$thisfile.cogs";
+			my $func_command="perl $scriptdir/func.pl $outfile $outfile_cog";
+			$currtime=timediff();
+			print "   [",$currtime->pretty,"]: Running fun3\n";
+			system($func_command);
+			open(infilecog,$outfile_cog) || die;
+			while(<infilecog>) {
+				chomp;
+				next if(!$_ || ($_=~/^\#/));
+				my @f=split(/\t/,$_);
+				$store{$f[0]}{cog}=$f[1];
+				if($f[1] eq $f[2]) { $store{$f[0]}{cog}.="*"; }
+				}
+			close infilecog;
 			}
-		close infilecog;
-
-		$currtime=timediff();
-		print "[",$currtime->pretty,"]: Running Diamond for KEGG\n";
-		my $outfile="$thissampledir/$thisfile.kegg.m8";
-		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
-		#print "Running BlastX: $blastx_command\n";
-		system($blastx_command);
-		my $outfile_kegg="$thissampledir/$thisfile.kegg";
-		my $func_command="perl $scriptdir/func.pl $outfile $outfile_kegg";
-		$currtime=timediff();
-		print "[",$currtime->pretty,"]: Running fun3: $func_command\n";
-		system($func_command);
-		open(infilekegg,$outfile_kegg) || die;
-		while(<infilekegg>) {
-			chomp;
-			next if(!$_ || ($_=~/^\#/));
-			my @f=split(/\t/,$_);
-			$store{$f[0]}{kegg}=$f[1];
-			if($f[1] eq $f[2]) { $store{$f[0]}{kegg}.="*"; }
+			
+		if(!$nokegg) {
+			$currtime=timediff();
+			print "   [",$currtime->pretty,"]: Running Diamond for KEGG\n";
+			my $outfile="$thissampledir/$thisfile.kegg.m8";
+			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			#print "Running BlastX: $blastx_command\n";
+			system($blastx_command);
+			my $outfile_kegg="$thissampledir/$thisfile.kegg";
+			my $func_command="perl $scriptdir/func.pl $outfile $outfile_kegg";
+			$currtime=timediff();
+			print "   [",$currtime->pretty,"]: Running fun3\n";
+			system($func_command);
+			open(infilekegg,$outfile_kegg) || die;
+			while(<infilekegg>) {
+				chomp;
+				next if(!$_ || ($_=~/^\#/));
+				my @f=split(/\t/,$_);
+				$store{$f[0]}{kegg}=$f[1];
+				if($f[1] eq $f[2]) { $store{$f[0]}{kegg}.="*"; }
+				}
+			close infilekegg;
 			}
-		close infilekegg;
 		}
+		
+		
 	foreach my $k(sort keys %store) {
 		my @tfields=split(/\;/,$store{$k}{tax});	#-- As this is a huge file, we do not report the full taxonomy, just the deepest taxon
 		my $lasttax=$tfields[$#tfields];
@@ -198,15 +210,6 @@ close outall;
 #------------ Global tables --------------#
 
 my(%cog,%kegg);
-open(infile1,$coglist) || warn "Missing COG equivalence file\n";
-while(<infile1>) {
-	chomp;
-	next if(!$_ || ($_=~/\#/));
-	my @t=split(/\t/,$_);
-	$cog{$t[0]}{fun}=$t[1];
-	$cog{$t[0]}{path}=$t[2]; 
-            }
-close infile1;
 
 	#-- Reading data for KEGGs (names, pathways)
 
@@ -257,39 +260,53 @@ foreach my $ntax(sort { $taxaccum{total}{$b}<=>$taxaccum{total}{$a}; } keys %{ $
 
 close outtax;	 
 	
-print "COG table: $resultsdir/$output_all.funcog\n";		
-open(outcog,">$resultsdir/$output_all.funcog");
-print outcog "# Created by $0 from data in $equivfile", scalar localtime,"\n";
-print outcog "COG\tTotal";
-foreach my $sprint(sort keys %accum) { print outcog "\t$sprint"; }
-print outcog "\tFunction\tClass\n";
-foreach my $ncog(sort { $cogaccum{$b}<=>$cogaccum{$a}; } keys %cogaccum) {
-	print outcog "$ncog\t$cogaccum{$ncog}";
-	foreach my $isam(sort keys %accum) {
-		my $dato=$accum{$isam}{cog}{$ncog} || "0";
-		print outcog "\t$dato";
+if(!$nocog) {
+	open(infile1,$coglist) || warn "Missing COG equivalence file\n";
+	while(<infile1>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my @t=split(/\t/,$_);
+		$cog{$t[0]}{fun}=$t[1];
+		$cog{$t[0]}{path}=$t[2]; 
+           	 }
+	close infile1;
+
+	print "COG table: $resultsdir/$output_all.funcog\n";		
+	open(outcog,">$resultsdir/$output_all.funcog");
+	print outcog "# Created by $0 from data in $equivfile", scalar localtime,"\n";
+	print outcog "COG\tTotal";
+	foreach my $sprint(sort keys %accum) { print outcog "\t$sprint"; }
+	print outcog "\tFunction\tClass\n";
+	foreach my $ncog(sort { $cogaccum{$b}<=>$cogaccum{$a}; } keys %cogaccum) {
+		print outcog "$ncog\t$cogaccum{$ncog}";
+		foreach my $isam(sort keys %accum) {
+			my $dato=$accum{$isam}{cog}{$ncog} || "0";
+			print outcog "\t$dato";
+			}
+		print outcog "\t$cog{$ncog}{fun}\t$cog{$ncog}{path}\n";
 		}
-	print outcog "\t$cog{$ncog}{fun}\t$cog{$ncog}{path}\n";
-	}
 
-close outcog;	 
+	close outcog;
+	}	 
 
-print "KEGG table: $resultsdir/$output_all.funkegg\n";		
-open(outkegg,">$resultsdir/$output_all.funkegg");
-print outkegg "# Created by $0 from data in $equivfile", scalar localtime,"\n";
-print outkegg "KEGG\tTotal";
-foreach my $sprint(sort keys %accum) { print outkegg "\t$sprint"; }
-print outkegg "\tFunction\tClass\n";
-foreach my $nkegg(sort { $keggaccum{$b}<=>$keggaccum{$a}; } keys %keggaccum) {
-	print outkegg "$nkegg\t$keggaccum{$nkegg}";
-	foreach my $isam(sort keys %accum) {
-		my $dato=$accum{$isam}{kegg}{$nkegg} || "0";
-		print outkegg "\t$dato";
+if(!$nokegg) {
+	print "KEGG table: $resultsdir/$output_all.funkegg\n";		
+	open(outkegg,">$resultsdir/$output_all.funkegg");
+	print outkegg "# Created by $0 from data in $equivfile", scalar localtime,"\n";
+	print outkegg "KEGG\tTotal";
+	foreach my $sprint(sort keys %accum) { print outkegg "\t$sprint"; }
+	print outkegg "\tFunction\tClass\n";
+	foreach my $nkegg(sort { $keggaccum{$b}<=>$keggaccum{$a}; } keys %keggaccum) {
+		print outkegg "$nkegg\t$keggaccum{$nkegg}";
+		foreach my $isam(sort keys %accum) {
+			my $dato=$accum{$isam}{kegg}{$nkegg} || "0";
+			print outkegg "\t$dato";
+			}
+		print outkegg "\t$kegg{$nkegg}{fun}\t$kegg{$nkegg}{path}\n";
 		}
-	print outkegg "\t$kegg{$nkegg}{fun}\t$kegg{$nkegg}{path}\n";
-	}
 
-close outkegg;	 
+	close outkegg;
+	}	 
 
 $currtime=timediff();
 print "\n[",$currtime->pretty,"]: DONE! Have fun!\n";

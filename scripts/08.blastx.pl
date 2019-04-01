@@ -42,7 +42,7 @@ $collapsedmerged=~s/\.m8/\.merged\.m8/;
 
 
 
-
+moving();
 masking();
 run_blastx();
 collapse();
@@ -53,9 +53,19 @@ functions();
 remaketaxtables();
 remakefuntables();
 remakegff();
-			
 
-sub masking() {
+sub moving {		#-- Places files in rigth location for restart purposes		
+	my $restarting;
+	if(-e "$interdir/03.$project.gff") { $restarting=1; }
+	if($restarting) {	
+		system("cp $interdir/03.$project.gff $resultpath");
+		system("cp $interdir/*wranks $resultpath");
+		system("cp $interdir/*fun3* $resultpath");
+		}
+	}
+	
+
+sub masking {
 	print "Getting segments for masking\n";
 	open(infile1,"$fun3tax.wranks") || die "Cannot open wranks file in $fun3tax.wranks\n";
 	while(<infile1>) {
@@ -363,7 +373,7 @@ sub remaketaxtables {
 		close outfile3;	
 		my $movetable=$original_table;
 		$movetable=~s/$resultpath/$interdir/;
-		$movecommands="mv $original_table $movetable; mv $blastx_table $interdir; ";
+		$movecommands.="mv $original_table $movetable; mv $blastx_table $interdir; ";
 		}
 	}
 		
@@ -496,5 +506,5 @@ sub remakegff {
 	my $wc=qx(wc -l $newtable);	#-- Avoid moving files if the script failed (to be able to restart with all files in place)
 	my($wsize,$rest)=split(/\s+/,$wc);
 	print "$movecommands\n";
-	# if($wsize>=2)         { print "Moving old files to dir intermediate: $movecommands\n"; system($movecommands); } 
+	if($wsize>=2)         { print "Moving old files to dir intermediate: $movecommands\n"; system($movecommands); } 
 	}

@@ -74,7 +74,7 @@ open(outfile2,">>$pwd/$project/syslog") || die;
 $currtime=timediff();
 print outfile2 "Restarting project $project, ",scalar localtime,"\n";
 print outfile1 "Samples:$numsamples\nMode:$mode\n";
-system("rm $tempdir/$project.log");
+if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 
 
 

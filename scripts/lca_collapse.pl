@@ -60,7 +60,7 @@ my($validhits,$validhitsnofilter,$tothits,$skipidentical,$refscore,$refiden,$str
 tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 
-if($infile=~/gz/) { open(infile2,"zcat $infile|") || die; }
+if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die; }
 else { open(infile2,$infile) || die "Cannot open m8 file $infile\n"; }
 while(<infile2>) { 
 	chomp;

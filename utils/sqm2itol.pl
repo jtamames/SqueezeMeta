@@ -11,7 +11,7 @@ my($complete_cutoff,$contamination_cutoff,$funclass,$reqfunctions,$hel);
 #-- Define help text
 
 my $helptext = <<END_MESSAGE;
-Usage: makeitolplot.pl <options> project name
+Usage: sqm2itol.pl <options> project name
 
 Options:
 
@@ -27,15 +27,16 @@ my $result = GetOptions ("completion=i" => \$complete_cutoff,
                      "contamination=i" => \$contamination_cutoff,
                      "classification=s" => \$funclass,
 		     "functions=s" => \$reqfunctions,
+		     "p=s" => \$project,
 		     "h" => \$hel
  		    );
 
 if($hel) { die "$helptext\n"; } 
 
 my $pwd=cwd();
-my $project=pop @ARGV;
+#my $project=pop @ARGV;
 $project=~s/\/$//;
-if(!$project) { die "Please provide project name\nUsage: makeitolplot.pl <options> project name\n"; }
+if(!$project) { die "Please provide project name\nUsage: sqm2itol.pl <options> -p project\n"; }
 
 do "$project/SqueezeMeta_conf.pl";
 

@@ -120,7 +120,7 @@ foreach my $m(@files) {
 		$tax=~s/ \<.*//g;
                 $tax=~s/\s+/\_/g;
 		# my $rank=$equival{$grank};
-		# if($rank eq "superkingdom") { $rank="domain"; }
+		if($rank eq "superkingdom") { $rank="domain"; }
 		print "Using profile for rank $rank: $tax for $thisfile\n";   
 		my $marker="$markerdir/$tax.ms"; 
 	

@@ -75,7 +75,7 @@ tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 tie %accumnofilter,"Tie::IxHash";
 
-if($infile=~/gz/) { open(infile2,"zcat $infile|") || die; }			#-- If file is gzipped
+if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die "Cannot open gzipped file $infile\n"; }			#-- If file is gzipped
 else { open(infile2,$infile) || die "Cannot open Diamond file $infile\n"; }	#-- or if it is not
 
 while(<infile2>) { 

@@ -159,6 +159,21 @@ if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
 if($dietext) { die "$dietext\n$helptext\n"; }
 
+	#-- Check that everything is correct in the samples file
+
+open(infile1,$equivfile) || die "Cannot open samples file (-s) in $equivfile. Please check that it is the correct file\n";
+while(<infile1>) {
+	chomp;
+	next if(!$_ || ($_=~/^\#/));
+	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+	if($_=~/ /) { die "Please do not use blank spaces in the samples file\n"; }
+	if(($iden ne "pair1") && ($iden ne "pair2")) { die "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; }
+	if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile. Missing fields\n"; }
+	if(-e "$rawfastq/$file") {} else { die "Cannot find sample file $rawfastq/$file for sample $sample in the samples file. Please check\n"; }
+}
+close infile1;
+
+
 my $currtime=timediff();
 print "Run started ",scalar localtime," in $mode mode\n";
 
@@ -179,7 +194,6 @@ if($mode=~/sequential/i) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
 		($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-		if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile\n"; }
 		$allsamples{$sample}{$file}=1;
 		$ident{$sample}{$file}=$iden;
 		if($mapreq && ($mapreq=~/noassembly/i)) { $noassembly{$file}=1; }   #-- Files marked for no assembly (but they will be mapped)
@@ -440,7 +454,6 @@ sub moving {
  		chomp;
  		next if(!$_ || ($_=~/^\#/));
 		my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-		if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile. Please check that all entries have sample ID, file name and pair number\n"; }
 		$allsamples{$sample}=1;
 		$ident{$file}=$iden;
 		if(($mapreq) && ($mapreq=~/noassembly/i)) { $noassembly{$file}=1; }    #-- Files flagged for no assembly (but they will be mapped)

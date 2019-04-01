@@ -331,7 +331,7 @@ sub contigcov {
 	$accumrpk/=1000000;
 
 	print outfile4 "#-- Created by $0, ",scalar localtime,"\n";
-	print outfile4 "# Contig ID\tAv Coverage\tRPKM\tContig length\tRaw reads\tRaw bases\tSample\n";
+	print outfile4 "# Contig ID\tAv Coverage\tRPKM\tTPM\tContig length\tRaw reads\tRaw bases\tSample\n";
 	foreach my $rc(sort keys %readcount) { 
 		my $longt=$lencontig{$rc};
 		next if(!$longt);
