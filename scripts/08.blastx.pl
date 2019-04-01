@@ -505,6 +505,6 @@ sub remakegff {
 	$movecommands.="mv $gfftable $interdir/03.$project.gff";
 	my $wc=qx(wc -l $newtable);	#-- Avoid moving files if the script failed (to be able to restart with all files in place)
 	my($wsize,$rest)=split(/\s+/,$wc);
-	print "$movecommands\n";
+	# print "$movecommands\n";
 	if($wsize>=2)         { print "Moving old files to dir intermediate: $movecommands\n"; system($movecommands); } 
 	}
