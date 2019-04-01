@@ -19,8 +19,7 @@ do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$nocog,$nokegg,$nopfam,$opt_db,$cogdiamond,$fun3cog,$evalue,$miniden,$keggdiamond,$fun3kegg,$pfamlist,$fun3pfam,$pfamhmmer,$resultpath,$tempdir,$mindif7,$maxhits7,$minolap7);
-
+our($datapath,$nocog,$nokegg,$nopfam,$opt_db,$cogdiamond,$fun3cog,$evalue,$miniden,$keggdiamond,$fun3kegg,$pfamlist,$fun3pfam,$pfamhmmer,$interdir,$resultpath,$tempdir,$mindif7,$maxhits7,$minolap7);
 
 print "Assigning";
 if(!$nocog) { print " COGS"; }
@@ -198,7 +197,7 @@ if($opt_db) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		my $optdbdiamond="$resultpath/04.$project.$dbname.diamond";
+		my $optdbdiamond="$interdir/04.$project.$dbname.diamond";
 		my $optdbresult="$resultpath/07.$project.fun3.$dbname";
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
 		

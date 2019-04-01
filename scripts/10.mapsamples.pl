@@ -28,7 +28,7 @@ my $verbose=0;
 my $fastqdir="$datapath/raw_fastq";
 my $samdir="$datapath/sam";
 
-my $outfile="$resultpath/10.$project.mapcount";
+my $outfile=$mapcountfile;
 
 if(-d $samdir) {} else { system("mkdir $samdir"); }
 

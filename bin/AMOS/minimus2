@@ -7,11 +7,14 @@
 #?		-D OVERLAP=<n> 		\       # Assembly 1 vs 2 minimum overlap (Default 40bp)
 #?		-D CONSERR=<f>		\	# Maximum consensus error (0..1) (Default 0.06)
 #?		-D MINID=<n>		\	# Minimum overlap percent identity for alignments (Default 94)
-#?		-D MAXTRIM=<n>			# Maximum sequence trimming length (Default 20bp)
+#?		-D MAXTRIM=<n>		\	# Maximum sequence trimming length (Default 20bp)
+#?		-D THREADS=<n>		\	# Number of threads (Default 1).
 
 ### Modified from AMOS version 3.1.0 
-### by Fernando Puente-Sanchez on 2018-NOV-19, for compatibility with the SqueezeMeta pipeline.
+### by Fernando Puente-Sanchez on 2018-NOV-19, for compatibility with the SqueezeMeta pipeline
+### and in 2019-MAR-19 to allow multithreading in nucmer calls.
 ### SqueezeMeta is released under the GPL-3 license.
+
 
 #--------------------------------------- USER DEFINED VALUES ------------------#
 
@@ -21,6 +24,7 @@ OVERLAP	= 40
 MAXTRIM = 20
 WIGGLE  = 15
 CONSERR = 0.06
+THREADS = 1
 
 #------------------------------------------------------------------------------#
 
@@ -62,7 +66,7 @@ SHOWCOORDS	= LD_LIBRARY_PATH=$(LIBPATH) $(PATH)/../mummer/show-coords
 13: $(BINDIR)/dumpreads $(BANK) -m $(REFCOUNT) > $(QRYSEQ)
 
 ## Getting overlaps 
-20: $(NUCMER) --maxmatch -c $(OVERLAP) $(REFSEQ) $(QRYSEQ) -p $(PREFIX)
+20: $(NUCMER) --maxmatch --threads $(THREADS) -c $(OVERLAP) $(REFSEQ) $(QRYSEQ) -p $(PREFIX)
 21: $(SHOWCOORDS) -H -c -l -o -r -I $(MINID) $(ALIGN) | $(BINDIR)/nucmerAnnotate | egrep 'BEGIN|END|CONTAIN|IDENTITY' > $(COORDS) 
 22: $(BINDIR)/nucmer2ovl -ignore $(MAXTRIM) -tab $(COORDS) | $(BINDIR)/sort2 > $(OVLTAB)
 

@@ -1,21 +1,43 @@
 #!/usr/bin/python3
 
-from os import system
+"""
+Part of the SqueezeMeta distribution. 25/03/2018 Original version, (c) Fernando Puente-Sánchez, CNB-CSIC.
+
+Generate tabular outputs from SqueezeMeta results.
+
+USAGE: make-tables.py <PROJECT_NAME>
+
+"""
+
+from os.path import abspath, dirname, realpath
+from os import mkdir
 import argparse
+
 from numpy import array, isnan, seterr
 seterr(divide='ignore', invalid='ignore')
 from collections import defaultdict
 
+from sys import path
+utils_home = abspath(dirname(realpath(__file__)))
+path.append('{}/../lib/'.format(utils_home))
+from utils import parse_conf_file
+
+
 TAXRANKS = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+
 
 def main(args):
     ### Get result files paths from SqueezeMeta_conf.pl
     perlVars = parse_conf_file(args.project_path)
-    nokegg, nocog, nopfam = map(int, [perlVars['$nokegg'], perlVars['$nocog'], perlVars['$nopfam']])
+    nokegg, nocog, nopfam, doublepass = map(int, [perlVars['$nokegg'], perlVars['$nocog'], perlVars['$nopfam'], perlVars['$doublepass']])
 
-    ### Create output dir:
+    ### Create output dir.
     outDir = '{}/tables/'.format(perlVars['$resultpath'])
-    system('mkdir {}'.format(outDir))
+    try:
+       mkdir(outDir)
+    except OSError as e:
+        if e.errno != 17:
+            raise
 
     ### Calculate tables and write results.
     prefix = outDir + perlVars['$projectname'] + '.'
@@ -30,44 +52,52 @@ def main(args):
         write_results(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
         write_results(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
 
+    fun_prefix = perlVars['$fun3tax_blastx'] if doublepass else perlVars['$fun3tax']
+    orf_tax, orf_tax_wranks = parse_tax_table(fun_prefix + '.wranks')
+    orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.nofilter.wranks')
 
-    orf_tax, orf_tax_wranks = parse_tax_table(perlVars['$fun3tax']+'.wranks')
-    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.tsv')
+    # Add ORFs not present in the input tax file.
+    unclass_list = ['Unclassified' for rank in TAXRANKS]
+    unclass_list_wranks = ['{}:Unclassified' for rank in TAXRANKS]
+    for orf in orf_abunds:
+        if orf not in orf_tax:
+            assert orf not in orf_tax_wranks
+            assert orf not in orf_tax_nofilter
+            assert orf not in orf_tax_nofilter_wranks
+            orf_tax[orf] = unclass_list
+            orf_tax_wranks[orf] = unclass_list_wranks
+            orf_tax_nofilter[orf] = unclass_list
+            orf_tax_nofilter_wranks[orf] = unclass_list_wranks
+
+    
+    orf_tax_prokfilter, orf_tax_prokfilter_wranks = {}, {}
+
+    for orf in orf_tax:
+        tax = orf_tax[orf]
+        tax_nofilter = orf_tax_nofilter[orf]
+        if 'Bacteria' in (tax[0], tax_nofilter[0]) or 'Archaea' in (tax[0], tax_nofilter[0]): # We check both taxonomies.
+            orf_tax_prokfilter       [orf] = tax
+            orf_tax_prokfilter_wranks[orf] = orf_tax_wranks[orf]
+        else:
+            orf_tax_prokfilter       [orf] = tax_nofilter
+            orf_tax_prokfilter_wranks[orf] = orf_tax_nofilter_wranks[orf]
+            
+
+    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
+    write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
+    write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
 
     contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
     write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
 
     for idx, rank in enumerate(TAXRANKS):
-        #tax_abunds_orfs = aggregate_tax_abunds(orf_abunds, orf_tax, idx)
-        #write_results(sampleNames, tax_abunds_orfs, prefix + '{}.abund.orfs.tsv'.format(rank))
+        tax_abunds_orfs = aggregate_tax_abunds(orf_abunds, orf_tax_prokfilter, idx)
+        write_results(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.orfs.tsv'.format(rank))
+
         tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
-        write_results(sampleNames, tax_abunds_contigs, prefix + '{}.abund.tsv'.format(rank))
-        write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.percent.tsv'.format(rank))
+        write_results(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
+        write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 
-
-
-def parse_conf_file(project_path):
-    perlVars = {}
-    for line in open('{}/SqueezeMeta_conf.pl'.format(project_path)):
-        line = line.rsplit('#',1)[0] # Remove comment strings.
-        if line.startswith('$'): # Is this a var definition?
-            var, value = [x.strip(' \'\"') for x in line.strip().strip(';').split('=',1)]
-            perlVars[var] = value
-
-    ### Define this bc it's funny to parse perl code with python.
-    def perl_string_interpolation(string):
-        if '$' in string:
-            for var in perlVars:
-                if var in string and not '\\{}'.format(var) in string: # The var is in the string, and the $ is not escaped like "\$"
-                    string = string.replace(var, perl_string_interpolation(perlVars[var])) # Recursive interpolation.
-        return string
-
-
-    ### Back to work. Interpolate all the strings.
-    for var, value in perlVars.items():
-        perlVars[var] = perl_string_interpolation(value)
-
-    return perlVars
 
 
 def parse_orf_table(orf_table, nokegg, nocog, nopfam, orfSet=None):
@@ -85,7 +115,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, orfSet=None):
         for fun in funs:
             # If we have a multi-KO annotation, split counts between all KOs.
             funDict['abundances'][fun] += abundances / len(funs)
-            funDict['copies'][fun]     += copies     / len(funs)
+            funDict['copies'][fun]     += copies # We treat every KO as an individual smaller gene: less size, less reads, one copy.
             funDict['lengths'][fun]    += lengths    / len(funs)
 
 
