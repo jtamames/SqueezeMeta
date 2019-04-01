@@ -6,19 +6,19 @@ my $REMOVE_NR=1;
 my $REMOVE_TAXDUMP=1;
 my $REMOVE_LCA_TAX_INTERMEDIATE=1;
 
-### scriptdir patch, Fernando Puente-Sánchez, 07-V-2018
-use File::Basename;
-our $dbscriptdir = dirname(__FILE__);
-our $installpath = "$dbscriptdir/../..";
-our $libpath = "$installpath/lib";
-###
-
 use Cwd 'abs_path';
 my $download_dir = abs_path($ARGV[0]);
 my $database_dir = "$download_dir/db";
 my $lca_dir = "$database_dir/LCA_tax";
 
 if(!$download_dir) { die "Usage: perl make_databases.pl <download dir>\n"; }
+
+### scriptdir patch, Fernando Puente-Sánchez, 07-V-2018
+use File::Basename;
+our $dbscriptdir = dirname(__FILE__);
+our $installpath = abs_path("$dbscriptdir/../..");
+our $libpath = "$installpath/lib";
+###
 
 system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db.tar.gz $download_dir/kegg.dmnd.gz");
 
