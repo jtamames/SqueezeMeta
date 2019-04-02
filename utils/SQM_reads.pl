@@ -13,8 +13,10 @@ use Tie::IxHash;
 use lib ".";
 use strict;
 use File::Basename;
-our $scriptdir = dirname(__FILE__);
-our $installpath = "$scriptdir/..";
+our $utilsdir = dirname(__FILE__);
+our $installpath = "$utilsdir/..";
+our $scriptdir = "$installpath/scripts";
+our $auxdir = "$installpath/lib/SQM_reads";
 
 my $version="0.1.0, Feb 2019";
 my $start_run = time();
@@ -123,7 +125,7 @@ foreach my $thissample(keys %allsamples) {
 		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b 8 -o $outfile";
 		# print "Running BlastX: $blastx_command\n";
 		system($blastx_command);
-		my $lca_command="perl $scriptdir/lca_reads.pl $outfile";
+		my $lca_command="perl $auxdir/lca_reads.pl $outfile";
 		$currtime=timediff();
 		print "   [",$currtime->pretty,"]: Running LCA\n";
 		system($lca_command);
@@ -145,7 +147,7 @@ foreach my $thissample(keys %allsamples) {
 			#print "Running BlastX: $blastx_command\n";
 			system($blastx_command);
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
-			my $func_command="perl $scriptdir/func.pl $outfile $outfile_cog";
+			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
 			$currtime=timediff();
 			print "   [",$currtime->pretty,"]: Running fun3\n";
 			system($func_command);
@@ -168,7 +170,7 @@ foreach my $thissample(keys %allsamples) {
 			#print "Running BlastX: $blastx_command\n";
 			system($blastx_command);
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
-			my $func_command="perl $scriptdir/func.pl $outfile $outfile_kegg";
+			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 			$currtime=timediff();
 			print "   [",$currtime->pretty,"]: Running fun3\n";
 			system($func_command);
