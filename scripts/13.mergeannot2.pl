@@ -160,7 +160,7 @@ while(<infile4>) {
 		my @mt=split(/\t/,$_);
 		if($rnaseq) { 
 			$orfdata{$thisrna}{ntseq}=$rnaseq;
-			$orfdata{$thisrna}{length}=(length $rnaseq)+1;
+			$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
 			$orfdata{$thisrna}{molecule}="RNA";
 			$orfdata{$thisrna}{method}="barrnap";
 			}
