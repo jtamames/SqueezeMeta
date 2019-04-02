@@ -10,9 +10,9 @@ use Cwd;
 $pwd=cwd();
 
 use File::Basename;
-our $scriptdir = dirname(__FILE__);
+our $auxdir = dirname(__FILE__);
 
-do "$scriptdir/SqueezeMeta_conf.pl";
+do "$auxdir/../../scripts/SqueezeMeta_conf.pl";
 our($databasepath);
 
 my $lca_db="$databasepath/LCA_tax/taxid.db";
