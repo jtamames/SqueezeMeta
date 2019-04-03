@@ -40,27 +40,28 @@ def main(args):
 
 
     ### Create orftable.
-    allORFs = set()
+    allORFs = []
     goodFields = ['ORF', 'CONTIG ID', 'LENGTH AA', 'GC perc', 'GENNAME', 'TAX ORF', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
     with open(perlVars['$mergedfile']) as infile, open('{}/genes.tsv'.format(args.output_dir), 'w') as outfile:
-        outfile.write(outfile.readline())
+        outfile.write(infile.readline())
         header = infile.readline().strip().split('\t')
         goodFields.extend([f for f in header if f.startswith('TPM ') or f.startswith('COVERAGE ') or f.startswith('RAW READ ') or f.startswith('RAW BASE ')])
-        outfile.write('\t'.join(newFields) + '\n')
-        idx =  {f: i for i,f in enumerate(header) if f in newFields}
+        outfile.write('\t'.join(goodFields) + '\n')
+        idx =  {f: i for i,f in enumerate(header) if f in goodFields}
         for line in infile:
             line = line.strip().split('\t')
-            allORFs.add(line[0])
-            outfile.write('{}\n'.format('\t'.join([line[idx[f]] for f in goodFields])))
+            if line[2] != 'RNA':
+                allORFs.append(line[0])
+                outfile.write('{}\n'.format('\t'.join([line[idx[f]] for f in goodFields])))
 
 
     ### Create contigtable.
-    os.system('cp {} {}/contigs.tsv'.format(perlVars['$contigtable']), args.output_dir)
+    system('cp {} {}/contigs.tsv'.format(perlVars['$contigtable'], args.output_dir))
     
 
     ### Create bintable.
     if not int(perlVars['$nobins']):
-        os.system('cp {} {}/bins.tsv'.format(perlVars['$bintable']), args.output_dir)
+        system('cp {} {}/bins.tsv'.format(perlVars['$bintable'], args.output_dir))
 
 
     ### Create sequences file.
@@ -68,7 +69,7 @@ def main(args):
     ORFseq = parse_fasta(perlVars['$aafile'])
     # Load blastx results if required.
     if bool(perlVars['$doublepass']):
-        ORFseq.update(parse_fasta(perlVars['$blastx_fna']))
+        ORFseq.update(parse_fasta(perlVars['$fna_blastx']))
     # Write results.
     with open('{}/sequences.tsv'.format(args.output_dir), 'w') as outfile:
         outfile.write('ORF\tAASEQ\n')
@@ -81,7 +82,7 @@ def parse_fasta(fasta):
     Parse a fasta file into a dictionary {header: sequence}
     """
     res = {}
-    with open(perlVars['$aafile']) as infile:
+    with open(fasta) as infile:
         header = ''
         seq = ''
         for line in infile:
@@ -89,7 +90,7 @@ def parse_fasta(fasta):
                 if header:
                     res[header] = seq
                     seq = ''
-                header = line.lstrip('>').split(' ')[0]
+                header = line.strip().lstrip('>').split(' ')[0]
             else:
                 seq += line.strip()
         res[header] = seq
