@@ -339,7 +339,7 @@ sub contigcov {
 		my $rpkm=($readcount{$rc}{reads}*1000000000)/($longt*$totalreadcount);
 		my $tpm=$rp{$rc}/$accumrpk;
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
-		else { printf outfile4 "$rc\t%.3f\t%.3f\t%.3f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
+		else { printf outfile4 "$rc\t%.2f\t%.1f\t%.1f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
 		}
 	close outfile4;	
 	return $totalreadcount;

@@ -449,7 +449,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $project");
 			if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
 			foreach my $binmethod(keys %dasdir) {
 				$checkmfile="$interdir/18.$project.$binmethod.checkM";

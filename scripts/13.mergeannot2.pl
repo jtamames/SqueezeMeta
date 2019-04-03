@@ -20,9 +20,9 @@ do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
+our($datapath,$resultpath,$interdir,$tempdir,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$taxdiamond,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
 
-my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist);
+my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist,%blasthits);
 tie %orfdata,"Tie::IxHash";
 tie %mapping,"Tie::IxHash";
 
@@ -40,7 +40,35 @@ while(<infile1>) {
 	}
 close infile1;
 
+	#-- Reading hits from Diamond
+	
+print "Reading Diamond hits\n";
+my(%provi,$lasto);
+open(infile1,$taxdiamond) || die "Cannot open diamond result in $taxdiamond\n";
+while(<infile1>) {
+	chomp;
+	next if !$_;
+	my @k=split(/\t/,$_);
+	if($k[0] ne $lasto) { %provi=(); $lasto=$k[0]; }
+	if(!$provi{$k[1]}) { $blasthits{$k[0]}++; $provi{$k[1]}=1; }
+	}
+close infile1;
 
+%provi=();
+$lasto="";
+my $bfile="$tempdir/08.$project.nr.blastx.collapsed.merged.m8";		#-- This one may or may not exist
+open(infile1,$bfile);
+while(<infile1>) {
+	chomp;
+	next if !$_;
+	my @k=split(/\t/,$_);
+	my @g=split(/\;/,$k[1]);
+	foreach my $thit(@g) {
+		my @m=split(/\|/,$thit);
+		if(!$provi{$m[0]}) { $blasthits{$k[0]}++; $provi{$m[0]}=1; }
+		}
+	}
+close infile1;
 
 	#-- Reading data for COGs (names, pathways)
 
@@ -160,7 +188,7 @@ while(<infile4>) {
 		my @mt=split(/\t/,$_);
 		if($rnaseq) { 
 			$orfdata{$thisrna}{ntseq}=$rnaseq;
-			$orfdata{$thisrna}{length}=(length $rnaseq)+1;
+			$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
 			$orfdata{$thisrna}{molecule}="RNA";
 			$orfdata{$thisrna}{method}="barrnap";
 			}
@@ -399,6 +427,7 @@ foreach my $cnt(sort keys %mapping) { print outfile1 "\tTPM $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW READ COUNT $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW BASE COUNT $cnt"; }
+print outfile1 "\tHITS"; 
 if($seqsinfile13) { print outfile1 "\tAASEQ"; }
 print outfile1 "\n";
 
@@ -445,6 +474,10 @@ foreach my $orfm(@sortedorfs) {
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'coverage'} || "0"; print outfile1 "\t$sdat"; }
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'raw'} || "0"; print outfile1 "\t$sdat"; }
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rawbases'} || "0"; print outfile1 "\t$sdat"; }
+	
+	#-- Diamond hits
+	
+	if($blasthits{$orf}) { print outfile1 "\t$blasthits{$orf}"; } else { print outfile1 "\t0"; } 
 
 	#-- aa sequences (if requested)
 

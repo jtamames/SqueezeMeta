@@ -165,7 +165,7 @@ sub run_blastx {
 
 	print "Running Diamond BlastX (This can take a while, please be patient)\n";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evalue -o $blastxout";
-	print "$blastx_command\n";
+	# print "$blastx_command\n";
 	system $blastx_command;
 	}
 
@@ -254,8 +254,8 @@ sub functions {
 
 	if(!$nocog) {
 		$cogfun="$tempdir/08.$project.fun3.blastx.cog.m8";
-		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
-		print "Running Diamond blastx for COGS: $command\n";
+		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
+		print "Running Diamond blastx for COGS\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{cog}=$fun3cog_blastx;
@@ -265,8 +265,8 @@ sub functions {
 
 	if(!$nokegg) {
 		$keggfun="$tempdir/08.$project.fun3.blastx.kegg.m8";
-		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
-		print "Running Diamond blastx for KEGG: $command\n";
+		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
+		print "Running Diamond blastx for KEGG\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{kegg}=$fun3kegg_blastx;
@@ -283,8 +283,8 @@ sub functions {
 			next if(!$_ || ($_=~/\#/));
 			my($dbname,$extdb,$dblist)=split(/\t/,$_);
 			$optdbfun="$tempdir/08.$project.fun3.blastx.$dbname.m8";
-			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
-			print "Running Diamond blastx for OPTDB $dbname: $command\n";
+			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
+			print "Running Diamond blastx for OPTDB $dbname\n";
 			my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
 			$olist{$dbname}="$resultpath/08.$project.fun3.$dbname";
@@ -506,5 +506,5 @@ sub remakegff {
 	my $wc=qx(wc -l $newtable);	#-- Avoid moving files if the script failed (to be able to restart with all files in place)
 	my($wsize,$rest)=split(/\s+/,$wc);
 	# print "$movecommands\n";
-	if($wsize>=2)         { print "Moving old files to dir intermediate: $movecommands\n"; system($movecommands); } 
+	if($wsize>=2)         { print "Moving old files to dir intermediate\n"; system($movecommands); } 
 	}

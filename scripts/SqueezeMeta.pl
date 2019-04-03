@@ -31,38 +31,38 @@ our(%bindirs,%dasdir);
 #-- Define help text
 
 my $helptext = <<END_MESSAGE;
-Usage: SqueezeMeta.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>
+Usage: SqueezeMeta.pl -m <mode> -p <project name> -s <samples file> -f <sequence dir> [options]
 
 Arguments:
 
  Mandatory parameters:
-   -m: Mode (sequential, coassembly, merged) (REQUIRED)
-   -s|-samples: Samples file (REQUIRED)
-   -f|-seq: Fastq read files' directory (REQUIRED)
-   -p: Project name (REQUIRED in coassembly and merged modes)
+   -m <mode>: Mode (sequential, coassembly, merged) (REQUIRED)
+   -s|-samples <samples file>: Samples file (REQUIRED)
+   -f|-seq <sequence dir>: fastq/fasta read files' directory (REQUIRED)
+   -p <project name>: Project name (REQUIRED in coassembly and merged modes)
    
  Filtering: 
    --cleaning: Filters with Trimmomatic (Default: No)
-   -cleaning_options: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
+   -cleaning_options [options]: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
    
  Assembly: 
-   -a: assembler [megahit,spades,canu] (Default: megahit)
-   -assembly_options: Options for required assembler
-   -c|-contiglen: Minimum length of contigs (Default: 200)
-   -extassembly: External assembly, file containing a fasta file of contigs. It will override all assembly steps.
+   -a: assembler <megahit,spades,canu> (Default: megahit)
+   -assembly_options [options]: Options for required assembler
+   -c|-contiglen <size>: Minimum length of contigs (Default: 200)
+   -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
    
  Mapping: 
-   -map: mapping software [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie) 
+   -map: mapping software <bowtie, bwa, minimap2-ont, minimap2-pb, minimap2-sr> (Default: bowtie) 
 
  Annotation:  
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
-   --extdb: Annotations for user-provided databases (must contain a list of databases)
-   -b|-block-size: block size for diamond against the nr database (Default: 8)
-   -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)
-   -miniden: identity perc for discarding hits in diamond run  (Default: 50)
    -D|--doublepass: First pass looking for genes using gene prediction, second pass using BlastX  (Default: no)
+   --extdb <database file>: List of user-provided databases
+   -b|-block-size <block size>: block size for diamond against the nr database (Default: 8)
+   -e|-evalue <max evalue>: max evalue for discarding hits diamond run  (Default: 1e-03)
+   -miniden <identity>: identity perc for discarding hits in diamond run  (Default: 50)
    
  Binning:
    --nobins: Skip all binning  (Default: no)
@@ -70,8 +70,8 @@ Arguments:
    --nometabat: Skip MetaBat2 binning  (Default: no)
    
  Performance:
-   -t: Number of threads (Default: 12)
-   -canumem: memory for canu in Gb (Default: 32)
+   -t <threads>: Number of threads (Default: 12)
+   -canumem <mem>: memory for canu in Gb (Default: 32)
    --lowmem: run on less than 16Gb of memory (Default:no)
 
  Other:
@@ -878,7 +878,7 @@ sub pipeline {
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $project");
 			if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
 			foreach my $binmethod(keys %dasdir) {
 				$checkmfile="$interdir/18.$project.$binmethod.checkM";

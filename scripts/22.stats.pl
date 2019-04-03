@@ -108,13 +108,20 @@ while(<infile4>) {
 	if(!$header) { $header=$_; @head=split(/\t/,$header); next; }
 	$genes{totgenes}++;
 	my @k=split(/\t/,$_);
+	my $taxorf;
 	foreach(my $pos=0; $pos<=$#k; $pos++) {
 		my $f=$head[$pos];
+		if($f eq "TAX ORF") { 
+			$taxorf=$k[$pos]; 
+			if(!$taxorf) { $genes{notassigned}++; }
+			}
 		if(($f eq "KEGG ID") && $k[$pos]) { $genes{kegg}++; }
 		if(($f eq "COG ID") && $k[$pos]) { $genes{cog}++; }
 		if(($f eq "PFAM") && $k[$pos]) { $genes{pfam}++; }
 		if(($f eq "MOLECULE") && ($k[$pos] eq "RNA")) { $genes{rnas}++; }
 		if($f eq "METHOD") { $genes{method}{$k[$pos]}++; }
+		if(($f eq "HITS") && !$k[$pos]) { $genes{orphans}++; }
+		if(($f eq "HITS") && $k[$pos] && (!$taxorf)) { $genes{notassignedwhits}++; }
 		if($opt{$f} && $k[$pos]) { $genes{$f}++; }
 		if($f=~/RAW READ COUNT (.*)/) {
 			my $tsam=$1;
@@ -122,11 +129,17 @@ while(<infile4>) {
 				$genes{$tsam}{totgenes}++;
 				foreach(my $pos2=0; $pos2<=$#k; $pos2++) {
 					my $f2=$head[$pos2];
+					if($f eq "TAX ORF") { 
+						$taxorf=$k[$pos]; 
+						if(!$taxorf && $k[$pos2]) { $genes{$tsam}{notassigned}++; }
+						}
 					if(($f2 eq "KEGG ID") && $k[$pos2]) { $genes{$tsam}{kegg}++; }
 					if(($f2 eq "COG ID") && $k[$pos2]) { $genes{$tsam}{cog}++; }
 					if(($f2 eq "PFAM") && $k[$pos2]) { $genes{$tsam}{pfam}++; }
 					if($f2 eq "METHOD") { $genes{$tsam}{method}{$k[$pos2]}++; }
 					if(($f2 eq "MOLECULE") && ($k[$pos2] eq "RNA")) { $genes{$tsam}{rnas}++; }
+					if(($f2 eq "HITS") && !$k[$pos2]) { $genes{$tsam}{orphans}++; }
+					if(($f2 eq "HITS") && $k[$pos2] && (!$taxorf)) { $genes{$tsam}{notassignedwhits}++; }
 					if($opt{$f2} && $k[$pos2]) { $genes{$tsam}{$f2}++; }
 					}
 				}
@@ -215,7 +228,7 @@ print outfile1 "\n";
 
 	#-- Reads
 	
-print outfile1 "# Statistics on reads\n";
+print outfile1 "#------------------- Statistics on reads\n";
 print outfile1 "#\tAssembly";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$sample"; }
 print outfile1 "\n";
@@ -228,7 +241,7 @@ print outfile1 "\n";
 
 	#-- Contigs
 
-print outfile1 "\n# Statistics on contigs\n";
+print outfile1 "\n#------------------- Statistics on contigs\n";
 print outfile1 "#\tAssembly\n";
 print outfile1 "Number of contigs\t$contigs{num}\nTotal length\t$contigs{bases}\nLongest contig\t$contigs{max}\nShortest contig\t$contigs{min}\n";
 print outfile1 "N50\t$contigs{N50}\nN90\t$contigs{N90}\n";
@@ -261,7 +274,7 @@ print outfile1 "\n";
 
 	#-- Genes
 
-print outfile1 "# Statistics on ORFs\n";
+print outfile1 "#------------------- Statistics on ORFs\n";
 print outfile1 "#\tAssembly";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$sample"; }
 print outfile1 "\n";
@@ -276,6 +289,13 @@ foreach my $tmet(sort keys %{ $genes{method} }) {
 	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{method}{$tmet}"; }
 	print outfile1 "\n";
 	}
+print outfile1 "Orphans (no hits)\t$genes{orphans}";
+foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{orphans}"; }
+print outfile1 "\n";
+print outfile1 "Not assigned (with hits)\t$genes{notassignedwhits}";
+foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{notassignedwhits}"; }
+print outfile1 "\n";
+
 
 if($genes{kegg}) {
 	print outfile1 "KEGG annotations\t$genes{kegg}";
@@ -303,7 +323,7 @@ foreach my $optdb(sort keys %opt) {
 	#-- Bins
 
 if(($mode ne "sequential") && (!$nobins)) {
-	print outfile1 "\n# Statistics on bins\n#";
+	print outfile1 "\n#------------------- Statistics on bins\n#";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$method"; }
 	print outfile1 "\n";
 	print outfile1 "Number of bins";

@@ -168,9 +168,25 @@ sub query {
                 	}
 
  
+	my $abb=$parents{$lasttax}{wranks};
+	
+	#-- Changing nomenclature to abbreviations
+	
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/.*\:/n_/g;
+	# print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
+	print outc "$lastorf\t$abb\n";		
+		# print outfile3 "$lastorf\t$parents{$lasttaxnofilter}{noranks}\n";
+		my $abb=$parents{$lasttaxnofilter}{wranks};
+		$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/.*\:/n_/g; 
+		# print outfile4 "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";	
+		print outcnof "$lastorf\t$abb\n";	
+	 print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;
+	#print "$lastorf\t$abb\n" if $verbose;
+	if($parents{$lasttax}{noranks}) { $thereareresults=1; }	
+
  # print out "$lastorf\t$parents{$lasttax}{noranks}\n";
-  print outc "$lastorf\t$parents{$lasttax}{wranks}\n";		
+ # print outc "$lastorf\t$parents{$lasttax}{wranks}\n";		
  # print outnof "$lastorf\t$parents{$lasttaxnofilter}{noranks}\n";
-  print outcnof "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";		
-  print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;	
+ # print outcnof "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";		
+ # print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;	
        }

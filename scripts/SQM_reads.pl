@@ -66,7 +66,7 @@ if(!$rawseqs) { $dietext.="MISSING ARGUMENT: -f|-seq:Read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if($dietext) { die "$dietext\n$helptext\n"; }
 
-my(%allsamples,%ident,%noassembly,%accum);
+my(%allsamples,%ident,%noassembly,%accum,%totalseqs);
 my($sample,$file,$iden,$mapreq);
 tie %allsamples,"Tie::IxHash";
 
@@ -76,13 +76,16 @@ my $kegg_db="$databasepath/keggdb";
 my $diamond_soft="$installpath/bin/diamond";
 my $coglist="$installpath/data/coglist.txt";    #-- COG equivalence file (COGid -> Function -> Functional class)
 my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
-my %ranks=('superkingdom',1,'phylum',1,'class',1,'order',1,'family',1,'genus',1,'species',1);    #-- Only these taxa will be considered for output
+my %ranks=('k',1,'phylum',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
 
 my $resultsdir=$project;
 if (-d $resultsdir) { die "Project name $project already exists\n"; } else { system("mkdir $resultsdir"); }
 
 my $output_all="$project.out.allreads";
 open(outall,">$resultsdir/$output_all") || die;
+
+my $output_counts="$project.out.counts";
+open(outcount,">$resultsdir/$output_counts") || die;
 
 #-- Reading the sample file 
 
@@ -91,8 +94,11 @@ open(infile1,$equivfile) || die "Cannot open samples file $equivfile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
-	($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-	if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile\n"; }
+	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+	if($_=~/ /) { die "Please do not use blank spaces in the samples file\n"; }
+	if(($iden ne "pair1") && ($iden ne "pair2")) { die "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; }
+	if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile. Missing fields\n"; }
+	if(-e "$rawseqs/$file") {} else { die "Cannot find sample file $rawseqs/$file for sample $sample in the samples file. Please check\n"; }
 	$allsamples{$sample}{$file}=1;
 	$ident{$sample}{$file}=$iden;
 }
@@ -105,6 +111,8 @@ print "$numsamples metagenomes found";
 print "\n";
 print outall "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 print outall "# Sample\tRead\tTax\tCOG\tKEGG\n";
+print outcount "# Created by $0 from data in $equivfile", scalar localtime,"\n";
+print outcount "# Sample\tFile\tReads\tHits\n";
 
 my(%cogaccum,%keggaccum);
 foreach my $thissample(keys %allsamples) {
@@ -113,16 +121,39 @@ foreach my $thissample(keys %allsamples) {
 	print "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; 
 	my $thissampledir="$resultsdir/$thissample";
 	system("mkdir $thissampledir");
-	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {
-                
+	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		print "   File: $thisfile\n";
+		if($thisfile=~/fastq.gz/) { system("zcat $thisfile | wc > rc.txt"); }
+		elsif($thisfile=~/fastq/) { system("wc $thisfile > rc.txt"); }
+		elsif($thisfile=~/fasta.gz/) { system("zcat $thisfile | grep \"^>\" > rc.txt"); }
+		elsif($thisfile=~/fasta/) { system("grep \"^>\" $thisfile > rc.txt"); }
+		open(inw,"rc.txt");
+		my $numseqs=<in>;
+		close inw;
+		chomp $numseqs;
+		if($thisfile=~/fastq/) { $numseqs/=4; }
+		system("rm rc.txt");
+		$totalseqs{$thisfile}++;
 		$currtime=timediff();
 		print "   [",$currtime->pretty,"]: Running Diamond for taxa\n";
 		my $outfile="$thissampledir/$thisfile.tax.m8";
 		my $outfile_tax="$thissampledir/$thisfile.tax.wranks";
 		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b 8 -o $outfile";
 		# print "Running BlastX: $blastx_command\n";
+		my %iblast;
 		system($blastx_command);
+		open(inf,$outfile);
+		while(<inf>) {
+			chomp;
+			next if !$_;
+			my @h=split(/\t/,$_);
+			$iblast{$h[0]}=1;
+			}
+		close inf;
+		my @y=keys %iblast;
+		my $numhits=$y[$#y]+1;
+		print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\n";
+			
 		my $lca_command="perl $scriptdir/lca_reads.pl $outfile";
 		$currtime=timediff();
 		print "   [",$currtime->pretty,"]: Running LCA\n";
@@ -205,6 +236,7 @@ foreach my $thissample(keys %allsamples) {
 		
 print "Output in $output_all\n";
 close outall;	
+close outcount;
 
 
 #------------ Global tables --------------#
@@ -248,7 +280,7 @@ foreach my $isam(sort keys %accum) {
 	}
 foreach my $ntax(sort { $taxaccum{total}{$b}<=>$taxaccum{total}{$a}; } keys %{ $taxaccum{total} }) {
 	my @stx=split(/\;/,$ntax);
-	my($lastrank,$lasttax)=split(/\:/,$stx[$#stx]);
+	my($lastrank,$lasttax)=split(/\_/,$stx[$#stx]);
 	next if(!$ranks{$lastrank});
 	print outtax "$lastrank\t$ntax\t$taxaccum{total}{$ntax}";
 	foreach my $isam(sort keys %accum) {
