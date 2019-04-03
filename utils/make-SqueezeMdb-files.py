@@ -39,23 +39,8 @@ def main(args):
                 outfile.write('{}\t{}\n'.format(sample, len(addedSamples)))
 
 
-    ### Create sequences file.
-    with open(perlVars['$aafile']) as infile, open('{}/sequences.tsv'.format(args.output_dir), 'w') as outfile:
-        outfile.write('ORF\tAASEQ\n')
-        header = ''
-        seq = ''
-        for line in infile:
-            if line.startswith('>'):
-                header = line.lstrip('>').split(' ')[0]
-                if seq:
-                    outfile.write('{}\t{}\n'.format(header, seq))
-                    seq = ''
-            else:
-                seq += line.strip()
-        outfile.write('{}\t{}\n'.format(header, seq))
-
-
     ### Create orftable.
+    allORFs = set()
     goodFields = ['ORF', 'CONTIG ID', 'LENGTH AA', 'GC perc', 'GENNAME', 'TAX ORF', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
     with open(perlVars['$mergedfile']) as infile, open('{}/genes.tsv'.format(args.output_dir), 'w') as outfile:
         outfile.write(outfile.readline())
@@ -65,6 +50,7 @@ def main(args):
         idx =  {f: i for i,f in enumerate(header) if f in newFields}
         for line in infile:
             line = line.strip().split('\t')
+            allORFs.add(line[0])
             outfile.write('{}\n'.format('\t'.join([line[idx[f]] for f in goodFields])))
 
 
@@ -75,6 +61,39 @@ def main(args):
     ### Create bintable.
     if not int(perlVars['$nobins']):
         os.system('cp {} {}/bins.tsv'.format(perlVars['$bintable']), args.output_dir)
+
+
+    ### Create sequences file.
+    # Load prodigal results.
+    ORFseq = parse_fasta(perlVars['$aafile'])
+    # Load blastx results if required.
+    if bool(perlVars['$doublepass']):
+        ORFseq.update(parse_fasta(perlVars['$blastx_fna']))
+    # Write results.
+    with open('{}/sequences.tsv'.format(args.output_dir), 'w') as outfile:
+        outfile.write('ORF\tAASEQ\n')
+        for ORF in allORFs:
+            outfile.write('{}\t{}\n'.format(ORF, ORFseq[ORF]))
+
+
+def parse_fasta(fasta):
+    """
+    Parse a fasta file into a dictionary {header: sequence}
+    """
+    res = {}
+    with open(perlVars['$aafile']) as infile:
+        header = ''
+        seq = ''
+        for line in infile:
+            if line.startswith('>'):
+                if header:
+                    res[header] = seq
+                    seq = ''
+                header = line.lstrip('>').split(' ')[0]
+            else:
+                seq += line.strip()
+        res[header] = seq
+    return res
 
 
 def parse_args():
