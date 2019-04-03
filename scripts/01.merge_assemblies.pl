@@ -56,7 +56,7 @@ else {
 
 	#-- Uses minimus2 to assemble overlapping contigs
 
-	$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 MINID=95";
+	$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads";
 	print "Merging with minimus2: $command\n";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }

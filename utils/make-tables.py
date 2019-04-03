@@ -1,25 +1,49 @@
 #!/usr/bin/python3
 
-from os import system
+"""
+Part of the SqueezeMeta distribution. 25/03/2018 Original version, (c) Fernando Puente-Sánchez, CNB-CSIC.
+
+Generate tabular outputs from SqueezeMeta results.
+
+USAGE: make-tables.py <PROJECT_NAME> <OUTPUT_DIRECTORY>
+
+"""
+
+from os.path import abspath, dirname, realpath
+from os import mkdir
 import argparse
+
 from numpy import array, isnan, seterr
 seterr(divide='ignore', invalid='ignore')
 from collections import defaultdict
 
+from sys import path
+utils_home = abspath(dirname(realpath(__file__)))
+path.append('{}/../lib/'.format(utils_home))
+from utils import parse_conf_file
+
+
 TAXRANKS = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+TAXRANKS_SHORT = ('k', 'p', 'c', 'o', 'f', 'g', 's')
 
 def main(args):
     ### Get result files paths from SqueezeMeta_conf.pl
     perlVars = parse_conf_file(args.project_path)
-    nokegg, nocog, nopfam = map(int, [perlVars['$nokegg'], perlVars['$nocog'], perlVars['$nopfam']])
+    nokegg, nocog, nopfam, doublepass = map(int, [perlVars['$nokegg'], perlVars['$nocog'], perlVars['$nopfam'], perlVars['$doublepass']])
 
-    ### Create output dir:
-    outDir = '{}/tables/'.format(perlVars['$resultpath'])
-    system('mkdir {}'.format(outDir))
+    ### Create output dir.
+    try:
+       mkdir(args.output_dir)
+    except OSError as e:
+        if e.errno != 17:
+            raise
 
     ### Calculate tables and write results.
-    prefix = outDir + perlVars['$projectname'] + '.'
-    sampleNames, orf_abunds, kegg, cog, pfam = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam)
+    prefix = args.output_dir + '/' + perlVars['$projectname'] + '.'
+    
+    sampleNames, orfs, kegg, cog, pfam = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.ignore_unclassified)
+
+    write_results(sampleNames, orfs['tpm'], prefix + 'orf.tpm.tsv')
     if not nokegg:
         write_results(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
         write_results(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
@@ -30,63 +54,73 @@ def main(args):
         write_results(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
         write_results(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
 
+    fun_prefix = perlVars['$fun3tax_blastx'] if doublepass else perlVars['$fun3tax']
+    orf_tax, orf_tax_wranks = parse_tax_table(fun_prefix + '.wranks')
+    orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.noidfilter.wranks')
 
-    orf_tax, orf_tax_wranks = parse_tax_table(perlVars['$fun3tax']+'.wranks')
-    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.tsv')
+    # Add ORFs not present in the input tax file.
+    unclass_list = ['Unclassified' for rank in TAXRANKS_SHORT]
+    unclass_list_wranks = ['{}_Unclassified' for rank in TAXRANKS_SHORT]
+    for orf in orfs['abundances']:
+        if orf not in orf_tax:
+            assert orf not in orf_tax_wranks
+            assert orf not in orf_tax_nofilter
+            assert orf not in orf_tax_nofilter_wranks
+            orf_tax[orf] = unclass_list
+            orf_tax_wranks[orf] = unclass_list_wranks
+            orf_tax_nofilter[orf] = unclass_list
+            orf_tax_nofilter_wranks[orf] = unclass_list_wranks
+
+    
+    orf_tax_prokfilter, orf_tax_prokfilter_wranks = {}, {}
+
+    for orf in orf_tax:
+        tax = orf_tax[orf]
+        tax_nofilter = orf_tax_nofilter[orf]
+        if 'Bacteria' in (tax[0], tax_nofilter[0]) or 'Archaea' in (tax[0], tax_nofilter[0]): # We check both taxonomies.
+            orf_tax_prokfilter       [orf] = tax
+            orf_tax_prokfilter_wranks[orf] = orf_tax_wranks[orf]
+        else:
+            orf_tax_prokfilter       [orf] = tax_nofilter
+            orf_tax_prokfilter_wranks[orf] = orf_tax_nofilter_wranks[orf]
+            
+
+    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
+    write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
+    write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
 
     contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
     write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
 
     for idx, rank in enumerate(TAXRANKS):
-        #tax_abunds_orfs = aggregate_tax_abunds(orf_abunds, orf_tax, idx)
-        #write_results(sampleNames, tax_abunds_orfs, prefix + '{}.abund.orfs.tsv'.format(rank))
+        tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter, idx)
+        write_results(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.orfs.tsv'.format(rank))
+
         tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
-        write_results(sampleNames, tax_abunds_contigs, prefix + '{}.abund.tsv'.format(rank))
-        write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.percent.tsv'.format(rank))
+        write_results(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
+        write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 
 
 
-def parse_conf_file(project_path):
-    perlVars = {}
-    for line in open('{}/SqueezeMeta_conf.pl'.format(project_path)):
-        line = line.rsplit('#',1)[0] # Remove comment strings.
-        if line.startswith('$'): # Is this a var definition?
-            var, value = [x.strip(' \'\"') for x in line.strip().strip(';').split('=',1)]
-            perlVars[var] = value
+def parse_orf_table(orf_table, nokegg, nocog, nopfam, ignore_unclassified_fun, orfSet=None):
 
-    ### Define this bc it's funny to parse perl code with python.
-    def perl_string_interpolation(string):
-        if '$' in string:
-            for var in perlVars:
-                if var in string and not '\\{}'.format(var) in string: # The var is in the string, and the $ is not escaped like "\$"
-                    string = string.replace(var, perl_string_interpolation(perlVars[var])) # Recursive interpolation.
-        return string
-
-
-    ### Back to work. Interpolate all the strings.
-    for var, value in perlVars.items():
-        perlVars[var] = perl_string_interpolation(value)
-
-    return perlVars
-
-
-def parse_orf_table(orf_table, nokegg, nocog, nopfam, orfSet=None):
-
-    orf_abunds = {} # I know I'm being inconsistent with camelcase and underscores... ¯\_(ツ)_/¯
+    orfs = {res: {} for res in ('abundances', 'copies', 'lengths')} # I know I'm being inconsistent with camelcase and underscores... ¯\_(ツ)_/¯
     kegg = {res: defaultdict(int) for res in ('abundances', 'copies', 'lengths')}
     cog  = {res: defaultdict(int) for res in ('abundances', 'copies', 'lengths')}
     pfam = {res: defaultdict(int) for res in ('abundances', 'copies', 'lengths')}
 
     ### Define helper functions.
     def update_dicts(funDict, funIdx):
-        # abundances, copies and lengths are taken from the outer scope.
+        # abundances, copies, lengths and ignore_unclassified_fun are taken from the outer scope.
         funs = line[funIdx].replace('*','')
-        funs = ['Unclassified'] if not funs else funs.split(';') # So much fun!
+        funs = ['Unclassified'] if not funs else funs.strip(';').split(';') # So much fun!
         for fun in funs:
+            if ignore_unclassified_fun and fun == 'Unclassified':
+                continue
             # If we have a multi-KO annotation, split counts between all KOs.
             funDict['abundances'][fun] += abundances / len(funs)
-            funDict['copies'][fun]     += copies     / len(funs)
-            funDict['lengths'][fun]    += lengths    / len(funs)
+            funDict['copies'][fun]     += copies # We treat every KO as an individual smaller gene: less size, less reads, one copy.
+            funDict['lengths'][fun]    += lengths / len(funs)
 
 
     def tpm(funDict):
@@ -117,13 +151,19 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, orfSet=None):
             orf = line[idx['ORF']]
             if orfSet and orf not in orfSet:
                 continue
-            length = line[idx['LENGTH']]
+            length = line[idx['LENGTH AA']]
             length = int(length) if length else 0 # Fix for rRNAs being in the ORFtable but having no length.
-            if not length: print(line)
+            if not length:
+                print(line)
+                continue # print and continue for debug info.
+
             abundances = array([int(line[idx[sample]]) for sample in samples])
-            orf_abunds[orf] = abundances
             copies = (abundances>0).astype(int) # 1 copy if abund>0 in that sample, else 0.
             lengths = length * copies   # positive if abund>0 in that sample, else 0.
+            orfs['abundances'][orf] = abundances
+            orfs['copies'][orf] = copies
+            orfs['lengths'][orf] = lengths
+
             if not nokegg:
                 update_dicts(kegg, idx['KEGG ID'])
             if not nocog:
@@ -131,7 +171,8 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, orfSet=None):
             if not nopfam:
                 update_dicts(pfam, idx['PFAM'])
 
-    # Calculate tpm.    
+    # Calculate tpm.
+    orfs['tpm'] = tpm(orfs) 
     if not nokegg:
         kegg['tpm'] = tpm(kegg)
     if not nocog:
@@ -140,7 +181,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, orfSet=None):
         pfam['tpm'] = tpm(pfam)
 
  
-    return sampleNames, orf_abunds, kegg, cog, pfam
+    return sampleNames, orfs, kegg, cog, pfam
 
 
 def parse_tax_table(tax_table):
@@ -151,7 +192,7 @@ def parse_tax_table(tax_table):
         for line in infile:
             line = line.strip().split('\t')
             if len(line) == 1:
-                orf, tax = line[0], 'no_rank:Unclassified' # Add mock empty taxonomy, as the read is fully unclassified. 
+                orf, tax = line[0], 'n_Unclassified' # Add mock empty taxonomy, as the read is fully unclassified. 
             else:
                 orf, tax = line
             orf_tax[orf], orf_tax_wranks[orf] = parse_tax_string(tax)
@@ -172,7 +213,7 @@ def parse_contig_table(contig_table):
             line = line.strip().split('\t')
             contig, tax = line[idx['Contig ID']], line[idx['Tax']]
             if not tax:
-                tax = 'no_rank:Unclassified' # Add mock empty taxonomy, as the read is fully unclassified.
+                tax = 'n_Unclassified' # Add mock empty taxonomy, as the read is fully unclassified.
             contig_tax[contig], contig_tax_wranks[contig] = parse_tax_string(tax)
             contig_abunds[contig] = array([int(line[idx[sample]]) for sample in samples])
             
@@ -180,10 +221,10 @@ def parse_contig_table(contig_table):
 
 
 def parse_tax_string(taxString):
-    taxDict = dict([r.split(':') for r in taxString.strip(';').split(';')]) # We only preserve the last "no_rank" taxonomy, but we don't care.
+    taxDict = dict([r.split('_', 1) for r in taxString.strip(';').split(';')]) # We only preserve the last "no_rank" taxonomy, but we don't care.
     taxList = []
     lastRankFound = ''
-    for rank in reversed(TAXRANKS): # From species to superkingdom.
+    for rank in reversed(TAXRANKS_SHORT): # From species to superkingdom.
         if rank in taxDict:
             lastRankFound = rank
             taxList.append(taxDict[rank])
@@ -205,8 +246,8 @@ def parse_tax_string(taxString):
 
     # Generate comprehensive taxonomy strings.
     taxList_wranks = []
-    for i, rank in enumerate(TAXRANKS):
-        newStr = '{}:{}'.format(rank, taxList[i])
+    for i, rank in enumerate(TAXRANKS_SHORT):
+        newStr = '{}_{}'.format(rank, taxList[i])
         if i>0:
             newStr = '{};{}'.format(taxList_wranks[-1], newStr)
         taxList_wranks.append(newStr)
@@ -247,6 +288,8 @@ def write_results(sampleNames, rowDict, outname):
 def parse_args():
     parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB) 2019\n')
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
+    parser.add_argument('output_dir', type=str, help='Output directory')
+    parser.add_argument('--ignore_unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
 
     return parser.parse_args()
 

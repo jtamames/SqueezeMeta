@@ -7,6 +7,7 @@
 # Please cite https://doi.org/10.1101/107789
 #
 
+library(methods) # FPS: 2-04-19 Explicitly load this bc Rscript does not load it on startup (but R console does). What were the odds?
 packages <- list('doMC','data.table','ggplot2','DASTool')
 foo <- lapply(packages,function(x){suppressPackageStartupMessages(library(x,character.only=TRUE))})
 

@@ -27,7 +27,7 @@ Usage: restart.pl [options] project
 Options:
 
       -step: Step of the analysis to restart
-      
+
 END_MESSAGE
 
 
@@ -79,6 +79,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 
 
 #---------------------------------------- PIPELINE --------------------------------
+my $DAS_Tool_empty=0;
 
 	if($rpoint<=1) {
 
@@ -96,7 +97,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
 		print "[",$currtime->pretty,"]: STEP1 -> RUNNING CO-ASSEMBLY: $scriptname ($assembler)\n";
-                my $ecode = system("perl $scriptdir/$scriptname $project ");
+		my $ecode = system("perl $scriptdir/$scriptname $project ");
 		if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -116,7 +117,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 		}
 	
 		#-- In sequential mode. 
-     
+
 	elsif($mode=~/sequential/) {
  		my $scriptname="01.run_assembly.pl";
  		print outfile1 "1\t$scriptname\n";
@@ -171,7 +172,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
  		$currtime=timediff();
  		print outfile2 "[",$currtime->pretty,"]: STEP3 -> $scriptname\n";
  		print "[",$currtime->pretty,"]: STEP3 -> ORF PREDICTION: $scriptname\n";
-                my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $project");
 		if($ecode!=0)        { die "Stopping in STEP3 -> $scriptname\n"; }
 		my $wc=qx(wc -l $aafile);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -261,7 +262,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 				close infile0;
 				}
 			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($optdbsw<2)) {
-		               die "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; }
+				die "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; }
 		}
 	}
 			
@@ -346,8 +347,8 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 		my $wc=qx(wc -l $keggfuncover);
 		my($wsizeKEGG,$rest)=split(/\s+/,$wc);
 		if(($wsizeCOG<3) && ($wsizeKEGG<3)) {
-                                    die "Stopping in STEP12 -> $scriptname. Files $cogfuncover and/or $keggfuncover are empty!\n"; }
-				    }
+			die "Stopping in STEP12 -> $scriptname. Files $cogfuncover and/or $keggfuncover are empty!\n"; }
+			}
 	}
 			
     #-------------------------------- STEP13: Generation of the gene table
@@ -375,7 +376,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 			print outfile2 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP14 -> MAXBIN BINNING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-                        if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
+			if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
 			my $dirbin=$bindirs{maxbin};
 			opendir(indir1,$dirbin);
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
@@ -395,7 +396,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 			print outfile2 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP15 -> METABAT BINNING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-                        if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
+			if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
 			opendir(indir2,$dirbin);
 			my @binfiles=grep(/fa/,readdir indir2);
@@ -415,7 +416,7 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 			print outfile2 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP16 -> DAS_TOOL MERGING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-                        if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
+			if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
 			opendir(indir2,$dirbin);
 			my @binfiles=grep(/fa/,readdir indir2);
@@ -423,58 +424,72 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 			my $firstfile="$dirbin/$binfiles[0]";
 			my $wc=qx(wc -l $firstfile);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2) { die "Stopping in STEP16 -> $scriptname. File $firstfile is empty!\n"; }
+			if($wsize<2) {
+				print("WARNING: File $firstfile is empty!. DAStool did not generate results\n");
+				$DAS_Tool_empty = 1;
+			}
 		}
 			
     #-------------------------------- STEP17: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
 		if($rpoint<=17) {
-			my $scriptname="17.addtax2.pl";
-			print outfile1 "17\t$scriptname\n";
-			$currtime=timediff();
-			print outfile2 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP17 -> BIN TAX ASSIGNMENT: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP17 -> $scriptname\n"; }
-			my $wc=qx(wc -l $bintax);
-			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<1) { die "Stopping in STEP17 -> $scriptname. File $bintax is empty!\n"; }
+			if(!$DAS_Tool_empty){
+				my $scriptname="17.addtax2.pl";
+				print outfile1 "17\t$scriptname\n";
+				$currtime=timediff();
+				print outfile2 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
+				print "[",$currtime->pretty,"]: STEP17 -> BIN TAX ASSIGNMENT: $scriptname\n";
+				my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+				if($ecode!=0){ die "Stopping in STEP17 -> $scriptname\n"; }
+				my $wc=qx(wc -l $bintax);
+				my($wsize,$rest)=split(/\s+/,$wc);
+				if($wsize<1) { die "Stopping in STEP17 -> $scriptname. File $bintax is empty!\n"; }
+			}
+		else{ print("Skipping BIN TAX ASSIGNMENT: DAS_Tool did not predict bins.\n"); }
 		}
-			
+
     #-------------------------------- STEP18: Checking of bins for completeness and contamination (checkM)		
 	
 		if($rpoint<=18) {
-			my $scriptname="18.checkM_batch.pl";
-			print outfile1 "18\t$scriptname\n";
-			$currtime=timediff();
-			print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project");
-			if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
-			foreach my $binmethod(keys %dasdir) {
-				$checkmfile="$interdir/18.$project.$binmethod.checkM";
-				my $wc=qx(wc -l $checkmfile);
-				my($wsize,$rest)=split(/\s+/,$wc);
-				if($wsize<4) {
-					die "Cannot find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
+			if(!$DAS_Tool_empty){
+				my $scriptname="18.checkM_batch.pl";
+				print outfile1 "18\t$scriptname\n";
+				$currtime=timediff();
+				print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
+				print "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n";
+				my $ecode = system("perl $scriptdir/$scriptname $project");
+				if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
+				foreach my $binmethod(keys %dasdir) {
+					$checkmfile="$interdir/18.$project.$binmethod.checkM";
+					my $wc=qx(wc -l $checkmfile);
+					my($wsize,$rest)=split(/\s+/,$wc);
+					if($wsize<4) {
+						die "Cannot find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
 				}
+			}
+			else{ print("Skipping CHECKM: DAS_Tool did not predict bins.\n"); }
 		}
+
 			
     #-------------------------------- STEP19: Make bin table		
 	
 		if($rpoint<=19) {
-			my $scriptname="19.getbins.pl";
-			print outfile1 "19\t$scriptname\n";
-			$currtime=timediff();
-			print outfile2 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP19 -> CREATING BIN TABLE: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project");
-			if($ecode!=0){ die "Stopping in STEP19 -> $scriptname\n"; }
-			my $wc=qx(wc -l $bintable);
-			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<3) { die "Stopping in STEP19 -> $scriptname. File $bintable is empty!\n"; }
+			if(!$DAS_Tool_empty){
+				my $scriptname="19.getbins.pl";
+				print outfile1 "19\t$scriptname\n";
+				$currtime=timediff();
+				print outfile2 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
+				print "[",$currtime->pretty,"]: STEP19 -> CREATING BIN TABLE: $scriptname\n";
+				my $ecode = system("perl $scriptdir/$scriptname $project");
+				if($ecode!=0){ die "Stopping in STEP19 -> $scriptname\n"; }
+				my $wc=qx(wc -l $bintable);
+				my($wsize,$rest)=split(/\s+/,$wc);
+				if($wsize<3) { die "Stopping in STEP19 -> $scriptname. File $bintable is empty!\n"; }
+			}
+			else{ print("Skipping BIN TABLE CREATION: DAS_Tool did not predict bins.\n") ; }
 		}
 	}
+
 
     #-------------------------------- STEP20: Make contig table		
 
@@ -494,19 +509,22 @@ if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
     #-------------------------------- STEP21: Pathways in bins          
 
 	if(($mode!~/sequential/i) && ($numsamples>1) && (!$nobins)) {	       
-      		if($rpoint<=21) {
-              	  my $scriptname="21.minpath.pl";
-                	print outfile1 "21\t$scriptname\n";
-                	$currtime=timediff();
-                	print outfile2 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
-               	 	print "[",$currtime->pretty,"]: STEP21 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
-			my $ecode = system("perl $scriptdir/$scriptname $project");
-			if($ecode!=0){ die "Stopping in STEP21 -> $scriptname\n"; }
-                	my $minpathfile="$resultpath/21.$project.kegg.pathways";
-			my $wc=qx(wc -l $minpathfile);
-			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<3) { die "Stopping in STEP21 -> $scriptname. File $minpathfile is empty!\n"; }
-        	}
+  		if($rpoint<=21) {
+			if(!$DAS_Tool_empty){
+				my $scriptname="21.minpath.pl";
+				print outfile1 "21\t$scriptname\n";
+				$currtime=timediff();
+				print outfile2 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
+	   	 		print "[",$currtime->pretty,"]: STEP21 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
+				my $ecode = system("perl $scriptdir/$scriptname $project");
+				if($ecode!=0){ die "Stopping in STEP21 -> $scriptname\n"; }
+				my $minpathfile="$resultpath/21.$project.kegg.pathways";
+				my $wc=qx(wc -l $minpathfile);
+				my($wsize,$rest)=split(/\s+/,$wc);
+				if($wsize<3) { die "Stopping in STEP21 -> $scriptname. File $minpathfile is empty!\n"; }
+	 		}
+		else{ print("Skipping MINPATH: DAS_Tool did not predict bins.\n") ; }
+		}
 	}
 
     #-------------------------------- STEP21: Make stats		

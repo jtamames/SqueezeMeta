@@ -290,8 +290,11 @@ foreach my $classfun(sort keys %funstat) {
 		my $accumrpk;
 		foreach my $kid(sort keys %{ $funstat{$classfun} }) {		#-- For TPM calculation
 			next if(!$funstat{$classfun}{$kid}{$samp}{length}); 
-			my $longt=$funstat{$classfun}{$kid}{$samp}{length}; 
-			$rpk{$kid}=$funstat{$classfun}{$kid}{$samp}{reads}/$longt;
+			my $longt=$funstat{$classfun}{$kid}{$samp}{length};
+                        next if(!$funstat{$classfun}{$kid}{$samp}{copies});
+                        my $copies=$funstat{$classfun}{$kid}{$samp}{copies};
+                        my $avglongt=$longt/$copies;
+			$rpk{$kid}=$funstat{$classfun}{$kid}{$samp}{reads}/$avglongt;
 			$accumrpk+=$rpk{$kid}; 
 			}
 		$accumrpk/=1000000;
