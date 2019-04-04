@@ -53,7 +53,7 @@ my $outname="08.$project.fun3.blastx.tax";
 #open(out,">$tempdir/$outname") || die "Cannot open output in $tempdir/$outname\n";
 open(outc,">$resultpath/$outname.wranks") || die;
 #open(outnof,">$tempdir/$outname\_nofilter") || die;
-open(outcnof,">$resultpath/$outname\_nofilter.wranks") || die "Can't open $resultpath/$outname\_nofilter.wranks for writing\n";
+open(outcnof,">$resultpath/$outname\_noidfilter.wranks") || die "Can't open $resultpath/$outname\_nofilter.wranks for writing\n";
 
 my(%accum,%accumnofilter,%provhits,%providen,%giden);
 my($validhits,$validhitsnofilter,$tothits,$skipidentical,$refscore,$refiden,$string,$posinit,$posend);
