@@ -29,21 +29,22 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 4)  Homology searching against taxonomic and functional databases
 5)  Hmmer searching against Pfam database
 6)  Taxonomic assignment of genes 
-7)  Functional assignment of genes
-8)  Taxonomic assignment of contigs, and check for taxonomic disparities
-9)  Coverage and abundance estimation for genes and contigs 
-10) Estimation of taxa abundances
-11) Estimation of function abundances
-12) Merging of previous results to obtain the ORF table
-13) Binning with MaxBin
-14) Binning with MetaBAT
-15) Binning integration with DAS tool
-16) Taxonomic assignment of bins, and check for taxonomic disparities
-17) Checking of bins with CheckM
-18) Merging of previous results to obtain the bin table
-19) Merging of previous results to obtain the contig table
-20) Prediction of kegg and metacyc patwhays for each bin
-21) Final statistics for the run
+7)  Functional assignment of genes (OPTIONAL)
+8)  Blastx on parts of the contigs with no gene prediction or no hits
+9)  Taxonomic assignment of contigs, and check for taxonomic disparities
+10)  Coverage and abundance estimation for genes and contigs 
+11) Estimation of taxa abundances
+12) Estimation of function abundances
+13) Merging of previous results to obtain the ORF table
+14) Binning with MaxBin
+15) Binning with MetaBAT
+16) Binning integration with DAS tool
+17) Taxonomic assignment of bins, and check for taxonomic disparities
+18) Checking of bins with CheckM
+19) Merging of previous results to obtain the bin table
+20) Merging of previous results to obtain the contig table
+21) Prediction of kegg and metacyc patwhays for each bin
+22) Final statistics for the run
 
 
 ## 2. Installation
@@ -82,24 +83,53 @@ The command for running SqueezeMeta has the following syntax:
 
 `SqueezeMeta.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>`
 
-**Arguments**
+**Arguments** 
+*Mandatory parameters* 
 * -m: Mode (sequential, coassembly, merged) (REQUIRED) 
 * -p: Project name (REQUIRED in coassembly and merged modes) 
 * -s|-samples: Samples file (REQUIRED) 
 * -f|-seq: Fastq read files' directory (REQUIRED) 
-* -t: Number of threads (Default:12) 
+ 
+*Filtering* 
+* --cleaning: Filters with Trimmomatic (Default: no) 
+* -cleaning_options: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
+ 
+*Assembly*  
 * -a: assembler [megahit,spades] (Default:megahit) 
-* -c|-contiglen: Minimum length of contigs (Default:200)
-* -map: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie)
+* -assembly_options: Extra options for the assembler (refer to the manual of the specifiec assembler). 
+* -c|-contiglen: Minimum length of contigs (Default:200) 
+* -extassembly: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
+ 
+*Annotation* 
 * --nocog: Skip COG assignment (Default: no) 
 * --nokegg: Skip KEGG assignment (Default: no) 
 * --nopfam: Skip Pfam assignment (Default: no) 
+* -extdb: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
+* -e|-evalue: Max evalue for DIAMOND run (Default: 1e-03) 
+* -miniden: Minimum identity perc for DIAMOND run (Default: 50) 
+* -D|--doublepass: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
+ 
+*Mapping* 
+* -map: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie) 
+ 
+*Binning* 
 * --nobins: Skip binning (Default: no) 
-* -e|-evalue: max evalue for DIAMOND run (Default: 1e-03) 
-* -miniden: minimum identity perc for DIAMOND run (Default: 50) 
-* --megahit_options: Options for megahit assembler 
-* --spades_options: Options for spades assembler 
-
+* --nomaxbin: Skip MaxBin binning (Default: no) 
+* --nometabat: Skip MetaBat2 binning (Default: no) 
+ 
+*Performance* 
+* -t: Number of threads (Default:12) 
+* -b|-block-size: Block size for diamond against the nr database (Default: 8) 
+* -canumem: Memory for canu in Gb (Default: 32) 
+* --lowmem: Run on less than 16 Gb of RAM memory (Default: no). Equivalent to: -b 3 -canumem 15 
+ 
+*Other* 
+* --minion: Run on MinION reads (Default: no). Equivalent to -a canu -map minimap2-ont 
+ 
+*Information* 
+* -v: Version number 
+* -h: Display help 
+ 
 **Example SqueezeMeta call:** `SqueezeMeta.pl -m coassembly -p test -s test.samples -f mydir --nopfam -miniden 60`
 
 This will create a project "test" for co-assembling the samples specified in the file "test.samples", using a minimum identity of 60% for taxonomic and functional assignment, and skipping Pfam annotation. The -p parameter indicates the name under which all results and data files will be saved. This is not required for sequential mode, where the name will be taken from the samples file instead. The -f parameter indicates the directory where the read files specified in the sample file are stored.
