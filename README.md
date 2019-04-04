@@ -85,50 +85,50 @@ The command for running SqueezeMeta has the following syntax:
 
 **Arguments** 
 *Mandatory parameters* 
-* -m: Mode (sequential, coassembly, merged) (REQUIRED) 
-* -p: Project name (REQUIRED in coassembly and merged modes) 
-* -s|-samples: Samples file (REQUIRED) 
-* -f|-seq: Fastq read files' directory (REQUIRED) 
+* *-m*: Mode (sequential, coassembly, merged) (REQUIRED) 
+* *-p*: Project name (REQUIRED in coassembly and merged modes) 
+* *-s*|*-samples*: Samples file (REQUIRED) 
+* *-f*|*-seq*: Fastq read files' directory (REQUIRED) 
  
 *Filtering* 
-* --cleaning: Filters with Trimmomatic (Default: no) 
-* -cleaning_options: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
+* *--cleaning*: Filters with Trimmomatic (Default: no) 
+* *-cleaning_options*: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
  
 *Assembly*  
-* -a: assembler [megahit,spades] (Default:megahit) 
-* -assembly_options: Extra options for the assembler (refer to the manual of the specifiec assembler). 
-* -c|-contiglen: Minimum length of contigs (Default:200) 
-* -extassembly: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
+* *-a*: assembler [megahit,spades] (Default:megahit) 
+* *-assembly_options*: Extra options for the assembler (refer to the manual of the specifiec assembler). 
+* *-c*|*-contiglen*: Minimum length of contigs (Default:200) 
+* *-extassembly*: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
  
 *Annotation* 
-* --nocog: Skip COG assignment (Default: no) 
-* --nokegg: Skip KEGG assignment (Default: no) 
-* --nopfam: Skip Pfam assignment (Default: no) 
-* -extdb: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
-* -e|-evalue: Max evalue for DIAMOND run (Default: 1e-03) 
-* -miniden: Minimum identity perc for DIAMOND run (Default: 50) 
-* -D|--doublepass: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
+* *--nocog*: Skip COG assignment (Default: no) 
+* *--nokegg*: Skip KEGG assignment (Default: no) 
+* *--nopfam*: Skip Pfam assignment (Default: no) 
+* *-extdb*: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
+* *-e*|*-evalue*: Max evalue for DIAMOND run (Default: 1e-03) 
+* *-miniden*: Minimum identity perc for DIAMOND run (Default: 50) 
+* *-D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
 *Mapping* 
-* -map: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie) 
+* *-map*: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie) 
  
 *Binning* 
-* --nobins: Skip binning (Default: no) 
-* --nomaxbin: Skip MaxBin binning (Default: no) 
-* --nometabat: Skip MetaBat2 binning (Default: no) 
+* *--nobins*: Skip binning (Default: no) 
+* *--nomaxbin*: Skip MaxBin binning (Default: no) 
+* *--nometabat*: Skip MetaBat2 binning (Default: no) 
  
 *Performance* 
-* -t: Number of threads (Default:12) 
-* -b|-block-size: Block size for diamond against the nr database (Default: 8) 
-* -canumem: Memory for canu in Gb (Default: 32) 
-* --lowmem: Run on less than 16 Gb of RAM memory (Default: no). Equivalent to: -b 3 -canumem 15 
+* *-t*: Number of threads (Default:12) 
+* *-b*|*-block-size*: Block size for diamond against the nr database (Default: 8) 
+* *-canumem*: Memory for canu in Gb (Default: 32) 
+* *--lowmem*: Run on less than 16 Gb of RAM memory (Default: no). Equivalent to: -b 3 -canumem 15 
  
 *Other* 
-* --minion: Run on MinION reads (Default: no). Equivalent to -a canu -map minimap2-ont 
+* *--minion*: Run on MinION reads (Default: no). Equivalent to -a canu -map minimap2-ont 
  
 *Information* 
-* -v: Version number 
-* -h: Display help 
+* *-v*: Version number 
+* *-h*: Display help 
  
 **Example SqueezeMeta call:** `SqueezeMeta.pl -m coassembly -p test -s test.samples -f mydir --nopfam -miniden 60`
 
