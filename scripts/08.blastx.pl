@@ -271,8 +271,6 @@ sub functions {
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{kegg}=$fun3kegg_blastx;
 		}
-	print "Assigning with fun3\n";
-	system("perl $scriptdir/07.fun3assign.pl $project blastx");
 
 	#-- OPT databases
 
