@@ -82,8 +82,8 @@ if($ecode!=0) { die "Error running command:    $command"; }
 
 my $contigslen="$resultpath/01.$project.lon";
 print "Counting lengths\n";
-open(outfile1,">$contigslen") || die;
-open(infile1,$finalcontigs) || die;
+open(outfile1,">$contigslen") || die "Can't open $contigslen for writing\n";
+open(infile1,$finalcontigs) || die "Can't open $finalcontigs\n";
 my($thisname,$contigname,$seq);
 while(<infile1>) {
 	chomp;

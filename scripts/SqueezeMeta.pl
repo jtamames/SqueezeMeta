@@ -161,7 +161,7 @@ if($dietext) { die "$dietext\n$helptext\n"; }
 
 	#-- Check that everything is correct in the samples file
 
-open(infile1,$equivfile) || die "Cannot open samples file (-s) in $equivfile. Please check that it is the correct file\n";
+open(infile1,$equivfile) || die "Can't open samples file (-s) in $equivfile. Please check that it is the correct file\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -169,7 +169,7 @@ while(<infile1>) {
 	if($_=~/ /) { die "Please do not use blank spaces in the samples file\n"; }
 	if(($iden ne "pair1") && ($iden ne "pair2")) { die "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; }
 	if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile. Missing fields\n"; }
-	if(-e "$rawfastq/$file") {} else { die "Cannot find sample file $rawfastq/$file for sample $sample in the samples file. Please check\n"; }
+	if(-e "$rawfastq/$file") {} else { die "Can't find sample file $rawfastq/$file for sample $sample in the samples file. Please check\n"; }
 }
 close infile1;
 
@@ -189,7 +189,7 @@ if($mode=~/sequential/i) {
 	#-- Reading the sample file given by the -s option, to locate the sample files
 
 	print "Now reading samples\n";
-	open(infile1,$equivfile) || die "Cannot open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n";
+	open(infile1,$equivfile) || die "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n";
 	while(<infile1>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -205,8 +205,8 @@ if($mode=~/sequential/i) {
 	print "$numsamples metagenomes found";
 	print "\n";
 
-	open(outfile1,">$pwd/global_progress") || die "Cannot write in directory $pwd\n";  	#-- An index indicating where are we and which parts of the method finished already. For the global process
-	open(outfile2,">$pwd/global_syslog") || die "Cannot write in directory $pwd\n"; 		 #-- A log file for the global proccess
+	open(outfile1,">$pwd/global_progress") || die "Can't write in directory $pwd\n";  	#-- An index indicating where are we and which parts of the method finished already. For the global process
+	open(outfile2,">$pwd/global_syslog") || die "Can't write in directory $pwd\n"; 		 #-- A log file for the global proccess
 	print outfile2 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 	print outfile2 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
 	print outfile2 "Command: $commandline\n"; 
@@ -224,8 +224,8 @@ if($mode=~/sequential/i) {
 		print "Working with $thissample\n";
 		print outfile1 ">$thissample\n";
 	
-		open(outfile3,">$projectdir/progress") || die "Cannot write in directory $projectdir. Wrong permissions, or out of space?\n";  #-- An index indicating where are we and which parts of the method finished already. For the global process
-		open(outfile4,">$projectdir/syslog") || die "Cannot write in directory $projectdir. Wrong permissions, or out of space?\n";  	#-- A log file for the global proccess
+		open(outfile3,">$projectdir/progress") || die "Can't write in directory $projectdir. Wrong permissions, or out of space?\n";  #-- An index indicating where are we and which parts of the method finished already. For the global process
+		open(outfile4,">$projectdir/syslog")   || die "Can't write in directory $projectdir. Wrong permissions, or out of space?\n";  	#-- A log file for the global proccess
 		$currtime=timediff();
 		print outfile4 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
 		print "Run started ",scalar localtime," in SEQUENTIAL mode\n";
@@ -238,11 +238,11 @@ if($mode=~/sequential/i) {
 		print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
 		print outfile2 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
 		print "Now creating directories\n";
-		open(infile2,"$scriptdir/SqueezeMeta_conf.pl") || die "Cannot open conf file $scriptdir/SqueezeMeta_conf.pl";
+		open(infile2,"$scriptdir/SqueezeMeta_conf.pl") || die "Can't open conf file $scriptdir/SqueezeMeta_conf.pl";
 	
 		#-- Creation of the new configuration file for this sample
 	
-		open(outfile5,">$projectdir/SqueezeMeta_conf.pl") || die "Cannot write in directory $projectdir. Out of space?\n";
+		open(outfile5,">$projectdir/SqueezeMeta_conf.pl") || die "Can't write in directory $projectdir. Out of space?\n";
 
 		print outfile5 "\$mode=\"$mode\";\n\n";
 		print outfile5 "\$installpath=\"$installpath\";\n";
@@ -296,7 +296,7 @@ if($mode=~/sequential/i) {
  				 system("ln -s $rawfastq/$file $tufile");
  				# if($tufile!~/\.gz$/) { system("gzip $datapath/raw_fastq/$file"); }
 			}
- 			 else { die "Cannot find read file $file (Sample $sample). Please check if it exists\n"; }
+ 			 else { die "Can't find read file $file (Sample $sample). Please check if it exists\n"; }
 
 	system("cp $equivfile $mappingfile");
 	system("cp $scriptdir/parameters.pl $projectdir");
@@ -357,8 +357,8 @@ else {
 		
 	#-- We start creating directories, progress and log files
 
-	open(outfile3,">$pwd/$project/progress") || die "Cannot write in $pwd/$project. Wrong permissions, or out of space?\n";  #-- Un indice que indica en que punto estamos (que procedimientos han terminado)
-	open(outfile4,">$pwd/$project/syslog") || die "Cannot write in $pwd/$project. Wrong permissions, or out of space?\n";
+	open(outfile3,">$pwd/$project/progress") || die "Can't write in $pwd/$project. Wrong permissions, or out of space?\n";  #-- Un indice que indica en que punto estamos (que procedimientos han terminado)
+	open(outfile4,">$pwd/$project/syslog")   || die "Can't write in $pwd/$project. Wrong permissions, or out of space?\n";
 	my $params = join(" ", @ARGV);
 	print outfile4 "$0 $params\n";
 	print outfile4 "Run started ",scalar localtime," in $mode mode\n";
@@ -379,8 +379,8 @@ else {
 	print "Now creating directories\n";
 	
 	#-- Creation of the new configuration file for this sample
-	open(infile3,"$scriptdir/SqueezeMeta_conf.pl") || die "Cannot open $scriptdir/SqueezeMeta_conf.pl\n";
-	open(outfile6,">$projectdir/SqueezeMeta_conf.pl") || die "Cannot write in directory $projectdir. Wrong permissions, or out of space?\n";
+	open(infile3,"$scriptdir/SqueezeMeta_conf.pl")    || die "Can't open $scriptdir/SqueezeMeta_conf.pl\n";
+	open(outfile6,">$projectdir/SqueezeMeta_conf.pl") || die "Can't write in directory $projectdir. Wrong permissions, or out of space?\n";
 
 	print outfile6 "\$mode=\"$mode\";\n\n";
 	print outfile6 "\$installpath=\"$installpath\";\n";
@@ -413,7 +413,7 @@ else {
 	close outfile6;
 
 	print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";
-	do "$projectdir/SqueezeMeta_conf.pl" || die "Cannot write in directory $projectdir. Wrong permissions, or out of space?\n";
+	do "$projectdir/SqueezeMeta_conf.pl" || die "Can't write in directory $projectdir. Wrong permissions, or out of space?\n";
 
 	
 	#-- Creation of directories
@@ -449,7 +449,7 @@ sub moving {
 	#-- Reading samples from the file specified with -s option
 	
 	my(%allsamples,%ident,%noassembly);
-	open(infile4,$equivfile) || die "Cannot open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n";
+	open(infile4,$equivfile) || die "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n";
 	while(<infile4>) {
  		chomp;
  		next if(!$_ || ($_=~/^\#/));
@@ -463,7 +463,7 @@ sub moving {
 			system("ln -s $rawfastq/$file $tufile");
 			# if($tufile!~/\.gz$/) { system("gzip $datapath/raw_fastq/$file"); }
 		}
-		else { die "Cannot find read file $file (Sample $sample)\n"; }
+		else { die "Can't find read file $file (Sample $sample)\n"; }
 	}
 	close infile4;
 
@@ -680,7 +680,7 @@ sub pipeline {
 				}
 			my $optdbsw;
 			if($opt_db) {
-				open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+				open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 				while(<infile0>) {
 					my($dbname,$extdb,$dblist)=split(/\t/,$_);
 					my $wc=qx(wc -l $resultpath/07.$project.fun3.dbname);
@@ -895,7 +895,7 @@ sub pipeline {
 					my $wc=qx(wc -l $checkmfile);
 					my($wsize,$rest)=split(/\s+/,$wc);
 					if($wsize<4) {
-						die "Cannot find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
+						die "Can't find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
 					}
 			}
 			else { print("Skipping CHECKM: DAS_Tool did not predict bins.\n") ; }

@@ -24,12 +24,12 @@ my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
 
 my $resultfile="$resultpath/22.$project.stats";
-open(outfile1,">$resultfile") || die "Cannot open $resultfile\n";
+open(outfile1,">$resultfile") || die "Can't open $resultfile for writing\n";
 
 	#-- Read list of external databases
 	
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -44,7 +44,7 @@ my @ranks=('k','p','c','o','f','g','s');
 my %equirank=('k','superkingdom','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 my($totalbases,$totalreads);
 my $mapfile="$resultpath/10.$project.mappingstat";
-open(infile1,$mapfile) || die "Cannot open $mapfile\n";
+open(infile1,$mapfile) || die "Can't open $mapfile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -78,7 +78,7 @@ close infile2;
 
 	#-- Statistics on contigs (disparity, assignment..)
 
-open(infile3,$contigtable) || die "Cannot open $contigtable\n";
+open(infile3,$contigtable) || die "Can't open $contigtable\n";
 while(<infile3>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -101,7 +101,7 @@ close infile3;
 my $header;
 my @head;
 my %genes;
-open(infile4,$mergedfile) || die "Cannot open $mergedfile\n";
+open(infile4,$mergedfile) || die "Can't open $mergedfile\n";
 while(<infile4>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -148,7 +148,7 @@ while(<infile4>) {
 	}
 close infile4;
 
-open(infile4,$mcountfile)  || die "Cannot open $mcountfile\n";
+open(infile4,$mcountfile)  || die "Can't open $mcountfile\n";
 my $cheader=<infile4>;
 chomp $cheader;
 my @chead=split(/\t/,$cheader);
@@ -173,7 +173,7 @@ my %bins;
 if($mode ne "sequential") {
 	my $header;
 	if(-e $bintable) {
-		open(infile5,$bintable) || die "Cannot open $bintable\n";
+		open(infile5,$bintable) || die "Can't open $bintable\n";
 		while(<infile5>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -204,7 +204,7 @@ if($mode ne "sequential") {
 
 	#-- Date of the start of the run
 
-open(infile6,"$basedir/$project/syslog") || warn "Cannot open syslog file in $basedir/$project/syslog\n";
+open(infile6,"$basedir/$project/syslog") || warn "Can't open syslog file in $basedir/$project/syslog\n";
 $_=<infile6>;
 my $startdate=<infile6>;
 $startdate.=<infile6>;

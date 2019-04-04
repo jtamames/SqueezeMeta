@@ -32,14 +32,14 @@ foreach my $binmethod(sort keys %bindirs) {
 	my $bindir=$bindirs{$binmethod};
 	$tables.="$daspath/$binmethod.table,";
 	$methods.="$binmethod,";
-	opendir(indir1,$bindir) || die;
+	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 	my @fastafiles=grep(/fasta$|fa$/,readdir indir1);
 	closedir indir1;
-	open(outfile1,">$daspath/$binmethod.table");
+	open(outfile1,">$daspath/$binmethod.table") || die "Can't open $daspath/$binmethod.table for writing\n";
 	foreach my $tfil(@fastafiles) {
 		my $bin=$tfil;
 		$bin=~s/\.fa.tax|\.fasta.tax//g;
-		open(infile1,"$bindir/$tfil") || die;
+		open(infile1,"$bindir/$tfil") || die "Can't open $bindir/$tfil\n";
 		while(<infile1>) { 
  			chomp;
 			if($_=~/^>([^ ]+)/) { 

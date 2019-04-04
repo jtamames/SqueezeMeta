@@ -37,8 +37,8 @@ if(!$nocog) {
 		$fun3cog="$tempdir/08.$project.fun3.blastx.cog";
 		}
 		
-	open(infile1,$cogdiamond) || die "Cannot open cog file $cogdiamond\n";
-	open(outfile1,">$fun3cog") || die "Cannot open $fun3cog\n";
+	open(infile1,$cogdiamond) || die "Can't open cog file $cogdiamond\n";
+	open(outfile1,">$fun3cog") || die "Can't open $fun3cog\n";
 	print outfile1 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
 	print outfile1 "#ORF\tBESTHIT\tBESTAVER\n";
 
@@ -117,8 +117,8 @@ if(!$nokegg) {
 		$keggdiamond="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		$fun3kegg="$tempdir/08.$project.fun3.blastx.kegg";
 		}
-	open(infile2,$keggdiamond) || die "Cannot open $keggdiamond\n";
-	open(outfile2,">$fun3kegg") || die "Cannot open $fun3kegg\n";
+	open(infile2,$keggdiamond) || die "Can't open $keggdiamond\n";
+	open(outfile2,">$fun3kegg") || die "Can't open $fun3kegg\n";
 	print outfile2 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
 	print outfile2 "#ORF\tBESTHIT\tBESTAVER\n";
 
@@ -193,7 +193,7 @@ if(!$nokegg) {
 #----------------------------------- OPT DB assignment -------------------------------------
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -202,8 +202,8 @@ if($opt_db) {
 		my $optdbresult="$resultpath/07.$project.fun3.$dbname";
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
 		
-		open(infile1,$optdbdiamond) || die "Cannot open opt_db file $optdbdiamond\n";
-		open(outfile1,">$optdbresult") || die "Cannot open output in $optdbresult\n";
+		open(infile1,$optdbdiamond) || die "Can't open opt_db file $optdbdiamond\n";
+		open(outfile1,">$optdbresult") || die "Can't open $optdbresult for writing\n";
 		print outfile1 "# Created by $0 for $dbname, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
 		print outfile1 "#ORF\tBESTHIT\tBESTAVER\n";
 
@@ -284,7 +284,7 @@ if(!$nopfam) {
 	#-- Read the Pfam data for the pfam.dat file
 
 	my(%pfamname,%hits);
-	open(infile3,$pfamlist) || die;
+	open(infile3,$pfamlist) || die "Can't open $pfamlist\n";
 	while(<infile3>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -295,7 +295,7 @@ if(!$nopfam) {
 
 	#-- We start reading the hmmer results
 
-	open(outfile3,">$fun3pfam") || warn "Cannot open Pfam output file $fun3pfam\n";
+	open(outfile3,">$fun3pfam") || warn "Can't open $fun3pfam for writing\n";
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
 	open(infile4,$pfamhmmer);
 	while(<infile4>) { 

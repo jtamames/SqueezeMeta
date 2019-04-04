@@ -38,7 +38,7 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1}) or 
 #-- Reads the taxonomic tree (parsed from NCBI's taxonomy in the parents.txt file)
 
 my %parents;
-open(infile1,"$databasepath/LCA_tax/parents.txt") || die;
+open(infile1,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -58,12 +58,12 @@ close infile1;
 
 #open(outfile1,">$fun3tax") || die;
 #print outfile1 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
-open(outfile2,">$fun3tax.wranks") || die;
+open(outfile2,">$fun3tax.wranks") || die "Can't open $fun3tax.wranks for writing\n";
 print outfile2 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
 if($noidfilter6) {
 	#open(outfile3,">$fun3tax.noidfilter") || die;
 	#print outfile3 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
-	open(outfile4,">$fun3tax.noidfilter.wranks") || die;
+	open(outfile4,">$fun3tax.noidfilter.wranks") || die "Can't open $fun3tax.noidfilter.wranks for writing\n";
 	print outfile4 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
 	}
 
@@ -75,8 +75,8 @@ tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 tie %accumnofilter,"Tie::IxHash";
 
-if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die "Cannot open gzipped file $infile\n"; }			#-- If file is gzipped
-else { open(infile2,$infile) || die "Cannot open Diamond file $infile\n"; }	#-- or if it is not
+if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die "Can't open gzipped file $infile\n"; }			#-- If file is gzipped
+else { open(infile2,$infile) || die "Can't open Diamond file $infile\n"; }	#-- or if it is not
 
 while(<infile2>) { 
 	chomp;

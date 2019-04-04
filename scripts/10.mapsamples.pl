@@ -38,7 +38,7 @@ if($doublepass) { $gff_file=$gff_file_blastx; }
 
 my(%allsamples,%rpk);
 tie %allsamples,"Tie::IxHash";
-open(infile1,$mappingfile) || die "Cannot find mappingfile $mappingfile\n";
+open(infile1,$mappingfile) || die "Can't open mappingfile $mappingfile\n";
 print "Reading mapping file from $mappingfile\n";
 while(<infile1>) {
 	chomp;
@@ -81,10 +81,10 @@ elsif($mapper eq "bwa") {
 #if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
 #if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
-open(outfile1,">$resultpath/10.$project.mappingstat") || die;	#-- File containing mapping statistics
+open(outfile1,">$resultpath/10.$project.mappingstat") || die "Can't open $resultpath/10.$project.mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
-open(outfile3,">$mapcountfile") || die;
+open(outfile3,">$mapcountfile") || die "Can't open $mapcountfile for writing\n";
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,"\n";
 print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
 
@@ -176,7 +176,7 @@ sub sqm_counter {
 	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
 	my(%genesincontigs,%accum,%long_gen);
 	my $countreads;
-	open(infile2,$gff_file) || die;
+	open(infile2,$gff_file) || die "Can't open $gff_file for writing\n";
 	while(<infile2>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -194,7 +194,7 @@ sub sqm_counter {
 		}
 	close infile2;
 
-	open(infile3,$samfile) || die "Cannot open sam file $samfile\n"; ;
+	open(infile3,$samfile) || die "Can't open sam file $samfile\n"; ;
 	while(<infile3>) { 
 		chomp;
 		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@SQ/));
@@ -285,11 +285,11 @@ sub contigcov {
 	my($thissample,$outsam)=@_;
 	my(%lencontig,%readcount)=();
 	my($mappedreads,$totalreadcount,$totalreadlength)=0;
-	open(outfile4,">>$contigcov") || die;
+	open(outfile4,">>$contigcov") || die "Can't open $contigcov for writing\n";
 
 	#-- Count length of contigs and bases mapped from the sam file
 
-	open(infile4,$outsam) || die "Cannot open $outsam\n"; ;
+	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
 	while(<infile4>) {
 		chomp;
 		my @t=split(/\t/,$_);

@@ -42,7 +42,7 @@ if(!$nokegg) {
 #-- Optional databases
 
 if($opt_db) {
-	open(infile1,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile1,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile1>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));

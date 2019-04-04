@@ -126,7 +126,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, ignore_unclassified_fun, o
     def tpm(funDict):
         # Calculate reads per kilobase.    
         fun_avgLengths = {fun: funDict['lengths'][fun] / funDict['copies'][fun] for fun in funDict['lengths']} # NaN appears if a fun has no copies in a sample.
-        fun_rpk = {fun: funDict['abundances'][fun] / (fun_avgLengths[fun]*3/1000) for fun in funDict['abundances']}
+        fun_rpk = {fun: funDict['abundances'][fun] / (fun_avgLengths[fun]/1000) for fun in funDict['abundances']}
 
         # Remove NaNs.
         for fun, rpk in fun_rpk.items():
@@ -151,7 +151,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, ignore_unclassified_fun, o
             orf = line[idx['ORF']]
             if orfSet and orf not in orfSet:
                 continue
-            length = line[idx['LENGTH AA']]
+            length = line[idx['LENGTH NT']]
             length = int(length) if length else 0 # Fix for rRNAs being in the ORFtable but having no length.
             if not length:
                 print(line)
