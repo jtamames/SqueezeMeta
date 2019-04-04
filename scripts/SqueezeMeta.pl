@@ -270,9 +270,9 @@ if($mode=~/sequential/i) {
 	 	close infile2; 
 
 		print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
-		if($assembler_options) { print outfile5 "\$assembler_options=\"$assembler_options\"\n"; }
-		if($extassembly) { print outfile5 "\$extassembly=\"$extassembly\"\n"; }
-		if($opt_db) { print outfile5 "\$opt_db=\"$opt_db\"\n"; }
+		if($assembler_options) { print outfile5 "\$assembler_options=\"$assembler_options\";\n"; }
+		if($extassembly) { print outfile5 "\$extassembly=\"$extassembly\";\n"; }
+		if($opt_db) { print outfile5 "\$opt_db=\"$opt_db\";\n"; }
 		close outfile5;
 
 		#-- Creation of directories
@@ -407,9 +407,9 @@ else {
 	close infile3;
 
  	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
-	if($assembler_options) { print outfile6 "\$assembler_options=\"$assembler_options\""; }
-	if($extassembly) { print outfile6 "\$extassembly=\"$extassembly\"\n"; }
-	if($opt_db) { print outfile6 "\$opt_db=\"$opt_db\"\n"; }
+	if($assembler_options) { print outfile6 "\$assembler_options=\"$assembler_options\";"; }
+	if($extassembly) { print outfile6 "\$extassembly=\"$extassembly\";\n"; }
+	if($opt_db) { print outfile6 "\$opt_db=\"$opt_db\";\n"; }
 	close outfile6;
 
 	print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";

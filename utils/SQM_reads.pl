@@ -114,7 +114,7 @@ print "\n";
 print outall "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 print outall "# Sample\tRead\tTax\tCOG\tKEGG\n";
 print outcount "# Created by $0 from data in $equivfile", scalar localtime,"\n";
-print outcount "# Sample\tFile\tReads\tHits\n";
+print outcount "# Sample\tFile\tReads\tReads with hits\n";
 
 my(%cogaccum,%keggaccum);
 foreach my $thissample(keys %allsamples) {
@@ -127,10 +127,10 @@ foreach my $thissample(keys %allsamples) {
 		print "   File: $thisfile\n";
 		if($thisfile=~/fastq.gz/) { system("zcat $thisfile | wc > rc.txt"); }
 		elsif($thisfile=~/fastq/) { system("wc $thisfile > rc.txt"); }
-		elsif($thisfile=~/fasta.gz/) { system("zcat $thisfile | grep \"^>\" > rc.txt"); }
-		elsif($thisfile=~/fasta/) { system("grep \"^>\" $thisfile > rc.txt"); }
+		elsif($thisfile=~/fasta.gz/) { system("zcat $thisfile | grep -c \"^>\" > rc.txt"); }
+		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $thisfile > rc.txt"); }
 		open(inw,"rc.txt");
-		my $numseqs=<in>;
+		my $numseqs=<inw>;
 		close inw;
 		chomp $numseqs;
 		if($thisfile=~/fastq/) { $numseqs/=4; }
@@ -153,7 +153,7 @@ foreach my $thissample(keys %allsamples) {
 			}
 		close inf;
 		my @y=keys %iblast;
-		my $numhits=$y[$#y]+1;
+		my $numhits=($#y)+1;
 		print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\n";
 			
 		my $lca_command="perl $auxdir/lca_reads.pl $outfile";

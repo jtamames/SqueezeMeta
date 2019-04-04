@@ -304,12 +304,12 @@ sub remaketaxtables {
 					},
 			'noidfilters' => {
 					'original' => $fun3tax.".noidfilter.wranks",
-					'blastx' => "$resultpath/08.$project.fun3.blastx.tax_nofilter.wranks",
-					'merged' => $fun3tax_blastx.".nofilter.wranks"
+					'blastx' => "$resultpath/08.$project.fun3.blastx.tax_noidfilter.wranks",
+					'merged' => $fun3tax_blastx.".noidfilter.wranks"
 					}
 		    );
 					
-			#-- Writing both filter and nofilter tables
+			#-- Writing both filter and noidfilter tables
 					
 	foreach my $item(keys %ttables) {
 		my(%intable,%methods);
