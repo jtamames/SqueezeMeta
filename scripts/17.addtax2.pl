@@ -31,7 +31,7 @@ my(%tax,%taxlist);
 	#-- Read taxonomic assignments for contigs
 
 my $input=$alllog;
-open(infile1,$input) || die "Cannot open $input\n";
+open(infile1,$input) || die "Can't open $input\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -47,7 +47,7 @@ while(<infile1>) {
 close infile1;
 
 
-open(outfile1,">$bintax") || die;
+open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 	my $bindir=$dasdir{$binmethod};
 	print "Looking for $binmethod bins in $bindir\n";
@@ -67,8 +67,8 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		
 		#-- We will create an output file for bin, with the contig names and consensus
 		
-		open(outfile2,">$outf") || die;			
-		open(infile2,$tf) || die "Cannot open $tf\n";
+		open(outfile2,">$outf") || die "Can't open $outf for writing\n";			
+		open(infile2,$tf) || die "Can't open $tf\n";
 		my $size=0;
 		my %store=();
 		

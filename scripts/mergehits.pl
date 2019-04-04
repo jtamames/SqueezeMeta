@@ -10,7 +10,7 @@ my $file=$ARGV[0];
 my(%store,%frames);
 my($nh,$current,$last);
 
-open(in,$file) || die "Cannot open $file\n";
+open(in,$file) || die "Can't open $file\n";
 while(<in>) {
 	chomp;
 	my @fields=split(/\t/,$_);

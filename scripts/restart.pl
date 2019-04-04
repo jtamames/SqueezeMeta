@@ -55,7 +55,7 @@ our(%bindirs,%dasdir);
 
 my $sflag=$rpoint;
 my($numsamples,$mode);
-open(infile1,$progress) || die; 
+open(infile1,$progress) || die "Can't open progress file file $progress\n"; 
 while(<infile1>) {
 	chomp $_;
 	next if(!$_);
@@ -69,8 +69,8 @@ close infile1;
 	#-- Create new progress, append to existing syslog
 
 my $currtime;
-open(outfile1,">$pwd/$project/progress") || die;  
-open(outfile2,">>$pwd/$project/syslog") || die;
+open(outfile1,">$pwd/$project/progress") || die "Can't open $pwd/$project/progress for writing\n";  
+open(outfile2,">>$pwd/$project/syslog")  || die "Can't open $pwd/$project/syslog for writing\n";
 $currtime=timediff();
 print outfile2 "Restarting project $project, ",scalar localtime,"\n";
 print outfile1 "Samples:$numsamples\nMode:$mode\n";
@@ -252,7 +252,7 @@ my $DAS_Tool_empty=0;
 				}
 			my $optdbsw;
 			if($opt_db) {
-				open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+				open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 				while(<infile0>) {
 					my($dbname,$extdb,$dblist)=split(/\t/,$_);
 					my $wc=qx(wc -l $resultpath/07.$project.fun3.dbname);
@@ -464,7 +464,7 @@ my $DAS_Tool_empty=0;
 					my $wc=qx(wc -l $checkmfile);
 					my($wsize,$rest)=split(/\s+/,$wc);
 					if($wsize<4) {
-						die "Cannot find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
+						die "Can't find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
 				}
 			}
 			else{ print("Skipping CHECKM: DAS_Tool did not predict bins.\n"); }

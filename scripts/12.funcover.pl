@@ -58,13 +58,13 @@ close infile2;
 	#-- Reading OPT_DB functions and names
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$listf)=split(/\t/,$_);
 		if(-e $listf) {
-			open(infile3,$listf) || warn "Cannot open names file for $opt_db\n";
+			open(infile3,$listf) || warn "Can't open names file for $opt_db\n";
 			while(<infile3>) {
 				chomp;
 				next if(!$_ || ($_=~/\#/));
@@ -88,7 +88,7 @@ tie %equival,"Tie::IxHash";
 
 my $taxfile;
 if($doublepass) { $taxfile="$fun3tax_blastx.wranks"; } else { $taxfile="$fun3tax.wranks"; }
-open(infile3,"$taxfile") || warn "Cannot open wranks file $taxfile\n";
+open(infile3,"$taxfile") || warn "Can't open wranks file $taxfile\n";
 while(<infile3>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -113,7 +113,7 @@ close infile3;
 
 if(!$nokegg) {
 	if($doublepass) { $fun3kegg=$fun3kegg_blastx; }
-	open(infile4,$fun3kegg) || die "Cannot open KEGG assignments in $fun3kegg\n";;
+	open(infile4,$fun3kegg) || die "Can't open KEGG assignments in $fun3kegg\n";;
 	while(<infile4>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -127,7 +127,7 @@ if(!$nokegg) {
 
 if(!$nocog) {
 	if($doublepass) { $fun3cog=$fun3cog_blastx; }
-	open(infile5,$fun3cog) || die "Cannot open COG assignments in $fun3cog\n";
+	open(infile5,$fun3cog) || die "Can't open COG assignments in $fun3cog\n";
 	while(<infile5>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -141,7 +141,7 @@ if(!$nocog) {
 	#-- Reading OPTDB assignments
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -149,7 +149,7 @@ if($opt_db) {
 		$optdb{$dbname}=1;
 		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
 		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
-		open(infile10,$fun3opt) || warn "Cannot open fun3 $dbname annotation file $fun3opt\n";;
+		open(infile10,$fun3opt) || warn "Can't open fun3 $dbname annotation file $fun3opt\n";;
 		while(<infile10>) { 
 			chomp;
 			next if(!$_ || ($_=~/\#/));
@@ -165,7 +165,7 @@ if($opt_db) {
 	#-- Reading coverages for all genes
 
 print "Reading coverage in $mapcountfile\n";
-open(infile6,$mapcountfile) || warn "Cannot open coverages in $mapcountfile\n";
+open(infile6,$mapcountfile) || warn "Can't open coverages in $mapcountfile\n";
 while(<infile6>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -242,7 +242,7 @@ close infile6;
 	#-- Reading RPKMs for all genes
 
 print "Reading rpkm in $mapcountfile\n";
-open(infile7,$mapcountfile) || die;
+open(infile7,$mapcountfile) || die "Can't open $mapcountfile\n";
 while(<infile7>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -278,7 +278,7 @@ my %rpk;
 foreach my $classfun(sort keys %funstat) {
 	$rawf="$resultpath/12.$project.$classfun.funcover";
 	print "Now creating $classfun coverage output in $rawf\n";
-	open(outfile1,">$rawf") || die;
+	open(outfile1,">$rawf") || die "Can't open $rawf for writing\n";
 	print outfile1 "#-- Created by $0 from $mapcountfile, ",scalar localtime;
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
@@ -324,7 +324,7 @@ close outfile1;
 foreach my $classfun(sort keys %funstat) {
 	$rawf="$extpath/12.$project.$classfun.stamp";        #-- Creating STAMP files
 	print "Now creating $classfun raw reads output in $rawf\n";
-	open(outfile2,">$rawf") || die;
+	open(outfile2,">$rawf") || die "Can't open $rawf for writing\n";
 	if($classfun eq "cog") { print outfile2 "$classfun class\t$classfun ID"; }
         else { print outfile2 "$classfun ID"; }
 foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
@@ -351,7 +351,3 @@ foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
 	}
 
 
-	
-
-
-	

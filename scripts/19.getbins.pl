@@ -23,7 +23,7 @@ my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna,%rinsample);
 	#-- Read 16S in contigs
 
 my $rnafile="$resultpath/02.$project.16S.txt";
-open(infile1,$rnafile) || warn "Cannot open $rnafile\n";
+open(infile1,$rnafile) || warn "Can't open $rnafile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -37,12 +37,12 @@ close infile1;
 	#-- Create the bin coverage table and the contigsinbins file
 
 if(-e $bincov) { system("rm $bincov"); }
-open(outfile1,">>$bincov") || die;
+open(outfile1,">>$bincov") || die "Can't open $bincov for writing\n";
 print outfile1 "#--Created by $0,",scalar localtime,"\n";
 print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tSample\n";
 
 if(-e $contigsinbins) { system("rm $contigsinbins"); }
-open(outfile2,">>$contigsinbins") || die;
+open(outfile2,">>$contigsinbins") || die "Can't open $contigsinbins for writing\n";
 print outfile2 "#--Created by $0,",scalar localtime,"\n";
 print outfile2 "# Contig\tMethod\tBin ID\n";
 
@@ -57,7 +57,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	
 		#-- Read checkM results for each bin
 	
-	open(infile2,$checkmfile) || warn "Cannot find checkM results in $checkmfile\n";
+	open(infile2,$checkmfile) || warn "Can't open checkM results in $checkmfile\n";
 	while(<infile2>) {
 		chomp;
 		next if !$_;
@@ -77,7 +77,7 @@ foreach my $binmethod(sort keys %dasdir) {
 
 	#-- Read data for each bin (tax, size, disparity)
 
-	opendir(indir1,$bindir) || die;
+	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 	my @files=grep(/tax$/,readdir indir1);
 	closedir indir1;
 
@@ -85,7 +85,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	my $bin=$tfil;
 	$bin=~s/\.fa.tax|\.fasta.tax//g;
 	print "Reading data for bin $bin           \r";
-	open(infile3,"$bindir/$tfil") || die;
+	open(infile3,"$bindir/$tfil") || die "Can't open $bindir/$tfil\n";
 	while(<infile3>) {
  		chomp;
 		if($_=~/^Consensus/) {
@@ -130,7 +130,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	#-- Count coverages for the bins
 
 	print "\nCalculating coverages\n";
-	open(infile5,$contigcov) || die "Cannot open contig coverage file $contigcov\n";
+	open(infile5,$contigcov) || die "Can't open contig coverage file $contigcov\n";
 	while(<infile5>) { 
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -175,7 +175,7 @@ foreach my $binmethod(sort keys %dasdir) {
 					   
 	my $outputfile=$bintable;
 	print "Creating table in $outputfile\n";
-	open(outfile3,">$outputfile") || die;
+	open(outfile3,">$outputfile") || die "Can't open $outputfile for writing\n";
 	
 	#-- Headers
 	

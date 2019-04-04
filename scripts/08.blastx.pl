@@ -67,13 +67,13 @@ sub moving {		#-- Places files in rigth location for restart purposes
 
 sub masking {
 	print "Getting segments for masking\n";
-	open(infile1,"$fun3tax.wranks") || die "Cannot open wranks file in $fun3tax.wranks\n";
+	open(infile1,"$fun3tax.wranks") || die "Can't open wranks file in $fun3tax.wranks\n";
 	while(<infile1>) {
 		my @t=split(/\t/,$_);
 		$annotations{$t[0]}{tax}=$t[1];
 		}
 	close infile1;
-	open(infile1,$rnafile) || die "Cannot open rna file in $rnafile\n";
+	open(infile1,$rnafile) || die "Can't open rna file in $rnafile\n";
 	while(<infile1>) {
 		my @t=split(/\t/,$_);
 		$t[0]=~s/^\>//;
@@ -82,7 +82,7 @@ sub masking {
 	close infile1;
 	
 	if(!$nocog) { 
-		open(infile2,$fun3cog) || die "Cannot open cog file in $fun3cog\n";
+		open(infile2,$fun3cog) || die "Can't open cog file in $fun3cog\n";
 		while(<infile2>) {
 			my @t=split(/\t/,$_);
 			$annotations{$t[0]}{cog}=$t[1];
@@ -90,7 +90,7 @@ sub masking {
 		close infile2;
 		}
 	if(!$nokegg) { 
-		open(infile2,$fun3kegg) || die "Cannot open kegg file in $fun3kegg\n";
+		open(infile2,$fun3kegg) || die "Can't open kegg file in $fun3kegg\n";
 		while(<infile2>) {
 			my @t=split(/\t/,$_);
 			$annotations{$t[0]}{kegg}=$t[1];
@@ -98,7 +98,7 @@ sub masking {
 		close infile2;
 		}
 	if(!$nopfam) { 
-		open(infile2,$fun3pfam) || die "Cannot open pfam file in $fun3pfam\n";
+		open(infile2,$fun3pfam) || die "Can't open pfam file in $fun3pfam\n";
 		while(<infile2>) {
 			my @t=split(/\t/,$_);
 			$annotations{$t[0]}{pfam}=$t[1];
@@ -127,7 +127,7 @@ sub masking {
 	$maskedfile="$tempdir/08.$project.masked.fna";
 	# if (-e $maskedfile) { die "File $maskedfile already exists\n"; }
 	open(outfile,">$maskedfile");
-	open(infile3,$contigsfna) || die;
+	open(infile3,$contigsfna) || die "Can't open $contigsfna\n";
 	my($seq,$current)="";
 	while(<infile3>) {
 		chomp;
@@ -193,7 +193,7 @@ sub getseqs {
 
 	print "Getting nt sequences\n";
 	my %orfstoget;
-	open(infile4,$collapsedmerged) || die;
+	open(infile4,$collapsedmerged) || die "Can't open $collapsedmerged\n";
 	while(<infile4>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -208,8 +208,8 @@ sub getseqs {
 
 	$ntmerged=$fna_blastx;
 	my($currcontig,$newcontig,$contigseq);
-	open(outfile2,">$ntmerged") || die;
-	open(infile5,$contigsfna) || die;
+	open(outfile2,">$ntmerged") || die "Can't open $ntmerged for writing\n";
+	open(infile5,$contigsfna) || die "Can't open $contigsfna\n";
 	while(<infile5>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -277,7 +277,7 @@ sub functions {
 	#-- OPT databases
 
 	if($opt_db) {
-		open(infile1,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+		open(infile1,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 		while(<infile1>) {
 			chomp;
 			next if(!$_ || ($_=~/\#/));
@@ -318,7 +318,7 @@ sub remaketaxtables {
 		my $resulting_table=$ttables{$item}{merged};
 		
 		# print "Merging $original_table and $blastx_table\n";
-		open(infile6,$original_table) || die "Cannot open nr wrank $original_table\n";
+		open(infile6,$original_table) || die "Can't open nr wrank $original_table\n";
 		while(<infile6>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -334,7 +334,7 @@ sub remaketaxtables {
 			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile6;
-		open(infile7,$blastx_table) || die "Cannot open blastx wrank $blastx_table\n";
+		open(infile7,$blastx_table) || die "Can't open blastx wrank $blastx_table\n";
 		while(<infile7>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -352,7 +352,7 @@ sub remaketaxtables {
 	
 			#-- Sorting first by contig ID, then by position in contig
 
-		open(outfile3,">$resulting_table") || die "Cannot open output in $resulting_table\n";
+		open(outfile3,">$resulting_table") || die "Can't open $resulting_table for writing\n";
 		print outfile3 "# Created by $0 merging $original_table and $blastx_table,",scalar localtime,"\n";
 		my (@listorfs,@sortedorfs);
 		foreach my $orf(keys %intable) {
@@ -384,7 +384,7 @@ sub remakefuntables {
 		my $oldcogtable="$resultpath/07.$project.fun3.$thisdb";
 		my $blastxcogtable="$tempdir/08.$project.fun3.blastx.$thisdb";
 		my $newcogtable=$olist{$thisdb};
-		open(infile8,$oldcogtable) || die "Cannot open $oldcogtable\n";
+		open(infile8,$oldcogtable) || die "Can't open $oldcogtable\n";
 			while(<infile8>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -399,7 +399,7 @@ sub remakefuntables {
 			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile8;
-		open(infile9,$blastxcogtable) || die "Cannot open $blastxcogtable\n";
+		open(infile9,$blastxcogtable) || die "Can't open $blastxcogtable\n";
 			while(<infile9>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -416,7 +416,7 @@ sub remakefuntables {
 		close infile9;
 			#-- Sorting first by contig ID, then by position in contig
 
-		open(outfile4,">$newcogtable") || die "Cannot open output in $newcogtable\n";
+		open(outfile4,">$newcogtable") || die "Can't open $newcogtable for writing\n";
 		print outfile4 "# Created by $0 merging $oldcogtable and $blastxcogtable,",scalar localtime,"\n";
 		print outfile4 "#ORF	BESTHIT	BESTAVER\n";
 		my (@listorfs,@sortedorfs);
@@ -445,9 +445,9 @@ sub remakegff {
 	my %gffstore;
 	my $gfftable="$resultpath/03.$project.gff";
 	my $newtable=$gff_file_blastx;
-	open(outfile6,">$newtable") || die "Cannot open output in $newtable\n";
+	open(outfile6,">$newtable") || die "Can't open $newtable for writing\n";
 	print outfile6 "# Created by $0, ",scalar localtime,"\n";
-	open(infile11,$gfftable) || die "Cannot open $gfftable\n";
+	open(infile11,$gfftable) || die "Can't open $gfftable\n";
 	while(<infile11>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));

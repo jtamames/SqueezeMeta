@@ -34,7 +34,7 @@ my $bhitforced=0;	#-- Forces that assignment cannot differ from best hit
 my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1}) or die $DBI::errstr;
 
 my(%parents);
-open(infile1,"$databasepath/LCA_tax/parents.txt") || die;
+open(infile1,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -53,15 +53,15 @@ my $outname="08.$project.fun3.blastx.tax";
 #open(out,">$tempdir/$outname") || die "Cannot open output in $tempdir/$outname\n";
 open(outc,">$resultpath/$outname.wranks") || die;
 #open(outnof,">$tempdir/$outname\_nofilter") || die;
-open(outcnof,">$resultpath/$outname\_nofilter.wranks") || die;
+open(outcnof,">$resultpath/$outname\_nofilter.wranks") || die "Can't open $resultpath/$outname\_nofilter.wranks for writing\n";
 
 my(%accum,%accumnofilter,%provhits,%providen,%giden);
 my($validhits,$validhitsnofilter,$tothits,$skipidentical,$refscore,$refiden,$string,$posinit,$posend);
 tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 
-if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die; }
-else { open(infile2,$infile) || die "Cannot open m8 file $infile\n"; }
+if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die "Can't open m8 file $infile\n";}
+else { open(infile2,$infile) || die "Can't open m8 file $infile\n"; }
 while(<infile2>) { 
 	chomp;
 	next if(!$_ || ($_=~/^\#/));	

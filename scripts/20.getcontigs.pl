@@ -24,7 +24,7 @@ my(%contig,%allsamples);
 
 	#-- Reading taxonomic assignment and disparity for the contigs
 
-open(infile1,$alllog) || warn "Cannot open contiglog file $alllog\n";
+open(infile1,$alllog) || warn "Can't open contiglog file $alllog\n";
 print "Reading taxa for contigs information...";
 while(<infile1>) { 
 	chomp;
@@ -38,7 +38,7 @@ close infile1;
 	#-- Reading GC content and length of the contigs
 	
 print "done!\nReading GC & length... ";
-open(infile2,$contigsfna) || warn "Cannot open fasta file $contigsfna\n";
+open(infile2,$contigsfna) || warn "Can't open fasta file $contigsfna\n";
 my($thisname,$contigname,$seq);
 while(<infile2>) {
 	chomp;
@@ -65,7 +65,7 @@ if($contigname) {
 	#-- Reading number of genes for the contigs
 
 print "done!\nReading number of genes... ";
-open(infile3,$aafile) || warn "Cannot open aa file $aafile\n";
+open(infile3,$aafile) || warn "Can't open aa file $aafile\n";
 while(<infile3>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -80,7 +80,7 @@ close infile3;
   #-- Reading contig coverages 
   
 print "done!\nReading coverages... ";
-open(infile4,$contigcov) || die;
+open(infile4,$contigcov) || die "Can't open $contigcov\n";
 while(<infile4>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -110,7 +110,7 @@ if(!$nobins) {				#-- Skip this step if no bins were requested
 	#-- CREATING CONTIG TABLE
 	
 print "done!\nCreating contig table...";
-open(outfile1,">$contigtable") || die;
+open(outfile1,">$contigtable") || die "Can't open $contigtable for writing\n";
 
 	#-- Headers
 

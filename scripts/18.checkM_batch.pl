@@ -33,7 +33,7 @@ my(%tax,%bins,%consensus,%alltaxa);
 
 #-- Read NCBI's taxonomy 
 
-open(infile1,$taxlist) || die "Cannot find taxonomy list $taxlist\n";
+open(infile1,$taxlist) || die "Can't find taxonomy list $taxlist\n";
 print "Reading $taxlist\n";
 while(<infile1>) {
 	chomp;
@@ -51,7 +51,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	
 	#-- Read contigs in bins
 	
-	open(infile2,$alllog) || die;
+	open(infile2,$alllog) || die "Can't open $alllog\n";
 	while(<infile2>) {
 		chomp;
 		next if !$_;
@@ -86,7 +86,7 @@ foreach my $m(@files) {
  
 	#-- Reading the consensus taxa for the bin
  
-	open(infile3,$thisfile) || die;
+	open(infile3,$thisfile) || die "Can't open $thisfile\n";
 	while(<infile3>) { 
 		chomp;
 		if($_=~/Consensus/) {

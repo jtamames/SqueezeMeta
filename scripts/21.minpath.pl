@@ -19,7 +19,7 @@ do "$project/parameters.pl";
 our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$bintable,$minfraction21,%bindirs,%dasdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
-open(infile1,"$extdatapath/metacyc_pathways_onto.txt") || die;
+open(infile1,"$extdatapath/metacyc_pathways_onto.txt") || die "Can't open $extdatapath/metacyc_pathways_onto.txt\n";
 while(<infile1>) { 
 	chomp;
 	next if !$_;
@@ -29,7 +29,7 @@ while(<infile1>) {
 	}
 close infile1; 
 
-open(infile2,"$extdatapath/kegg2ec.txt") || die;
+open(infile2,"$extdatapath/kegg2ec.txt") || die "Can't open $extdatapath/kegg2ec.txt\n";
 while(<infile2>) {
 	chomp;
 	next if !$_;
@@ -39,7 +39,7 @@ while(<infile2>) {
 	}
 close infile2;
 
-open(infile3,$contigsinbins) || die;
+open(infile3,$contigsinbins) || die "Can't open $contigsinbins\n";
 while(<infile3>) {
 	chomp;
 	next if !$_;
@@ -48,7 +48,7 @@ while(<infile3>) {
 	}
 close infile3;
 
-open(infile4,$bintable) || die;
+open(infile4,$bintable) || die "Can't open $bintable\n";
 while(<infile4>) {
 	chomp;
 	next if !$_;
@@ -58,7 +58,7 @@ while(<infile4>) {
 close infile4;
 
 my($header,$keggpos);
-open(infile5,$mergedfile)  || die;
+open(infile5,$mergedfile)  || die "Can't open $mergedfile\n";
 while(<infile5>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -115,7 +115,7 @@ sub outres {
 sub metacyc {
 	foreach my $kbin(sort keys %ecs) {
 		my $outec="$tempdir/$kbin.minpath.temp";
-		open(outfile1,">$outec") || die;
+		open(outfile1,">$outec") || die "Can't open $outec for writing\n";
 		my $id=0;
 		foreach my $ecbin(sort keys %{ $ecs{$kbin} }) {
 		       next if !$ecbin;
@@ -174,7 +174,7 @@ sub kegg {
 		my $outkegg="$tempdir/$kbin.minpath.temp.kegg";
 		my($binmethod,$rest)=split(/\./,$kbin);
 		my $outdir="$resultpath/$binmethod";
-		open(outfile3,">$outkegg") || die;
+		open(outfile3,">$outkegg") || die "Can't open $outkegg for writing\n";
 		my $id=0;
 		foreach my $keggbin(sort keys %{ $kegg{$kbin} }) {
 			next if !$keggbin;

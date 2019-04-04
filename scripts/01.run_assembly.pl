@@ -25,7 +25,7 @@ if(-e "$datapath/raw_fastq/par1.fastq.gz") { $seqformat="fastq"; $par1name="$dat
 elsif(-e "$datapath/raw_fastq/par1.fasta.gz") { $seqformat="fasta"; $par1name="$datapath/raw_fastq/par1.fasta.gz"; $par2name="$datapath/raw_fastq/par2.fasta.gz"; }
 elsif(-e "$datapath/raw_fastq/par1.fastq") { $seqformat="fastq"; $par1name="$datapath/raw_fastq/par1.fastq"; $par2name="$datapath/raw_fastq/par2.fastq"; }
 elsif(-e "$datapath/raw_fastq/par1.fasta") { $seqformat="fasta"; $par1name="$datapath/raw_fastq/par1.fasta"; $par2name="$datapath/raw_fastq/par2.fasta"; }
-else { die "Cannot find read files in $datapath/raw_fastq\n"; }
+else { die "Can't find read files in $datapath/raw_fastq\n"; }
 
 #-- trimmomatic commands
 
@@ -50,7 +50,7 @@ if($cleaning) {
 
 if($extassembly) {
 	print "External assembly provided: $extassembly. Overriding assembly\n";
-	if(-e $extassembly) {} else { die "Cannot find assembly file $extassembly\n"; }
+	if(-e $extassembly) {} else { die "Can't find assembly file $extassembly\n"; }
 	$outassembly=$extassembly; 
 	}
 else {
@@ -101,8 +101,8 @@ if($ecode!=0) { die "Error running command:    $command"; }
 #-- Counts length of the contigs (we will need it later)
 
 print "Counting length of contigs\n";
-open(outfile1,">$contigslen") || die;
-open(infile1,$contigsfna) || die;
+open(outfile1,">$contigslen") || die "Can't open $contigslen for writing\n";
+open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;

@@ -31,7 +31,7 @@ tie %mapping,"Tie::IxHash";
 my $gff;
 my %ingff;
 if($doublepass) { $gff=$gff_file_blastx; } else { $gff=$gff_file; }
-open(infile1,$gff) || die "Missing gff file $gff\n";
+open(infile1,$gff) || die "Can't open gff file $gff\n";
 print "Reading GFF in $gff\n";
 while(<infile1>) {
 	chomp;
@@ -44,7 +44,7 @@ close infile1;
 	
 print "Reading Diamond hits\n";
 my(%provi,$lasto);
-open(infile1,$taxdiamond) || die "Cannot open diamond result in $taxdiamond\n";
+open(infile1,$taxdiamond) || die "Can't open diamond result in $taxdiamond\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -101,14 +101,14 @@ close infile2;
 	#-- Reading data for OPT_DB (names)
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$listf)=split(/\t/,$_);
 		if(-e $listf) {
 			print "Reading $dbname list: $listf\n";
-			open(infile3,$listf) || warn "Cannot open names file for $opt_db\n";
+			open(infile3,$listf) || warn "Can't open names file for $opt_db\n";
 			while(<infile3>) {
 				chomp;
 				next if(!$_ || ($_=~/\#/));
@@ -213,7 +213,7 @@ if($rnaseq) {
 
 my $taxfile;
 if($doublepass) { $taxfile="$fun3tax_blastx.wranks"; } else { $taxfile="$fun3tax.wranks"; }
-open(infile5,$taxfile) || warn "Cannot open allorfs file $fun3tax.wranks\n";
+open(infile5,$taxfile) || warn "Can't open allorfs file $fun3tax.wranks\n";
 print "Reading ORF information\n";
 while(<infile5>) { 
 	chomp;
@@ -229,7 +229,7 @@ close infile5;
 	#-- Reading nt sequences for calculating GC content
 
 my($ntorf,$ntseq,$gc);
-open(infile6,$ntfile) || warn "Cannot open nt file $ntfile\n";
+open(infile6,$ntfile) || warn "Can't open nt file $ntfile\n";
 print "Calculating GC content for genes\n";
 while(<infile6>) { 
 	chomp;
@@ -252,7 +252,7 @@ $datafiles{'gc'}=1;
 
 if($doublepass) {
 	my($ntorf,$ntseq,$gc);
-	open(infile6,$fna_blastx) || warn "Cannot open nt file $ntfile\n";
+	open(infile6,$fna_blastx) || warn "Can't open nt file $ntfile\n";
 	print "Calculating GC content for blastx genes\n";
 	while(<infile6>) { 
 		chomp;
@@ -282,7 +282,7 @@ if($doublepass) {
 	#-- Reading nt sequences for calculating GC content for RNAs
 
 ($ntorf,$ntseq,$gc)="";
-open(infile7,$rnafile) || warn "Cannot open RNA file $rnafile\n";
+open(infile7,$rnafile) || warn "Can't open RNA file $rnafile\n";
 print "Calculating GC content for RNAs\n";
 while(<infile7>) { 
 	chomp;
@@ -304,7 +304,7 @@ $orfdata{$ntorf}{gc}=$gc;
 
 	#-- Reading taxonomic assignment and disparity for the contigs
 
-open(infile8,$alllog) || warn "Cannot open contiglog file $alllog\n";
+open(infile8,$alllog) || warn "Can't open contiglog file $alllog\n";
 print "Reading contig information\n";
 while(<infile8>) { 
 	chomp;
@@ -320,7 +320,7 @@ close infile8;
 
 if(!$nokegg) {
 	if($doublepass) { $fun3kegg=$fun3kegg_blastx; }
-	open(infile9,$fun3kegg) || warn "Cannot open fun3 KEGG annotation file $fun3kegg\n";
+	open(infile9,$fun3kegg) || warn "Can't open fun3 KEGG annotation file $fun3kegg\n";
 	print "Reading KEGG annotations\n";
 	while(<infile9>) {
 		chomp;
@@ -340,7 +340,7 @@ if(!$nokegg) {
 
 if(!$nocog) {
 	if($doublepass) { $fun3cog=$fun3cog_blastx; }
-	open(infile10,$fun3cog) || warn "Cannot open fun3 COG annotation file $fun3cog\n";;
+	open(infile10,$fun3cog) || warn "Can't open fun3 COG annotation file $fun3cog\n";;
 	print "Reading COGs annotations\n";
 	while(<infile10>) { 
 		chomp;
@@ -356,7 +356,7 @@ if(!$nocog) {
 	#-- Reading OPT_DB annotations for the ORFs
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -364,7 +364,7 @@ if($opt_db) {
 		$optlist{$dbname}=1;
 		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
 		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
-		open(infile10,$fun3opt) || warn "Cannot open fun3 $dbname annotation file $fun3opt\n";;
+		open(infile10,$fun3opt) || warn "Can't open fun3 $dbname annotation file $fun3opt\n";;
 		print "Reading $dbname annotations\n";
 		while(<infile10>) { 
 			chomp;
@@ -382,7 +382,7 @@ if($opt_db) {
 	#-- Reading Pfam annotations for the ORFs
 
 if(!$nopfam) {
-	open(infile11,$fun3pfam) || warn "Cannot open fun3 Pfam annotation file $fun3pfam\n";;
+	open(infile11,$fun3pfam) || warn "Can't open fun3 Pfam annotation file $fun3pfam\n";;
 	print "Reading Pfam annotations\n";
 	while(<infile11>) { 
 		chomp;
@@ -396,7 +396,7 @@ if(!$nopfam) {
   
 	#-- Reading RPKM, TPM coverage values for the ORFs in the different samples
 
-open(infile12,$mapcountfile) || warn "Cannot open mapping file $mapcountfile\n";
+open(infile12,$mapcountfile) || warn "Can't open mapping file $mapcountfile\n";
 print "Reading RPKMs and Coverages\n";
 while(<infile12>) {
 	chomp;
@@ -414,7 +414,7 @@ close infile12;
 	#-- CREATING GENE TABLE
 
 print "Creating table\n";
-open(outfile1,">$mergedfile") || die "I need an output file\n";
+open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
 
 	#-- Headers
 
