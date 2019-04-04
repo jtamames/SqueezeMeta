@@ -50,7 +50,7 @@ def main(args):
         idx =  {f: i for i,f in enumerate(header) if f in goodFields}
         for line in infile:
             line = line.strip().split('\t')
-            if line[2] != 'RNA':
+            if line[2] == 'CDS':
                 allORFs.append(line[0])
                 outfile.write('{}\n'.format('\t'.join([line[idx[f]] for f in goodFields])))
 
