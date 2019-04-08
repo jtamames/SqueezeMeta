@@ -125,10 +125,10 @@ foreach my $thissample(keys %allsamples) {
 	system("mkdir $thissampledir");
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		print "   File: $thisfile\n";
-		if($thisfile=~/fastq.gz/) { system("zcat $thisfile | wc > rc.txt"); }
-		elsif($thisfile=~/fastq/) { system("wc $thisfile > rc.txt"); }
-		elsif($thisfile=~/fasta.gz/) { system("zcat $thisfile | grep -c \"^>\" > rc.txt"); }
-		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $thisfile > rc.txt"); }
+		if($thisfile=~/fastq.gz/) { system("zcat $rawseqs/$thisfile | wc > rc.txt"); }
+		elsif($thisfile=~/fastq/) { system("wc $rawseqs/$thisfile > rc.txt"); }
+		elsif($thisfile=~/fasta.gz/) { system("zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"); }
+		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $rawseqs/$thisfile > rc.txt"); }
 		open(inw,"rc.txt");
 		my $numseqs=<inw>;
 		close inw;

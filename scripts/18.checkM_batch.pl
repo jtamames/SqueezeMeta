@@ -25,6 +25,7 @@ our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resul
 my $markerdir="$datapath/checkm_markers";
 my $checktemp="$tempdir/checkm_batch";
 my $tempc="$tempdir/checkm_prov.txt";
+my %branks=('k','domain','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 
 if(-d $markerdir) {} else { system "mkdir $markerdir"; }
 if(-d $checktemp) {} else { system "mkdir $checktemp"; print "Creating $checktemp\n";  }
@@ -104,8 +105,8 @@ foreach my $m(@files) {
 				if($ftax!~/\_/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\_/,$ftax); }
 				$ntax=~s/unclassified //gi;
 				$ntax=~s/ \<.*\>//gi; 
-				if($tax{$ntax} && ($tax{$ntax} ne "species")  && ($tax{$ntax} ne "n")) { 
-				push( @{ $alltaxa{$thisfile} },"$tax{$ntax}\_$ntax");
+				if($tax{$ntax} && ($rank ne "n") && ($rank ne "s")) { 
+				push( @{ $alltaxa{$thisfile} },"$branks{$rank}\_$ntax");
 				#   print "$m\t$ntax\t$tax{$ntax}\n";
 				}
 			}
@@ -153,7 +154,7 @@ foreach my $m(@files) {
 		if($ecode!=0) { die "Error running command:    $command"; }
 	#	system("rm -r $checktemp");
 		$inloop=0;
-		if($checkmfile) { system("cat $checkmfile $tempc > $checkmfile.prov; mv $checkmfile.prov $checkmfile"); }
+		if(-e $checkmfile) { system("cat $checkmfile $tempc > $checkmfile.prov; mv $checkmfile.prov $checkmfile"); }
 		else { system("mv $tempc $checkmfile"); }
 		}
  	} 

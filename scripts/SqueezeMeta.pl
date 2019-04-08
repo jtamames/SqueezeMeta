@@ -58,8 +58,8 @@ Arguments:
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
-   -D|--doublepass: First pass looking for genes using gene prediction, second pass using BlastX  (Default: no)
-   --extdb <database file>: List of user-provided databases
+   --D|--doublepass: First pass looking for genes using gene prediction, second pass using BlastX  (Default: no)
+   -extdb <database file>: List of user-provided databases
    -b|-block-size <block size>: block size for diamond against the nr database (Default: 8)
    -e|-evalue <max evalue>: max evalue for discarding hits diamond run  (Default: 1e-03)
    -miniden <identity>: identity perc for discarding hits in diamond run  (Default: 50)
