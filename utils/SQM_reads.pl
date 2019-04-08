@@ -86,7 +86,7 @@ if (-d $resultsdir) { die "Project name $project already exists\n"; } else { sys
 my $output_all="$project.out.allreads";
 open(outall,">$resultsdir/$output_all") || die;
 
-my $output_counts="$project.out.counts";
+my $output_counts="$project.out.mappingstat";
 open(outcount,">$resultsdir/$output_counts") || die;
 
 #-- Reading the sample file 
@@ -114,7 +114,7 @@ print "\n";
 print outall "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 print outall "# Sample\tRead\tTax\tCOG\tKEGG\n";
 print outcount "# Created by $0 from data in $equivfile", scalar localtime,"\n";
-print outcount "# Sample\tFile\tReads\tReads with hits\n";
+print outcount "# Sample\tFile\tTotal Reads\tReads with hits to nr\n";
 
 my(%cogaccum,%keggaccum);
 foreach my $thissample(keys %allsamples) {
@@ -236,7 +236,6 @@ foreach my $thissample(keys %allsamples) {
 		}
 	}
 		
-print "Output in $output_all\n";
 close outall;	
 close outcount;
 
@@ -341,6 +340,9 @@ if(!$nokegg) {
 
 	close outkegg;
 	}	 
+
+print "Mapping statistics: $resultsdir/$output_counts\n";
+print "Condensed annotations for mapped reads: $resultsdir/$output_all\n";
 
 $currtime=timediff();
 print "\n[",$currtime->pretty,"]: DONE! Have fun!\n";
