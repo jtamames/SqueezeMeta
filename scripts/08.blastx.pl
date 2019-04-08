@@ -26,7 +26,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden,$interdir);
+our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
@@ -164,7 +164,7 @@ sub run_blastx {
 	#-- Run Diamond search
 
 	print "Running Diamond BlastX (This can take a while, please be patient)\n";
-	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evalue -o $blastxout";
+	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
 	# print "$blastx_command\n";
 	system $blastx_command;
 	}
@@ -254,7 +254,7 @@ sub functions {
 
 	if(!$nocog) {
 		$cogfun="$tempdir/08.$project.fun3.blastx.cog.m8";
-		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
+		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
 		print "Running Diamond blastx for COGS\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
@@ -265,7 +265,7 @@ sub functions {
 
 	if(!$nokegg) {
 		$keggfun="$tempdir/08.$project.fun3.blastx.kegg.m8";
-		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
+		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
 		print "Running Diamond blastx for KEGG\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
@@ -281,7 +281,7 @@ sub functions {
 			next if(!$_ || ($_=~/\#/));
 			my($dbname,$extdb,$dblist)=split(/\t/,$_);
 			$optdbfun="$tempdir/08.$project.fun3.blastx.$dbname.m8";
-			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evalue --id $miniden --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
+			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
 			print "Running Diamond blastx for OPTDB $dbname\n";
 			my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }

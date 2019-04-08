@@ -1,10 +1,10 @@
 #-- Internal parameters for scripts, that are NOT specified by the user when running SQM
 
 #$blocksize=8;	#-- STEP4: Blocksize for Diamond (also for STEP8)
-#$evaluetax4=1e-03;	#-- STEP4: evalue for Diamond, for tax only (also for STEP8)
-#$minidentax4=50;	#-- STEP4: Minimum identity for Diamond, for tax only (also for STEP8)
-#$evaluefun4=1e-03;	#-- STEP4: evalue for Diamond, for functions only (also for STEP8)
-#$minidenfun4=50;	#-- STEP4: Minimum identity for Diamond, for functions only (also for STEP8)
+$evaluetax4=1e-03;	#-- STEP4: evalue for Diamond, for tax only (also for STEP8)
+$minidentax4=25;	#-- STEP4: Minimum identity for Diamond, for tax only (also for STEP8)
+$evaluefun4=1e-03;	#-- STEP4: evalue for Diamond, for functions only (also for STEP8)
+$minidenfun4=50;	#-- STEP4: Minimum identity for Diamond, for functions only (also for STEP8)
 
 
 $evaluehmmer5=1e-10;	#-- STEP5: Minimum evalue for hmmer

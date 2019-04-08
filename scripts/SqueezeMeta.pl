@@ -61,8 +61,6 @@ Arguments:
    --D|--doublepass: First pass looking for genes using gene prediction, second pass using BlastX  (Default: no)
    -extdb <database file>: List of user-provided databases
    -b|-block-size <block size>: block size for diamond against the nr database (Default: 8)
-   -e|-evalue <max evalue>: max evalue for discarding hits diamond run  (Default: 1e-03)
-   -miniden <identity>: identity perc for discarding hits in diamond run  (Default: 50)
    
  Binning:
    --nobins: Skip all binning  (Default: no)
@@ -123,8 +121,6 @@ if(!$mincontiglen) { $mincontiglen=200; }
 if(!$assembler) { $assembler="megahit"; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$blocksize) { $blocksize=8; }
-if(!$evalue) { $evalue=1e-03; }
-if(!$miniden) { $miniden=50; }
 if(!$nocog) { $nocog=0; }
 if(!$nokegg) { $nokegg=0; }
 if(!$nopfam) { $nopfam=0; }
@@ -253,8 +249,6 @@ if($mode=~/sequential/i) {
 			if($_=~/^\$basedir/) { print outfile5 "\$basedir=\"$pwd\";\n"; }
 			elsif($_=~/^\$projectname/) { print outfile5 "\$projectname=\"$project\";\n"; }
 			elsif($_=~/^\$blocksize/) { print outfile5 "\$blocksize=$blocksize;\n"; }
-			elsif($_=~/^\$evalue/) { print outfile5 "\$evalue=$evalue;\n"; }
-			elsif($_=~/^\$miniden/) { print outfile5 "\$miniden=$miniden;\n"; }
 			elsif($_=~/^\$nocog/) { print outfile5 "\$nocog=$nocog;\n"; }
 			elsif($_=~/^\$nokegg/) { print outfile5 "\$nokegg=$nokegg;\n"; }
 			elsif($_=~/^\$nopfam/) { print outfile5 "\$nopfam=$nopfam;\n"; }
@@ -388,8 +382,6 @@ else {
 		if($_=~/^\$basedir/) { print outfile6 "\$basedir=\"$pwd\";\n"; }
 		elsif($_=~/^\$projectname/) { print outfile6 "\$projectname=\"$project\";\n"; }
 		elsif($_=~/^\$blocksize/) { print outfile6 "\$blocksize=$blocksize;\n"; }
-		elsif($_=~/^\$evalue/) { print outfile6 "\$evalue=$evalue;\n"; }
-		elsif($_=~/^\$miniden/) { print outfile6 "\$miniden=$miniden;\n"; }
 		elsif($_=~/^\$nocog/) { print outfile6 "\$nocog=$nocog;\n"; }
 		elsif($_=~/^\$nokegg/) { print outfile6 "\$nokegg=$nokegg;\n"; }
 		elsif($_=~/^\$nopfam/) { print outfile6 "\$nopfam=$nopfam;\n"; }

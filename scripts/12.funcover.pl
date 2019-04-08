@@ -282,7 +282,8 @@ foreach my $classfun(sort keys %funstat) {
 	print outfile1 "#-- Created by $0 from $mapcountfile, ",scalar localtime;
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
-	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tTPM\tDistribution\tName\tFunction\n";
+	# print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tTPM\tDistribution\tName\tFunction\n";
+	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tTPM\tDistribution\tName\tFunction\n";
 	
 	#-- Calculation of coverage, norm coverage, and RPKM
 
@@ -315,7 +316,7 @@ foreach my $classfun(sort keys %funstat) {
 				$stringtax.="$krank:$countt;";
 				}
 			chop $stringtax;
-			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t%.3f\t%.3f\t$stringtax\t$funs{$classfun}{$kid}{name}\t$funs{$classfun}{$kid}{fun}\n",$cover,$normcover,$normcoverpercopy,$tpm; 
+			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t$stringtax\t$funs{$classfun}{$kid}{name}\t$funs{$classfun}{$kid}{fun}\n",$cover,$tpm; 
  			}
 		}
 close outfile1;

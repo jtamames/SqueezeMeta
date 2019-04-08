@@ -69,8 +69,6 @@ $pfam_db="$databasepath/Pfam-A.hmm";
 #-- Variables
 
 $blocksize=8;
-$evalue=1e-03;
-$miniden=50;
 $nocog=0;
 $nokegg=0;
 $nopfam=0;
