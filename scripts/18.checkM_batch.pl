@@ -103,8 +103,9 @@ foreach my $m(@files) {
 				my($ntax,$rank);
 				if($ftax!~/\_/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\_/,$ftax); }
 				$ntax=~s/unclassified //gi;
-				$ntax=~s/ \<.*\>//gi; 
-				if($tax{$ntax} && ($tax{$ntax} ne "species")  && ($tax{$ntax} ne "n")) { 
+				$ntax=~s/ \<.*\>//gi;
+				if($tax{$ntax} && ($rank ne "n") && ($rank ne "s")) {  
+				#if($tax{$ntax} && ($tax{$ntax} ne "species")  && ($tax{$ntax} ne "n")) { 
 				push( @{ $alltaxa{$thisfile} },"$tax{$ntax}\_$ntax");
 				#   print "$m\t$ntax\t$tax{$ntax}\n";
 				}
@@ -153,7 +154,7 @@ foreach my $m(@files) {
 		if($ecode!=0) { die "Error running command:    $command"; }
 	#	system("rm -r $checktemp");
 		$inloop=0;
-		if($checkmfile) { system("cat $checkmfile $tempc > $checkmfile.prov; mv $checkmfile.prov $checkmfile"); }
+		if(-e $checkmfile) { system("cat $checkmfile $tempc > $checkmfile.prov; mv $checkmfile.prov $checkmfile"); }
 		else { system("mv $tempc $checkmfile"); }
 		}
  	} 
