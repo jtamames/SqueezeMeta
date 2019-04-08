@@ -162,7 +162,11 @@ Any interrupted SqueezeMeta run can be restarted using the program restart.pl. I
 
 `restart.pl <projectname>`
 
-This command must be issued in the upper directory to the project <projectname>, and will restart the run of that project by reading the progress.txt file to find out the point where the run stopped.
+This command must be issued in the upper directory to the project <projectname>, and will restart the run of that project by reading the progress.txt file to find out the point where the run stopped. 
+ 
+Alternatively, the run can be restarted from a specific step by issuing the command:
+
+`restart.pl <projectname> -step <step_to_restart_from>`
 
 ### Running scripts
 Also, any individual script of the pipeline can be run in the upper directory to the project using the same syntax: 
@@ -170,7 +174,19 @@ Also, any individual script of the pipeline can be run in the upper directory to
 `script <projectname>` (for instance, `04.rundiamond.pl <projectname>` to repeat the DIAMOND run for the project)
 
 
-## 5. Testing SqueezeMeta
+## 5. Analizing an user-supplied assembly
+An user-supplied assembly can be passed to SqueezeMeta with the flag *-extassembly <your_assembly.fasta>*. The contigs in that fasta file will be analyzed by the SqueezeMeta pipeline starting from step 2.
+
+
+## 6. Using external databases for functional annotation
+Version 1.0 implements the possibility of using one or several user-provided databases for functional annotation. This is invoked using the *--extdb* option. Please refer to the manual for details.
+
+
+## 7. Extra sensitive detection of ORFs
+Version 1.0 implements the *-D* option (*doublepass*), that attempts to provide a more sensitive ORF detection by combining the Prodigal prediction with a BlastX search on parts of the contigs where no ORFs were predicted, or where predicted ORFs did not match anything in the taxonomic and functional databases.
+
+
+## 8. Testing SqueezeMeta
 The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `<datapath>` as its target the test run can be executed with
 
 `cd <datapath>`
@@ -179,28 +195,28 @@ The *download_databases.pl* and *make_databases.pl* scripts also download two da
 Alternatively, `-m sequential` or `-m merged` can be used.
 
 
-## 6. Working with Oxford Nanopore MinION and PacBio reads
+## 9. Working with Oxford Nanopore MinION and PacBio reads
 Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
 We also include the canu assembler, which is specially tailored to work with long, noisy reads. It can be selected by including the -a *canu* flag when calling SqueezeMeta.
 As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads.
 
 
-## 7. Working on a low memory environment
+## 10. Working on a low memory environment
 In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. DIAMOND memory usage can be controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
 We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limtations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
 
 
-## 8. Setting up the MySQL database
+## 11. Setting up the MySQL database
 SqueezeMeta includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
 
 
-## 9. Updating SqueezeMeta
+## 12. Updating SqueezeMeta
 Assuming your databases are not inside the SqueezeMeta directory, just remove it, download the new version and configure it with
 
 `<installpath>/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl <database_location>`
 
 
-## 10. License and third-party software
+## 13. License and third-party software
 SqueezeMeta is distributed under a GPL-3 license.
 Additionally, SqueezeMeta redistributes the following third-party software:
 * [Megahit](https://github.com/voutcn/megahit)
@@ -226,7 +242,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [pullseq](https://github.com/bcthomas/pullseq)
 
 
-## 11. About
+## 14. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
 
 
