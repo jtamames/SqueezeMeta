@@ -239,7 +239,7 @@ def parse_tax_string(taxString):
             # This rank is not present,  but we have a classification at a lower rank.
             # This happens in the NCBI tax e.g. for some eukaryotes, they are classified at the class but not at the phylum level.
             # We inherit lower rank taxonomies, as we actually have classified that ORF.
-            taxList.append('{} (no {} rank)'.format(taxDict[lastRankFound], TAXRANKS[TAXRANKS_SHORT.index(rank)]))
+            taxList.append('{} (no {} in NCBI)'.format(taxDict[lastRankFound], TAXRANKS[TAXRANKS_SHORT.index(rank)]))
         else:
             # Neither this or lower ranks were present. The ORF is not classified at this level.
             pass
