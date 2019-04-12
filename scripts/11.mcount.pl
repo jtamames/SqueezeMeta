@@ -32,7 +32,7 @@ close infile1;
 
 	#-- Read contiglog file to get taxonomic assignment for contigs
 
-open(infile2,$alllog) || die;
+open(infile2,$alllog) || die "Can't open $alllog for writing\n";
 while(<infile2>) {
 	chomp;
 	next if !$_;
@@ -58,7 +58,7 @@ foreach my $acg(keys %lon) {
 
 	#-- Read contigcov file to get abundances of each contig
 
-open(infile3,$contigcov) || die;
+open(infile3,$contigcov) || die "Can't open $contigcov for writing\n";
 while(<infile3>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -70,7 +70,7 @@ while(<infile3>) {
 	my $node=$f[0];
 	my $tlong=$lon{$node};
 	my $tax=$taxa{$node};
-	if(!$tax) { $tax="Unknown"; }
+	if(!$tax) { $tax="n"; }
 	my @tx=split(/\;/,$tax);
 	my $string="";
 	
@@ -92,7 +92,7 @@ close infile3;
 
 	#-- Read the equivalence between taxa and rank
 
-open(infile4,$taxlist) || die;
+open(infile4,$taxlist) || die "Can't open $taxlist for writing\n";
 my $nname;
 while(<infile4>) {
 	chomp;
@@ -109,7 +109,7 @@ close infile4;
  
 	#-- Write the output file 
  
-open(outfile1,">$mcountfile") || die "Cannot open $mcountfile\n";
+open(outfile1,">$mcountfile") || die "Can't open $mcountfile for writing\n";
 print outfile1 "Rank\tTaxon\tAccumulated contig size";
 foreach my $samp(sort keys %samples) { print outfile1 "\t$samp reads\t$samp bases"; }
 print outfile1 "\n";
@@ -117,8 +117,8 @@ foreach my $kk(sort { $accum{$b}<=>$accum{$a}; } keys %accum) {
 	my $k=$kk;
 	$k=~s/\;$//;
 	my @l=split(/\;/,$k);
-	my($rank,$tn)=split(/\:/,$l[$#l]);
-	if(!$rank) { $rank="Unknown"; }				  
+	my($rank,$tn)=split(/\_/,$l[$#l]);
+	if((!$rank) || ($rank eq "Unknown")) { $rank="n"; }				  
 	print outfile1 "$rank\t$k\t$accum{$kk}"; 
 	foreach my $samp(sort keys %samples) { print outfile1 "\t$accumreads{$kk}{$samp}\t$accumbases{$kk}{$samp}"; }
 	print outfile1 "\n";

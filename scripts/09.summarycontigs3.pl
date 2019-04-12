@@ -17,30 +17,29 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$fun3tax,$taxlist,$aafile,$contigsfna,$rnafile,$fna_blastx,$doublepass,$fun3tax_blastx);
+our($datapath,$resultpath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9);
 
 #-- Some local configuration variables
 
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
-my $mingenes=1;			#-- Minimum number of genes for the contig 
-my $minconsperc_asig=0.7;	#-- Ratio genes for the taxon/sum(genes all taxa). Therefore it only considers assigned genes
-my $minconsperc_total=0.5;	#-- Ratio genes for the taxon/number of genes. Therefore it considers all (assigned+unassigned) genes
+my @ranksabb=('k','p','c','o','f','g','s');
 
 #-- Input and output files
 
 my $input;
 if($doublepass) { $input="$fun3tax_blastx.wranks"; } else { $input="$fun3tax.wranks"; }
-my $outputlong="$resultpath/09.$project.fulllog";
-my $outputshort="$resultpath/09.$project.contiglog";
+my $outputlong=$allorfs;
+my $outputshort=$alllog;
 
 #-- Reading taxonomic infomation (extracted from NCBI's taxonomy)
 
 my(%taxcorr,%numorfs,%allcontigs,%orfs);
 
-open(infile1,$taxlist) || die;
+open(infile1,$taxlist) || die "Can't open $taxlist\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -53,7 +52,7 @@ close infile1;
 
 tie %allcontigs,"Tie::IxHash";
 
-open(infile2,$contigsfna) || die;
+open(infile2,$contigsfna) || die "Can't open $contigsfna\n";
 while(<infile2>) {
 	chomp;
 	if($_=~/^\>([^ ]+)/) { $allcontigs{$1}=1; }
@@ -61,7 +60,7 @@ while(<infile2>) {
 close infile2;
 
 
-open(infile2,$aafile) || die;
+open(infile2,$aafile) || die "Can't open $aafile for writing\n";
 while(<infile2>) {
 	chomp;
 	next if($_!~/^\>/);
@@ -77,7 +76,7 @@ while(<infile2>) {
 close infile2;
 
 if($doublepass) {
-	open(infile2,$fna_blastx) || die;
+	open(infile2,$fna_blastx) || die "Can't open $fna_blastx\n";
 	while(<infile2>) {
 		chomp;
 		next if($_!~/^\>/);
@@ -93,7 +92,7 @@ if($doublepass) {
 	close infile2;
 	}
 
-open(infile2,$rnafile) || die;
+open(infile2,$rnafile) || die "Can't open $rnafile\n";
 while(<infile2>) {
 	chomp;
 	next if($_!~/^\>/);
@@ -111,7 +110,7 @@ close infile2;
 
 my %taxlist;
 print "Reading $input\n";
-open(infile3,$input) || die "Cannot open $input\n";
+open(infile3,$input) || die "Can't open $input\n";
 while(<infile3>) {		#-- Looping on the ORFs
 	my $contigid;
 	chomp;
@@ -132,8 +131,8 @@ while(<infile3>) {		#-- Looping on the ORFs
 	#-- Stores rank and taxa for all the ORFs in the contig
 
 	foreach my $uc(@tf) { 
-		my ($rank,$tax)=split(/\:/,$uc);
-		if($rank ne "no rank") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
+		my ($rank,$tax)=split(/\_/,$uc);
+		if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
 		}
 	}
 close infile3;
@@ -141,10 +140,10 @@ close infile3;
 #-- Preparing output files
 
 print "Writing output to $outputshort\n";
-open(outfile1,">$outputlong") || die "Cannot open $outputlong\n";
-open(outfile2,">$outputshort") || die "Cannot open $outputshort\n";
-print outfile1 "#- Created by $0 with data from $input, mingenes=$mingenes, minconsperc_asig=$minconsperc_asig, minconsperc_total=$minconsperc_total, ",scalar localtime,"\n";
-print outfile2 "#- Created by $0 with data from $input, mingenes=$mingenes, minconsperc_asig=$minconsperc_asig, minconsperc_total=$minconsperc_total, ",scalar localtime,"\n";
+open(outfile1,">$outputlong") || die "Can't open $outputlong for writing\n";
+open(outfile2,">$outputshort") || die "Can't open $outputshort for writing\n";
+print outfile1 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, ",scalar localtime,"\n";
+print outfile2 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, ",scalar localtime,"\n";
 
 foreach my $contig(keys %allcontigs) {
 	my ($sep,$lasttax,$strg,$cattax,$fulltax)="";
@@ -156,7 +155,7 @@ foreach my $contig(keys %allcontigs) {
 	
 	#-- We loop on ranks
 	
-	foreach my $rank(@ranks) {
+	foreach my $rank(@ranksabb) {
 		my $totalas=0;
 		my %accumtax=();
 		
@@ -190,7 +189,7 @@ foreach my $contig(keys %allcontigs) {
 
 		#-- And if it does, we also calculate the disparity index of the contig for this rank
 
-		if(($percas>=$minconsperc_asig) && ($perctotal>=$minconsperc_total) && ($totalcount>=$mingenes) && ($times>$times2)) { 
+		if(($percas>=$minconsperc_asig9) && ($perctotal>=$minconsperc_total9) && ($totalcount>=$mingenes9) && ($times>$times2)) { 
 	
 			#-- Calculation of disparity for this rank
 			my($chimera,$nonchimera,$unknown)=0;
@@ -228,7 +227,7 @@ foreach my $contig(keys %allcontigs) {
 			#-- Then we add the new taxon to the taxa found for previous ranks
 
 			$cattax.="$mtax;";
-			$fulltax.="$rank:$mtax;";
+			$fulltax.="$rank\_$mtax;";
 			$strg=$rank;
 			$schim=$chimerism;
 			$consensus=1;

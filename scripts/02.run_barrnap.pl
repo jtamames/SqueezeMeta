@@ -45,8 +45,8 @@ foreach my $kingdom(keys %king) {
 
 	#-- Reformat the output, adding the type of RNA found and the ORF ID
 
-	open(outfile1,">$output.mod") || die;
-	open(infile1,$output) || die;
+	open(outfile1,">$output.mod") || die "Can't open $output.mod for writing\n";
+	open(infile1,$output) || die "Can't open $output\n";
 	my $mol;
 	while(<infile1>) {
  		chomp;
@@ -71,7 +71,7 @@ foreach my $kingdom(keys %king) {
 
 	open(outfile2,">>$rnafile");
 	open(outfile3,">contigs.prov");
-	open(infile2,$targetfile) || die;
+	open(infile2,$targetfile) || die "Can't open $targetfile\n";
 	my($seq,$current)="";
 	while(<infile2>) {
 		chomp;
@@ -120,7 +120,7 @@ my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 
 my %parents=('Bacteria','superkingdom:Bacteria','Archea','superkingdom:Archaea','Eukaryota','superkingdom:Eukaryota');
-open(infile3,"$databasepath/LCA_tax/parents.txt") || die;
+open(infile3,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
 while(<infile3>) {
 	chomp;
 	next if !$_;

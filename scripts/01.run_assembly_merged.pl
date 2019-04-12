@@ -18,14 +18,16 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
+our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
 
 #-- Read all the samples and store file names
+
+exit if $extassembly;
 
 my %ident;
 my %samplefiles;
 
-open(infile1,$mappingfile) || die "Cannot open samples file $mappingfile\n";
+open(infile1,$mappingfile) || die "Can't open samples file $mappingfile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -142,8 +144,8 @@ foreach my $thissample(sort keys %samplefiles) {
 	#-- Now we need to rename the contigs for minimus2, otherwise there will be contigs with same names in different assemblies
 
 	print "Renaming contigs\n"; 
-	open(outfile1,">$contigsfna") || die;
-	open(infile2,"$contigsfna.prov") || die;
+	open(outfile1,">$contigsfna") || die "Can't open $contigsfna for writing\n";
+	open(infile2,"$contigsfna.prov") || die "Can't open $contigsfna.prov\n";
 	while(<infile2>) {
 		chomp;
 		if($_=~/^\>([^ ]+)/) { 
@@ -167,9 +169,9 @@ foreach my $thissample(sort keys %samplefiles) {
 
 	print "Counting lengths\n";
 	my($seq,$thisname,$contigname);
-	open(outfile2,">$contigslen") || die;
+	open(outfile2,">$contigslen") || die "Can't open $contigslen for writing\n";
 	print outfile2 "#-- Created by $0, ",scalar localtime,"\n";
-	open(infile3,$contigsfna) || die;
+	open(infile3,$contigsfna) || die "Can't open $contigsfna\n";
 	while(<infile3>) {
 		chomp;
 		next if !$_;

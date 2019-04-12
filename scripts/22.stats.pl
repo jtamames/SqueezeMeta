@@ -18,18 +18,18 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
+our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
 
-my(%sampledata,%opt);
+my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
 
 my $resultfile="$resultpath/22.$project.stats";
-open(outfile1,">$resultfile") || die "Cannot open $resultfile\n";
+open(outfile1,">$resultfile") || die "Can't open $resultfile for writing\n";
 
 	#-- Read list of external databases
 	
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -40,10 +40,11 @@ if($opt_db) {
 
 	#-- Read bases and reads
 
-my @ranks=('superkingdom','phylum','class','order','family','genus','species');
+my @ranks=('k','p','c','o','f','g','s');
+my %equirank=('k','superkingdom','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 my($totalbases,$totalreads);
 my $mapfile="$resultpath/10.$project.mappingstat";
-open(infile1,$mapfile) || die "Cannot open $mapfile\n";
+open(infile1,$mapfile) || die "Can't open $mapfile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -77,14 +78,14 @@ close infile2;
 
 	#-- Statistics on contigs (disparity, assignment..)
 
-open(infile3,$contigtable) || die "Cannot open $contigtable\n";
+open(infile3,$contigtable) || die "Can't open $contigtable\n";
 while(<infile3>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my @k=split(/\t/,$_);
 	my @mtax=split(/\;/,$k[1]);
 	foreach my $p(@mtax) {
-		my($trank,$ttax)=split(/\:/,$p);
+		my($trank,$ttax)=split(/\_/,$p);
 		$contigs{$trank}++;
 		$contax{$trank}{$ttax}++;
 		}
@@ -100,19 +101,27 @@ close infile3;
 my $header;
 my @head;
 my %genes;
-open(infile4,$mergedfile) || die "Cannot open $mergedfile\n";
+open(infile4,$mergedfile) || die "Can't open $mergedfile\n";
 while(<infile4>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	if(!$header) { $header=$_; @head=split(/\t/,$header); next; }
 	$genes{totgenes}++;
 	my @k=split(/\t/,$_);
+	my $taxorf;
 	foreach(my $pos=0; $pos<=$#k; $pos++) {
 		my $f=$head[$pos];
+		if($f eq "TAX ORF") { 
+			$taxorf=$k[$pos]; 
+			if(!$taxorf) { $genes{notassigned}++; }
+			}
 		if(($f eq "KEGG ID") && $k[$pos]) { $genes{kegg}++; }
 		if(($f eq "COG ID") && $k[$pos]) { $genes{cog}++; }
 		if(($f eq "PFAM") && $k[$pos]) { $genes{pfam}++; }
 		if(($f eq "MOLECULE") && ($k[$pos] eq "RNA")) { $genes{rnas}++; }
+		if($f eq "METHOD") { $genes{method}{$k[$pos]}++; }
+		if(($f eq "HITS") && !$k[$pos]) { $genes{orphans}++; }
+		if(($f eq "HITS") && $k[$pos] && (!$taxorf)) { $genes{notassignedwhits}++; }
 		if($opt{$f} && $k[$pos]) { $genes{$f}++; }
 		if($f=~/RAW READ COUNT (.*)/) {
 			my $tsam=$1;
@@ -120,10 +129,17 @@ while(<infile4>) {
 				$genes{$tsam}{totgenes}++;
 				foreach(my $pos2=0; $pos2<=$#k; $pos2++) {
 					my $f2=$head[$pos2];
+					if($f eq "TAX ORF") { 
+						$taxorf=$k[$pos]; 
+						if(!$taxorf && $k[$pos2]) { $genes{$tsam}{notassigned}++; }
+						}
 					if(($f2 eq "KEGG ID") && $k[$pos2]) { $genes{$tsam}{kegg}++; }
 					if(($f2 eq "COG ID") && $k[$pos2]) { $genes{$tsam}{cog}++; }
 					if(($f2 eq "PFAM") && $k[$pos2]) { $genes{$tsam}{pfam}++; }
+					if($f2 eq "METHOD") { $genes{$tsam}{method}{$k[$pos2]}++; }
 					if(($f2 eq "MOLECULE") && ($k[$pos2] eq "RNA")) { $genes{$tsam}{rnas}++; }
+					if(($f2 eq "HITS") && !$k[$pos2]) { $genes{$tsam}{orphans}++; }
+					if(($f2 eq "HITS") && $k[$pos2] && (!$taxorf)) { $genes{$tsam}{notassignedwhits}++; }
 					if($opt{$f2} && $k[$pos2]) { $genes{$tsam}{$f2}++; }
 					}
 				}
@@ -132,13 +148,32 @@ while(<infile4>) {
 	}
 close infile4;
 
+open(infile4,$mcountfile)  || die "Can't open $mcountfile\n";
+my $cheader=<infile4>;
+chomp $cheader;
+my @chead=split(/\t/,$cheader);
+while(<infile4>) {
+	chomp;
+	next if(!$_ || ($_=~/^\#/));
+	my @k=split(/\t/,$_);
+	my @tp=split(/\_/,$k[1]);
+	my $thistax=$tp[$#tp];
+	for(my $tpos=2; $tpos<=$#k; $tpos++) {
+		my $tfield=$chead[$tpos];
+		next if($tfield!~/bases$/);
+		$tfield=~s/ bases//;
+		$abundance{$k[0]}{$tfield}{$thistax}+=$k[$tpos];
+		}
+	}
+close infile4;	
+
 	#-- Statistics on bins (disparity, assignment..)
 
 my %bins;
 if($mode ne "sequential") {
 	my $header;
 	if(-e $bintable) {
-		open(infile5,$bintable) || die "Cannot open $bintable\n";
+		open(infile5,$bintable) || die "Can't open $bintable\n";
 		while(<infile5>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -169,7 +204,7 @@ if($mode ne "sequential") {
 
 	#-- Date of the start of the run
 
-open(infile6,"$basedir/$project/syslog") || warn "Cannot open syslog file in $basedir/$project/syslog\n";
+open(infile6,"$basedir/$project/syslog") || warn "Can't open syslog file in $basedir/$project/syslog\n";
 $_=<infile6>;
 my $startdate=<infile6>;
 $startdate.=<infile6>;
@@ -193,7 +228,7 @@ print outfile1 "\n";
 
 	#-- Reads
 	
-print outfile1 "# Statistics on reads\n";
+print outfile1 "#------------------- Statistics on reads\n";
 print outfile1 "#\tAssembly";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$sample"; }
 print outfile1 "\n";
@@ -206,7 +241,7 @@ print outfile1 "\n";
 
 	#-- Contigs
 
-print outfile1 "\n# Statistics on contigs\n";
+print outfile1 "\n#------------------- Statistics on contigs\n";
 print outfile1 "#\tAssembly\n";
 print outfile1 "Number of contigs\t$contigs{num}\nTotal length\t$contigs{bases}\nLongest contig\t$contigs{max}\nShortest contig\t$contigs{min}\n";
 print outfile1 "N50\t$contigs{N50}\nN90\t$contigs{N90}\n";
@@ -214,7 +249,7 @@ foreach my $rk(@ranks) {
 	my @ctk=keys %{ $contax{$rk} };
 	my $nmtax=$#ctk+1;
 	my $pper=($contigs{$rk}/$contigs{num})*100;
-	printf outfile1 "Contigs at $rk rank\t$contigs{$rk} (%.1f%), in $nmtax $pluralrank{$rk}\n",$pper; 	
+	printf outfile1 "Contigs at $equirank{$rk} ($rk) rank\t$contigs{$rk} (%.1f%), in $nmtax $pluralrank{$equirank{$rk}}\n",$pper; 	
 	}
 my $pper1=($contigs{chimerism}{0}/$contigs{num})*100;
 my $pper2=($contigs{chimerism}{more0}/$contigs{num})*100;
@@ -222,9 +257,24 @@ my $pper3=($contigs{chimerism}{0.25}/$contigs{num})*100;
 printf outfile1 "Congruent\t$contigs{chimerism}{0} (%.1f%)\nDisparity >0\t$contigs{chimerism}{more0} (%.1f%)\nDisparity >= 0.25\t$contigs{chimerism}{0.25} (%.1f%)\n",$pper1,$pper2,$pper3;
 print outfile1 "\n";
 
+print outfile1 "Most abundant taxa";
+foreach my $sample(sort keys %sampledata) { print outfile1 "\t$sample"; }
+print outfile1 "\n";
+foreach my $rk(@ranks) {
+	print outfile1 "$equirank{$rk}";
+	foreach my $sample(sort keys %sampledata) { 
+		my @sk=sort { $abundance{$rk}{$sample}{$b}<=>$abundance{$rk}{$sample}{$a}; } keys %{ $abundance{$rk}{$sample} };
+		my $abperc=($abundance{$rk}{$sample}{$sk[0]}/$sampledata{$sample}{bases})*100;
+		# printf outfile1 "\t$sk[0] (%.1f%)",$abperc;
+		 print outfile1 "\t$sk[0]";
+		}
+	print outfile1 "\n";
+	}
+print outfile1 "\n";
+
 	#-- Genes
 
-print outfile1 "# Statistics on ORFs\n";
+print outfile1 "#------------------- Statistics on ORFs\n";
 print outfile1 "#\tAssembly";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$sample"; }
 print outfile1 "\n";
@@ -234,6 +284,19 @@ print outfile1 "\n";
 print outfile1 "Number of RNAs\t$genes{rnas}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{rnas}"; }
 print outfile1 "\n";
+foreach my $tmet(sort keys %{ $genes{method} }) {
+	print outfile1 "ORFs by $tmet\t$genes{method}{$tmet}";
+	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{method}{$tmet}"; }
+	print outfile1 "\n";
+	}
+print outfile1 "Orphans (no hits)\t$genes{orphans}";
+foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{orphans}"; }
+print outfile1 "\n";
+print outfile1 "Not assigned (with hits)\t$genes{notassignedwhits}";
+foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{notassignedwhits}"; }
+print outfile1 "\n";
+
+
 if($genes{kegg}) {
 	print outfile1 "KEGG annotations\t$genes{kegg}";
 	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{kegg}"; }
@@ -260,7 +323,7 @@ foreach my $optdb(sort keys %opt) {
 	#-- Bins
 
 if(($mode ne "sequential") && (!$nobins)) {
-	print outfile1 "\n# Statistics on bins\n#";
+	print outfile1 "\n#------------------- Statistics on bins\n#";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$method"; }
 	print outfile1 "\n";
 	print outfile1 "Number of bins";

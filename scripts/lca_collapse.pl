@@ -16,19 +16,15 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Please check that $project is the correct path to the project"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
-our($datapath,$resultpath,$databasepath,$taxdiamond,$lca_db,$fun3tax,$evalue);
+our($datapath,$resultpath,$databasepath,$taxdiamond,$lca_db,$fun3tax,$evalue,$scoreratio6,$diffiden6,$flex6,$minhits6,$noidfilter6);
 
 my $infile=$ARGV[1];
 
 my @ranks=('species','genus','family','order','class','phylum','superkingdom');
 my %idenrank=('species',85,'genus',60,'family',55,'order',50,'class',46,'phylum',42,'superkingdom',40);
-my $scoreratio=0.8;   #-- Ratio first score/currsent score for the hit to be considered
-my $diffiden=10;       #-- Maximim identity difference with the first
-my $flex=0.2;           #-- Allows this PERCENTAGE (if less than one) or NUMBER (if grater than one) of hits from different taxa than LCA
-my $minhits=1;        #-- Minimum number of hits for the taxa (if there is only one valid hit, this value sets to one automatically
 my $noidentical=0;  #-- Drops the first 100% identical hit (for mock)
-my $miniden=50;
 my $verbose=0;
 my $bhitforced=0;	#-- Forces that assignment cannot differ from best hit
 
@@ -38,7 +34,7 @@ my $bhitforced=0;	#-- Forces that assignment cannot differ from best hit
 my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1}) or die $DBI::errstr;
 
 my(%parents);
-open(infile1,"$databasepath/LCA_tax/parents.txt") || die;
+open(infile1,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -54,18 +50,18 @@ while(<infile1>) {
 close infile1;
 
 my $outname="08.$project.fun3.blastx.tax";
-open(out,">$tempdir/$outname") || die "Cannot open output in $tempdir/$outname\n";
+#open(out,">$tempdir/$outname") || die "Cannot open output in $tempdir/$outname\n";
 open(outc,">$resultpath/$outname.wranks") || die;
-open(outnof,">$tempdir/$outname\_nofilter") || die;
-open(outcnof,">$resultpath/$outname\_nofilter.wranks") || die;
+#open(outnof,">$tempdir/$outname\_nofilter") || die;
+open(outcnof,">$resultpath/$outname\_noidfilter.wranks") || die "Can't open $resultpath/$outname\_noidfilter.wranks for writing\n";
 
 my(%accum,%accumnofilter,%provhits,%providen,%giden);
 my($validhits,$validhitsnofilter,$tothits,$skipidentical,$refscore,$refiden,$string,$posinit,$posend);
 tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 
-if($infile=~/gz/) { open(infile2,"zcat $infile|") || die; }
-else { open(infile2,$infile) || die "Cannot open m8 file $infile\n"; }
+if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die "Can't open m8 file $infile\n";}
+else { open(infile2,$infile) || die "Can't open m8 file $infile\n"; }
 while(<infile2>) { 
 	chomp;
 	next if(!$_ || ($_=~/^\#/));	
@@ -91,9 +87,9 @@ while(<infile2>) {
 	$tothits++;			   
 	}
 close infile2;
-close out;
+#close out;
 close outc;
-close outnof;
+#close outnof;
 close outcnof;
 print "Tax assignment done! Result stored in file $outname.wranks\n";
 
@@ -116,11 +112,11 @@ sub query {
 			$giden{$thishit}=$thisiden;
 			# print "  ----- $thishit $thisscore $refscore\n";
 			if($refscore) { $ratioscore=$thisscore/$refscore; }
-			next if($ratioscore<=$scoreratio);
+			next if($ratioscore<=$scoreratio6);
                         $nuquery++;
                         last if($nuquery>=100);
 			if($refiden) { $idendiff=$refiden-$thisiden; }
-			next if($idendiff>$diffiden);    
+			next if($idendiff>$diffiden6);    
 			if($refcc) { $query.=" or "; }
  			else { $refcc=1; }
 			$query.="id=\"$thishit\"";
@@ -147,8 +143,8 @@ sub query {
 			if(($list[2])) { $validhitsnofilter++; $validhits++; }			#-- Count the number of valid hits
 			}
 		}
-	if($validhits==1) { $minreqhits=1; } else { $minreqhits=$minhits; }
-	if($flex<1) { $required=$validhits-($flex*$validhits); } else { $required=$validhits-$flex; }
+	if($validhits==1) { $minreqhits=1; } else { $minreqhits=$minhits6; }
+	if($flex6<1) { $required=$validhits-($flex6*$validhits); } else { $required=$validhits-$flex6; }
 	print "$lastorf Hits: $tothits; Valid: $validhits; Min: $minreqhits; Required: $required\n" if $verbose;
 	$lasttax="";			
 	foreach my $k(@ranks) {
@@ -165,8 +161,8 @@ sub query {
 		last if($lasttax);		
 		}
 	
-	if($validhitsnofilter==1) { $minreqhits=1; } else { $minreqhits=$minhits; }
-	if($flex<1) { $required=$validhitsnofilter-($flex*$validhitsnofilter); } else { $required=$validhitsnofilter-$flex; }
+	if($validhitsnofilter==1) { $minreqhits=1; } else { $minreqhits=$minhits6; }
+	if($flex6<1) { $required=$validhitsnofilter-($flex6*$validhitsnofilter); } else { $required=$validhitsnofilter-$flex6; }
 	my $lasttaxnofilter="";			
 	foreach my $k(@ranks) {
 		foreach my $t(keys %{ $accumnofilter{$k} }) {
@@ -177,9 +173,16 @@ sub query {
 		}
 
  
-	print out "$lastorf\t$parents{$lasttax}{noranks}\n";
-	print outc "$lastorf\t$parents{$lasttax}{wranks}\n";		
-	print outnof "$lastorf\t$parents{$lasttaxnofilter}{noranks}\n";
-	print outcnof "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";		
+	my $abb=$parents{$lasttax}{wranks};
+	
+	#-- Changing nomenclature to abbreviations
+	
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
+	#print outc "$lastorf\t$parents{$lasttax}{wranks}\n";		
+	print outc "$lastorf\t$abb\n";		
+	my $abb=$parents{$lasttaxnofilter}{wranks};
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
+	# print outcnof "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";		
+	print outcnof "$lastorf\t$abb\n";		
 	print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;	
        }

@@ -14,26 +14,24 @@ my $project=$ARGV[0];
 $project=~s/\/$//;
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$alllog,$bintax,%bindirs,%dasdir);
+our($datapath,$interdir,$alllog,$bintax,$mincontigs17,$minconsperc_asig17,$minconsperc_total17,%bindirs,%dasdir);
 
 	#-- Some configuration values for the algorithm
 	
-my $mincontigs=1;  		#-- Minimum number of contigs for the bin 
-my $minconsperc_asig=0.6;  	#-- Ratio contigs for the taxon/sum(genes all taxa). Therefore it only considers assigned contigs
-my $minconsperc_total=0.3;  	#-- Ratio contigs for the taxon/number of contigs. Therefore it considers all (assigned+unassigned) contigs
-
 my $verbose=0;
 
-my @ranks=('superkingdom','phylum','class','order','family','genus','species');
+# my @ranks=('superkingdom','phylum','class','order','family','genus','species');
+my @ranks=('k','p','c','o','f','g','s');
 my(%tax,%taxlist);
 
 	#-- Read taxonomic assignments for contigs
 
 my $input=$alllog;
-open(infile1,$input) || die "Cannot open $input\n";
+open(infile1,$input) || die "Can't open $input\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -42,14 +40,14 @@ while(<infile1>) {
 	$atax=~s/\"//g;
 	my @tf=split(/\;/,$atax);
 	foreach my $uc(@tf) { 
-		my($rank,$tax)=split(/\:/,$uc);
-		if($rank ne "no rank") { $taxlist{$contigid}{$rank}=$tax; }
+		my($rank,$tax)=split(/\_/,$uc);
+		if($rank ne "n") { $taxlist{$contigid}{$rank}=$tax; }
 	}
 }
 close infile1;
 
 
-open(outfile1,">$bintax") || die;
+open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 	my $bindir=$dasdir{$binmethod};
 	print "Looking for $binmethod bins in $bindir\n";
@@ -69,8 +67,8 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		
 		#-- We will create an output file for bin, with the contig names and consensus
 		
-		open(outfile2,">$outf") || die;			
-		open(infile2,$tf) || die "Cannot open $tf\n";
+		open(outfile2,">$outf") || die "Can't open $outf for writing\n";			
+		open(infile2,$tf) || die "Can't open $tf\n";
 		my $size=0;
 		my %store=();
 		
@@ -149,7 +147,7 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		
 			#-- If it does, store the consensus tax and rank
 		
-			if(($percas>=$minconsperc_asig) && ($perctotal>=$minconsperc_total) && ($totalcount>=$mincontigs) && ($times>$times2)) { 
+			if(($percas>=$minconsperc_asig17) && ($perctotal>=$minconsperc_total17) && ($totalcount>=$mincontigs17) && ($times>$times2)) { 
 				#-- Calculation of disparity for this rank
 				my($chimera,$nonchimera,$unknown)=0;
 				foreach my $contig(sort keys %store) { 
@@ -175,7 +173,7 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 				if($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
 				print "***$mtax $times $percas $perctotal $totalas $chimerism\n" if $verbose;
 				$cattax.="$mtax;";
-				$fulltax.="$rank:$mtax;";
+				$fulltax.="$rank\_$mtax;";
 				$consf=1;
 				$strg=$rank;
 			#	 if($consf && ($k eq "maxbin.002.fasta")) { print "**$fulltax $percas $perctotal -- $times $totalas $totalcount\n"; }

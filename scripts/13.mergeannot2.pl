@@ -16,14 +16,13 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass);
+our($datapath,$resultpath,$interdir,$tempdir,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$taxdiamond,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
 
-my $seqsinfile=0;     # Put sequences in the output table (0=no, 1=yes)
-
-my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist);
+my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist,%blasthits);
 tie %orfdata,"Tie::IxHash";
 tie %mapping,"Tie::IxHash";
 
@@ -32,7 +31,7 @@ tie %mapping,"Tie::IxHash";
 my $gff;
 my %ingff;
 if($doublepass) { $gff=$gff_file_blastx; } else { $gff=$gff_file; }
-open(infile1,$gff) || die "Missing gff file $gff\n";
+open(infile1,$gff) || die "Can't open gff file $gff\n";
 print "Reading GFF in $gff\n";
 while(<infile1>) {
 	chomp;
@@ -41,7 +40,35 @@ while(<infile1>) {
 	}
 close infile1;
 
+	#-- Reading hits from Diamond
+	
+print "Reading Diamond hits\n";
+my(%provi,$lasto);
+open(infile1,$taxdiamond) || die "Can't open diamond result in $taxdiamond\n";
+while(<infile1>) {
+	chomp;
+	next if !$_;
+	my @k=split(/\t/,$_);
+	if($k[0] ne $lasto) { %provi=(); $lasto=$k[0]; }
+	if(!$provi{$k[1]}) { $blasthits{$k[0]}++; $provi{$k[1]}=1; }
+	}
+close infile1;
 
+%provi=();
+$lasto="";
+my $bfile="$tempdir/08.$project.nr.blastx.collapsed.merged.m8";		#-- This one may or may not exist
+open(infile1,$bfile);
+while(<infile1>) {
+	chomp;
+	next if !$_;
+	my @k=split(/\t/,$_);
+	my @g=split(/\;/,$k[1]);
+	foreach my $thit(@g) {
+		my @m=split(/\|/,$thit);
+		if(!$provi{$m[0]}) { $blasthits{$k[0]}++; $provi{$m[0]}=1; }
+		}
+	}
+close infile1;
 
 	#-- Reading data for COGs (names, pathways)
 
@@ -74,14 +101,14 @@ close infile2;
 	#-- Reading data for OPT_DB (names)
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$listf)=split(/\t/,$_);
 		if(-e $listf) {
 			print "Reading $dbname list: $listf\n";
-			open(infile3,$listf) || warn "Cannot open names file for $opt_db\n";
+			open(infile3,$listf) || warn "Can't open names file for $opt_db\n";
 			while(<infile3>) {
 				chomp;
 				next if(!$_ || ($_=~/\#/));
@@ -116,11 +143,36 @@ while(<infile3>) {
 	else { $aaseq.=$_; }		#-- Otherwise store the sequence of the current	      
 	}
 close infile3;
+
 if($aaseq) { 
 	$orfdata{$thisorf}{aaseq}=$aaseq; 
 	$orfdata{$thisorf}{length}=(length $aaseq)+1; 
 	$orfdata{$thisorf}{molecule}="CDS";
 	$orfdata{$thisorf}{method}="Prodigal";
+	}
+
+
+	#-- Reading nt sequences 
+
+my @ntfiles=("$ntfile");
+if($doublepass) { push(@ntfiles,$fna_blastx); }
+
+print "Reading nt sequences\n";
+foreach my $thisntfile(@ntfiles) {
+	open(infile3,$thisntfile) || die "I need the nucleotide sequences in file $thisntfile\n";
+	my($thisorf,$ntseq);
+	while(<infile3>) {
+		chomp;
+		if($_=~/^\>([^ ]+)/) {		#-- If we are reading a new ORF, store the data for the last one
+			if($ntseq) { 
+				$orfdata{$thisorf}{lengthnt}=(length $ntseq)+1; 
+				}
+			$thisorf=$1;
+			$ntseq="";
+			}
+		else { $ntseq.=$_; }		#-- Otherwise store the sequence of the current	      
+		}
+	close infile3;
 	}
 
 
@@ -136,7 +188,7 @@ while(<infile4>) {
 		my @mt=split(/\t/,$_);
 		if($rnaseq) { 
 			$orfdata{$thisrna}{ntseq}=$rnaseq;
-			$orfdata{$thisrna}{length}=(length $rnaseq)+1;
+			$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
 			$orfdata{$thisrna}{molecule}="RNA";
 			$orfdata{$thisrna}{method}="barrnap";
 			}
@@ -153,13 +205,15 @@ close infile4;
 if($rnaseq) { 
 	$orfdata{$thisrna}{ntseq}=$rnaseq; 
 	$orfdata{$thisrna}{length}=(length $rnaseq)+1;
+	$orfdata{$thisrna}{molecule}="RNA";
+	$orfdata{$thisrna}{method}="barrnap";
 	}
 
 	#-- Reading taxonomic assignments
 
 my $taxfile;
 if($doublepass) { $taxfile="$fun3tax_blastx.wranks"; } else { $taxfile="$fun3tax.wranks"; }
-open(infile5,$taxfile) || warn "Cannot open allorfs file $fun3tax.wranks\n";
+open(infile5,$taxfile) || warn "Can't open allorfs file $fun3tax.wranks\n";
 print "Reading ORF information\n";
 while(<infile5>) { 
 	chomp;
@@ -175,7 +229,7 @@ close infile5;
 	#-- Reading nt sequences for calculating GC content
 
 my($ntorf,$ntseq,$gc);
-open(infile6,$ntfile) || warn "Cannot open nt file $ntfile\n";
+open(infile6,$ntfile) || warn "Can't open nt file $ntfile\n";
 print "Calculating GC content for genes\n";
 while(<infile6>) { 
 	chomp;
@@ -198,7 +252,7 @@ $datafiles{'gc'}=1;
 
 if($doublepass) {
 	my($ntorf,$ntseq,$gc);
-	open(infile6,$fna_blastx) || warn "Cannot open nt file $ntfile\n";
+	open(infile6,$fna_blastx) || warn "Can't open nt file $ntfile\n";
 	print "Calculating GC content for blastx genes\n";
 	while(<infile6>) { 
 		chomp;
@@ -228,7 +282,7 @@ if($doublepass) {
 	#-- Reading nt sequences for calculating GC content for RNAs
 
 ($ntorf,$ntseq,$gc)="";
-open(infile7,$rnafile) || warn "Cannot open RNA file $rnafile\n";
+open(infile7,$rnafile) || warn "Can't open RNA file $rnafile\n";
 print "Calculating GC content for RNAs\n";
 while(<infile7>) { 
 	chomp;
@@ -250,7 +304,7 @@ $orfdata{$ntorf}{gc}=$gc;
 
 	#-- Reading taxonomic assignment and disparity for the contigs
 
-open(infile8,$alllog) || warn "Cannot open contiglog file $alllog\n";
+open(infile8,$alllog) || warn "Can't open contiglog file $alllog\n";
 print "Reading contig information\n";
 while(<infile8>) { 
 	chomp;
@@ -266,7 +320,7 @@ close infile8;
 
 if(!$nokegg) {
 	if($doublepass) { $fun3kegg=$fun3kegg_blastx; }
-	open(infile9,$fun3kegg) || warn "Cannot open fun3 KEGG annotation file $fun3kegg\n";
+	open(infile9,$fun3kegg) || warn "Can't open fun3 KEGG annotation file $fun3kegg\n";
 	print "Reading KEGG annotations\n";
 	while(<infile9>) {
 		chomp;
@@ -286,7 +340,7 @@ if(!$nokegg) {
 
 if(!$nocog) {
 	if($doublepass) { $fun3cog=$fun3cog_blastx; }
-	open(infile10,$fun3cog) || warn "Cannot open fun3 COG annotation file $fun3cog\n";;
+	open(infile10,$fun3cog) || warn "Can't open fun3 COG annotation file $fun3cog\n";;
 	print "Reading COGs annotations\n";
 	while(<infile10>) { 
 		chomp;
@@ -302,7 +356,7 @@ if(!$nocog) {
 	#-- Reading OPT_DB annotations for the ORFs
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -310,7 +364,7 @@ if($opt_db) {
 		$optlist{$dbname}=1;
 		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
 		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
-		open(infile10,$fun3opt) || warn "Cannot open fun3 $dbname annotation file $fun3opt\n";;
+		open(infile10,$fun3opt) || warn "Can't open fun3 $dbname annotation file $fun3opt\n";;
 		print "Reading $dbname annotations\n";
 		while(<infile10>) { 
 			chomp;
@@ -328,7 +382,7 @@ if($opt_db) {
 	#-- Reading Pfam annotations for the ORFs
 
 if(!$nopfam) {
-	open(infile11,$fun3pfam) || warn "Cannot open fun3 Pfam annotation file $fun3pfam\n";;
+	open(infile11,$fun3pfam) || warn "Can't open fun3 Pfam annotation file $fun3pfam\n";;
 	print "Reading Pfam annotations\n";
 	while(<infile11>) { 
 		chomp;
@@ -340,15 +394,16 @@ if(!$nopfam) {
 	close infile11; 
 }           			       
   
-	#-- Reading RPKM and coverage values for the ORFs in the different samples
+	#-- Reading RPKM, TPM coverage values for the ORFs in the different samples
 
-open(infile12,$mapcountfile) || warn "Cannot open mapping file $mapcountfile\n";
+open(infile12,$mapcountfile) || warn "Can't open mapping file $mapcountfile\n";
 print "Reading RPKMs and Coverages\n";
 while(<infile12>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/) || ($_=~/^Gen/));
-	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$idfile)=split(/\t/,$_);
+	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$tpm,$idfile)=split(/\t/,$_);
 	$mapping{$idfile}{$orf}{rpkm}=$rpkm;		#-- RPKM values
+	$mapping{$idfile}{$orf}{tpm}=$tpm;		#-- TPM values
 	$mapping{$idfile}{$orf}{raw}=$rawreads; 		#-- Raw counts
 	$mapping{$idfile}{$orf}{coverage}=$coverage;	#-- Coverage values
 	$mapping{$idfile}{$orf}{rawbases}=$rawbases;	#-- Coverage values
@@ -359,20 +414,21 @@ close infile12;
 	#-- CREATING GENE TABLE
 
 print "Creating table\n";
-open(outfile1,">$mergedfile") || die "I need an output file\n";
+open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
 
 	#-- Headers
 
 print outfile1 "#--Created by $0, ",scalar localtime,"\n";
-print outfile1 "ORF\tCONTIG ID\tMOLECULE\tMETHOD\tLENGTH\tGC perc\tGENNAME\tTAX ORF\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
+print outfile1 "ORF\tCONTIG ID\tMOLECULE\tMETHOD\tLENGTH NT\tLENGTH AA\tGC perc\tGENNAME\tTAX ORF\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
 if($opt_db) { 
 	foreach my $topt(sort keys %optlist) { print outfile1 "\t$topt\t$topt NAME"; }
 	}
-foreach my $cnt(sort keys %mapping) { print outfile1 "\tRPKM $cnt"; }
+foreach my $cnt(sort keys %mapping) { print outfile1 "\tTPM $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW READ COUNT $cnt"; }
 foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW BASE COUNT $cnt"; }
-if($seqsinfile) { print outfile1 "\tAASEQ"; }
+print outfile1 "\tHITS"; 
+if($seqsinfile13) { print outfile1 "\tAASEQ"; }
 print outfile1 "\n";
 
 	#-- ORF data
@@ -399,12 +455,11 @@ foreach my $orfm(@sortedorfs) {
 	my($cogprint,$keggprint,$optprint);
 	my $ctg=$orf;
 	$ctg=~s/\_\d+\-\d+$//;
-	# next if((!$mapping{'s22'}{$orf}{'fpkm'}) && (!$mapping{'st8'}{$orf}{'fpkm'})); 
 	my $funcogm=$orfdata{$orf}{cog};
 	my $funkeggm=$orfdata{$orf}{kegg};
 	if($orfdata{$orf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
 	if($orfdata{$orf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
-	printf outfile1 "$orf\t$ctg\t$orfdata{$orf}{molecule}\t$orfdata{$orf}{method}\t$orfdata{$orf}{length}\t%.2f\t$orfdata{$orf}{name}\t$orfdata{$orf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$orf}{pfam}",$orfdata{$orf}{gc};
+	printf outfile1 "$orf\t$ctg\t$orfdata{$orf}{molecule}\t$orfdata{$orf}{method}\t$orfdata{$orf}{lengthnt}\t$orfdata{$orf}{length}\t%.2f\t$orfdata{$orf}{name}\t$orfdata{$orf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$orf}{pfam}",$orfdata{$orf}{gc};
 	if($opt_db) { 
 		foreach my $topt(sort keys %optlist) { 
 			my $funoptdb=$orfdata{$orf}{$topt};
@@ -415,14 +470,18 @@ foreach my $orfm(@sortedorfs) {
 	
 	#-- Abundance values
 
-	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rpkm'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'tpm'} || "0"; print outfile1 "\t$sdat"; }
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'coverage'} || "0"; print outfile1 "\t$sdat"; }
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'raw'} || "0"; print outfile1 "\t$sdat"; }
 	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rawbases'} || "0"; print outfile1 "\t$sdat"; }
+	
+	#-- Diamond hits
+	
+	if($blasthits{$orf}) { print outfile1 "\t$blasthits{$orf}"; } else { print outfile1 "\t0"; } 
 
 	#-- aa sequences (if requested)
 
-	if($seqsinfile) { print outfile1 "\t$orfdata{$orf}{aaseq}"; }
+	if($seqsinfile13) { print outfile1 "\t$orfdata{$orf}{aaseq}"; }
 	print outfile1 "\n";
 }
 close outfile1;

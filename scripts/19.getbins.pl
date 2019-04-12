@@ -17,13 +17,13 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$interdir,$resultpath,$bintable);
-my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna);
+our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$interdir,$bintable);
+my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna,%rinsample);
 
 	#-- Read 16S in contigs
 
 my $rnafile="$resultpath/02.$project.16S.txt";
-open(infile1,$rnafile) || warn "Cannot open $rnafile\n";
+open(infile1,$rnafile) || warn "Can't open $rnafile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -37,12 +37,12 @@ close infile1;
 	#-- Create the bin coverage table and the contigsinbins file
 
 if(-e $bincov) { system("rm $bincov"); }
-open(outfile1,">>$bincov") || die;
+open(outfile1,">>$bincov") || die "Can't open $bincov for writing\n";
 print outfile1 "#--Created by $0,",scalar localtime,"\n";
 print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tSample\n";
 
 if(-e $contigsinbins) { system("rm $contigsinbins"); }
-open(outfile2,">>$contigsinbins") || die;
+open(outfile2,">>$contigsinbins") || die "Can't open $contigsinbins for writing\n";
 print outfile2 "#--Created by $0,",scalar localtime,"\n";
 print outfile2 "# Contig\tMethod\tBin ID\n";
 
@@ -57,7 +57,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	
 		#-- Read checkM results for each bin
 	
-	open(infile2,$checkmfile) || warn "Cannot find checkM results in $checkmfile\n";
+	open(infile2,$checkmfile) || warn "Can't open checkM results in $checkmfile\n";
 	while(<infile2>) {
 		chomp;
 		next if !$_;
@@ -77,7 +77,7 @@ foreach my $binmethod(sort keys %dasdir) {
 
 	#-- Read data for each bin (tax, size, disparity)
 
-	opendir(indir1,$bindir) || die;
+	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 	my @files=grep(/tax$/,readdir indir1);
 	closedir indir1;
 
@@ -85,7 +85,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	my $bin=$tfil;
 	$bin=~s/\.fa.tax|\.fasta.tax//g;
 	print "Reading data for bin $bin           \r";
-	open(infile3,"$bindir/$tfil") || die;
+	open(infile3,"$bindir/$tfil") || die "Can't open $bindir/$tfil\n";
 	while(<infile3>) {
  		chomp;
 		if($_=~/^Consensus/) {
@@ -130,7 +130,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	#-- Count coverages for the bins
 
 	print "\nCalculating coverages\n";
-	open(infile5,$contigcov) || die "Cannot open contig coverage file $contigcov\n";
+	open(infile5,$contigcov) || die "Can't open contig coverage file $contigcov\n";
 	while(<infile5>) { 
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -142,17 +142,30 @@ foreach my $binmethod(sort keys %dasdir) {
 		$allsamples{$sample}=1;
 		$mapped{$binmethod}{$bincorr}{$sample}{bases}+=$mappedbases;
 		$mapped{$binmethod}{$bincorr}{$sample}{reads}+=$k[4];
+		$rinsample{$binmethod}{$sample}{$bincorr}+=$k[4];
 		$totalreadcount{$binmethod}{$sample}+=$k[4];
 		}
 	close infile5;
 
+	my(%rpk,%accumrpk);
+	foreach my $samps(sort keys %{ $rinsample{$binmethod} }) {
+		foreach my $binst(sort keys %{ $rinsample{$binmethod}{$samps} }) {
+		my $longt=$bins{$binmethod}{$binst}{size};
+		$rpk{$binmethod}{$binst}{$samps}=$mapped{$binmethod}{$binst}{$samps}{reads}/$longt;
+		$accumrpk{$samps}+=$rpk{$binmethod}{$binst}{$samps};
+		}
+	$accumrpk{$samps}/=1000000;
+	}
+	
 	foreach my $binst(sort keys %{ $mapped{$binmethod} }) {
 		foreach my $samps(sort keys %{ $mapped{$binmethod}{$binst} }) {
 			my $coverage=$mapped{$binmethod}{$binst}{$samps}{bases}/$bins{$binmethod}{$binst}{size};
 			my $rpkm=($mapped{$binmethod}{$binst}{$samps}{reads}*1000000000)/($bins{$binmethod}{$binst}{size}*$totalreadcount{$binmethod}{$samps});
+			my $tpm=$rpk{$binmethod}{$binst}{$samps}/$accumrpk{$samps};
+			$bins{$binmethod}{$binst}{tpm}{$samps}=$tpm;
 			$bins{$binmethod}{$binst}{coverage}{$samps}=$coverage;
 			$bins{$binmethod}{$binst}{rpkm}{$samps}=$rpkm;
-			printf outfile1 "$binst\t$binmethod\t%.3f\t%.3f\t$samps\n",$coverage,$rpkm;
+			printf outfile1 "$binst\t$binmethod\t%.2f\t%.2f\t%.2f\t$samps\n",$coverage,$rpkm,$tpm;
 			}
 		}
 
@@ -162,13 +175,13 @@ foreach my $binmethod(sort keys %dasdir) {
 					   
 	my $outputfile=$bintable;
 	print "Creating table in $outputfile\n";
-	open(outfile3,">$outputfile") || die;
+	open(outfile3,">$outputfile") || die "Can't open $outputfile for writing\n";
 	
 	#-- Headers
 	
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
 	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tSize\tGC perc\tNum contigs\tDisparity\tCompleteness\tContamination\tStrain Het";
-	foreach my $countfile(sort keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile"; }
+	foreach my $countfile(sort keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile"; }
 	print outfile3 "\n";
 	
 	#-- Data
@@ -181,7 +194,7 @@ foreach my $binmethod(sort keys %dasdir) {
 				}
 			chop $taxrna;
 			printf outfile3 "$thisbin\t$method\t$bins{$method}{$thisbin}{consensus}\t$taxrna\t$bins{$method}{$thisbin}{size}\t%.2f\t$bins{$method}{$thisbin}{contignum}\t$bins{$method}{$thisbin}{chimerism}\t$bins{$method}{$thisbin}{complete}\t$bins{$method}{$thisbin}{contamination}\t$bins{$method}{$thisbin}{strain}",$bins{$method}{$thisbin}{gc};			   
-			foreach my $countfile(sort keys %allsamples) { printf outfile3 "\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{rpkm}{$countfile}; }
+			foreach my $countfile(sort keys %allsamples) { printf outfile3 "\t%.3f\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{rpkm}{$countfile},$bins{$method}{$thisbin}{tpm}{$countfile}; }
 			print outfile3 "\n";
 		}
 	}

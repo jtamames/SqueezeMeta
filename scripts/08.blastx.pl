@@ -23,13 +23,14 @@ if(!(-e $project)) { die "Project $project does not exist. Please get sure that 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
 
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evalue,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$miniden);
+our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir);
 
 
-my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun);
+my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
 my(%genpos,%skip,%allorfs,%annotations,%incontig,%olist);
 
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
@@ -42,7 +43,7 @@ $collapsedmerged=~s/\.m8/\.merged\.m8/;
 
 
 
-
+moving();
 masking();
 run_blastx();
 collapse();
@@ -54,24 +55,26 @@ remaketaxtables();
 remakefuntables();
 remakegff();
 
-	#-- Moving old files to tempdir
+sub moving {		#-- Places files in rigth location for restart purposes		
+	my $restarting;
+	if(-e "$interdir/03.$project.gff") { $restarting=1; }
+	if($restarting) {	
+		system("cp $interdir/03.$project.gff $resultpath");
+		system("cp $interdir/*wranks $resultpath");
+		system("cp $interdir/*fun3* $resultpath");
+		}
+	}
 	
-#system("mv $resultpath/06.$project.fun3.tax.wranks $tempdir/06.$project.fun3.tax.genepred.wranks;");
-#if(!$nocog) { system("mv $resultpath/07.$project.fun3.cog $tempdir/07.$project.fun3.cog.genepred;"); }
-#if(!$nokegg) { system("mv $resultpath/07.$project.fun3.kegg $tempdir/07.$project.fun3.kegg.genepred;"); }
-#system("mv $resultpath/03.$project.gff $tempdir/03.$project.genepred.gff;");
 
-
-
-sub masking() {
+sub masking {
 	print "Getting segments for masking\n";
-	open(infile1,"$fun3tax.wranks") || die "Cannot open wranks file in $fun3tax.wranks\n";
+	open(infile1,"$fun3tax.wranks") || die "Can't open wranks file in $fun3tax.wranks\n";
 	while(<infile1>) {
 		my @t=split(/\t/,$_);
 		$annotations{$t[0]}{tax}=$t[1];
 		}
 	close infile1;
-	open(infile1,$rnafile) || die "Cannot open rna file in $rnafile\n";
+	open(infile1,$rnafile) || die "Can't open rna file in $rnafile\n";
 	while(<infile1>) {
 		my @t=split(/\t/,$_);
 		$t[0]=~s/^\>//;
@@ -80,7 +83,7 @@ sub masking() {
 	close infile1;
 	
 	if(!$nocog) { 
-		open(infile2,$fun3cog) || die "Cannot open cog file in $fun3cog\n";
+		open(infile2,$fun3cog) || die "Can't open cog file in $fun3cog\n";
 		while(<infile2>) {
 			my @t=split(/\t/,$_);
 			$annotations{$t[0]}{cog}=$t[1];
@@ -88,7 +91,7 @@ sub masking() {
 		close infile2;
 		}
 	if(!$nokegg) { 
-		open(infile2,$fun3kegg) || die "Cannot open kegg file in $fun3kegg\n";
+		open(infile2,$fun3kegg) || die "Can't open kegg file in $fun3kegg\n";
 		while(<infile2>) {
 			my @t=split(/\t/,$_);
 			$annotations{$t[0]}{kegg}=$t[1];
@@ -96,7 +99,7 @@ sub masking() {
 		close infile2;
 		}
 	if(!$nopfam) { 
-		open(infile2,$fun3pfam) || die "Cannot open pfam file in $fun3pfam\n";
+		open(infile2,$fun3pfam) || die "Can't open pfam file in $fun3pfam\n";
 		while(<infile2>) {
 			my @t=split(/\t/,$_);
 			$annotations{$t[0]}{pfam}=$t[1];
@@ -113,7 +116,7 @@ sub masking() {
 		$genpos{$contname}{$posn}=$f[0];
 	
 		#-- If there is taxonomic and/or functional annotation, we consider the gene as correctly predicted
-		if(($annotations{$tgene}{tax}=~/superkingdom/) || ($annotations{$tgene}{cog}) ||  ($annotations{$tgene}{kegg}) || ($annotations{$tgene}{pfam})) {
+		if(($annotations{$tgene}{tax}=~/k\_/) || ($annotations{$tgene}{cog}) ||  ($annotations{$tgene}{kegg}) || ($annotations{$tgene}{pfam})) {
 			$skip{$f[0]}=1;
 			# print "Skip $f[0]\n";
 			}
@@ -125,7 +128,7 @@ sub masking() {
 	$maskedfile="$tempdir/08.$project.masked.fna";
 	# if (-e $maskedfile) { die "File $maskedfile already exists\n"; }
 	open(outfile,">$maskedfile");
-	open(infile3,$contigsfna) || die;
+	open(infile3,$contigsfna) || die "Can't open $contigsfna\n";
 	my($seq,$current)="";
 	while(<infile3>) {
 		chomp;
@@ -162,8 +165,8 @@ sub run_blastx {
 	#-- Run Diamond search
 
 	print "Running Diamond BlastX (This can take a while, please be patient)\n";
-	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evalue -o $blastxout";
-	print "$blastx_command\n";
+	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
+	# print "$blastx_command\n";
 	system $blastx_command;
 	}
 
@@ -191,7 +194,7 @@ sub getseqs {
 
 	print "Getting nt sequences\n";
 	my %orfstoget;
-	open(infile4,$collapsedmerged) || die;
+	open(infile4,$collapsedmerged) || die "Can't open $collapsedmerged\n";
 	while(<infile4>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -206,8 +209,8 @@ sub getseqs {
 
 	$ntmerged=$fna_blastx;
 	my($currcontig,$newcontig,$contigseq);
-	open(outfile2,">$ntmerged") || die;
-	open(infile5,$contigsfna) || die;
+	open(outfile2,">$ntmerged") || die "Can't open $ntmerged for writing\n";
+	open(infile5,$contigsfna) || die "Can't open $contigsfna\n";
 	while(<infile5>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -252,8 +255,8 @@ sub functions {
 
 	if(!$nocog) {
 		$cogfun="$tempdir/08.$project.fun3.blastx.cog.m8";
-		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
-		print "Running Diamond blastx for COGS: $command\n";
+		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
+		print "Running Diamond blastx for COGS\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{cog}=$fun3cog_blastx;
@@ -263,26 +266,24 @@ sub functions {
 
 	if(!$nokegg) {
 		$keggfun="$tempdir/08.$project.fun3.blastx.kegg.m8";
-		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
-		print "Running Diamond blastx for KEGG: $command\n";
+		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
+		print "Running Diamond blastx for KEGG\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{kegg}=$fun3kegg_blastx;
 		}
-	print "Assigning with fun3\n";
-	system("perl $scriptdir/07.fun3assign.pl $project blastx");
 
 	#-- OPT databases
 
 	if($opt_db) {
-		open(infile1,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+		open(infile1,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 		while(<infile1>) {
 			chomp;
 			next if(!$_ || ($_=~/\#/));
 			my($dbname,$extdb,$dblist)=split(/\t/,$_);
 			$optdbfun="$tempdir/08.$project.fun3.blastx.$dbname.m8";
-			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evalue --id $miniden -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
-			print "Running Diamond blastx for OPTDB $dbname: $command\n";
+			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
+			print "Running Diamond blastx for OPTDB $dbname\n";
 			my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
 			$olist{$dbname}="$resultpath/08.$project.fun3.$dbname";
@@ -302,20 +303,21 @@ sub remaketaxtables {
 					},
 			'noidfilters' => {
 					'original' => $fun3tax.".noidfilter.wranks",
-					'blastx' => "$resultpath/08.$project.fun3.blastx.tax_nofilter.wranks",
-					'merged' => $fun3tax_blastx.".nofilter.wranks"
+					'blastx' => "$resultpath/08.$project.fun3.blastx.tax_noidfilter.wranks",
+					'merged' => $fun3tax_blastx.".noidfilter.wranks"
 					}
 		    );
 					
-			#-- Writing both filter and nofilter tables
+			#-- Writing both filter and noidfilter tables
 					
 	foreach my $item(keys %ttables) {
 		my(%intable,%methods);
 		my $original_table=$ttables{$item}{original};
 		my $blastx_table=$ttables{$item}{blastx};
 		my $resulting_table=$ttables{$item}{merged};
-	
-		open(infile6,$original_table) || die "Cannot open nr wrank $original_table\n";
+		
+		# print "Merging $original_table and $blastx_table\n";
+		open(infile6,$original_table) || die "Can't open nr wrank $original_table\n";
 		while(<infile6>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -327,10 +329,11 @@ sub remaketaxtables {
 			my $ipos=pop @sf;
 			my($poinit,$poend)=split(/\-/,$ipos);
 			my $tcontig=join("_",@sf);
+			# print "*$r[0]*$intable{$r[0]}*\n";
 			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile6;
-		open(infile7,$blastx_table) || die "Cannot open blastx wrank $blastx_table\n";
+		open(infile7,$blastx_table) || die "Can't open blastx wrank $blastx_table\n";
 		while(<infile7>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -348,7 +351,7 @@ sub remaketaxtables {
 	
 			#-- Sorting first by contig ID, then by position in contig
 
-		open(outfile3,">$resulting_table") || die "Cannot open output in $resulting_table\n";
+		open(outfile3,">$resulting_table") || die "Can't open $resulting_table for writing\n";
 		print outfile3 "# Created by $0 merging $original_table and $blastx_table,",scalar localtime,"\n";
 		my (@listorfs,@sortedorfs);
 		foreach my $orf(keys %intable) {
@@ -367,6 +370,9 @@ sub remaketaxtables {
 			$allorfs{$orf}=1; 
 			}
 		close outfile3;	
+		my $movetable=$original_table;
+		$movetable=~s/$resultpath/$interdir/;
+		$movecommands.="mv $original_table $movetable; mv $blastx_table $interdir; ";
 		}
 	}
 		
@@ -377,7 +383,7 @@ sub remakefuntables {
 		my $oldcogtable="$resultpath/07.$project.fun3.$thisdb";
 		my $blastxcogtable="$tempdir/08.$project.fun3.blastx.$thisdb";
 		my $newcogtable=$olist{$thisdb};
-		open(infile8,$oldcogtable) || die "Cannot open $oldcogtable\n";
+		open(infile8,$oldcogtable) || die "Can't open $oldcogtable\n";
 			while(<infile8>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -392,7 +398,7 @@ sub remakefuntables {
 			# $incontig{$tcontig}{$poinit}=$poend;
 			}
 		close infile8;
-		open(infile9,$blastxcogtable) || die "Cannot open $blastxcogtable\n";
+		open(infile9,$blastxcogtable) || die "Can't open $blastxcogtable\n";
 			while(<infile9>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -409,7 +415,7 @@ sub remakefuntables {
 		close infile9;
 			#-- Sorting first by contig ID, then by position in contig
 
-		open(outfile4,">$newcogtable") || die "Cannot open output in $newcogtable\n";
+		open(outfile4,">$newcogtable") || die "Can't open $newcogtable for writing\n";
 		print outfile4 "# Created by $0 merging $oldcogtable and $blastxcogtable,",scalar localtime,"\n";
 		print outfile4 "#ORF	BESTHIT	BESTAVER\n";
 		my (@listorfs,@sortedorfs);
@@ -428,6 +434,7 @@ sub remakefuntables {
 			$allorfs{$orf}=1;
 			}
 		close outfile4;	
+		$movecommands.="mv $oldcogtable $interdir/07.$project.fun3.$thisdb;";
 		}
 	}
 	
@@ -437,9 +444,9 @@ sub remakegff {
 	my %gffstore;
 	my $gfftable="$resultpath/03.$project.gff";
 	my $newtable=$gff_file_blastx;
-	open(outfile6,">$newtable") || die "Cannot open output in $newtable\n";
+	open(outfile6,">$newtable") || die "Can't open $newtable for writing\n";
 	print outfile6 "# Created by $0, ",scalar localtime,"\n";
-	open(infile11,$gfftable) || die "Cannot open $gfftable\n";
+	open(infile11,$gfftable) || die "Can't open $gfftable\n";
 	while(<infile11>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -494,4 +501,9 @@ sub remakegff {
 		}
 	close outfile3;	
 	print "New GFF table created in $newtable\n";
+	$movecommands.="mv $gfftable $interdir/03.$project.gff";
+	my $wc=qx(wc -l $newtable);	#-- Avoid moving files if the script failed (to be able to restart with all files in place)
+	my($wsize,$rest)=split(/\s+/,$wc);
+	# print "$movecommands\n";
+	if($wsize>=2)         { print "Moving old files to dir intermediate\n"; system($movecommands); } 
 	}

@@ -17,23 +17,19 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$databasepath,$taxdiamond,$lca_db,$fun3tax,$evalue);
+our($datapath,$databasepath,$interdir,$taxdiamond,$lca_db,$fun3tax,$evalue,$scoreratio6,$diffiden6,$flex6,$minhits6,$noidfilter6);
 my $infile=$taxdiamond;
 
 #-- Some parameters for the algorithm
 
 my @ranks=('species','genus','family','order','class','phylum','superkingdom');
 my %idenrank=('species',85,'genus',60,'family',55,'order',50,'class',46,'phylum',42,'superkingdom',40);
-my $scoreratio=0.8;   #-- Ratio first score/currsent score for the hit to be considered
-my $diffiden=10;       #-- Maximim identity difference with the first
-my $flex=0.2;           #-- Allows this PERCENTAGE (if less than one) or NUMBER (if greater than one) of hits from different taxa than LCA
-my $minhits=2;        #-- Minimum number of hits for the taxa (if there is only one valid hit, this value sets to one automatically
 my $verbose=0;
 my $thereareresults=0;
-my $noidfilter=1;	#-- Set to 1, creates a new set of results with no identity filters
 
 #-- Prepare the LCA database (containing the acc -> tax correspondence)
 
@@ -42,7 +38,7 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1}) or 
 #-- Reads the taxonomic tree (parsed from NCBI's taxonomy in the parents.txt file)
 
 my %parents;
-open(infile1,"$databasepath/LCA_tax/parents.txt") || die;
+open(infile1,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -60,15 +56,15 @@ close infile1;
 
 #-- Preparing the output files
 
-open(outfile1,">$fun3tax") || die;
-print outfile1 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio, diffiden=$diffiden, flex=$flex, minhits=$minhits\n";
-open(outfile2,">$fun3tax.wranks") || die;
-print outfile2 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio, diffiden=$diffiden, flex=$flex, minhits=$minhits\n";
-if($noidfilter) {
-	open(outfile3,">$fun3tax.noidfilter") || die;
-	print outfile3 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio, diffiden=$diffiden, flex=$flex, minhits=$minhits\n";
-	open(outfile4,">$fun3tax.noidfilter.wranks") || die;
-	print outfile4 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio, diffiden=$diffiden, flex=$flex, minhits=$minhits\n";
+#open(outfile1,">$fun3tax") || die;
+#print outfile1 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
+open(outfile2,">$fun3tax.wranks") || die "Can't open $fun3tax.wranks for writing\n";
+print outfile2 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
+if($noidfilter6) {
+	#open(outfile3,">$fun3tax.noidfilter") || die;
+	#print outfile3 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
+	open(outfile4,">$fun3tax.noidfilter.wranks") || die "Can't open $fun3tax.noidfilter.wranks for writing\n";
+	print outfile4 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
 	}
 
 #-- Parsing of the diamond file
@@ -79,8 +75,8 @@ tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 tie %accumnofilter,"Tie::IxHash";
 
-if($infile=~/gz/) { open(infile2,"zcat $infile|") || die; }			#-- If file is gzipped
-else { open(infile2,$infile) || die "Cannot open Diamond file $infile\n"; }	#-- or if it is not
+if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die "Can't open gzipped file $infile\n"; }			#-- If file is gzipped
+else { open(infile2,$infile) || die "Can't open Diamond file $infile\n"; }	#-- or if it is not
 
 while(<infile2>) { 
 	chomp;
@@ -123,9 +119,9 @@ close infile2;
 $lastorf=$thisorf;
 query();    
 
-close outfile1;
+# close outfile1;
 close outfile2;
-close outfile3;
+#close outfile3;
 close outfile4;
 
 if(!$thereareresults) { die "Tax assignment done in $fun3tax but no results found. Aborting\n"; }
@@ -146,9 +142,9 @@ sub query {
 		#-- We evaluate if the hit is valid (bitscore and identity are within the limits)
 
 		if($refscore) { $ratioscore=$provhits{$lhits}/$refscore; }
-    		next if($ratioscore<=$scoreratio);
+    		next if($ratioscore<=$scoreratio6);
 		if($refiden) { $idendiff=$refiden-$providen{$lhits}; }
-    		next if($idendiff>$diffiden);    
+    		next if($idendiff>$diffiden6);    
 
 		#-- If it is, we add its acc to the query
 
@@ -187,8 +183,8 @@ sub query {
 	#-- Now, if there are some results, we will find the LCA
 
 	my($minreqhits,$required);
-	if($validhits==1) { $minreqhits=1; } else { $minreqhits=$minhits; }
-	if($flex<1) { $required=$validhits-($flex*$validhits); } else { $required=$validhits-$flex; }  
+	if($validhits==1) { $minreqhits=1; } else { $minreqhits=$minhits6; }
+	if($flex6<1) { $required=$validhits-($flex6*$validhits); } else { $required=$validhits-$flex6; }  
 	print "$lastorf Hits: $tothits; Valid: $validhits; Min: $minreqhits; Required: $required\n" if $verbose;
 	my($lasttax,$lasttaxnofilter)="";
 		
@@ -207,9 +203,9 @@ sub query {
 
 		last if($lasttax);		
  		}
-		if($noidfilter) {
-			if($validhitsnofilter==1) { $minreqhits=1; } else { $minreqhits=$minhits; }
-			if($flex<1) { $required=$validhitsnofilter-($flex*$validhitsnofilter); } else { $required=$validhitsnofilter-$flex; }
+		if($noidfilter6) {
+			if($validhitsnofilter==1) { $minreqhits=1; } else { $minreqhits=$minhits6; }
+			if($flex6<1) { $required=$validhitsnofilter-($flex6*$validhitsnofilter); } else { $required=$validhitsnofilter-$flex6; }
 			print "NOFILTER $lastorf Hits: $tothits; Valid: $validhits; Min: $minreqhits; Required: $required\n" if $verbose;
 			$lasttaxnofilter="";			
 			foreach my $k(@ranks) {
@@ -224,13 +220,23 @@ sub query {
 				}
 			}		
 		
-	print outfile1 "$lastorf\t$parents{$lasttax}{noranks}\n";
-	print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
-	if($noidfilter) {
-		print outfile3 "$lastorf\t$parents{$lasttaxnofilter}{noranks}\n";
-		print outfile4 "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";	
+	# print outfile1 "$lastorf\t$parents{$lasttax}{noranks}\n";
+	my $abb=$parents{$lasttax}{wranks};
+	
+	#-- Changing nomenclature to abbreviations
+	
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
+	# print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
+	print outfile2 "$lastorf\t$abb\n";		
+	if($noidfilter6) {
+		# print outfile3 "$lastorf\t$parents{$lasttaxnofilter}{noranks}\n";
+		my $abb=$parents{$lasttaxnofilter}{wranks};
+		$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g; 
+		# print outfile4 "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";	
+		print outfile4 "$lastorf\t$abb\n";	
 		}	
-	print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;
+	 print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;
+	#print "$lastorf\t$abb\n" if $verbose;
 	if($parents{$lasttax}{noranks}) { $thereareresults=1; }	
 }
 

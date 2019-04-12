@@ -35,7 +35,7 @@ my %allcontigs;
 #close infile1;
 
 print "Reading from $alllog\n";
-open(infile1,$alllog) || die;
+open(infile1,$alllog) || die "Can't open $alllog\n";
 while(<infile1>) { 
 	chomp;
 	next if !$_;
@@ -50,8 +50,8 @@ while(<infile1>) {
 close infile1;
 
 my $tempfasta="$tempdir/bincontigs.fasta";
-open(outfile1,">$tempfasta") || die;
-open(infile1,$contigsfna) || die;
+open(outfile1,">$tempfasta") || die "Can't open $tempfasta for writing\n";
+open(infile1,$contigsfna) || die "Can't open $contigsfna for writing\n";
 my $ingood=0;
 while(<infile1>) {
 	chomp;
@@ -72,8 +72,8 @@ if(-d $dirbin) {} else { system "mkdir $dirbin"; }
 	#-- Creating abundance file
 
 my $abundlist="$dirbin/abund.list";
-open(outfile1,">$abundlist") || die;	#-- Stores the list of files for the abundance of contigs (one per sample)
-open(infile2,$contigcov) || die "Cannot find contig coverage file $contigcov\n";
+open(outfile1,">$abundlist") || die "Can't open $abundlist for writing\n";	#-- Stores the list of files for the abundance of contigs (one per sample)
+open(infile2,$contigcov) || die "Can't open contig coverage file $contigcov\n";
 my $currsample;
 my %tcontigs;
 while(<infile2>) {
@@ -85,7 +85,7 @@ while(<infile2>) {
 		close outfile2;
 		$currsample=$k[$#k];
 		print outfile1 "$dirbin/$currsample.abund\n";
-		open(outfile2,">$dirbin/$currsample.abund") || die;	#-- Stores the abundances for current sample
+		open(outfile2,">$dirbin/$currsample.abund") || die "Can't open $dirbin/$currsample.abund for writing\n"; #-- Stores the abundances for the current sample
 		%tcontigs=%allcontigs;
   
 		}

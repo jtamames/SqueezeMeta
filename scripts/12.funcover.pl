@@ -18,13 +18,12 @@ my $taxreq=$ARGV[1];	#-- Invoke it with a name of taxon to get just functions fo
 $project=~s/\/$//;
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass);
-
-my $minraw=200;		#-- Minimum number of raw counts to be included in the STAMP files
+our($datapath,$resultpath,$extpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass,$minraw12);
 
 
 print "Calculating coverage for functions\n";
@@ -59,13 +58,13 @@ close infile2;
 	#-- Reading OPT_DB functions and names
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$listf)=split(/\t/,$_);
 		if(-e $listf) {
-			open(infile3,$listf) || warn "Cannot open names file for $opt_db\n";
+			open(infile3,$listf) || warn "Can't open names file for $opt_db\n";
 			while(<infile3>) {
 				chomp;
 				next if(!$_ || ($_=~/\#/));
@@ -83,13 +82,13 @@ if($opt_db) {
 
 my %equival;
 tie %equival,"Tie::IxHash";
-%equival=('superkingdom','k','phylum','p','class','c','order','o','family','f','genus','g','species','s');
+%equival=('k','k','p','p','c','c','o','o','f','f','g','g','s','s');
 
 	#-- Read the taxonomic assignment for each gene
 
 my $taxfile;
 if($doublepass) { $taxfile="$fun3tax_blastx.wranks"; } else { $taxfile="$fun3tax.wranks"; }
-open(infile3,"$taxfile") || warn "Cannot open wranks file $taxfile\n";
+open(infile3,"$taxfile") || warn "Can't open wranks file $taxfile\n";
 while(<infile3>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -99,7 +98,7 @@ while(<infile3>) {
 	#-- Loop for all ranks for the gene
 	
 	foreach my $cm(@t) {
-		my ($rank,$ttax)=split(/\:/,$cm);
+		my ($rank,$ttax)=split(/\_/,$cm);
 		my $cortax=$equival{$rank};
 		next if(!$cortax);
 		$taxf{$k[0]}{$cortax}=$ttax;
@@ -114,7 +113,7 @@ close infile3;
 
 if(!$nokegg) {
 	if($doublepass) { $fun3kegg=$fun3kegg_blastx; }
-	open(infile4,$fun3kegg) || die "Cannot open KEGG assignments in $fun3kegg\n";;
+	open(infile4,$fun3kegg) || die "Can't open KEGG assignments in $fun3kegg\n";;
 	while(<infile4>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -128,7 +127,7 @@ if(!$nokegg) {
 
 if(!$nocog) {
 	if($doublepass) { $fun3cog=$fun3cog_blastx; }
-	open(infile5,$fun3cog) || die "Cannot open COG assignments in $fun3cog\n";
+	open(infile5,$fun3cog) || die "Can't open COG assignments in $fun3cog\n";
 	while(<infile5>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -142,7 +141,7 @@ if(!$nocog) {
 	#-- Reading OPTDB assignments
 
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Cannot open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -150,7 +149,7 @@ if($opt_db) {
 		$optdb{$dbname}=1;
 		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
 		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
-		open(infile10,$fun3opt) || warn "Cannot open fun3 $dbname annotation file $fun3opt\n";;
+		open(infile10,$fun3opt) || warn "Can't open fun3 $dbname annotation file $fun3opt\n";;
 		while(<infile10>) { 
 			chomp;
 			next if(!$_ || ($_=~/\#/));
@@ -166,7 +165,7 @@ if($opt_db) {
 	#-- Reading coverages for all genes
 
 print "Reading coverage in $mapcountfile\n";
-open(infile6,$mapcountfile) || warn "Cannot open coverages in $mapcountfile\n";
+open(infile6,$mapcountfile) || warn "Can't open coverages in $mapcountfile\n";
 while(<infile6>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -243,7 +242,7 @@ close infile6;
 	#-- Reading RPKMs for all genes
 
 print "Reading rpkm in $mapcountfile\n";
-open(infile7,$mapcountfile) || die;
+open(infile7,$mapcountfile) || die "Can't open $mapcountfile\n";
 while(<infile7>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -275,18 +274,32 @@ close infile7;
 	#-- Creating output files
 
 my $rawf;
+my %rpk;
 foreach my $classfun(sort keys %funstat) {
 	$rawf="$resultpath/12.$project.$classfun.funcover";
 	print "Now creating $classfun coverage output in $rawf\n";
-	open(outfile1,">$rawf") || die;
+	open(outfile1,">$rawf") || die "Can't open $rawf for writing\n";
 	print outfile1 "#-- Created by $0 from $mapcountfile, ",scalar localtime;
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
-	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tDistribution\tName\tFunction\n";
+	# print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tTPM\tDistribution\tName\tFunction\n";
+	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tTPM\tDistribution\tName\tFunction\n";
 	
 	#-- Calculation of coverage, norm coverage, and RPKM
 
 	foreach my $samp(sort keys %allsamples) {
+		my $accumrpk;
+		foreach my $kid(sort keys %{ $funstat{$classfun} }) {		#-- For TPM calculation
+			next if(!$funstat{$classfun}{$kid}{$samp}{length}); 
+			my $longt=$funstat{$classfun}{$kid}{$samp}{length};
+                        next if(!$funstat{$classfun}{$kid}{$samp}{copies});
+                        my $copies=$funstat{$classfun}{$kid}{$samp}{copies};
+                        my $avglongt=$longt/$copies;
+			$rpk{$kid}=$funstat{$classfun}{$kid}{$samp}{reads}/$avglongt;
+			$accumrpk+=$rpk{$kid}; 
+			}
+		$accumrpk/=1000000;
+			
 		foreach my $kid(sort keys %{ $funstat{$classfun} }) {
 			next if(!$funstat{$classfun}{$kid}{$samp}{length}); 
 			my $cover=$funstat{$classfun}{$kid}{$samp}{bases}/$funstat{$classfun}{$kid}{$samp}{length};
@@ -294,7 +307,7 @@ foreach my $classfun(sort keys %funstat) {
 			my $normcoverpercopy=$normcover*$funstat{$classfun}{$kid}{$samp}{copies};
 			# print "$classfun*$kid*$samp*$funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}\n";
 			my $rpkm=(($funstat{$classfun}{$kid}{$samp}{reads}*1000000000)/($funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}));
- 
+ 			my $tpm=$rpk{$kid}/$accumrpk;
 			my $stringtax=""; 
 			foreach my $tk(keys %equival) {
 				my $krank=$equival{$tk};
@@ -303,16 +316,16 @@ foreach my $classfun(sort keys %funstat) {
 				$stringtax.="$krank:$countt;";
 				}
 			chop $stringtax;
-			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t%.3f\t$stringtax\t$funs{$classfun}{$kid}{name}\t$funs{$classfun}{$kid}{fun}\n",$cover,$normcover,$normcoverpercopy; 
+			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t$stringtax\t$funs{$classfun}{$kid}{name}\t$funs{$classfun}{$kid}{fun}\n",$cover,$tpm; 
  			}
 		}
 close outfile1;
 	}
 
 foreach my $classfun(sort keys %funstat) {
-	$rawf="$resultpath/12.$project.$classfun.stamp";
+	$rawf="$extpath/12.$project.$classfun.stamp";        #-- Creating STAMP files
 	print "Now creating $classfun raw reads output in $rawf\n";
-	open(outfile2,">$rawf") || die;
+	open(outfile2,">$rawf") || die "Can't open $rawf for writing\n";
 	if($classfun eq "cog") { print outfile2 "$classfun class\t$classfun ID"; }
         else { print outfile2 "$classfun ID"; }
 foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
@@ -332,14 +345,10 @@ foreach my $samp(sort keys %allsamples) { print outfile2 "\t$samp"; }
 			$cstring.="\t$rnum"; 
 			#print outfile2 "\t$funstat{$classfun}{$kid}{$samp}{reads}"; 
 			}
-		if($accum>=$minraw) { print outfile2 "$cstring\n"; }
+		if($accum>=$minraw12) { print outfile2 "$cstring\n"; }
 		# print outfile2 "\n";
 		}
 	close outfile2;
 	}
 
 
-	
-
-
-	

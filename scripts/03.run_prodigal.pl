@@ -16,7 +16,7 @@ $project=~s/\/$//;
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
 do "$project/SqueezeMeta_conf.pl";
 
-our($interdir,$resultpath,$tempdir,$aafile,$ntfile,$gff_file,$prodigal_soft);
+our($resultpath,$tempdir,$interdir,$aafile,$ntfile,$gff_file,$prodigal_soft);
 
 #-- Runs prodigal and cat the gff file with the RNA's one coming from barrnap (previous step)
 
@@ -33,8 +33,8 @@ if($ecode!=0) { die "Error running command:    $command"; }
 
 #-- Reanaming genes for accomodating better upcoming blastx predictions
 
-open(outfile1,">$tempaa") || die;
-open(infile1,$aafile) || die "Cannot open $aafile\n";
+open(outfile1,">$tempaa") || die "Can't open $tempaa for writing\n";
+open(infile1,$aafile) || die "Can't open $aafile\n";
 while(<infile1>) {
 	if($_=~/^\>/) { 
 		$_=~s/^\>//;
@@ -51,8 +51,8 @@ close outfile1;
 system("mv $tempaa $aafile");
 
 	
-open(outfile2,">$tempnt") || die;
-open(infile2,$ntfile) || die;
+open(outfile2,">$tempnt") || die "Can't open $tempnt for writing\n";
+open(infile2,$ntfile) || die "Can't open $ntfile\n";
 while(<infile2>) {
 	if($_=~/^\>/) { 
 		$_=~s/^\>//;
@@ -68,8 +68,8 @@ close infile2;
 close outfile2;	
 system("mv $tempnt $ntfile");
 
-open(outfile3,">$tempgff2") || die;
-open(infile3,$tempgff) || die "Cannot open $tempgff\n";
+open(outfile3,">$tempgff2") || die "Can't open $tempgff2 for writing\n";
+open(infile3,$tempgff) || die "Can't open $tempgff\n";
 while(<infile3>) {
 	chomp;
 	if($_!~/^\#/) { 

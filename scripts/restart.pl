@@ -46,8 +46,8 @@ do "$project/SqueezeMeta_conf.pl";
 
 our($datapath,$assembler,$outassembly,$nomaxbin,$nometabat,$lowmem,$minion);
 our($nocog,$nokegg,$nopfam,$nobins,$opt_db);
-our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$doublepass);
-our($scriptdir,$databasepath,$extdatapath,$softdir,$basedir,$datapath,$interdir,$resultpath,$tempdir,$mappingfile,$contigsfna,$nomaxbin,$contigslen,$mcountfile,$rnafile,$gff_file,$gff_file_blastx,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
+our($numsamples,$numthreads,$mode,$mincontiglen,$assembler,$extassembly,$equivfile,$rawfastq,$evalue,$miniden,$spadesoptions,$megahitoptions,$assembler_options,$doublepass);
+our($scriptdir,$databasepath,$extdatapath,$interdir,$softdir,$basedir,$datapath,$resultpath,$tempdir,$mappingfile,$contigsfna,$nomaxbin,$contigslen,$mcountfile,$rnafile,$checkmfile,$gff_file,$gff_file_blastx,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$checkmfile,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir); 
 
 
@@ -55,7 +55,7 @@ our(%bindirs,%dasdir);
 
 my $sflag=$rpoint;
 my($numsamples,$mode);
-open(infile1,$progress) || die; 
+open(infile1,$progress) || die "Can't open progress file file $progress\n"; 
 while(<infile1>) {
 	chomp $_;
 	next if(!$_);
@@ -69,12 +69,12 @@ close infile1;
 	#-- Create new progress, append to existing syslog
 
 my $currtime;
-open(outfile1,">$pwd/$project/progress") || die;  
-open(outfile2,">>$pwd/$project/syslog") || die;
+open(outfile1,">$pwd/$project/progress") || die "Can't open $pwd/$project/progress for writing\n";  
+open(outfile2,">>$pwd/$project/syslog")  || die "Can't open $pwd/$project/syslog for writing\n";
 $currtime=timediff();
 print outfile2 "Restarting project $project, ",scalar localtime,"\n";
 print outfile1 "Samples:$numsamples\nMode:$mode\n";
-system("rm $tempdir/$project.log");
+if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
 
 
 
@@ -106,7 +106,7 @@ my $DAS_Tool_empty=0;
 
 		#-- In merged mode. Includes merging assemblies
 
-	elsif($mode=~/merged/) {
+	elsif(($mode=~/merged/) && (!$extassembly)) {
 		my $scriptname="01.run_assembly_merged.pl";
 		print outfile1 "1\t$scriptname\n";
 		$currtime=timediff();
@@ -221,7 +221,7 @@ my $DAS_Tool_empty=0;
 		print "[",$currtime->pretty,"]: STEP6 -> TAXONOMIC ASSIGNMENT: $scriptname\n";
 		my $ecode = system("perl $scriptdir/$scriptname $project");
 		if($ecode!=0)        { die "Stopping in STEP6 -> $scriptname\n"; }
-		my $wc=qx(wc -l $fun3tax);
+		my $wc=qx(wc -l "$fun3tax.wranks");
 		my($wsize,$rest)=split(/\s+/,$wc);
 		if($wsize<2)         { die "Stopping in STEP6 -> $scriptname. File $fun3tax is empty!\n"; }
 	}
@@ -237,15 +237,31 @@ my $DAS_Tool_empty=0;
 			print "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project");
 			if($ecode!=0)   { die "Stopping in STEP7 -> $scriptname\n"; }
-			my $wc=qx(wc -l $fun3cog);
-			my($wsizeCOG,$rest)=split(/\s+/,$wc);
-			my $wc=qx(wc -l $fun3kegg);
-			my($wsizeKEGG,$rest)=split(/\s+/,$wc);
-			my $wc=qx(wc -l $fun3pfam);
-			my($wsizePFAM,$rest)=split(/\s+/,$wc);
-			my $wc=qx(wc -l $resultpath/07.$project.fun3.opt_db);
-			my($wsizeOPTDB,$rest)=split(/\s+/,$wc);
-			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($wsizeOPTDB<2)) {
+			my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB,$rest);
+			if(!$nocog) {
+				my $wc=qx(wc -l $fun3cog);
+				($wsizeCOG,$rest)=split(/\s+/,$wc);
+				}
+			if(!$nokegg) {
+				my $wc=qx(wc -l $fun3kegg);
+				($wsizeKEGG,$rest)=split(/\s+/,$wc);
+				}
+			if(!$nopfam) {
+				my $wc=qx(wc -l $fun3pfam);
+				($wsizePFAM,$rest)=split(/\s+/,$wc);
+				}
+			my $optdbsw;
+			if($opt_db) {
+				open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
+				while(<infile0>) {
+					my($dbname,$extdb,$dblist)=split(/\t/,$_);
+					my $wc=qx(wc -l $resultpath/07.$project.fun3.dbname);
+					($wsizeOPTDB,$rest)=split(/\s+/,$wc);
+					if($wsizeOPTDB<2) { $optdbsw=$wsizeOPTDB; }
+					}
+				close infile0;
+				}
+			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($optdbsw<2)) {
 				die "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; }
 		}
 	}
@@ -255,11 +271,10 @@ my $DAS_Tool_empty=0;
 	if($rpoint<=8) {
 		if($doublepass) {
 			my $scriptname="08.blastx.pl";
-			print " DOUBLEPASS: Now starting blastx analysis\n";
 			print outfile1 "8\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP8 -> Doublepass, Blastx analysis: $scriptname\n";
+			print "[",$currtime->pretty,"]: STEP8 -> DOUBLEPASS, Blastx analysis: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project");
 			if($ecode!=0)  { die "Stopping in STEP8 -> $scriptname\n"; }
 			my $wc=qx(wc -l $gff_file_blastx);
@@ -369,7 +384,7 @@ my $DAS_Tool_empty=0;
 			my $firstfile="$dirbin/$binfiles[0]";
 			my $wc=qx(wc -l $firstfile);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2) { die "Stopping in STEP14 -> $scriptname. File $firstfile is empty!\n"; }
+			if($wsize<2) { warn "WARNING in STEP14 -> $scriptname. File $firstfile is empty, no MaxBin results!\n"; }
 		}
 			
     #-------------------------------- STEP15: Running Metabat (only for merged or coassembly modes)		
@@ -389,7 +404,7 @@ my $DAS_Tool_empty=0;
 			my $firstfile="$dirbin/$binfiles[0]";
 			my $wc=qx(wc -l $firstfile);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2) { die "Stopping in STEP15 -> $scriptname. File $firstfile is empty!\n"; }
+			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. File $firstfile is empty, no Metabat2 results!\n"; }
 		}
  
     #-------------------------------- STEP16: DAS Tool merging of binning results (only for merged or coassembly modes)		
@@ -442,15 +457,15 @@ my $DAS_Tool_empty=0;
 				$currtime=timediff();
 				print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
 				print "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n";
-				my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+				my $ecode = system("perl $scriptdir/$scriptname $project");
 				if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
 				foreach my $binmethod(keys %dasdir) {
-					my $checkmfile="$interdir/18.$project.$binmethod.checkM";
+					$checkmfile="$interdir/18.$project.$binmethod.checkM";
 					my $wc=qx(wc -l $checkmfile);
 					my($wsize,$rest)=split(/\s+/,$wc);
 					if($wsize<4) {
-						die "Cannot find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
-					}
+						die "Can't find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
+				}
 			}
 			else{ print("Skipping CHECKM: DAS_Tool did not predict bins.\n"); }
 		}

@@ -16,13 +16,13 @@ my $project=$ARGV[0];
 $project=~s/\/$//; 
 
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mode,$resultpath,$rpkmfile,$contigcov,$coveragefile,$bowtie2_x_soft,
-    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$mapcountfile);
+our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
+    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$keepsam10);
 
-my $keepsam=1;  #-- Set to one, it keeps SAM files. Set to zero, it deletes them when no longer needed
 my $verbose=0;
 
 my $fastqdir="$datapath/raw_fastq";
@@ -36,9 +36,9 @@ if($doublepass) { $gff_file=$gff_file_blastx; }
 
 	#-- Read the sample's file names
 
-my %allsamples;
+my(%allsamples,%rpk);
 tie %allsamples,"Tie::IxHash";
-open(infile1,$mappingfile) || die "Cannot find mappingfile $mappingfile\n";
+open(infile1,$mappingfile) || die "Can't open mappingfile $mappingfile\n";
 print "Reading mapping file from $mappingfile\n";
 while(<infile1>) {
 	chomp;
@@ -81,12 +81,12 @@ elsif($mapper eq "bwa") {
 #if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
 #if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
-open(outfile1,">$resultpath/10.$project.mappingstat") || die;	#-- File containing mapping statistics
+open(outfile1,">$resultpath/10.$project.mappingstat") || die "Can't open $resultpath/10.$project.mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
-open(outfile3,">$outfile") || die;
+open(outfile3,">$mapcountfile") || die "Can't open $mapcountfile for writing\n";
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,"\n";
-print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tSample\n";
+print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
 
 	#-- Now we start mapping the reads of each sample against the reference
 
@@ -123,7 +123,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- Now we start mapping reads against contigs
 	
 	print "  Aligning to reference with $mapper\n";
-	if($keepsam) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
+	if($keepsam10) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
 	
 	#-- Support for single reads
         if(!$mapper || ($mapper eq "bowtie")) {
@@ -165,7 +165,7 @@ foreach my $thissample(keys %allsamples) {
 }
 close outfile1;
 
-print "Output in $outfile\n";
+print "Output in $mapcountfile\n";
 close outfile3;
 
 
@@ -176,7 +176,7 @@ sub sqm_counter {
 	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
 	my(%genesincontigs,%accum,%long_gen);
 	my $countreads;
-	open(infile2,$gff_file) || die;
+	open(infile2,$gff_file) || die "Can't open $gff_file for writing\n";
 	while(<infile2>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -194,7 +194,7 @@ sub sqm_counter {
 		}
 	close infile2;
 
-	open(infile3,$samfile) || die "Cannot open sam file $samfile\n"; ;
+	open(infile3,$samfile) || die "Can't open sam file $samfile\n"; ;
 	while(<infile3>) { 
 		chomp;
 		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@SQ/));
@@ -259,11 +259,20 @@ sub sqm_counter {
 	close infile3;
 	print "\n";
 
+	my $accumrpk;
+	foreach my $print(sort keys %accum) { 
+		my $longt=$long_gen{$print};
+		$rpk{$print}=$accum{$print}{reads}/$longt;
+		$accumrpk+=$rpk{$print};
+		}
+	$accumrpk/=1000000;
+
 	foreach my $print(sort keys %accum) { 
 		my $longt=$long_gen{$print};
 		my $coverage=$accum{$print}{bases}/$longt;
-		my $rpkm=($accum{$print}{reads}*1000000000)/($longt*$totalreadcount);
-		printf outfile3 "$print\t$longt\t$accum{$print}{reads}\t$accum{$print}{bases}\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage; 
+		my $rpkm=($accum{$print}{reads}*1000000)/($longt*$totalreadcount);
+		my $tpm=$rpk{$print}/$accumrpk;
+		printf outfile3 "$print\t$longt\t$accum{$print}{reads}\t$accum{$print}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm; 
 		}
 }
 
@@ -276,11 +285,11 @@ sub contigcov {
 	my($thissample,$outsam)=@_;
 	my(%lencontig,%readcount)=();
 	my($mappedreads,$totalreadcount,$totalreadlength)=0;
-	open(outfile4,">>$contigcov") || die;
+	open(outfile4,">>$contigcov") || die "Can't open $contigcov for writing\n";
 
 	#-- Count length of contigs and bases mapped from the sam file
 
-	open(infile4,$outsam) || die "Cannot open $outsam\n"; ;
+	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
 	while(<infile4>) {
 		chomp;
 		my @t=split(/\t/,$_);
@@ -312,15 +321,25 @@ sub contigcov {
 
 	#-- Output RPKM/coverage values
 
+	my $accumrpk;
+	my %rp;
+	foreach my $rc(sort keys %readcount) { 
+		my $longt=$lencontig{$rc};
+		$rp{$rc}=$readcount{$rc}{reads}/$longt;
+		$accumrpk+=$rp{$rc};
+		}
+	$accumrpk/=1000000;
+
 	print outfile4 "#-- Created by $0, ",scalar localtime,"\n";
-	print outfile4 "# Contig ID\tAv Coverage\tRPKM\tContig length\tRaw reads\tRaw bases\tSample\n";
+	print outfile4 "# Contig ID\tAv Coverage\tRPKM\tTPM\tContig length\tRaw reads\tRaw bases\tSample\n";
 	foreach my $rc(sort keys %readcount) { 
 		my $longt=$lencontig{$rc};
 		next if(!$longt);
 		my $coverage=$readcount{$rc}{lon}/$longt;
 		my $rpkm=($readcount{$rc}{reads}*1000000000)/($longt*$totalreadcount);
+		my $tpm=$rp{$rc}/$accumrpk;
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
-		else { printf outfile4 "$rc\t%.3f\t%.3f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm; }
+		else { printf outfile4 "$rc\t%.2f\t%.1f\t%.1f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
 		}
 	close outfile4;	
 	return $totalreadcount;
