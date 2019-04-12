@@ -105,8 +105,6 @@ The command for running SqueezeMeta has the following syntax:
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
 * *-extdb*: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
-* *-e*|*-evalue*: Max evalue for DIAMOND run (Default: 1e-03) 
-* *-miniden*: Minimum identity perc for DIAMOND run (Default: 50) 
 * *-D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
 *Mapping* 
