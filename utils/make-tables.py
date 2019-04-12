@@ -7,6 +7,9 @@ Generate tabular outputs from SqueezeMeta results.
 
 USAGE: make-tables.py <PROJECT_NAME> <OUTPUT_DIRECTORY>
 
+OPTIONS:
+    --ignore_unclassified: Ignore ORFs without assigned functions in TPM calculation
+
 """
 
 from os.path import abspath, dirname, realpath
@@ -92,12 +95,12 @@ def main(args):
             orf_tax_prokfilter_wranks[orf] = orf_tax_nofilter_wranks[orf]
             
 
-    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
-    write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
-    write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
+    #write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
+    #write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
+    #write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
 
     contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
-    write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
+    #write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
 
     for idx, rank in enumerate(TAXRANKS):
         tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter, idx)
