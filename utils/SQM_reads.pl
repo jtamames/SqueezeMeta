@@ -26,10 +26,10 @@ do "$scriptdir/SqueezeMeta_conf.pl";
 our($databasepath);
 
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$hel);
 
 my $helptext = <<END_MESSAGE;
-Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> <options>
+Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]
 
 Arguments:
 
@@ -41,10 +41,10 @@ Arguments:
  Options:
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
-   -e|-evalue: max evalue for discarding hits diamond run  (Default: 1e-03)
+   -e|-evalue: max evalue for discarding hits for Diamond run  (Default: 1e-03)
    -t: Number of threads (Default: 12)
-   -b|-block-size: block size for diamond against the nr database (Default: 8)
-
+   -b|-block-size: block size for Diamond run against the nr database (Default: 8)
+   -h: this help
 
 END_MESSAGE
 
@@ -56,13 +56,15 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
                      "b|block_size=i" => \$blocksize,
+		     "h" => \$hel
 		    );
 
 if(!$numthreads) { $numthreads=12; }
 if(!$evalue) { $evalue=0.001; }
 
-print "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+print "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 
+if($hel) { die "$helptext\n"; } 
 if(!$project) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
 if(!$rawseqs) { $dietext.="MISSING ARGUMENT: -f|-seq:Read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }

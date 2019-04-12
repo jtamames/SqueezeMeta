@@ -177,11 +177,11 @@ sub query {
 	
 	#-- Changing nomenclature to abbreviations
 	
-	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/.*\:/n_/g;
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	#print outc "$lastorf\t$parents{$lasttax}{wranks}\n";		
 	print outc "$lastorf\t$abb\n";		
 	my $abb=$parents{$lasttaxnofilter}{wranks};
-	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/.*\:/n_/g;
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# print outcnof "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";		
 	print outcnof "$lastorf\t$abb\n";		
 	print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;	

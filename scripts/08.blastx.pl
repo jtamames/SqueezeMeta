@@ -23,6 +23,7 @@ if(!(-e $project)) { die "Project $project does not exist. Please get sure that 
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
 
 do "$project/SqueezeMeta_conf.pl";
+do "$project/parameters.pl";
 
 	#-- Configuration variables from conf file
 
