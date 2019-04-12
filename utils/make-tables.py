@@ -7,6 +7,9 @@ Generate tabular outputs from SqueezeMeta results.
 
 USAGE: make-tables.py <PROJECT_NAME> <OUTPUT_DIRECTORY>
 
+OPTIONS:
+    --ignore_unclassified: Ignore ORFs without assigned functions in TPM calculation
+
 """
 
 from os.path import abspath, dirname, realpath
@@ -43,7 +46,14 @@ def main(args):
     
     sampleNames, orfs, kegg, cog, pfam = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.ignore_unclassified)
 
-    write_results(sampleNames, orfs['tpm'], prefix + 'orf.tpm.tsv')
+    # Round aggregated functional abundances.
+    # We can have non-integer abundances bc of the way we split counts in ORFs with multiple KEGGs.
+    # We round the aggregates to the closest integer for convenience.
+    kegg['abundances'] = {k: a.round().astype(int) for k,a in kegg['abundances'].items()}
+    cog['abundances']  = {k: a.round().astype(int) for k,a in  cog['abundances'].items()}
+    pfam['abundances'] = {k: a.round().astype(int) for k,a in pfam['abundances'].items()}
+
+    #write_results(sampleNames, orfs['tpm'], prefix + 'orf.tpm.tsv')
     if not nokegg:
         write_results(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
         write_results(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
@@ -85,12 +95,12 @@ def main(args):
             orf_tax_prokfilter_wranks[orf] = orf_tax_nofilter_wranks[orf]
             
 
-    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
-    write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
-    write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
+    #write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
+    #write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
+    #write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
 
     contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
-    write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
+    #write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
 
     for idx, rank in enumerate(TAXRANKS):
         tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter, idx)
@@ -232,7 +242,7 @@ def parse_tax_string(taxString):
             # This rank is not present,  but we have a classification at a lower rank.
             # This happens in the NCBI tax e.g. for some eukaryotes, they are classified at the class but not at the phylum level.
             # We inherit lower rank taxonomies, as we actually have classified that ORF.
-            taxList.append('{} (no {} rank)'.format(taxDict[lastRankFound], rank))
+            taxList.append('{} (no {} in NCBI)'.format(taxDict[lastRankFound], TAXRANKS[TAXRANKS_SHORT.index(rank)]))
         else:
             # Neither this or lower ranks were present. The ORF is not classified at this level.
             pass
