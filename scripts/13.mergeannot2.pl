@@ -57,7 +57,7 @@ close infile1;
 %provi=();
 $lasto="";
 my $bfile="$tempdir/08.$project.nr.blastx.collapsed.merged.m8";		#-- This one may or may not exist
-open(infile1,$bfile);
+open(infile1,$bfile) || die "Can't open $bfile\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;

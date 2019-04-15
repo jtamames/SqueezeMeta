@@ -97,7 +97,7 @@ close infile4;
 
 if(!$nobins) {				#-- Skip this step if no bins were requested  
 	print "done!\nReading bins... ";
-	open(infile5,$contigsinbins);
+	open(infile5,$contigsinbins) || die "Can't open $contigsinbins\n";
 	while(<infile5>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));

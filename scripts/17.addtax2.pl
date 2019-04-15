@@ -54,7 +54,7 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 
 	#-- Reading bin directories
 
-	opendir(indir1,$bindir);
+	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 	my @files=grep(/fa$|fasta$/,readdir indir1);
 	closedir indir1;
 	

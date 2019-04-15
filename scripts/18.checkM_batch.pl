@@ -63,7 +63,7 @@ foreach my $binmethod(sort keys %dasdir) {
 
 	#-- Read all bins
 
-opendir(indir,$bindir);
+opendir(indir,$bindir) || die "Can't open $bindir directory\n";
 my @files=grep(/tax$/,readdir indir);
 my $numbins=$#files+1;
 print "$numbins bins found\n\n";

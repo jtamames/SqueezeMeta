@@ -297,7 +297,7 @@ if(!$nopfam) {
 
 	open(outfile3,">$fun3pfam") || warn "Can't open $fun3pfam for writing\n";
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
-	open(infile4,$pfamhmmer);
+	open(infile4,$pfamhmmer) || die "Can't open $pfamhmmer\n";
 	while(<infile4>) { 
 		chomp;
 		next if(!$_ || ($_=~/^\#/));

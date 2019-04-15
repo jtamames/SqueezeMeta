@@ -800,7 +800,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
 			my $dirbin=$bindirs{maxbin};
-			opendir(indir1,$dirbin);
+			opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
 			closedir indir1;
 			my $firstfile="$dirbin/$binfiles[0]";
@@ -820,7 +820,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
-			opendir(indir2,$dirbin);
+			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
@@ -840,7 +840,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
-			opendir(indir2,$dirbin);
+			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";

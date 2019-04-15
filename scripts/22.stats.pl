@@ -62,7 +62,7 @@ my(%contigs,%contax);
 my $command="$prinseq_soft -stats_info -stats_assembly -stats_len -fasta $contigsfna > $tempdir/stats.txt";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
-open(infile2,"$tempdir/stats.txt");
+open(infile2,"$tempdir/stats.txt") || die "Can't open $tempdir/stats.txt\n";
 while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
