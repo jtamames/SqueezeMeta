@@ -73,14 +73,14 @@ else {
 
 #-- Run prinseq_lite for statistics
 
-$command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $resultpath/01.$project.stats";
+$command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
 $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 	
 
 #-- Count length of contigs (needed later)
 
-my $contigslen="$resultpath/01.$project.lon";
+my $contigslen="$interdir/01.$project.lon";
 print "Counting lengths\n";
 open(outfile1,">$contigslen") || die "Can't open $contigslen for writing\n";
 open(infile1,$finalcontigs) || die "Can't open $finalcontigs\n";
