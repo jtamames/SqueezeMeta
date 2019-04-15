@@ -13,7 +13,7 @@ use lib ".";
 
 #-- Restarts an interrupted pipeline
 
-my $version="0.5.0";
+my $version="1.0.0beta";
 my $start_run = time();
 
 my $pwd=cwd();	
