@@ -88,9 +88,9 @@ The command for running SqueezeMeta has the following syntax:
 **Arguments** 
 *Mandatory parameters* 
 * *-m* <sequential, coassembly, merged>: Mode (REQUIRED) 
-* *-p* <string>: Project name (REQUIRED in coassembly and merged modes) 
-* *-s*|*-samples* <path>: Samples file (REQUIRED) 
-* *-f*|*-seq* <path>: Fastq read files' directory (REQUIRED) 
+* *-p* \<string\>: Project name (REQUIRED in coassembly and merged modes) 
+* *-s*|*-samples* \<path\>: Samples file (REQUIRED) 
+* *-f*|*-seq* \<path\>: Fastq read files' directory (REQUIRED) 
  
 *Filtering* 
 * *--cleaning*: Filters with Trimmomatic (Default: no) 
