@@ -46,6 +46,8 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 21) Prediction of kegg and metacyc patwhays for each bin
 22) Final statistics for the run
 
+Detailed information about the different steps of the pipeline can be found in the PDF manual.
+
 
 ## 2. Installation
 
@@ -75,7 +77,7 @@ If the SqueezeMeta databases are already built in another location in the system
 ## 4. Execution, restart and running scripts
 
 ### Scripts location
-The scripts composing the SqueezeMeta pipeline can be found in the `.../SqueezeMeta/scripts` directory. We recommend adding it to your $PATH environment variable.
+The scripts composing the SqueezeMeta pipeline can be found in the `.../SqueezeMeta/scripts` directory. Other utility scripts can be found in the `.../SqueezeMeta/utils` directory. See the PDF manual for more information on utility scripts.
 
 ### Execution
 
@@ -85,30 +87,30 @@ The command for running SqueezeMeta has the following syntax:
 
 **Arguments** 
 *Mandatory parameters* 
-* *-m*: Mode (sequential, coassembly, merged) (REQUIRED) 
-* *-p*: Project name (REQUIRED in coassembly and merged modes) 
-* *-s*|*-samples*: Samples file (REQUIRED) 
-* *-f*|*-seq*: Fastq read files' directory (REQUIRED) 
+* *-m* <sequential, coassembly, merged>: Mode (REQUIRED) 
+* *-p* <string>: Project name (REQUIRED in coassembly and merged modes) 
+* *-s*|*-samples* <path>: Samples file (REQUIRED) 
+* *-f*|*-seq* <path>: Fastq read files' directory (REQUIRED) 
  
 *Filtering* 
 * *--cleaning*: Filters with Trimmomatic (Default: no) 
-* *-cleaning_options*: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
+* *-cleaning_options* [string]: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
  
 *Assembly*  
-* *-a*: assembler [megahit,spades] (Default:megahit) 
-* *-assembly_options*: Extra options for the assembler (refer to the manual of the specifiec assembler). 
-* *-c*|*-contiglen*: Minimum length of contigs (Default:200) 
-* *-extassembly*: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
+* *-a* [megahit,spades]: assembler (Default:megahit) 
+* *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). 
+* *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
+* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
  
 *Annotation* 
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
-* *-extdb*: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
-* *-D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
+* *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
+* *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
 *Mapping* 
-* *-map*: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie) 
+* *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie) 
  
 *Binning* 
 * *--nobins*: Skip binning (Default: no) 
@@ -116,9 +118,9 @@ The command for running SqueezeMeta has the following syntax:
 * *--nometabat*: Skip MetaBat2 binning (Default: no) 
  
 *Performance* 
-* *-t*: Number of threads (Default:12) 
-* *-b*|*-block-size*: Block size for diamond against the nr database (Default: 8) 
-* *-canumem*: Memory for canu in Gb (Default: 32) 
+* *-t* [number]: Number of threads (Default:12) 
+* *-b*|*-block-size* [number]: Block size for diamond against the nr database (Default: 8) 
+* *-canumem* [number]: Memory for canu in Gb (Default: 32) 
 * *--lowmem*: Run on less than 16 Gb of RAM memory (Default: no). Equivalent to: -b 3 -canumem 15 
  
 *Other* 
@@ -166,6 +168,8 @@ Alternatively, the run can be restarted from a specific step by issuing the comm
 
 `restart.pl <projectname> -step <step_to_restart_from>`
 
+e.g. `restart.pl <projectname> -step 6` would restart the pipeline from the taxonomic assignment of genes. The different steps of the pipeline are listed in section 1.
+
 ### Running scripts
 Also, any individual script of the pipeline can be run in the upper directory to the project using the same syntax: 
 
@@ -177,17 +181,17 @@ An user-supplied assembly can be passed to SqueezeMeta with the flag *-extassemb
 
 
 ## 6. Using external databases for functional annotation
-Version 1.0 implements the possibility of using one or several user-provided databases for functional annotation. This is invoked using the *--extdb* option. Please refer to the manual for details.
+Version 1.0 implements the possibility of using one or several user-provided databases for functional annotation. This is invoked using the *-extdb* option. Please refer to the manual for details.
 
 
 ## 7. Extra sensitive detection of ORFs
-Version 1.0 implements the *-D* option (*doublepass*), that attempts to provide a more sensitive ORF detection by combining the Prodigal prediction with a BlastX search on parts of the contigs where no ORFs were predicted, or where predicted ORFs did not match anything in the taxonomic and functional databases.
+Version 1.0 implements the *--D* option (*doublepass*), that attempts to provide a more sensitive ORF detection by combining the Prodigal prediction with a BlastX search on parts of the contigs where no ORFs were predicted, or where predicted ORFs did not match anything in the taxonomic and functional databases.
 
 
 ## 8. Testing SqueezeMeta
 The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `<datapath>` as its target the test run can be executed with
 
-`cd <datapath>`
+`cd <datapath/test>`  
 `SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
 
 Alternatively, `-m sequential` or `-m merged` can be used.
