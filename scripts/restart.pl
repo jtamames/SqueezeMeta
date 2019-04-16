@@ -508,7 +508,7 @@ my $DAS_Tool_empty=0;
 
     #-------------------------------- STEP21: Pathways in bins          
 
-	if(($mode!~/sequential/i) && ($numsamples>1) && (!$nobins)) {	       
+	if(!$nobins) {	       
   		if($rpoint<=21) {
 			if(!$DAS_Tool_empty){
 				my $scriptname="21.minpath.pl";

@@ -31,7 +31,7 @@ our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
-my(%genpos,%skip,%allorfs,%annotations,%incontig,%olist);
+my(%genpos,%skip,%allorfs,%annotations,%incontig,%olist,%inframe);
 
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
 
@@ -203,6 +203,7 @@ sub getseqs {
 		my $posn=pop @w;
 		my $contname=join("_",@w);
 		$orfstoget{$contname}{$posn}=1;
+		$inframe{$t[0]}=$t[$#t];
 		# print "$contname*$posn*\n";
 		}
 	close infile4;
@@ -495,7 +496,11 @@ sub remakegff {
 			my $ipos=pop @sf;
 			my $contname=join("_",@sf);
 			my($poinit,$poend)=split(/\-/,$ipos);
-			print outfile6 "$contname\tDiamond Blastx\tCDS\t$poinit\t$poend\t?\t?\t?\tID=$orf;\n";
+			my $direction;
+			if($inframe{$orf}<0) { $direction="-"; } 
+			elsif($inframe{$orf}>=0) { $direction="+"; }
+			else { $direction="?"; }
+			print outfile6 "$contname\tDiamond Blastx\tCDS\t$poinit\t$poend\t?\t$direction\t?\tID=$orf;\n";
 			}
 	
 		}
