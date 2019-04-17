@@ -9,6 +9,7 @@ USAGE: make-tables.py <PROJECT_NAME> <OUTPUT_DIRECTORY>
 
 OPTIONS:
     --ignore_unclassified: Ignore ORFs without assigned functions in TPM calculation
+    --write_parsed_tax: Write tables with the per-rank taxonomy of each ORF and contig
 
 """
 
@@ -93,14 +94,14 @@ def main(args):
         else:
             orf_tax_prokfilter       [orf] = tax_nofilter
             orf_tax_prokfilter_wranks[orf] = orf_tax_nofilter_wranks[orf]
-            
-
-    #write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
-    #write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
-    #write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
-
+    
     contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
-    #write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
+
+    if args.write_parsed_tax:
+        write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
+        write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
+        write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
+        write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
 
     for idx, rank in enumerate(TAXRANKS):
         tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter, idx)
@@ -300,6 +301,7 @@ def parse_args():
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
     parser.add_argument('output_dir', type=str, help='Output directory')
     parser.add_argument('--ignore_unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
+    parser.add_argument('--write_parsed_tax', action='store_true', help='Write tables with the per-rank taxonomy of each ORF and contig')
 
     return parser.parse_args()
 
