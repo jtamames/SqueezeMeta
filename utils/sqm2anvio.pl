@@ -117,8 +117,11 @@ if(-e $contigsinbins) {
 	open(infile4,$contigsinbins) || warn "Cannot open bin file $contigsinbins\n"; 
 	open(outfile6,">$bin_out") || die "Cannot open taxonomy outfile $bin_out\n";
 	while(<infile4>) {
+		chomp;
 		next if($_=~/^\#/);
-		print outfile6 $_;
+		my @k=split(/\t/,$_);
+		$k[2]=~s/\./\_/g;
+		print outfile6 "$k[0]\t$k[2]\n";
 		}
 	close infile4;
 	close outfile6;
@@ -147,8 +150,8 @@ $command.=" --transform 's?.*/??g'";	#-- for ignoring absolute paths of files
 $command.=" >/dev/null 2>&1"; 		#-- Totally silent
 system($command);
 system("gzip anvio\_$project.tar");
-system("rm $genes_out $contigs_out $functions_out $taxonomy_out");
-if(-e $bin_out) { system("rm $bin_out"); }
+# system("rm $genes_out $contigs_out $functions_out $taxonomy_out");
+# if(-e $bin_out) { system("rm $bin_out"); }
  
 print "Created anvio gene file (import with anvi-gene-contigs-database): $genes_out\n";
 print "Created anvio contig file (import with anvi-gene-contigs-database): $contigs_out\n";
