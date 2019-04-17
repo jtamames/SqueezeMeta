@@ -6,7 +6,7 @@ use strict;
 
 $|=1;
 
-my($complete_cutoff,$contamination_cutoff,$funclass,$reqfunctions,$hel);
+my($complete_cutoff,$contamination_cutoff,$funclass,$reqfunctions,$hel,$project);
 
 #-- Define help text
 
