@@ -39,25 +39,11 @@ else {
 	#-- Uses cd-hit to identify and remove contigs contained in others
 
 	my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
-	my $merged_clustered_prov="$tempdir/mergedassemblies.$project.99.fasta.prov";
 	$command="$cdhit_soft -i $merged -o $merged_clustered_prov -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
 	print "Running cd-hit-est: $command\n";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
-	if(-z $merged_clustered_prov) { die "$merged_clustered_prov is empty\n"; }
-	open(outfile0,">$merged_clustered") || die;
-	open(infile0,$merged_clustered_prov) || die;
-	while(<infile0>) {
-		chomp;
-		if($_=~/^\>(\d+)/) {
-			my $newname="Merged\_$1";
-			print outfile0 ">$newname\n"; 
-			}
-		else { print outfile0 "$_\n"; }
-		}
-	close infile0;
-	close outfile0;
-			
+	if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
 
 	#-- Uses Amos to chage format to afg (for minimus2)
 
@@ -78,11 +64,25 @@ else {
 
 	#-- Create the final result (overlapping contigs plus singletons)
 
-	system("cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $finalcontigs");
+	system("cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $finalcontigs.prov");
+
+	open(outfile0,">$finalcontigs") || die;
+	open(infile0,"$finalcontigs.prov") || die;
+	while(<infile0>) {
+		chomp;
+		if($_=~/^\>(\d+)/) {
+			my $newname="Merged\_$1";
+			print outfile0 ">$newname\n"; 
+			}
+		else { print outfile0 "$_\n"; }
+		}
+	close infile0;
+	close outfile0;
+			
 
 	#-- Remove files from temp
 
-	# system("rm -r $tempdir/mergedassemblies*");
+	 system("rm -r $tempdir/mergedassemblies*");
 	}
 
 #-- Run prinseq_lite for statistics
