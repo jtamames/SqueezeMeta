@@ -39,7 +39,7 @@ else {
 	#-- Uses cd-hit to identify and remove contigs contained in others
 
 	my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
-	$command="$cdhit_soft -i $merged -o $merged_clustered_prov -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
+	$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
 	print "Running cd-hit-est: $command\n";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
