@@ -19,7 +19,9 @@ my($numthreads,$pair1,$pair2,$pfam,$outfile,$dietext,$tempfile1,$tempfile2,$hel)
 my $start_run = time();
 
 my $helptext = <<END_MESSAGE;
-Usage: SQM_hmm_reads.pl -pfam <PFAM list> -pair1 <pair1 fasta file> -pair2 <pair2 fasta file> [options]
+Search for specific PFAMs in a collection of short reads using the Short-Pair tool (PMID: 29072140).
+
+Usage: sqm_hmm_reads.pl -pfam <PFAM list> -pair1 <pair1 fasta file> -pair2 <pair2 fasta file> [options]
 
 Arguments:
 
@@ -30,7 +32,7 @@ Arguments:
    
  Optional:
    -t: Number of threads (Default: 12)
-   -output: Name of the output file (Default: SQM_pfam.out)
+   -output: Name of the output file (Default: sqm_pfam.out)
    -h: this help
 
 
@@ -45,7 +47,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 			);
 			
 
-print "\nSQM_hmm_reads.pl - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+print "\nsqm_hmm_reads.pl - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n
+The Short-Pair tool is published in Techa-Angkoon, Sun & Lei J, BMC bioinformatics 18:414 (2017). doi: https://doi.org/10.1186/s12859-017-1826-2\n\n";
 
 if($hel) { die "$helptext\n"; } 
 if(!$pair1) { $dietext.="MISSING PAIR1\n"; }
@@ -54,7 +57,7 @@ if(!$pfam) { $dietext.="MISSING PFAM\n"; }
 if($dietext) { die "$dietext\n$helptext\n"; }
 
 my $shortpair_soft="/home/jtamames/software/Short-Pair1/Short-Pair.py";
-if(!$outfile) { $outfile="SQM_pfam.out"; }
+if(!$outfile) { $outfile="sqm_pfam.out"; }
 my $pfamfile="pfam.hmm";
 my $pfamseed="pfam.seed";
 
