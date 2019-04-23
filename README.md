@@ -2,6 +2,8 @@
 
 # SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
+Find the SqueezeMeta paper at: https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full
+
 ## 1. What is SqueezeMeta?
 
 SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, covering all steps of the analysis. SqueezeMeta includes multi-metagenome support allowing the co-assembly of related metagenomes and the retrieval of individual genomes via binning procedures. Thus, SqueezeMeta features several unique characteristics:
