@@ -8,6 +8,7 @@ Generate tabular outputs from SqueezeMeta results.
 USAGE: make-tables.py <PROJECT_NAME> <OUTPUT_DIRECTORY>
 
 OPTIONS:
+    --trusted_functions: Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables
     --ignore_unclassified: Ignore ORFs without assigned functions in TPM calculation
     --write_parsed_tax: Write tables with the per-rank taxonomy of each ORF and contig
 
@@ -45,7 +46,7 @@ def main(args):
     ### Calculate tables and write results.
     prefix = args.output_dir + '/' + perlVars['$projectname'] + '.'
     
-    sampleNames, orfs, kegg, cog, pfam = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.ignore_unclassified)
+    sampleNames, orfs, kegg, cog, pfam = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.trusted_functions, args.ignore_unclassified)
 
     # Round aggregated functional abundances.
     # We can have non-integer abundances bc of the way we split counts in ORFs with multiple KEGGs.
@@ -113,7 +114,7 @@ def main(args):
 
 
 
-def parse_orf_table(orf_table, nokegg, nocog, nopfam, ignore_unclassified_fun, orfSet=None):
+def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_unclassified_fun, orfSet=None):
 
     orfs = {res: {} for res in ('abundances', 'copies', 'lengths')} # I know I'm being inconsistent with camelcase and underscores... ¯\_(ツ)_/¯
     kegg = {res: defaultdict(int) for res in ('abundances', 'copies', 'lengths')}
@@ -121,17 +122,20 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, ignore_unclassified_fun, o
     pfam = {res: defaultdict(int) for res in ('abundances', 'copies', 'lengths')}
 
     ### Define helper functions.
-    def update_dicts(funDict, funIdx):
+    def update_dicts(funDict, funIdx, trusted_only):
         # abundances, copies, lengths and ignore_unclassified_fun are taken from the outer scope.
-        funs = line[funIdx].replace('*','')
-        funs = ['Unclassified'] if not funs else funs.strip(';').split(';') # So much fun!
-        for fun in funs:
-            if ignore_unclassified_fun and fun == 'Unclassified':
-                continue
-            # If we have a multi-KO annotation, split counts between all KOs.
-            funDict['abundances'][fun] += abundances / len(funs)
-            funDict['copies'][fun]     += copies # We treat every KO as an individual smaller gene: less size, less reads, one copy.
-            funDict['lengths'][fun]    += lengths / len(funs)
+        if trusted_only and line[funIdx] and line[funIdx][-1] != '*': # Functions confirmed with the bestaver algorithm have a trailing asterisk.
+            pass
+        else:
+            funs = line[funIdx].replace('*','')
+            funs = ['Unclassified'] if not funs else funs.strip(';').split(';') # So much fun!
+            for fun in funs:
+                if ignore_unclassified_fun and fun == 'Unclassified':
+                    continue
+                # If we have a multi-KO annotation, split counts between all KOs.
+                funDict['abundances'][fun] += abundances / len(funs)
+                funDict['copies'][fun]     += copies # We treat every KO as an individual smaller gene: less size, less reads, one copy.
+                funDict['lengths'][fun]    += lengths / len(funs)
 
 
     def tpm(funDict):
@@ -176,11 +180,11 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, ignore_unclassified_fun, o
             orfs['lengths'][orf] = lengths
 
             if not nokegg:
-                update_dicts(kegg, idx['KEGG ID'])
+                update_dicts(kegg, idx['KEGG ID'], trusted_only)
             if not nocog:
-                update_dicts(cog, idx['COG ID'])
+                update_dicts(cog, idx['COG ID'], trusted_only)
             if not nopfam:
-                update_dicts(pfam, idx['PFAM'])
+                update_dicts(pfam, idx['PFAM'], False) # PFAM are not subjected to the bestaver algorithm.
 
     # Calculate tpm.
     orfs['tpm'] = tpm(orfs) 
@@ -282,11 +286,7 @@ def normalize_abunds(abundDict, scale=1):
     for row, abund in abundDict.items():
         abundPerSample += abund
     return {row: (scale * abund / abundPerSample) for row, abund in abundDict.items()}
-    
-    
-    
-    
-    
+ 
 
 def write_results(sampleNames, rowDict, outname):
     with open(outname, 'w') as outfile:
@@ -300,6 +300,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB) 2019\n')
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
     parser.add_argument('output_dir', type=str, help='Output directory')
+    parser.add_argument('--trusted_functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
     parser.add_argument('--ignore_unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
     parser.add_argument('--write_parsed_tax', action='store_true', help='Write tables with the per-rank taxonomy of each ORF and contig')
 
