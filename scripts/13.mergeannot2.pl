@@ -57,7 +57,7 @@ close infile1;
 %provi=();
 $lasto="";
 my $bfile="$tempdir/08.$project.nr.blastx.collapsed.merged.m8";
-open(infile1,$bfile) #-- This one won't exist if we didn't use the doublepass mode.
+open(infile1,$bfile); #-- This one won't exist if we didn't use the doublepass mode.
 while(<infile1>) {
 	chomp;
 	next if !$_;
