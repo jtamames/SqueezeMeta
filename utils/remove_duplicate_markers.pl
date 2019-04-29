@@ -28,12 +28,14 @@ my @binlist;
 my $markerdir="$datapath/checkm_markers";
 my $checktemp="$tempdir/checkm_batch";
 my $tempc="$tempdir/checkm_prov.txt";
+my $finalresult="$tempdir/checkm_nodupl.txt";
 
 if(-e $finalresult) { system "rm $finalresult"; }
 if(-d $markerdir) {} else { system "mkdir $markerdir"; }
 if(-d $checktemp) {} else { system "mkdir $checktemp"; print "Creating $checktemp\n";  }
 
 my $bindir=$dasdir{DASTool};
+my $bintax;
 if($binreq) { push(@binlist,$binreq); }
 else {
 	opendir(indir1,$bindir) || die "Cannot open binning directory $bindir\n";
@@ -55,7 +57,6 @@ else {
  	close infile1;
 
 foreach my $bin(sort @binlist) {
-	$finalresult="$tempdir/$bin\_checkm_nodupl.txt";
 	$fastaname="$bindir/$bin";
 	$refined=$bin;
 	$refined=~s/\.fa$/\.refined\.fa/;
@@ -65,7 +66,7 @@ foreach my $bin(sort @binlist) {
 	
 	$skip=0;
 
-	run_checkm($bin);	#-- Anulando esta llamada se haria sobre el ultimo bin evaluado por checkm
+	$bintax=run_checkm($bin);	#-- Anulando esta llamada se haria sobre el ultimo bin evaluado por checkm
 	if(!$skip) { evaluate($bin); }
 	if(!$skip) { nebin($bin); }	#-- Extracts new bin and rerun checkm statistics
 	}
@@ -74,7 +75,8 @@ sub run_checkm {
 
  my $bin=shift;
  #-- Reading the consensus taxa for the bin
- open(infile1,$binname) || die "Can't open $binname\n";
+ if(!(-e $binname)) { print "Warning: Cannot open .tax file for bin $binname\n"; }
+ open(infile1,$binname) || next; 
  print "\nFound bin $bin: ";
  while(<infile1>) { 
  	 chomp;
@@ -112,15 +114,17 @@ sub run_checkm {
  my $inloop=1;
 
  #-- We will find the deepest taxa with checkm markers
+ 
+ my($rank,$tax);
  while($inloop) {  
  	 my $taxf=shift(@{ $alltaxa{$binname}  }); 
  	 if(!$taxf) { last; $inloop=0; }
- 	 my($rank,$tax)=split(/\_/,$taxf);
+ 	 ($rank,$tax)=split(/\_/,$taxf);
  	 $tax=~s/ \<.*//g;
  	 $tax=~s/\s+/\_/g;
  	 # my $rank=$equival{$grank};
  	 if($rank eq "superkingdom") { $rank="domain"; }
- 	 print " Using profile for $rank rank : $tax\n";   
+ 	 print " Using profile for $rank rank: $tax\n";   
  	 $marker="$markerdir/$tax.ms"; 
 
  	 #-- Use already existing tax profile or create it
@@ -151,12 +155,16 @@ sub run_checkm {
  	 if($ecode!=0) { die "Error running command:	$command"; }
  	 $inloop=0;
  	 }
+	return $consensus{$bin};
 	}
 	
 	
 sub evaluate() {	
    my $bin=shift;
    (%count,%genes,%contigs,%allc)=();
+   
+   #-- Read checkM result for finding number of markers
+   
    open(infile2,"$checktemp/storage/bin_stats_ext.tsv") || die;
     while(<infile2>) {
     	    chomp;
@@ -164,6 +172,8 @@ sub evaluate() {
     	    if($_=~/markers': (\d+)/) { $markers=$1; }
  	  }
     close infile2;
+
+   #-- Read checkM result for finding duplicated markers
 
     open(infile3,"$checktemp/storage/marker_gene_stats.tsv") || die;
     while(<infile3>) {
@@ -199,18 +209,22 @@ sub evaluate() {
     	    }
     if(!$duplicated) { $duplicated="0"; }
     $score=($present/$markers)-($duplicated/$markers);  			
-    printf "Initial: $markers markers (M); $present single (S); $duplicated duplicated (D); %.3f score\n",$score;
+    printf "Initial: SCORE %.3f; $markers markers (M), $present single (S), $duplicated duplicated (D)\n",$score;
     if(!$duplicated) { print "No duplicated markers\n"; $skip=1; return; }
     ($highscore,$provhighscore)=$score;
 
     #printf "Start: %.3f\n",$highscore;
     %goodseeds=('START',$highscore);
-    $round=1;
+    $round=0;
     recursive($changes);
     }
 
 
 sub recursive {
+
+	#-- Looks for the contig that optimizes score (removes more duplicates and less single copy markers)
+	#-- If more than one contig produces the same score, remove the one less similar to the taxon of the bin
+
 	my(%seen,%bad);
 	(%newcount,%newgenes)=();
 	$changes=1;
@@ -220,12 +234,14 @@ sub recursive {
 		my $stringp="";
 		my %removed=();
 		%provseeds=();
+		my $dstoredrank;
+		my $mdupl;
 		foreach my $seed(keys %goodseeds) {
-			if($verbose) { print "SEEDS:\n"; foreach my $u(keys %goodseeds) { print "--$u"; }; print "\n"; }
+			if($verbose) { print "SEEDS:\n"; foreach my $u(keys %goodseeds) { print "--$u (SCORE $highscore)"; }; print "\n"; }
 			foreach my $nextcontig(@allcontigs) {
 				next if($seed=~/$nextcontig/);
 				my @oldseeds=split(/\;/,$seed);
-				if($verbose) { print " Evaluating contig $nextcontig\n"; }
+				# if($verbose) { print " Evaluating contig $nextcontig ($taxcontig{$nextcontig})\n"; }
 				push(@oldseeds,$nextcontig);
 				sort @oldseeds;
 				my $currseed=join(";",sort @oldseeds);
@@ -251,27 +267,39 @@ sub recursive {
 						}
 						
 					my($markers,$present,$duplicated,$score)=stats();
-					if($verbose) { print "********SCORE= $score $highscore****\n"; }
+					# if($verbose) { print "********SCORE= $score $highscore****\n"; }
 					 
 					              ############ Aqui debe incluirse seleccion por taxonomia o longitud de los contigs que den el mismo score
-					
-					if($score<$highscore) { $bad{$currseed}=1; } 
+					if($score<$provhighscore) { $bad{$currseed}=1; } 
 					else { 
  						# $provseeds{$currseed}=$score; 
 						if(!$duplicated) { $duplicated="0"; }
- 						if($verbose) { printf "   $currseed: Score %.5f This contig ($nextcontig): %.5f High %.5f; Removed $removed{$nextcontig}\n",$score,$goodseeds{$seed},$highscore; }
-						$stringp="$markers M $present S $duplicated D";
+ 						if($verbose) { printf "   $currseed: Score %.5f This contig ($nextcontig) ($taxcontig{$nextcontig}): %.5f High %.5f; Removed $removed{$nextcontig}\n",$score,$goodseeds{$seed},$highscore; }
+						$stringp="$markers M, $present S, $duplicated D";
 						# print "$string";
 						# foreach my $kk(sort keys %newcount) { print "  $kk\n"; }
 						$changes=1;  
 						# if($score>$provhighscore) { $provhighscore=$score; }
-						if($score>$provhighscore) { 
+						my $taxnextcontig=$taxcontig{$nextcontig};
+						my @btax=split(/\;/,$bintax); 
+						my @ctax=split(/\;/,$taxnextcontig);
+						my $drank;
+						for(my $pos=0; $pos<=$#btax; $pos++) {	#-- If draw, choose the contig from the most similar taxa
+							if($btax[$pos] eq $ctax[$pos]) { $drank=$pos; }
+							}
+						if(($score>$provhighscore) || (($score==$provhighscore) && ($drank<$dstoredrank))) { 
 							# print " **HIGH -> "; 
+							# if($verbose) { print "    --> $score $provhighscore, $drank $dstoredrank\n"; }
 							$provhighscore=$score; 
+							$dstoredrank=$drank;
+							my $places = 3;
+							my $factor = 10**$places;
+							$score=int($score * $factor) / $factor;
 							%provseeds=(); 
-							$provseeds{$currseed}="$nextcontig ($taxcontig{$nextcontig}) SCORE $score"; 
+							$provseeds{$currseed}="$nextcontig ($taxnextcontig) SCORE $score;"; 
 							#foreach my $u(keys %provseeds) { print "$u"; }; 
 							#print "\n"; 
+							$mdupl=$duplicated;
 							}
      						 }
   						#$string="";
@@ -279,6 +307,7 @@ sub recursive {
 					}
 				}
 			last if(!$changes);
+			$round++;
 			print "ROUND $round:"; 
 			foreach my $uu(keys %provseeds) { 
 				printf " Removing contig $provseeds{$uu} $stringp\n";
@@ -286,17 +315,15 @@ sub recursive {
 				%goodseeds=%provseeds;
 				$removed=$uu;
 				%provseeds=();
-				$round++;
-				#print "\n\n\nROUND $round\n\n";	
-				# die if($round==3);
 				}
-			}		       
+			last if(!$mdupl);		       
+			}
 	}
 
 
 sub nebin {
 	my $bin=shift;
-	my $into;
+	my($numcontigs,$into);
 	my @rem=split(/\;/,$removed);
 	map{ $removed{$_}=1; } @rem;
 	open(outfile1,">$bindir/$refined") || die;
@@ -304,6 +331,7 @@ sub nebin {
 	while(<infile4>) { 
 		chomp;
 		if($_=~/^\>([^ ]+)/) {
+			$numcontigs++;
 			my $tcontig=$1;
 			if($removed{$tcontig}) { $into=1; } else { $into=0; }	
 			}
@@ -312,20 +340,22 @@ sub nebin {
 		}
 	close infile4;
 	close outfile1;
+	print "\n$round contigs removed (out of $numcontigs)\nRefined bin stored in $bindir/$refined\n";
 	
 	#-- Rerun checkm for new statistics
 	
 	print "Recalculating checkm statistics\n";
 	
-	my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft analyze -t $numthreads -x $refined $marker $bindir $checktemp > /dev/null 2>&1";
- 	my $ecode = system $command;
+	##my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft analyze -t $numthreads -x $refined $marker $bindir $checktemp > /dev/null 2>&1";
+ 	##my $ecode = system $command;
 	# print "$command\n";
- 	if($ecode!=0) { die "Error running command:	$command"; }
- 	my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > /dev/null 2>&1"; #Override $PATH for external dependencies of checkm. (FPS).
+ 	##if($ecode!=0) { die "Error running command:	$command"; }
+ 	##my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > /dev/null 2>&1"; #Override $PATH for external dependencies of checkm. (FPS).
 	# print "$command\n";
- 	my $ecode = system $command;
-	if(-e $finalresult) { system("cat $finalresult $tempc > $tempdir/gg; mv $tempdir/gg $finalresult;"); }
-	else { system("mv $tempc $finalresult"); }
+ 	##my $ecode = system $command;
+	##if(-e $finalresult) { system("cat $finalresult $tempc > $tempdir/gg; mv $tempdir/gg $finalresult;"); }
+	##else { system("mv $tempc $finalresult"); }
+	##print "CheckM report stored in $finalresult\n";
 	}	
 			
 
@@ -342,7 +372,7 @@ sub stats {
 		if($newcount{$p}>1) { $duplicated++; }
 		}
 	my $score=($present/$markers)-($duplicated/$markers);			    
-	if($verbose) {  printf "M $markers\tP $present\tD $duplicated\tS %.3f\n",$score; }
+	# if($verbose) {  printf "M $markers\tP $present\tD $duplicated\tS %.3f\n",$score; }
 	return($markers,$present,$duplicated,$score);
 	}		    
 
