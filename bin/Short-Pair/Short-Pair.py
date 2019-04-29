@@ -40,7 +40,7 @@ def step2(hmm, inputFile):
     outputDir = os.path.join(inputFileDir, '../out1')
     
     outputFile = os.path.join(outputDir, inputFile +'.hmmer')
-    command = '%s/../hmmsearch -E 1000 --domtblout %s %s %s/%s > /dev/null' % (exec_path, outputFile, hmm, inputFileDir, inputFile)    
+    command = '%s/../hmmer/hmmsearch -E 1000 --domtblout %s %s %s/%s > /dev/null' % (exec_path, outputFile, hmm, inputFileDir, inputFile)    
     os.system(command)    
     return outputFile
     

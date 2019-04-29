@@ -12,7 +12,10 @@ use Getopt::Long;
 use Tie::IxHash;
 use lib ".";
 use strict;
+
 use File::Basename;
+my $utilsdir = dirname(__FILE__);
+my $shortpair_soft = "$utilsdir/../bin/Short-Pair/Short-Pair.py";
 
 my($numthreads,$pair1,$pair2,$pfam,$outfile,$dietext,$tempfile1,$tempfile2,$hel);
 
@@ -56,7 +59,6 @@ if(!$pair2) { $dietext.="MISSING PAIR2\n"; }
 if(!$pfam) { $dietext.="MISSING PFAM\n"; }
 if($dietext) { die "$dietext\n$helptext\n"; }
 
-my $shortpair_soft="/home/jtamames/software/Short-Pair1/Short-Pair.py";
 if(!$outfile) { $outfile="sqm_pfam.out"; }
 my $pfamfile="pfam.hmm";
 my $pfamseed="pfam.seed";
@@ -69,7 +71,6 @@ sub run_short_pairs {
 	system("mkdir out1");
 	print "\nRunning ShortPair for PFAM $pfam\n  (This can take a while, please be patient)\n";
 	my $command="$shortpair_soft -m $pfamfile -s $pfamseed -x $tempfile1 -y $tempfile2 -o $outfile";
-	# print "**$command\n";
 	system($command);
 	system("rm *alldomains.allframe*; rm fragment_length*; rm hmms.sav; rm pfam.seed.sav; rm $pfamfile; rm $pfamseed");
 	system("rm $tempfile1; rm $tempfile2");
