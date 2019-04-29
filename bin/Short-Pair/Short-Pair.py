@@ -31,7 +31,7 @@ def get_first_sequence_in_fasta_file(fasta_file):
 
 
 def step1(fastaFile, pattern):
-    command = "%s/DNA2Protein 1-6 %s %s" % (exec_path, fastaFile, pattern)
+    command = "%s/DNA2Protein 1-6 %s %s" % (exec_path, fastaFile, pattern) # exec_path, FPS
     os.system(command)
     
 def step2(hmm, inputFile):
@@ -40,7 +40,7 @@ def step2(hmm, inputFile):
     outputDir = os.path.join(inputFileDir, '../out1')
     
     outputFile = os.path.join(outputDir, inputFile +'.hmmer')
-    command = '%s/../hmmer/hmmsearch -E 1000 --domtblout %s %s %s/%s > /dev/null' % (exec_path, outputFile, hmm, inputFileDir, inputFile)    
+    command = '%s/../hmmer/hmmsearch -E 1000 --domtblout %s %s %s/%s > /dev/null' % (exec_path, outputFile, hmm, inputFileDir, inputFile) # exec_path, FPS 
     os.system(command)    
     return outputFile
     
@@ -497,7 +497,7 @@ def step12(hmmFile, hmmList, outputFolder):
         os.mkdir(outputFolder)
     for hmm in sorted(hmmList, key=lambda x:x.name):
         family = hmm.name
-        command = "%s/get_hmm.sh %s %s > %s/%s.hmm" % (exec_path, family, hmmFile, outputFolder,family)        
+        command = "%s/get_hmm.sh %s %s > %s/%s.hmm" % (exec_path, family, hmmFile, outputFolder,family) # exec_path, FPS 
         os.system(command)    
 
 def runHmmer(inputFile1, inputFile2, inputFile3, hmmFolder, outputFileInput, fastaPath, faaPath, filterFile):
@@ -580,16 +580,18 @@ def runHmmer(inputFile1, inputFile2, inputFile3, hmmFolder, outputFileInput, fas
             tmpRead = tmpRead[:-2] + '.1'
         fastaFile = r'%s/%s.fasta' % (fastaPath, tmpRead)
         faaFile = r'%s/%s.faa' % (faaPath, tmpRead)
-        command = "%s/DNA2Protein 1-6 %s %s" % (exec_path, fastaFile, faaFile)
+        command = "%s/DNA2Protein 1-6 %s %s" % (exec_path, fastaFile, faaFile) # exec_path, FPS
         os.system(command)
         outputFile = r'%s.allframe' % (faaFile)           
         fo = open(outputFile, 'wt')
         maxScore = -sys.maxint
         maxString = ''
         for i in xrange(1,7):
-            command = "%s/hmmer3_pipeline_missing_end.sh" % exec_path
+            command = "%s/hmmer3_pipeline_missing_end.sh" % exec_path # exec_path, FPS
             args = [command, "%s/%s.hmm" % (hmmFolder, family), "%s.frame%d" % (faaFile, i), "%d" % i, "10"]
-            outString = subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
+            my_env = os.environ # Add SQM/bin/hmmer to the PATH env. variable for subprocess
+            my_env['PATH'] = '%s/../hmmer:' % exec_path + os.environ['PATH']
+            outString = subprocess.Popen(args, env=my_env, stdout=subprocess.PIPE).communicate()[0]
             fo.write(outString)
             if outString != '':
                 row = outString.split()
