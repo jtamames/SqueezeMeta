@@ -22,13 +22,12 @@ my $verbose=0;
 our($alllog,%bindir,%dasdir,$installpath,$checkm_soft,$numthreads,$datapath,$tempdir,$taxlist);
 my %branks=('k','domain','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 my(%tax,%consensus,%alltaxa,%goodseeds,%allc,%genes,%count,%contigs,%newcount,%newgenes,%provseeds,%removed,%taxcontig);
-my($highscore,$provhighscore,$round,$score,$markers,$changes,$marker,$removed,$binname,$fastaname,$refined,$skip);
+my($highscore,$provhighscore,$round,$score,$markers,$changes,$marker,$removed,$binname,$fastaname,$refined,$skip,$finalresult);
 my @binlist;
 
 my $markerdir="$datapath/checkm_markers";
 my $checktemp="$tempdir/checkm_batch";
 my $tempc="$tempdir/checkm_prov.txt";
-my $finalresult="$tempdir/checkm_nodupl.txt";
 
 if(-e $finalresult) { system "rm $finalresult"; }
 if(-d $markerdir) {} else { system "mkdir $markerdir"; }
@@ -56,7 +55,7 @@ else {
  	close infile1;
 
 foreach my $bin(sort @binlist) {
-
+	$finalresult="$tempdir/$bin\_checkm_nodupl.txt";
 	$fastaname="$bindir/$bin";
 	$refined=$bin;
 	$refined=~s/\.fa$/\.refined\.fa/;
