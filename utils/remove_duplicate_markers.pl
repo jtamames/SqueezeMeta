@@ -21,7 +21,7 @@ my $verbose=0;
 
 our($alllog,%bindir,%dasdir,$installpath,$checkm_soft,$numthreads,$datapath,$tempdir,$taxlist);
 my %branks=('k','domain','p','phylum','c','class','o','order','f','family','g','genus','s','species');
-my(%tax,%consensus,%alltaxa,%goodseeds,%allc,%genes,%count,%contigs,%newcount,%newgenes,%provseeds,%removed,%taxcontig);
+my(%tax,%consensus,%alltaxa,%goodseeds,%allc,%genes,%count,%contigs,%newcount,%newgenes,%provseeds,%removed,%taxcontig,%sizes);
 my($highscore,$provhighscore,$round,$score,$markers,$changes,$marker,$removed,$binname,$fastaname,$refined,$skip,$finalresult);
 my @binlist;
 
@@ -77,7 +77,7 @@ sub run_checkm {
  #-- Reading the consensus taxa for the bin
  if(!(-e $binname)) { print "Warning: Cannot open .tax file for bin $binname\n"; }
  open(infile1,$binname) || next; 
- print "\nFound bin $bin: ";
+ print "\n----------------------\nFound bin $bin: ";
  while(<infile1>) { 
  	 chomp;
  	 if($_=~/Consensus/) {
@@ -85,6 +85,7 @@ sub run_checkm {
  		 $cons=~s/Consensus\: //;
  		 $size=~s/Total size\: //g;
  		 $consensus{$bin}=$cons;
+		 $sizes{$bin}=$size;
  		 my @k=split(/\;/,$cons);
 		 if($cons!~/k\_/) { print "No consensus tax. Skipping\n"; $skip=1; return; }
  		 print "$cons\n";
@@ -124,7 +125,7 @@ sub run_checkm {
  	 $tax=~s/\s+/\_/g;
  	 # my $rank=$equival{$grank};
  	 if($rank eq "superkingdom") { $rank="domain"; }
- 	 print " Using profile for $rank rank: $tax\n";   
+ 	 print " Trying to build profile for $rank rank: $tax\n";   
  	 $marker="$markerdir/$tax.ms"; 
 
  	 #-- Use already existing tax profile or create it
@@ -139,7 +140,8 @@ sub run_checkm {
  	 
  	 if(-e $marker) {} else { next; }
 
- 	 my $fastafile=$binname;
+ 	 print " Using profile for $rank rank: $tax\n";
+	 my $fastafile=$binname;
  	 $fastafile=~s/\.tax//;
  	 $fastafile=~s/.*\///;
  	 # print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
@@ -232,10 +234,8 @@ sub recursive {
 	while($changes) {
 		$changes=0;
 		my $stringp="";
-		my %removed=();
-		%provseeds=();
-		my $dstoredrank;
-		my $mdupl;
+		my(%removed,%provseeds);
+		my($dstoredrank,$mdupl,$storedsize,$warnings,$draws,$stringp);
 		foreach my $seed(keys %goodseeds) {
 			if($verbose) { print "SEEDS:\n"; foreach my $u(keys %goodseeds) { print "--$u (SCORE $highscore)"; }; print "\n"; }
 			foreach my $nextcontig(@allcontigs) {
@@ -275,23 +275,25 @@ sub recursive {
  						# $provseeds{$currseed}=$score; 
 						if(!$duplicated) { $duplicated="0"; }
  						if($verbose) { printf "   $currseed: Score %.5f This contig ($nextcontig) ($taxcontig{$nextcontig}): %.5f High %.5f; Removed $removed{$nextcontig}\n",$score,$goodseeds{$seed},$highscore; }
-						$stringp="$markers M, $present S, $duplicated D";
+						$stringp="$markers M, $present S, $duplicated D; (Removed $removed{$nextcontig})";
 						# print "$string";
 						# foreach my $kk(sort keys %newcount) { print "  $kk\n"; }
-						$changes=1;  
 						# if($score>$provhighscore) { $provhighscore=$score; }
 						my $taxnextcontig=$taxcontig{$nextcontig};
 						my @btax=split(/\;/,$bintax); 
 						my @ctax=split(/\;/,$taxnextcontig);
 						my $drank;
+						if($score==$provhighscore) { $warnings=1; $draws.="$nextcontig ($ctax[$#ctax]);"; }
 						for(my $pos=0; $pos<=$#btax; $pos++) {	#-- If draw, choose the contig from the most similar taxa
 							if($btax[$pos] eq $ctax[$pos]) { $drank=$pos; }
 							}
-						if(($score>$provhighscore) || (($score==$provhighscore) && ($drank<$dstoredrank))) { 
+						if(($score>$provhighscore) || (($score==$provhighscore) && ($drank<$dstoredrank))  || (($score==$provhighscore) && ($drank==$dstoredrank) && ($sizes{$taxnextcontig}<$storedsize))) { 
 							# print " **HIGH -> "; 
 							# if($verbose) { print "    --> $score $provhighscore, $drank $dstoredrank\n"; }
+							if($score>$provhighscore) { $warnings=0; $draws="$nextcontig ($ctax[$#ctax]);"; }
 							$provhighscore=$score; 
 							$dstoredrank=$drank;
+							$storedsize=$sizes{$taxnextcontig};
 							my $places = 3;
 							my $factor = 10**$places;
 							$score=int($score * $factor) / $factor;
@@ -300,22 +302,27 @@ sub recursive {
 							#foreach my $u(keys %provseeds) { print "$u"; }; 
 							#print "\n"; 
 							$mdupl=$duplicated;
+							$changes=1;  
 							}
      						 }
   						#$string="";
 
 					}
 				}
-			last if(!$changes);
-			$round++;
-			print "ROUND $round:"; 
-			foreach my $uu(keys %provseeds) { 
-				printf " Removing contig $provseeds{$uu} $stringp\n";
-				$highscore=$provhighscore;
-				%goodseeds=%provseeds;
-				$removed=$uu;
-				%provseeds=();
+			if($changes) {
+				$round++;
+				print "ROUND $round:"; 
+				foreach my $uu(keys %provseeds) { 
+					printf " Removing contig $provseeds{$uu} $stringp\n";
+					if($warnings) { print "    Warning: Removal of the following contigs produced the same score, this was preferred because of more distant rank or lower length:\n    $draws\n"; }
+					$highscore=$provhighscore;
+					%goodseeds=%provseeds;
+					$removed=$uu;
+					%provseeds=();
+					($warnings,$draws)="";
+					}
 				}
+			else { last; }
 			last if(!$mdupl);		       
 			}
 	}
@@ -346,16 +353,16 @@ sub nebin {
 	
 	print "Recalculating checkm statistics\n";
 	
-	##my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft analyze -t $numthreads -x $refined $marker $bindir $checktemp > /dev/null 2>&1";
- 	##my $ecode = system $command;
+	my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft analyze -t $numthreads -x $refined $marker $bindir $checktemp > /dev/null 2>&1";
+ 	my $ecode = system $command;
 	# print "$command\n";
- 	##if($ecode!=0) { die "Error running command:	$command"; }
- 	##my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > /dev/null 2>&1"; #Override $PATH for external dependencies of checkm. (FPS).
+ 	if($ecode!=0) { die "Error running command:	$command"; }
+ 	my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > /dev/null 2>&1"; #Override $PATH for external dependencies of checkm. (FPS).
 	# print "$command\n";
- 	##my $ecode = system $command;
-	##if(-e $finalresult) { system("cat $finalresult $tempc > $tempdir/gg; mv $tempdir/gg $finalresult;"); }
-	##else { system("mv $tempc $finalresult"); }
-	##print "CheckM report stored in $finalresult\n";
+ 	my $ecode = system $command;
+	if(-e $finalresult) { system("cat $finalresult $tempc > $tempdir/gg; mv $tempdir/gg $finalresult;"); }
+	else { system("mv $tempc $finalresult"); }
+	print "CheckM report stored in $finalresult\n";
 	}	
 			
 
