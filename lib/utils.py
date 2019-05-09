@@ -3,6 +3,12 @@ Part of the SqueezeMeta distribution. 25/03/2018 Original version, (c) Fernando 
 python utilities for working with SqueezeMeta results
 """
 
+from collections import defaultdict
+from numpy import array, isnan, seterr
+seterr(divide='ignore', invalid='ignore')
+
+TAXRANKS = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+TAXRANKS_SHORT = ('k', 'p', 'c', 'o', 'f', 'g', 's')
 
 def parse_conf_file(project_path):
     perlVars = {}
@@ -184,4 +190,21 @@ def parse_tax_string(taxString):
 
     return taxList, taxList_wranks
 
+
+def aggregate_tax_abunds(orf_abunds, orf_tax, rankIdx):
+    tax_abunds = defaultdict(int)
+    for orf, abunds in orf_abunds.items():
+        if orf not in orf_tax:
+            #print('{} had no hits against nr!'.format(orf))
+            continue
+        tax = orf_tax[orf][rankIdx]
+        tax_abunds[tax] += abunds
+    return tax_abunds
+
+
+def normalize_abunds(abundDict, scale=1):
+    abundPerSample = 0
+    for row, abund in abundDict.items():
+        abundPerSample += abund
+    return {row: (scale * abund / abundPerSample) for row, abund in abundDict.items()}
 

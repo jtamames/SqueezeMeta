@@ -18,18 +18,13 @@ from os.path import abspath, dirname, realpath
 from os import mkdir
 import argparse
 
-from numpy import array, isnan, seterr
-seterr(divide='ignore', invalid='ignore')
 from collections import defaultdict
 
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
 path.append('{}/../lib/'.format(utils_home))
-from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table 
+from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, aggregate_tax_abunds, normalize_abunds, TAXRANKS, TAXRANKS_SHORT 
 
-
-TAXRANKS = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
-TAXRANKS_SHORT = ('k', 'p', 'c', 'o', 'f', 'g', 's')
 
 def main(args):
     ### Get result files paths from SqueezeMeta_conf.pl
@@ -113,23 +108,6 @@ def main(args):
         write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 
 
-def aggregate_tax_abunds(orf_abunds, orf_tax, rankIdx):
-    tax_abunds = defaultdict(int)
-    for orf, abunds in orf_abunds.items():
-        if orf not in orf_tax:
-            #print('{} had no hits against nr!'.format(orf))
-            continue
-        tax = orf_tax[orf][rankIdx]
-        tax_abunds[tax] += abunds
-    return tax_abunds
-
-
-def normalize_abunds(abundDict, scale=1):
-    abundPerSample = 0
-    for row, abund in abundDict.items():
-        abundPerSample += abund
-    return {row: (scale * abund / abundPerSample) for row, abund in abundDict.items()}
- 
 
 def write_results(sampleNames, rowDict, outname):
     with open(outname, 'w') as outfile:
