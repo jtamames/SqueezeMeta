@@ -366,7 +366,7 @@ else {
 	if(!$nopfam) { print outfile4 " PFAM;"; }
 	if($opt_db) { print outfile4 " EXT_DB: $opt_db;"; }
 	if($doublepass) { print outfile4 " DOUBLEPASS;"; }
-	if($lowmem) { print outfile4 " LOW MEMOERY;"; }
+	if($lowmem) { print outfile4 " LOW MEMORY;"; }
 	print outfile4 "\n";
 	print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
 

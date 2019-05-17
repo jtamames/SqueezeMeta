@@ -68,7 +68,7 @@ def main(args):
     # Load prodigal results.
     ORFseq = parse_fasta(perlVars['$aafile'])
     # Load blastx results if required.
-    if bool(perlVars['$doublepass']):
+    if int(perlVars['$doublepass']):
         ORFseq.update(parse_fasta(perlVars['$fna_blastx']))
     # Write results.
     with open('{}/sequences.tsv'.format(args.output_dir), 'w') as outfile:
