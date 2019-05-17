@@ -245,6 +245,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [RDP classifier](https://github.com/rdpstaff/classifier)
 * [pullseq](https://github.com/bcthomas/pullseq)
 * [Short-Pair](https://sourceforge.net/projects/short-pair/)
+* [SAMtools](http://samtools.sourceforge.net/)
 
 ## 14. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
