@@ -18,7 +18,7 @@ do "$project/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$interdir,$alllog,$bintax,$mincontigs17,$minconsperc_asig17,$minconsperc_total17,%bindirs,%dasdir);
+our($datapath,$databasepath,$interdir,$alllog,$bintax,$mincontigs17,$minconsperc_asig17,$minconsperc_total17,%bindirs,%dasdir);
 
 	#-- Some configuration values for the algorithm
 	
@@ -27,6 +27,23 @@ my $verbose=0;
 # my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranks=('k','p','c','o','f','g','s');
 my(%tax,%taxlist);
+
+my %parents;
+open(infile0,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
+while(<infile0>) {
+	chomp;
+	next if !$_;
+	my ($tax,$par)=split(/\t/,$_);
+	$tax=~s/\[|\]//g;
+	$parents{$tax}{wranks}=$par;
+	my @m=split(/\;/,$par);
+	foreach my $y(@m) {
+		my($rt,$gtax)=split(/\:/,$y);
+		$parents{$tax}{noranks}.="$gtax;"; 
+		}
+	chop $parents{$tax}{noranks};
+	}
+close infile0;
 
 	#-- Read taxonomic assignments for contigs
 
@@ -89,7 +106,7 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		#-- Call consensus() to find the consensus taxon
 		
 		my(%chimeracheck,%abundancestax);
-		my($sep,$lasttax,$strg,$fulltax,$cattax)="";
+		my($sep,$lasttax,$strg,$fulltax,$cattax,$lasttax)="";
 		my($chimerism,$tcount)=0;
 	
 		foreach my $rank(@ranks) { 
@@ -174,6 +191,7 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 				print "***$mtax $times $percas $perctotal $totalas $chimerism\n" if $verbose;
 				$cattax.="$mtax;";
 				$fulltax.="$rank\_$mtax;";
+				$lasttax=$mtax;
 				$consf=1;
 				$strg=$rank;
 			#	 if($consf && ($k eq "maxbin.002.fasta")) { print "**$fulltax $percas $perctotal -- $times $totalas $totalcount\n"; }
@@ -182,15 +200,14 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 				}
 			}
 		if(!$fulltax) { $fulltax="No consensus"; $strg="Unknown"; }
-		
-		
-		
-		
-		
+		my $abb=$parents{$lasttax}{wranks};	
+		$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
+
 		
 		#-- Write output
 		
-		printf outfile2 "Consensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
+		#printf outfile2 "Consensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
+		printf outfile2 "Consensus: $abb\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
 		print outfile2 "List of taxa (abundance >= 1%): ";
 		foreach my $rank(@ranks) {
 			print outfile2 "$rank:";  
