@@ -21,7 +21,7 @@ do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9);
+our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9);
 
 #-- Some local configuration variables
 
@@ -106,6 +106,23 @@ while(<infile2>) {
 	}
 close infile2;
 
+my %parents;
+open(infile0,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
+while(<infile0>) {
+	chomp;
+	next if !$_;
+	my ($tax,$par)=split(/\t/,$_);
+	$tax=~s/\[|\]//g;
+	$parents{$tax}{wranks}=$par;
+	my @m=split(/\;/,$par);
+	foreach my $y(@m) {
+		my($rt,$gtax)=split(/\:/,$y);
+		$parents{$tax}{noranks}.="$gtax;"; 
+		}
+	chop $parents{$tax}{noranks};
+	}
+close infile0;
+
 #-- Reading taxonomic information for the genes (wrank file)
 
 my %taxlist;
@@ -146,7 +163,7 @@ print outfile1 "#- Created by $0 with data from $input, mingenes=$mingenes9, min
 print outfile2 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, ",scalar localtime,"\n";
 
 foreach my $contig(keys %allcontigs) {
-	my ($sep,$lasttax,$strg,$cattax,$fulltax)="";
+	my ($sep,$lasttax,$strg,$cattax,$fulltax,$lasttax)="";
 	my ($consensus,$schim,$chimerism)=0;
 	my(%consensus,%chimeracheck)=();
 	my $totalcount=$numorfs{$contig}; 
@@ -228,6 +245,7 @@ foreach my $contig(keys %allcontigs) {
 
 			$cattax.="$mtax;";
 			$fulltax.="$rank\_$mtax;";
+			$lasttax=$mtax;
 			$strg=$rank;
 			$schim=$chimerism;
 			$consensus=1;
@@ -239,8 +257,11 @@ foreach my $contig(keys %allcontigs) {
 
 	#-- Finally, write the output
 		
-	if(!$consensus) { $cattax="No consensus"; $strg="Unknown"; }			
-	printf outfile2 "$contig\t$fulltax\t$strg\tDisparity: %.3f\tGenes: $numorfs{$contig}\n",$chimerism;
+	if(!$consensus) { $cattax="No consensus"; $strg="Unknown"; }		
+	my $abb=$parents{$lasttax}{wranks};	
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
+	# printf outfile2 "$contig\t$fulltax\t$strg\tDisparity: %.3f\tGenes: $numorfs{$contig}\n",$chimerism;
+	printf outfile2 "$contig\t$abb\t$strg\tDisparity: %.3f\tGenes: $numorfs{$contig}\n",$chimerism;
                                  }
 close outfile1;
 close outfile2;
