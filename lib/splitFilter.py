@@ -4,7 +4,7 @@ from numbers import Number
 
 class SplitFilter():
     TAX_KEYWORDS = ['SUPERKINGDOM', 'PHYLUM', 'CLASS', 'ORDER', 'FAMILY', 'GENUS', 'SPECIES']
-    FUN_KEYWORDS = ['FUN']
+    FUN_KEYWORDS = ['FUN', 'FUNH']
     SAMPLES = []
     ALL_KEYWORDS = TAX_KEYWORDS + FUN_KEYWORDS + SAMPLES
     RELATIONAL_OPERATORS = ['==', '!=', '>=', '<=', '>', '<', 'IN', 'NOT IN', 'CONTAINS', 'DOES NOT CONTAIN']
@@ -30,7 +30,7 @@ class SplitFilter():
         conn = sqlite3.connect(profile_db_path)
         c = conn.cursor()
         c.execute('PRAGMA table_info("abundance_splits");')
-        samples = [x[1].split('_ANVI')[0] for x in c.fetchall() if '_ANVI' in x[1]]
+        samples = [x[1] for x in c.fetchall()][1:-1]
         conn.close()
         return samples
     
@@ -304,7 +304,13 @@ class SplitFilter():
                 op = 'NOT LIKE'
                 value = '%{}%'.format(value)
             value = [value, value]
-        query = 'SELECT DISTINCT genes_in_splits.split FROM genes_in_splits, gene_functions WHERE (gene_functions.function {} {} OR gene_functions.accession {} {}) AND gene_functions.gene_callers_id==genes_in_splits.gene_callers_id;'.format(op, valueSub, op, valueSub)
+        if subject == 'FUN':
+            sources = 'KEGG, COG PFAM'
+        elif subject == 'FUNH':
+            sources = 'KEGGPATH'
+        else:
+            raise Exception('This should not happen')
+        query = 'SELECT DISTINCT genes_in_splits.split FROM genes_in_splits, gene_functions WHERE gene_functions.source IN ({}) AND (gene_functions.function {} {} OR gene_functions.accession {} {}) AND gene_functions.gene_callers_id==genes_in_splits.gene_callers_id;'.format(sources, op, valueSub, op, valueSub)
         # DISTINCT is not really needed as we will cast results into a set, but is clearer this way.
         c.execute(query, value)
         goodSplits = set([x[0] for x in c.fetchall()])
@@ -322,7 +328,7 @@ class SplitFilter():
         conn = sqlite3.connect(self.profile_db_path)
         c = conn.cursor()
         #op, subject and value should have just been tested for sanity so we do direct substitution.
-        c.execute('SELECT contig FROM abundance_splits WHERE {}_ANVI{}{};'.format(subject, op, value)) # we say SELECT contig but they're really splits
+        c.execute('SELECT contig FROM abundance_splits WHERE {}{}{};'.format(subject, op, value)) # we say SELECT contig but they're really splits
         goodSplits = set([x[0] for x in c.fetchall()])
         conn.close()
         return goodSplits

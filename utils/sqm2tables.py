@@ -1,17 +1,20 @@
 #!/usr/bin/python3
 
 """
-Part of the SqueezeMeta distribution. 25/03/2018 Original version, (c) Fernando Puente-Sánchez, CNB-CSIC.
+Part of the SqueezeMeta distribution. 25/03/2018 Original version,
+                            (c) Fernando Puente-Sánchez, CNB-CSIC.
 
 Generate tabular outputs from SqueezeMeta results.
 
-USAGE: make-tables.py <PROJECT_NAME> <OUTPUT_DIRECTORY>
+USAGE: make-tables.py PROJECT_NAME OUTPUT_DIRECTORY
 
 OPTIONS:
-    --trusted_functions: Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables
-    --ignore_unclassified: Ignore ORFs without assigned functions in TPM calculation
-    --write_parsed_tax: Write tables with the per-rank taxonomy of each ORF and contig
-
+    --trusted_functions: Include only ORFs with highly trusted KEGG and
+        COG assignments in aggregated functional tables
+    --ignore_unclassified: Ignore ORFs without assigned functions in
+        TPM calculation
+    --write_parsed_tax: Write tables with the per-rank taxonomy of each
+        ORF and contig
 """
 
 from os.path import abspath, dirname, realpath
