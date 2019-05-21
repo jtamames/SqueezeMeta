@@ -64,11 +64,25 @@ else {
 
 	#-- Create the final result (overlapping contigs plus singletons)
 
-	system("cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $finalcontigs");
+	system("cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $finalcontigs.prov");
+
+	open(outfile0,">$finalcontigs") || die;
+	open(infile0,"$finalcontigs.prov") || die;
+	while(<infile0>) {
+		chomp;
+		if($_=~/^\>(\d+)/) {
+			my $newname="Merged\_$1";
+			print outfile0 ">$newname\n"; 
+			}
+		else { print outfile0 "$_\n"; }
+		}
+	close infile0;
+	close outfile0;
+			
 
 	#-- Remove files from temp
 
-	system("rm -r $tempdir/mergedassemblies*");
+	 system("rm -r $tempdir/mergedassemblies*");
 	}
 
 #-- Run prinseq_lite for statistics

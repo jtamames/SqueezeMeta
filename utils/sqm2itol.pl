@@ -34,7 +34,6 @@ my $result = GetOptions ("completion=i" => \$complete_cutoff,
 if($hel) { die "$helptext\n"; } 
 
 my $pwd=cwd();
-#my $project=pop @ARGV;
 $project=~s/\/$//;
 if(!$project) { die "Please provide project name\nUsage: sqm2itol.pl <options> -p project\n"; }
 

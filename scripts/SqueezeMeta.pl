@@ -790,7 +790,7 @@ sub pipeline {
 			
     #-------------------------------- STEP14: Running Maxbin (only for merged or coassembly modes)		
 	
-	if(($mode!~/sequential/i) && ($numsamples>1) && (!$nobins)) {	       
+	 if(!$nobins) {	       
 		if(($rpoint<=14) && (!$nomaxbin)) {
 			my $scriptname="14.bin_maxbin.pl";
 			print outfile3 "14\t$scriptname\n";
@@ -806,7 +806,7 @@ sub pipeline {
 			my $firstfile="$dirbin/$binfiles[0]";
 			my $wc=qx(wc -l $firstfile);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2) { die "Stopping in STEP14 -> $scriptname. File $firstfile is empty!\n"; }
+			if($wsize<2) { warn "WARNING in STEP14 -> $scriptname. File $firstfile is empty, no MaxBin results!\n"; }
 		}
 			
     #-------------------------------- STEP15: Running Metabat (only for merged or coassembly modes)		
@@ -826,7 +826,7 @@ sub pipeline {
 			my $firstfile="$dirbin/$binfiles[0]";
 			my $wc=qx(wc -l $firstfile);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2) { die "Stopping in STEP15 -> $scriptname. File $firstfile is empty!\n"; }
+			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. File $firstfile is empty, no Metabat2 results!\n"; }
 		}
  
     #-------------------------------- STEP16: DAS Tool merging of binning results (only for merged or coassembly modes)		
@@ -850,7 +850,7 @@ sub pipeline {
 				print("WARNING: File $firstfile is empty!. DAStool did not generate results\n");
 				$DAS_Tool_empty = 1;
 				}
-		}
+		 }
 			
     #-------------------------------- STEP17: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
@@ -911,7 +911,7 @@ sub pipeline {
 			}
 			else{ print("Skipping BIN TABLE CREATION: DAS_Tool did not predict bins.\n") ; }
 		}
-	}
+	 }
 
     #-------------------------------- STEP20: Make contig table		
 
@@ -930,7 +930,7 @@ sub pipeline {
 
     #-------------------------------- STEP21: Pathways in bins          
 
-	if(($mode!~/sequential/i) && ($numsamples>1) && (!$nobins)) {	       
+	if(!$nobins) {	       
 		if($rpoint<=21) {
 			if(!$DAS_Tool_empty){
 				my $scriptname="21.minpath.pl";
