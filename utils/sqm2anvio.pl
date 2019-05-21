@@ -86,8 +86,13 @@ while(<infile2>) {
 		my $f=$head[$pos];
 		$k[$pos]=~s/\*$//;
 		if(($f eq "KEGG ID") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tKEGG\t$k[$pos]\t$k[$pos+1]\t0\n"; }
+		if(($f eq "KEGGPATH") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tKEGGPATH\t$k[$pos]\t\t0\n"; }
 		if(($f eq "COG ID") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tCOG\t$k[$pos]\t$k[$pos+1]\t0\n"; }
-		if(($f eq "PFAM") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tPFAM\t$k[$pos]\t\t0\n"; }
+		if(($f eq "PFAM") && $k[$pos]) { 
+			my($pfid,$pffun)=split(/\s+/,$k[$pos]);
+			$pffun=~s/\[|\]//g;
+			print outfile3 "$genindex{$k[0]}\tPFAM\t$pfid\t$pffun\t0\n"; 
+			}
 		my($kingdom,$phylum,$class,$order,$family,$genus,$species);
 		if(($f eq "TAX ORF") && $k[$pos]) { 
 			if($k[$pos]=~/k_([^;]+)/) { $kingdom=$1; }
