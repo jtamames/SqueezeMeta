@@ -305,9 +305,9 @@ class SplitFilter():
                 value = '%{}%'.format(value)
             value = [value, value]
         if subject == 'FUN':
-            sources = 'KEGG, COG PFAM'
+            sources = '"KEGG", "COG", "PFAM"'
         elif subject == 'FUNH':
-            sources = 'KEGGPATH'
+            sources = '"KEGGPATH"'
         else:
             raise Exception('This should not happen')
         query = 'SELECT DISTINCT genes_in_splits.split FROM genes_in_splits, gene_functions WHERE gene_functions.source IN ({}) AND (gene_functions.function {} {} OR gene_functions.accession {} {}) AND gene_functions.gene_callers_id==genes_in_splits.gene_callers_id;'.format(sources, op, valueSub, op, valueSub)

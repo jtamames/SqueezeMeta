@@ -7,7 +7,9 @@ using anvi-interactive.
 
 USAGE:
 
-anvio-view.py -p PROFILE_DB -c CONTIGS_DB -t CONTIGS_TAXONOMY -q "QUERY" [--max-splits int ]
+anvio-view.py -p PROFILE_DB -c CONTIGS_DB -t CONTIGS_TAXONOMY -q QUERY
+     [--max-splits int ] [--enforce-clustering]
+     [--extra-anvio-args "extra args"]
 
 QUERY SYNTAX:
 
@@ -63,9 +65,19 @@ QUERY SYNTAX:
 - The "--max-splits" parameter controls the maximum number of splits
   that will be loaded into anvi\'o. If the provided query returns a
   higher number of splits, the program will stop. By default it is set
-  to 25,000, which is the value that the anvi\'o developers considered
-  reasonable. Setting --max-splits to 0 will allow an arbitrarily large
+  to 25,000, larger values may make the anvi\'o interface to respond
+  slowly. Setting --max-splits to 0 will allow an arbitrarily large
   number of splits to be loaded.
+
+- By default, splits are only clustered based on their taxonomy. Passing
+  the "--enforce-clustering" flag will make anvi\'o perform an
+  additional clustering based on abundances across samples and sequence
+  composition.
+
+- Extra arguments for anvi-interactive can be passed with the parameter
+  --extra-anvio-args "extra args". Extra arguments must be surrounded
+  by quotes.
+     e.g. --extra-anvio-args "--taxonomic-level t_phylum --title Parrot"
 """
 
 import argparse
@@ -124,8 +136,18 @@ def main(args):
     call(['rm', '-r', 'tempCol']) # we should do the rm and the delete-collection after anvi-interactive is killed manually, but it doesn't seem to work
     call(['anvi-delete-collection', '-p', args.profile_db, '-C', COLLECTION_NAME])
     call(['anvi-import-collection', '-c', args.contigs_db, '-p', args.profile_db, '-C', COLLECTION_NAME, 'tempCollection.tsv'])
-    call(['anvi-split', '-c', args.contigs_db, '-p', args.profile_db, '-C', COLLECTION_NAME, '-o', 'tempCol'])
-    call(['anvi-interactive', '-c', 'tempCol/{}/CONTIGS.db'.format(COLLECTION_NAME), '-p', 'tempCol/{}/PROFILE.db'.format(COLLECTION_NAME), '-t', OUTTREE])
+
+    splitCommand = ['anvi-split', '-c', args.contigs_db, '-p', args.profile_db, '-C', COLLECTION_NAME, '-o', 'tempCol']
+    if args.enforce_clustering:
+        splitCommand.append('--enforce-hierarchical-clustering')
+    else:
+        splitCommand.append('--skip-hierarchical-clustering')
+    call(splitCommand)
+
+    interactiveCommand = ['anvi-interactive', '-c', 'tempCol/{}/CONTIGS.db'.format(COLLECTION_NAME), '-p', 'tempCol/{}/PROFILE.db'.format(COLLECTION_NAME), '-t', OUTTREE]
+    interactiveCommand.extend([x.strip() for x in args.extra_anvio_args.split(' ')])
+    call(interactiveCommand)
+
 
 def makeTaxTree(splits, contigTax, outname):
     RANK_PREFIXES = ['k', 'p', 'c', 'o', 'f', 'g', 's']
@@ -186,6 +208,8 @@ def parse_args():
     parser.add_argument('-t', '--taxonomy', type=str, required = True, help='SqueezeMeta contigs taxonomy')
     parser.add_argument('-q', '--query', type=str, required=True, nargs='+')
     parser.add_argument('-m', '--max-splits', type=int, default=25000, help='Maximum number of splits to visualize')
+    parser.add_argument('--enforce-clustering', action='store_true', help='Hierarchically cluster splits based on abundances and composition')
+    parser.add_argument('--extra-anvio-args', type=str, help='Extra arguments for anvi-interactive')
     args = parser.parse_args()
     args.query = ' '.join(args.query)
     return args
