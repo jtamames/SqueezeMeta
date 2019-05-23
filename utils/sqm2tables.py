@@ -9,11 +9,11 @@ Generate tabular outputs from SqueezeMeta results.
 USAGE: make-tables.py PROJECT_NAME OUTPUT_DIRECTORY
 
 OPTIONS:
-    --trusted_functions: Include only ORFs with highly trusted KEGG and
+    --trusted-functions: Include only ORFs with highly trusted KEGG and
         COG assignments in aggregated functional tables
-    --ignore_unclassified: Ignore ORFs without assigned functions in
+    --ignore-unclassified: Ignore ORFs without assigned functions in
         TPM calculation
-    --write_parsed_tax: Write tables with the per-rank taxonomy of each
+    --parsed-tax-only: Only write tables with the per-rank taxonomy of each
         ORF and contig
 """
 
@@ -26,7 +26,7 @@ from collections import defaultdict
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
 path.append('{}/../lib/'.format(utils_home))
-from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, aggregate_tax_abunds, normalize_abunds, TAXRANKS, TAXRANKS_SHORT 
+from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, read_orf_names, aggregate_tax_abunds, normalize_abunds, TAXRANKS, TAXRANKS_SHORT 
 
 
 def main(args):
@@ -44,26 +44,33 @@ def main(args):
     ### Calculate tables and write results.
     prefix = args.output_dir + '/' + perlVars['$projectname'] + '.'
     
-    sampleNames, orfs, kegg, cog, pfam = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.trusted_functions, args.ignore_unclassified)
+    ### Functions
+    if not args.sqm2anvio:
+        sampleNames, orfs, kegg, cog, pfam = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.trusted_functions, args.ignore_unclassified)
 
-    # Round aggregated functional abundances.
-    # We can have non-integer abundances bc of the way we split counts in ORFs with multiple KEGGs.
-    # We round the aggregates to the closest integer for convenience.
-    kegg['abundances'] = {k: a.round().astype(int) for k,a in kegg['abundances'].items()}
-    cog['abundances']  = {k: a.round().astype(int) for k,a in  cog['abundances'].items()}
-    pfam['abundances'] = {k: a.round().astype(int) for k,a in pfam['abundances'].items()}
+        # Round aggregated functional abundances.
+        # We can have non-integer abundances bc of the way we split counts in ORFs with multiple KEGGs.
+        # We round the aggregates to the closest integer for convenience.
+        kegg['abundances'] = {k: a.round().astype(int) for k,a in kegg['abundances'].items()}
+        cog['abundances']  = {k: a.round().astype(int) for k,a in  cog['abundances'].items()}
+        pfam['abundances'] = {k: a.round().astype(int) for k,a in pfam['abundances'].items()}
 
-    #write_results(sampleNames, orfs['tpm'], prefix + 'orf.tpm.tsv')
-    if not nokegg:
-        write_results(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
-        write_results(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
-    if not nocog:
-        write_results(sampleNames, cog['abundances'], prefix + 'COG.abund.tsv')
-        write_results(sampleNames, cog['tpm'], prefix + 'COG.tpm.tsv')
-    if not nopfam:
-        write_results(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
-        write_results(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
+        #write_results(sampleNames, orfs['tpm'], prefix + 'orf.tpm.tsv')
+        if not nokegg:
+            write_results(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
+            write_results(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
+        if not nocog:
+            write_results(sampleNames, cog['abundances'], prefix + 'COG.abund.tsv')
+            write_results(sampleNames, cog['tpm'], prefix + 'COG.tpm.tsv')
+        if not nopfam:
+            write_results(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
+            write_results(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
+    else:
+        # Not super beautiful code. Just read the orf names and create a fake orf dict
+        # since we need to know the names of all the orfs to create the taxonomy output.
+        orfs = {'abundances': read_orf_names(perlVars['$mergedfile'])}
 
+    ### Taxonomy.
     fun_prefix = perlVars['$fun3tax_blastx'] if doublepass else perlVars['$fun3tax']
     orf_tax, orf_tax_wranks = parse_tax_table(fun_prefix + '.wranks')
     orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.noidfilter.wranks')
@@ -96,19 +103,23 @@ def main(args):
     
     contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
 
-    if args.write_parsed_tax:
+    if args.write_parsed_tax or args.sqm2anvio:
         write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
+        write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
+    if args.write_parsed_tax:
         write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
         write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
-        write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
 
-    for idx, rank in enumerate(TAXRANKS):
-        tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter, idx)
-        write_results(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.orfs.tsv'.format(rank))
 
-        tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
-        write_results(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
-        write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
+    ### Write taxa abundances
+    if not args.sqm2anvio:
+        for idx, rank in enumerate(TAXRANKS):
+            tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter, idx)
+            write_results(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.orfs.tsv'.format(rank))
+
+            tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
+            write_results(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
+            write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 
 
 
@@ -124,9 +135,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB) 2019\n')
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
     parser.add_argument('output_dir', type=str, help='Output directory')
-    parser.add_argument('--trusted_functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
-    parser.add_argument('--ignore_unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
-    parser.add_argument('--write_parsed_tax', action='store_true', help='Write tables with the per-rank taxonomy of each ORF and contig')
+    parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
+    parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
+    parser.add_argument('--write-parsed-tax', action='store_true', help='Write tables with the per-rank taxonomy of each ORF and contig')
+    parser.add_argument('--sqm2anvio', action='store_true', help='Write the required files for sqm2anvio')
 
     return parser.parse_args()
 
