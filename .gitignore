@@ -19,4 +19,5 @@ scripts/SqueezeMeta_conf.pl
 lib/checkm/DATA_CONFIG
 lib/classifier/*
 bin/mummer/.libs/*
+.*swp
 ToDo

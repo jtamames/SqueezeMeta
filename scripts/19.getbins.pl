@@ -116,7 +116,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	my $fasta=$tfil;
 	$fasta=~s/\.tax//g;
 	my $seq;
-	open(infile4,"$bindir/$fasta");
+	open(infile4,"$bindir/$fasta") || die "Can't open $bindir/$fasta\n";
 	while(<infile4>) { 
 		chomp;
 		if($_!~/\>/) { $seq.=$_; } 

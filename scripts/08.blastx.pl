@@ -127,7 +127,7 @@ sub masking {
 	$maskedfile=$contigsfna;
 	$maskedfile="$tempdir/08.$project.masked.fna";
 	# if (-e $maskedfile) { die "File $maskedfile already exists\n"; }
-	open(outfile,">$maskedfile");
+	open(outfile,">$maskedfile") || die "Can't open $maskedfile for writing\n";
 	open(infile3,$contigsfna) || die "Can't open $contigsfna\n";
 	my($seq,$current)="";
 	while(<infile3>) {

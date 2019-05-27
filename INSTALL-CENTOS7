@@ -9,6 +9,10 @@ sudo yum -y install epel-release
 sudo yum update
 
 
+### Install ncurses-devel
+sudo yum -y install ncurses-devel
+
+
 ### Install Ruby.
 sudo yum -y install ruby
 

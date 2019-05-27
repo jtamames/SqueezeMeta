@@ -21,7 +21,7 @@ my(%lon,%taxa,%abund,%abundreads,%samples,%accum,%accumbases,%accumreads,%taxcor
 
 	#-- Read contig lengths
 
-open(infile1,$contigslen);
+open(infile1,$contigslen) || die "Can't open $contigslen for reading\n";
 while(<infile1>) {  
 	chomp;
 	next if !$_;

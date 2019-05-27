@@ -2,6 +2,8 @@
 
 # SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
+Find the SqueezeMeta paper at: https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full
+
 ## 1. What is SqueezeMeta?
 
 SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, covering all steps of the analysis. SqueezeMeta includes multi-metagenome support allowing the co-assembly of related metagenomes and the retrieval of individual genomes via binning procedures. Thus, SqueezeMeta features several unique characteristics:
@@ -46,6 +48,8 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 21) Prediction of kegg and metacyc patwhays for each bin
 22) Final statistics for the run
 
+Detailed information about the different steps of the pipeline can be found in the PDF manual.
+
 
 ## 2. Installation
 
@@ -75,7 +79,7 @@ If the SqueezeMeta databases are already built in another location in the system
 ## 4. Execution, restart and running scripts
 
 ### Scripts location
-The scripts composing the SqueezeMeta pipeline can be found in the `.../SqueezeMeta/scripts` directory. We recommend adding it to your $PATH environment variable.
+The scripts composing the SqueezeMeta pipeline can be found in the `.../SqueezeMeta/scripts` directory. Other utility scripts can be found in the `.../SqueezeMeta/utils` directory. See the PDF manual for more information on utility scripts.
 
 ### Execution
 
@@ -85,32 +89,30 @@ The command for running SqueezeMeta has the following syntax:
 
 **Arguments** 
 *Mandatory parameters* 
-* *-m*: Mode (sequential, coassembly, merged) (REQUIRED) 
-* *-p*: Project name (REQUIRED in coassembly and merged modes) 
-* *-s*|*-samples*: Samples file (REQUIRED) 
-* *-f*|*-seq*: Fastq read files' directory (REQUIRED) 
+* *-m* <sequential, coassembly, merged>: Mode (REQUIRED) 
+* *-p* \<string\>: Project name (REQUIRED in coassembly and merged modes) 
+* *-s*|*-samples* \<path\>: Samples file (REQUIRED) 
+* *-f*|*-seq* \<path\>: Fastq read files' directory (REQUIRED) 
  
 *Filtering* 
 * *--cleaning*: Filters with Trimmomatic (Default: no) 
-* *-cleaning_options*: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
+* *-cleaning_options* [string]: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
  
 *Assembly*  
-* *-a*: assembler [megahit,spades] (Default:megahit) 
-* *-assembly_options*: Extra options for the assembler (refer to the manual of the specifiec assembler). 
-* *-c*|*-contiglen*: Minimum length of contigs (Default:200) 
-* *-extassembly*: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
+* *-a* [megahit,spades]: assembler (Default:megahit) 
+* *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). 
+* *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
+* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
  
 *Annotation* 
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
-* *-extdb*: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
-* *-e*|*-evalue*: Max evalue for DIAMOND run (Default: 1e-03) 
-* *-miniden*: Minimum identity perc for DIAMOND run (Default: 50) 
-* *-D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
+* *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
+* *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
 *Mapping* 
-* *-map*: Read mapper [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr] (Default: bowtie) 
+* *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie) 
  
 *Binning* 
 * *--nobins*: Skip binning (Default: no) 
@@ -118,9 +120,9 @@ The command for running SqueezeMeta has the following syntax:
 * *--nometabat*: Skip MetaBat2 binning (Default: no) 
  
 *Performance* 
-* *-t*: Number of threads (Default:12) 
-* *-b*|*-block-size*: Block size for diamond against the nr database (Default: 8) 
-* *-canumem*: Memory for canu in Gb (Default: 32) 
+* *-t* [number]: Number of threads (Default:12) 
+* *-b*|*-block-size* [number]: Block size for diamond against the nr database (Default: 8) 
+* *-canumem* [number]: Memory for canu in Gb (Default: 32) 
 * *--lowmem*: Run on less than 16 Gb of RAM memory (Default: no). Equivalent to: -b 3 -canumem 15 
  
 *Other* 
@@ -168,6 +170,8 @@ Alternatively, the run can be restarted from a specific step by issuing the comm
 
 `restart.pl <projectname> -step <step_to_restart_from>`
 
+e.g. `restart.pl <projectname> -step 6` would restart the pipeline from the taxonomic assignment of genes. The different steps of the pipeline are listed in section 1.
+
 ### Running scripts
 Also, any individual script of the pipeline can be run in the upper directory to the project using the same syntax: 
 
@@ -179,17 +183,17 @@ An user-supplied assembly can be passed to SqueezeMeta with the flag *-extassemb
 
 
 ## 6. Using external databases for functional annotation
-Version 1.0 implements the possibility of using one or several user-provided databases for functional annotation. This is invoked using the *--extdb* option. Please refer to the manual for details.
+Version 1.0 implements the possibility of using one or several user-provided databases for functional annotation. This is invoked using the *-extdb* option. Please refer to the manual for details.
 
 
 ## 7. Extra sensitive detection of ORFs
-Version 1.0 implements the *-D* option (*doublepass*), that attempts to provide a more sensitive ORF detection by combining the Prodigal prediction with a BlastX search on parts of the contigs where no ORFs were predicted, or where predicted ORFs did not match anything in the taxonomic and functional databases.
+Version 1.0 implements the *--D* option (*doublepass*), that attempts to provide a more sensitive ORF detection by combining the Prodigal prediction with a BlastX search on parts of the contigs where no ORFs were predicted, or where predicted ORFs did not match anything in the taxonomic and functional databases.
 
 
 ## 8. Testing SqueezeMeta
 The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `<datapath>` as its target the test run can be executed with
 
-`cd <datapath>`
+`cd <datapath/test>`  
 `SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
 
 Alternatively, `-m sequential` or `-m merged` can be used.
@@ -203,7 +207,7 @@ As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Na
 
 ## 10. Working on a low memory environment
 In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. DIAMOND memory usage can be controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
-We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limtations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
+We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limitations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
 
 
 ## 11. Setting up the MySQL database
@@ -240,7 +244,8 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)
 * [RDP classifier](https://github.com/rdpstaff/classifier)
 * [pullseq](https://github.com/bcthomas/pullseq)
-
+* [Short-Pair](https://sourceforge.net/projects/short-pair/)
+* [SAMtools](http://samtools.sourceforge.net/)
 
 ## 14. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).

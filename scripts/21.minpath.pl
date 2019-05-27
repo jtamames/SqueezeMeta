@@ -92,7 +92,7 @@ outres("metacyc");
 sub outres {
 	my $clas=shift;
 	my $totpath;
-	open(outfile5,">$resultpath/21.$project.$clas.pathways");
+	open(outfile5,">$resultpath/21.$project.$clas.pathways") || die "Can't open $resultpath/21.$project.$clas.pathways for writing\n";
 	print outfile5 "Bin\tTax\tPathways found";
 	foreach my $pt(sort keys %allpaths) { print outfile5 "\t$pt"; $totpath++; }
 	print outfile5 "\n";
@@ -157,7 +157,7 @@ sub metacyc {
 		close infile7;
 	
 	
-		open(outfile4,">$tempdir/$kbin.metacyc.pathways");
+		open(outfile4,">$tempdir/$kbin.metacyc.pathways") || die "Can't open $tempdir/$kbin.metacyc.pathways for writing\n";
 		foreach my $konto(sort keys %accum) { 
 			print outfile4 "$konto\n"; 
 			$pathways{$kbin}{$konto}=1; 
@@ -217,7 +217,7 @@ sub kegg {
 		close infile7;
 	
 	
-		open(outfile4,">$outdir/$kbin.kegg.pathways");
+		open(outfile4,">$outdir/$kbin.kegg.pathways") || die "Can't open $outdir/$kbin.kegg.pathways for writing\n";
 		foreach my $konto(sort keys %accum) { 
 			print outfile4 "$konto\n"; 
 			$pathways{$kbin}{$konto}=1; 

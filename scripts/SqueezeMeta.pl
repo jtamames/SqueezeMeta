@@ -13,7 +13,7 @@ use Tie::IxHash;
 use lib ".";
 use strict;
 
-my $version="0.5.0, Feb 2019";
+my $version="1.0.0beta";
 my $start_run = time();
 
 ###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
@@ -366,7 +366,7 @@ else {
 	if(!$nopfam) { print outfile4 " PFAM;"; }
 	if($opt_db) { print outfile4 " EXT_DB: $opt_db;"; }
 	if($doublepass) { print outfile4 " DOUBLEPASS;"; }
-	if($lowmem) { print outfile4 " LOW MEMOERY;"; }
+	if($lowmem) { print outfile4 " LOW MEMORY;"; }
 	print outfile4 "\n";
 	print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
 
@@ -800,7 +800,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
 			my $dirbin=$bindirs{maxbin};
-			opendir(indir1,$dirbin);
+			opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
 			closedir indir1;
 			my $firstfile="$dirbin/$binfiles[0]";
@@ -820,7 +820,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
-			opendir(indir2,$dirbin);
+			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
@@ -840,7 +840,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
-			opendir(indir2,$dirbin);
+			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";

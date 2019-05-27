@@ -30,7 +30,7 @@ if(-e $rnafile) { system("rm $rnafile"); }
 #-- Loop for all kingdoms (Bac, Arch, Euk) plus mitochondria, looking for the respective RNAs
 
 my %rname;
-open(outfile4,">$tempdir/16S.fasta");
+open(outfile4,">$tempdir/16S.fasta") || die "Can't open $tempdir/16S.fasta for writing\n";
 foreach my $kingdom(keys %king) {
 	my(%rna,%inrna)=();
 	my $output="$tempdir/$kingdom.gff";
@@ -69,8 +69,8 @@ foreach my $kingdom(keys %king) {
 
 	#-- Concatenate all RNA files, and mask the contigs for not predicting these RNAs as proteins (in upcoming gene prediction)
 
-	open(outfile2,">>$rnafile");
-	open(outfile3,">contigs.prov");
+	open(outfile2,">>$rnafile") || die "Can't open $rnafile for writing\n";
+	open(outfile3,">contigs.prov") || die "Can't open contigs.prov for writing\n";
 	open(infile2,$targetfile) || die "Can't open $targetfile\n";
 	my($seq,$current)="";
 	while(<infile2>) {
@@ -130,9 +130,9 @@ while(<infile3>) {
 	}
 close infile3;
 
-open(outfile5,">$resultpath/02.$project.16S.txt");
+open(outfile5,">$resultpath/02.$project.16S.txt") || die "Can't open $resultpath/02.$project.16S.txt for writing\n";
 print outfile5 "#-- Created by $0, ",scalar localtime,"\n# ORF\tModel\tLast tax\tRank\tFull tax\n";
-open(infile4,"$tempdir/16S.out");
+open(infile4,"$tempdir/16S.out") || die "Can't open $tempdir/16S.out\n";
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 while(<infile4>) {
 	chomp;
