@@ -94,10 +94,7 @@ from os import devnull
 DEVNULL = open(devnull, 'wb')
 from splitFilter import SplitFilter
 
-PROJECT_PATH = '/media/disk8/fer/Hadza'
-PROJECT_NAME = 'Hadza3'
-
-OUTTREE = '{}/Taxonomy.nwk'.format(PROJECT_PATH)
+OUTTREE = 'Taxonomy.nwk'
 COLLECTION_NAME = 'SqueezeMeta'
 
 def main(args):
@@ -108,7 +105,7 @@ def main(args):
     sfilter = SplitFilter(args.contigs_db, args.profile_db, args.taxonomy)
     splits, samples, contigTax = sfilter.get_parsed_annotations()
     print('')
-    print('- {} splits found in anvi\'o database.'.format(len(splits)))
+    print('- {} splits found in anvi\'o profile database.'.format(len(splits)))
     print('')
     print('- Sample names are:')
     print('\t{}'.format('\t'.join(samples)))
@@ -145,15 +142,23 @@ def main(args):
     call(splitCommand)
 
     interactiveCommand = ['anvi-interactive', '-c', 'tempCol/{}/CONTIGS.db'.format(COLLECTION_NAME), '-p', 'tempCol/{}/PROFILE.db'.format(COLLECTION_NAME), '-t', OUTTREE]
-    interactiveCommand.extend([x.strip() for x in args.extra_anvio_args.split(' ')])
+
+    if args.extra_anvio_args:
+        interactiveCommand.extend([x.strip() for x in args.extra_anvio_args.split(' ')])
+
+    print(' '.join(interactiveCommand))
+
     call(interactiveCommand)
 
 
 def makeTaxTree(splits, contigTax, outname):
     RANK_PREFIXES = ['k', 'p', 'c', 'o', 'f', 'g', 's']
-    # Create namespace and node collection
+    ### Create namespace and node collection
     names = set()
     contigTax2 = {}
+    # Consider only contigs with at least one split fultilling the requested conditions.
+    contigsWithSplits = {split.rsplit('_split', 1)[0] for split in splits}
+    contigTax = {k:v for k,v in contigTax.items() if k in contigsWithSplits} 
     for k, v in contigTax.items():
         for i, p in enumerate(RANK_PREFIXES): # Add rank prefixes
             v[i] = '{}_{}'.format(p, v[i])
@@ -170,7 +175,7 @@ def makeTaxTree(splits, contigTax, outname):
     namespace = dendropy.TaxonNamespace()
     namespace.add_taxa(taxa)
 
-    # Create and populate tree
+    ### Create and populate tree
     tree = dendropy.Tree(taxon_namespace=namespace)
     parents={}
 

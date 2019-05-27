@@ -21,7 +21,7 @@ class SplitFilter():
         self.contigs_tax_path = contigs_tax_path
         self.SAMPLES = self.load_anvio_samples(self.profile_db_path)
         self.ALL_KEYWORDS = self.TAX_KEYWORDS + self.FUN_KEYWORDS + self.SAMPLES
-        self.splits = self.load_splits(self.contigs_db_path)
+        self.splits = self.load_splits(self.profile_db_path)
         self.contigTax = self.load_taxonomy(self.contigs_tax_path)
 
 
@@ -36,11 +36,11 @@ class SplitFilter():
     
 
     @staticmethod
-    def load_splits(contigs_db_path):
-        conn = sqlite3.connect(contigs_db_path)
+    def load_splits(profile_db_path):
+        conn = sqlite3.connect(profile_db_path)
         c = conn.cursor()
-        c.execute('SELECT split FROM splits_basic_info')
-        splits = [x[0] for x in c.fetchall()]
+        c.execute('SELECT contig FROM abundance_splits') # named contig, but they're really splits
+        splits = set([x[0] for x in c.fetchall()])
         conn.close()   
         return splits
 
@@ -245,6 +245,7 @@ class SplitFilter():
     def run(self, query):
         tree = self.parse_query(query)
         goodSplits = self._run_node(tree)
+        goodSplits = goodSplits & self.splits # Select only splits that are in the profile database
         return goodSplits
 
 
@@ -294,7 +295,8 @@ class SplitFilter():
         c = conn.cursor()
         if op in ('IN', 'NOT IN'):
             assert type(value) is set
-            valueSub = '({})'.format('\t'.join('?' * len(value) * 2))
+            valueSub = '({})'.format(','.join('?' * len(value) ))
+            value = 2 * list(value)
         else:
             valueSub = '?'
             if op == 'CONTAINS':
