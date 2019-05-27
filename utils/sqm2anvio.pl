@@ -89,7 +89,7 @@ while(<infile2>) {
 		if(($f eq "KEGGPATH") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tKEGGPATH\t$k[$pos]\t\t0\n"; }
 		if(($f eq "COG ID") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tCOG\t$k[$pos]\t$k[$pos+1]\t0\n"; }
 		if(($f eq "PFAM") && $k[$pos]) { 
-			my($pfid,$pffun)=split(/\s+/,$k[$pos]);
+			my($pfid,$pffun)=split(/\s+/,$k[$pos],2);
 			$pffun=~s/\[|\]//g;
 			print outfile3 "$genindex{$k[0]}\tPFAM\t$pfid\t$pffun\t0\n"; 
 			}

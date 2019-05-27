@@ -19,6 +19,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$interdir,$bintable);
 my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna,%rinsample);
+tie %allsamples,"Tie::IxHash";
 
 	#-- Read 16S in contigs
 
@@ -181,7 +182,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
 	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tSize\tGC perc\tNum contigs\tDisparity\tCompleteness\tContamination\tStrain Het";
-	foreach my $countfile(sort keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile"; }
+	foreach my $countfile(keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile"; }
 	print outfile3 "\n";
 	
 	#-- Data
@@ -194,7 +195,7 @@ foreach my $binmethod(sort keys %dasdir) {
 				}
 			chop $taxrna;
 			printf outfile3 "$thisbin\t$method\t$bins{$method}{$thisbin}{consensus}\t$taxrna\t$bins{$method}{$thisbin}{size}\t%.2f\t$bins{$method}{$thisbin}{contignum}\t$bins{$method}{$thisbin}{chimerism}\t$bins{$method}{$thisbin}{complete}\t$bins{$method}{$thisbin}{contamination}\t$bins{$method}{$thisbin}{strain}",$bins{$method}{$thisbin}{gc};			   
-			foreach my $countfile(sort keys %allsamples) { printf outfile3 "\t%.3f\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{rpkm}{$countfile},$bins{$method}{$thisbin}{tpm}{$countfile}; }
+			foreach my $countfile(keys %allsamples) { printf outfile3 "\t%.3f\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{rpkm}{$countfile},$bins{$method}{$thisbin}{tpm}{$countfile}; }
 			print outfile3 "\n";
 		}
 	}

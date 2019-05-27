@@ -423,10 +423,10 @@ print outfile1 "ORF\tCONTIG ID\tMOLECULE\tMETHOD\tLENGTH NT\tLENGTH AA\tGC perc\
 if($opt_db) { 
 	foreach my $topt(sort keys %optlist) { print outfile1 "\t$topt\t$topt NAME"; }
 	}
-foreach my $cnt(sort keys %mapping) { print outfile1 "\tTPM $cnt"; }
-foreach my $cnt(sort keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
-foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW READ COUNT $cnt"; }
-foreach my $cnt(sort keys %mapping) { print outfile1 "\tRAW BASE COUNT $cnt"; }
+foreach my $cnt(keys %mapping) { print outfile1 "\tTPM $cnt"; }
+foreach my $cnt(keys %mapping) { print outfile1 "\tCOVERAGE $cnt"; }
+foreach my $cnt(keys %mapping) { print outfile1 "\tRAW READ COUNT $cnt"; }
+foreach my $cnt(keys %mapping) { print outfile1 "\tRAW BASE COUNT $cnt"; }
 print outfile1 "\tHITS"; 
 if($seqsinfile13) { print outfile1 "\tAASEQ"; }
 print outfile1 "\n";
@@ -470,10 +470,10 @@ foreach my $orfm(@sortedorfs) {
 	
 	#-- Abundance values
 
-	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'tpm'} || "0"; print outfile1 "\t$sdat"; }
-	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'coverage'} || "0"; print outfile1 "\t$sdat"; }
-	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'raw'} || "0"; print outfile1 "\t$sdat"; }
-	foreach my $cnt(sort keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rawbases'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'tpm'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'coverage'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'raw'} || "0"; print outfile1 "\t$sdat"; }
+	foreach my $cnt(keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rawbases'} || "0"; print outfile1 "\t$sdat"; }
 	
 	#-- Diamond hits
 	
