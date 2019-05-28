@@ -6,6 +6,7 @@
 use strict;
 use Cwd;
 use lib ".";
+use Tie::IxHash;
 
 $|=1;
 
