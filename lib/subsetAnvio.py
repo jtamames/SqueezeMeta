@@ -211,4 +211,4 @@ def subset_anvio(splits, contigs_db, profile_db, outdir):
 
 
 
-subset_anvio(['Merged_10000_split_00001', 'Merged_47_split_00001', 'Merged_100_split_00001'], '/media/disk8/fer/Hadza/contigs.db', '/media/disk8/fer/Hadza/SAMPLES-MERGED/PROFILE.db', 'test')
+#subset_anvio(['Merged_10000_split_00001', 'Merged_47_split_00001', 'Merged_100_split_00001'], '/media/disk8/fer/Hadza/contigs.db', '/media/disk8/fer/Hadza/SAMPLES-MERGED/PROFILE.db', 'test')
