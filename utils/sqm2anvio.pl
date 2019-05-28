@@ -133,7 +133,7 @@ close outfile3;
 close outfile4;
 
 system("rm $outdir/$project.orf.tax.allfilter.tsv"); # we don't need this anymore
-system("mv $outdir/$project.contigs.tax.tsv $outdir/$project_contigs_tax.txt"); # so Natalia is happy
+system("mv $outdir/$project.contigs.tax.tsv $outdir/$project\_anvio_contig_taxonomy.txt"); # so Natalia is happy
 
 open(infile4,$contigsfna) || die "Cannot open contig file $contigsfna\n";
 open(outfile5,">$outdir/$contigs_out") || die "Cannot open output in $outdir/$contigs_out\n";

@@ -93,11 +93,16 @@ from subprocess import call
 from os import devnull
 DEVNULL = open(devnull, 'wb')
 from splitFilter import SplitFilter
+from subsetAnvio import subset_anvio
+
 
 OUTTREE = 'Taxonomy.nwk'
 COLLECTION_NAME = 'SqueezeMeta'
+OUTDIR = 'tempCol2'
+OUTDIR = OUTDIR.rstrip('/')
 
 def main(args):
+    
     missingAnvi = call(['which', 'anvi-self-test'], stdout=DEVNULL)
     if missingAnvi: # ecode of which was 1
         print('We can\'t find anvi\'o in your PATH. Is the environment activated?')
@@ -127,21 +132,34 @@ def main(args):
         exit(0) 
     removedSplits = makeTaxTree(goodSplits, contigTax, OUTTREE)
     goodSplits = goodSplits - removedSplits
+    call(['rm', '-r', 'tempCol'], stderr=DEVNULL) # we should do the rm and the delete-collection after anvi-interactive is killed manually, but it doesn't seem to work
+    call(['rm', '-r', 'tempColY'], stderr=DEVNULL)
+    call(['rm', 'tempCollection.tsv'], stderr=DEVNULL)
+    call(['anvi-delete-collection', '-p', args.profile_db, '-C', COLLECTION_NAME], stdout=DEVNULL, stderr=DEVNULL)
+
     with open('tempCollection.tsv', 'w') as outfile:
         for split in goodSplits:
             outfile.write('{}\t{}\n'.format(split, COLLECTION_NAME))
-    call(['rm', '-r', 'tempCol']) # we should do the rm and the delete-collection after anvi-interactive is killed manually, but it doesn't seem to work
-    call(['anvi-delete-collection', '-p', args.profile_db, '-C', COLLECTION_NAME])
-    call(['anvi-import-collection', '-c', args.contigs_db, '-p', args.profile_db, '-C', COLLECTION_NAME, 'tempCollection.tsv'])
 
-    splitCommand = ['anvi-split', '-c', args.contigs_db, '-p', args.profile_db, '-C', COLLECTION_NAME, '-o', 'tempCol']
+    if args.split_mode == 'safe':
+        cdb = args.contigs_db
+        pdb = args.profile_db
+
+    else: # yolo!
+        subset_anvio(goodSplits, args.contigs_db, args.profile_db, OUTDIR+'Y')
+        cdb = OUTDIR + 'Y/CONTIGS.db'
+        pdb = OUTDIR + 'Y/PROFILE.db'
+
+    call(['anvi-import-collection', '-c', cdb, '-p', pdb, '-C', COLLECTION_NAME, 'tempCollection.tsv'])
+
+    splitCommand = ['anvi-split', '-c', cdb, '-p', pdb, '-C', COLLECTION_NAME, '-o', OUTDIR]
     if args.enforce_clustering:
         splitCommand.append('--enforce-hierarchical-clustering')
     else:
         splitCommand.append('--skip-hierarchical-clustering')
     call(splitCommand)
 
-    interactiveCommand = ['anvi-interactive', '-c', 'tempCol/{}/CONTIGS.db'.format(COLLECTION_NAME), '-p', 'tempCol/{}/PROFILE.db'.format(COLLECTION_NAME), '-t', OUTTREE]
+    interactiveCommand = ['anvi-interactive', '-c', '{}/{}/CONTIGS.db'.format(OUTDIR, COLLECTION_NAME), '-p', '{}/{}/PROFILE.db'.format(OUTDIR, COLLECTION_NAME), '-t', OUTTREE]
 
     if args.extra_anvio_args:
         interactiveCommand.extend([x.strip() for x in args.extra_anvio_args.split(' ')])
@@ -215,6 +233,7 @@ def parse_args():
     parser.add_argument('-m', '--max-splits', type=int, default=25000, help='Maximum number of splits to visualize')
     parser.add_argument('--enforce-clustering', action='store_true', help='Hierarchically cluster splits based on abundances and composition')
     parser.add_argument('--extra-anvio-args', type=str, help='Extra arguments for anvi-interactive')
+    parser.add_argument('-s', '--split-mode', type=str, choices = ['safe', 'yolo'], default='yolo', help='How should we try to subset the database?')
     args = parser.parse_args()
     args.query = ' '.join(args.query)
     return args
