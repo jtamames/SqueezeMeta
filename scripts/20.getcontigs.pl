@@ -117,7 +117,7 @@ open(outfile1,">$contigtable") || die "Can't open $contigtable for writing\n";
 
 print outfile1 "#Created by $0, ",scalar localtime,"\n";
 print outfile1 "Contig ID\tTax\tDisparity\tGC perc\tLength\tNum genes\tBin ID";
-foreach my $countfile(keys %allsamples) { print outfile1 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile\tRaw $countfile"; }
+foreach my $countfile(keys %allsamples) { print outfile1 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile\tRAW READ COUNT $countfile"; }
 print outfile1 "\n";
 
 	#-- Contig data
