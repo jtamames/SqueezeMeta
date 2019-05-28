@@ -7,14 +7,48 @@ using anvi-interactive.
 
 USAGE:
 
-anvio-view.py -p PROFILE_DB -c CONTIGS_DB -t CONTIGS_TAXONOMY -q QUERY
-     [--max-splits int ] [--enforce-clustering]
-     [--extra-anvio-args "extra args"]
+anvi-filter-sqm.py [-h] -p PROFILE_DB -c CONTIGS_DB -t TAXONOMY
+      -q "QUERY" [-o OUTPUT_DIR] [-m MAX_SPLITS] [--enforce-clustering]
+      [--extra-anvio-args "EXTRA_ANVIO_ARGS"] [-s {safe,yolo}]
+     
+
+OPTIONS:
+
+- The "-o/--output_dir" parameter controls the output directory for
+  the filtered anvi'o databases. It defaults to "filteredDB".
+
+- The "-m/--max-splits" parameter controls the maximum number of splits
+  that will be loaded into anvi\'o. If the provided query returns a
+  higher number of splits, the program will stop. By default it is set
+  to 25,000, larger values may make the anvi\'o interface to respond
+  slowly. Setting --max-splits to 0 will allow an arbitrarily large
+  number of splits to be loaded.
+
+- By default, splits are only clustered based on their taxonomy. Passing
+  the "--enforce-clustering" flag will make anvi\'o perform an
+  additional clustering based on abundances across samples and sequence
+  composition.
+
+- Extra arguments for anvi-interactive can be passed with the parameter
+  --extra-anvio-args "extra args". Extra arguments must be surrounded
+  by quotes.
+     e.g. --extra-anvio-args "--taxonomic-level t_phylum --title Parrot"
+     
+- By default, the script uses an in-house method to subset the anvi'o
+  databases. It's ~5x quicker than using anvi-split, and works well for
+  us. However, the night is dark and full of bugs, so if you feel that
+  your anvi'o view is missing some information, you can call the script
+  with "-s safe" parameter. This will call anvi-split which should be
+  much safer than our hacky solution.
+
+
 
 QUERY SYNTAX:
 
+- Please enclose query strings within double brackets.
+
 - Queries are combinations of relational operations in the form of
-  <SUBJECT> <OPERATOR> <VALUE> (e.g. "PHYLUM == Bacteroidetes""
+  <SUBJECT> <OPERATOR> <VALUE> (e.g. "PHYLUM == Bacteroidetes")
   joined by logical operators (AND, OR).
 
 - Parentheses can be used to group operations together.
@@ -62,22 +96,6 @@ QUERY SYNTAX:
 - Posible relational operators are "==", "!=", ">=", "<=", ">", "<",
                       "IN", "NOT IN", "CONTAINS", "DOES NOT CONTAIN"
 
-- The "--max-splits" parameter controls the maximum number of splits
-  that will be loaded into anvi\'o. If the provided query returns a
-  higher number of splits, the program will stop. By default it is set
-  to 25,000, larger values may make the anvi\'o interface to respond
-  slowly. Setting --max-splits to 0 will allow an arbitrarily large
-  number of splits to be loaded.
-
-- By default, splits are only clustered based on their taxonomy. Passing
-  the "--enforce-clustering" flag will make anvi\'o perform an
-  additional clustering based on abundances across samples and sequence
-  composition.
-
-- Extra arguments for anvi-interactive can be passed with the parameter
-  --extra-anvio-args "extra args". Extra arguments must be surrounded
-  by quotes.
-     e.g. --extra-anvio-args "--taxonomic-level t_phylum --title Parrot"
 """
 
 import argparse
@@ -98,11 +116,10 @@ from subsetAnvio import subset_anvio
 
 OUTTREE = 'Taxonomy.nwk'
 COLLECTION_NAME = 'SqueezeMeta'
-OUTDIR = 'tempCol2'
-OUTDIR = OUTDIR.rstrip('/')
 
 def main(args):
     
+    outdir = args.output_dir.rstrip('/') 
     missingAnvi = call(['which', 'anvi-self-test'], stdout=DEVNULL)
     if missingAnvi: # ecode of which was 1
         print('We can\'t find anvi\'o in your PATH. Is the environment activated?')
@@ -130,14 +147,12 @@ def main(args):
         print('Alternatively, use --max-splits NUMBER to increase this threshold or --max-splits 0 to disable it completely')
         print('')
         exit(0) 
-    removedSplits = makeTaxTree(goodSplits, contigTax, OUTTREE)
-    goodSplits = goodSplits - removedSplits
-    call(['rm', '-r', 'tempCol'], stderr=DEVNULL) # we should do the rm and the delete-collection after anvi-interactive is killed manually, but it doesn't seem to work
-    call(['rm', '-r', 'tempColY'], stderr=DEVNULL)
-    call(['rm', 'tempCollection.tsv'], stderr=DEVNULL)
+    doubleParents = makeTaxTree(goodSplits, contigTax, OUTTREE)
+    # assert not doubleParents # There shouldn't be any, but comment for being lenient. The makeTaxTree function warns the user if double parents are found.
+
     call(['anvi-delete-collection', '-p', args.profile_db, '-C', COLLECTION_NAME], stdout=DEVNULL, stderr=DEVNULL)
 
-    with open('tempCollection.tsv', 'w') as outfile:
+    with open('good_splits.tsv', 'w') as outfile:
         for split in goodSplits:
             outfile.write('{}\t{}\n'.format(split, COLLECTION_NAME))
 
@@ -146,24 +161,33 @@ def main(args):
         pdb = args.profile_db
 
     else: # yolo!
-        subset_anvio(goodSplits, args.contigs_db, args.profile_db, OUTDIR+'Y')
-        cdb = OUTDIR + 'Y/CONTIGS.db'
-        pdb = OUTDIR + 'Y/PROFILE.db'
+        subset_anvio(goodSplits, args.contigs_db, args.profile_db, outdir+'_YOLO')
+        cdb = outdir + '_YOLO/CONTIGS.db'
+        pdb = outdir + '_YOLO/PROFILE.db'
 
-    call(['anvi-import-collection', '-c', cdb, '-p', pdb, '-C', COLLECTION_NAME, 'tempCollection.tsv'])
+    call(['anvi-import-collection', '-c', cdb, '-p', pdb, '-C', COLLECTION_NAME, 'good_splits.tsv'])
 
-    splitCommand = ['anvi-split', '-c', cdb, '-p', pdb, '-C', COLLECTION_NAME, '-o', OUTDIR]
+    splitCommand = ['anvi-split', '-c', cdb, '-p', pdb, '-C', COLLECTION_NAME, '-o', outdir]
     if args.enforce_clustering:
         splitCommand.append('--enforce-hierarchical-clustering')
     else:
         splitCommand.append('--skip-hierarchical-clustering')
     call(splitCommand)
+    
+    if args.split_mode == 'yolo':
+      call(['rm', '-r', outdir + '_YOLO']) # leave no evidence
+      
+    
+    # Move files before calling anvi-interactive
+    call(['mv', 'good_splits.tsv', outdir])
+    call(['mv', OUTTREE, outdir])
 
-    interactiveCommand = ['anvi-interactive', '-c', '{}/{}/CONTIGS.db'.format(OUTDIR, COLLECTION_NAME), '-p', '{}/{}/PROFILE.db'.format(OUTDIR, COLLECTION_NAME), '-t', OUTTREE]
+    interactiveCommand = ['anvi-interactive', '-c', '{}/{}/CONTIGS.db'.format(outdir, COLLECTION_NAME), '-p', '{}/{}/PROFILE.db'.format(outdir, COLLECTION_NAME), '-t', '{}/{}'.format(outdir, OUTTREE)]
 
     if args.extra_anvio_args:
         interactiveCommand.extend([x.strip() for x in args.extra_anvio_args.split(' ')])
 
+    print('Running anvi-interactive with:')
     print(' '.join(interactiveCommand))
 
     call(interactiveCommand)
@@ -197,8 +221,6 @@ def makeTaxTree(splits, contigTax, outname):
     tree = dendropy.Tree(taxon_namespace=namespace)
     parents={}
 
-    removedSplits = set() # This shouldn't be needed but since we have taxonomy problems do it for now.
-
     for split in splits:
         contig = split.rsplit('_split', 1)[0]
         tax = contigTax2[contig]
@@ -214,14 +236,22 @@ def makeTaxTree(splits, contigTax, outname):
         nodes[contig].add_child(nodes[split])
 
     # All nodes should have only one parent!
+    doubleParents = False
     for p in parents:
         if len(parents[p])>1:
-            print(p, parents[p])
+            if not doubleParents:
+                doubleParents = True
+                print('Some nodes in your taxonomy have more than one parent!!')
+                print('This is due to a bug that should have been corrected some time ago')
+                print('Maybe you ran the project with an older version of SqueezeMeta?')
+                print('You will be unable to load the taxonomy tree in anvi\'o for this particular query')
+            #print(p, parents[p])
+  
 
     with open(outname, 'w') as outfile:
         outfile.write(tree.as_string('newick').replace('\'',''))
 
-    return removedSplits
+    return doubleParents
 
 
 def parse_args():
@@ -230,6 +260,7 @@ def parse_args():
     parser.add_argument('-c', '--contigs-db', type=str, required=True, help='Anvi\'o contigs database')
     parser.add_argument('-t', '--taxonomy', type=str, required = True, help='SqueezeMeta contigs taxonomy')
     parser.add_argument('-q', '--query', type=str, required=True, nargs='+')
+    parser.add_argument('-o', '--output_dir', type=str, default='filteredDB', help='Output directory')
     parser.add_argument('-m', '--max-splits', type=int, default=25000, help='Maximum number of splits to visualize')
     parser.add_argument('--enforce-clustering', action='store_true', help='Hierarchically cluster splits based on abundances and composition')
     parser.add_argument('--extra-anvio-args', type=str, help='Extra arguments for anvi-interactive')

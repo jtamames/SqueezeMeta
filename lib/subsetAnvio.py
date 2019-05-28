@@ -6,6 +6,9 @@ from subprocess import call
 
 
 def subset_anvio(splits, contigs_db, profile_db, outdir):
+    """
+    Subset anvi'o contigs, profile, and aux databases so that they only contain the requested splits.
+    """
 
     splits = list(splits)
     splitsSub = '({})'.format(','.join('?' * len(splits)))
@@ -122,7 +125,7 @@ def subset_anvio(splits, contigs_db, profile_db, outdir):
     # layer_orders
     c.execute('CREATE TABLE layer_orders AS SELECT * FROM old.layer_orders WHERE NULL') # empty
     # variable_nucleotides
-    query = 'CREATE TABLE variable_nucleotides AS SELECT * FROM old.variable_nucleotides WHERE split_name NOT IN {}'.format(splitsSub)
+    query = 'CREATE TABLE variable_nucleotides AS SELECT * FROM old.variable_nucleotides WHERE split_name IN {}'.format(splitsSub)
     c.execute(query, splits)
     # variable_codons
     query = 'CREATE TABLE variable_codons AS SELECT * FROM old.variable_codons WHERE corresponding_gene_call IN {}'.format(genesSub)
