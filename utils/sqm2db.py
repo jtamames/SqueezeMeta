@@ -15,7 +15,7 @@ import argparse
 
 utils_home = abspath(dirname(realpath(__file__)))
 path.append('{}/../lib/'.format(utils_home))
-from utils import parse_conf_file
+from utils import parse_conf_file, write_orf_seqs
 
 def main(args):
     ### Get result files paths from SqueezeMeta_conf.pl
@@ -65,36 +65,10 @@ def main(args):
 
 
     ### Create sequences file.
-    # Load prodigal results.
-    ORFseq = parse_fasta(perlVars['$aafile'])
-    # Load blastx results if required.
-    if int(perlVars['$doublepass']):
-        ORFseq.update(parse_fasta(perlVars['$fna_blastx']))
-    # Write results.
-    with open('{}/sequences.tsv'.format(args.output_dir), 'w') as outfile:
-        outfile.write('ORF\tAASEQ\n')
-        for ORF in allORFs:
-            outfile.write('{}\t{}\n'.format(ORF, ORFseq[ORF]))
-
-
-def parse_fasta(fasta):
-    """
-    Parse a fasta file into a dictionary {header: sequence}
-    """
-    res = {}
-    with open(fasta) as infile:
-        header = ''
-        seq = ''
-        for line in infile:
-            if line.startswith('>'):
-                if header:
-                    res[header] = seq
-                    seq = ''
-                header = line.strip().lstrip('>').split(' ')[0]
-            else:
-                seq += line.strip()
-        res[header] = seq
-    return res
+    aafile = perlVars['$aafile']
+    fna_blastx = perlVars['$fna_blastx'] if int(perlVars['$doublepass']) else None
+    outname = '{}/sequences.tsv'.format(args.output_dir)
+    write_orf_seqs(allORFs, aafile, fna_blastx, None, outname)
 
 
 def parse_args():
