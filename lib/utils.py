@@ -159,7 +159,7 @@ def parse_tax_table(tax_table):
     Parse a fun3 taxonomy file from SqueezeMeta.
     Return:
         orf_tax: dictionary with orfs as keys and taxonomy list as values
-        orf_tax_wranks: same, but with prefixes indicating each taxonomi ranks (eg "p_<phylum>")
+        orf_tax_wranks: same, but with prefixes indicating each taxonomic rank (eg "p_<phylum>")
     """
     orf_tax = {}
     orf_tax_wranks = {}
@@ -181,7 +181,7 @@ def parse_contig_table(contig_table):
     Return
         contig_abunds: dictionary with contigs as keys and a numpy array of contig abundances across 
                        samples as values.
-        contig_tax: dictionary with contigs as keys and taxonomy list as values
+        contig_tax: dictionary with contigs as keys and taxonomy lists as values
         contig_tax_wranks: same, but with prefixes indicating each taxonomic rank (eg "p_<phylum>")
     """
     contig_tax = {}
@@ -210,7 +210,7 @@ def parse_bin_table(bin_table):
     Return
         bin_tpms: dictionary with contigs as keys and a numpy array of bin tpms across 
                        samples as values.
-        bin_tax: dictionary with contigs as keys and taxonomy list as values
+        bin_tax: dictionary with contigs as keys and taxonomy lists as values
         bin_tax_wranks: same, but with prefixes indicating each taxonomic rank (eg "p_<phylum>")
     """
     bin_tpm = {}
