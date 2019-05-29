@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+
 """
 '-------------------------------------------------------------------------------'
 Load results from SQM in anvi’o.
@@ -9,14 +10,33 @@ Run this script in a directory that contains:
         -Text files: contigs, genes, functions, taxonomy of contigs and genes and bins (optional).
         -Bam: directory with bam files. Bam files' names must finish with '-RAW.bam'.
     
-USAGE: python3 anvi-load-sqm.py <-p project>
-        [--num-threads int] [--run-HMMS] [--min-contigs-length int] [--min-mean-coverage int] [--skip-SNV-profiling] [--profile-SCVs]
+USAGE: anvi-load-sqm.py [-h] -p PROJECT [--num-threads NUM_THREADS]
+                        [--run-HMMS] [--min-contigs-length MIN_CONTIGS_LENGTH]
+                        [--min-mean-coverage MIN_MEAN_COVERAGE]
+                        [--skip-SNV-profiling] [--profile-SCVs]
+
+Process input files
+
+     optional arguments:
+       -h, --help                Show this help message and exit
+       -p PROJECT, --project PROJECT
+                                 Name of the directory product of sqm2anvio.pl
+       --num-threads         NUM_THREADS
+                             Number of threads.
+       --run-HMMS                Run anvi-run-hmms command from anvi’o for identifying single-copy core genes.
+       --min-contigs-length  MIN_CONTIGS_LENGTH
+                                 Minimum length of contigs.
+       --min-mean-coverage   MIN_MEAN_COVERAGE
+                                 Minimum mean coverage for contigs.
+       --skip-SNV-profiling      To skip the profiling of SNV.
+       --profile-SCVs            Perform characterization of codon frequencies in genes.
+
     
 IMPORTANT:
-    This script do not overwrte anything.
+    This script does not overwrite anything.
     If you want to run it a second time, please remove all the previous created files.
     
-    WARNING:
+WARNING:
     Anvi’o is an advanced analysis and visualization platform for ‘omics data.
     Citation: Eren AM, Esen ÖC, Quince C, Vineis JH, Morrison HG, Sogin ML, Delmont TO. (2015)
               Anvi’o: an advanced analysis and visualization platform for ‘omics data. PeerJ 3:e1319
@@ -42,11 +62,11 @@ def parse_arguments():
     general.add_argument('-p', '--project',type=str, required=True, help='Name of the directory product of sqm2anvio.pl')
     # Optional:
     general.add_argument('--num-threads', default=12, type=int, help='Number of threads.')
-    general.add_argument('--run-HMMS', action = 'store_true', help='Run all 4 HMM profiles (anvi’o function). These are the currently available ones in anvi’o: "Rinke_et_al" , "Campbell_et_al" ,"BUSCO_83_Protista" , "Ribosomal_RNAs".')
-    general.add_argument('--min-contigs-length', default=0, type=int, help='Anvi’o parameter: Minimum length of contigs in a BAM file to analyze. The minimum length should be long enough for tetranucleotide frequency analysis to be meaningful.')  
-    general.add_argument('--min-mean-coverage', default=0, type=int, help='Anvi’o parameter: Minimum mean coverage for contigs to be kept in the analysis. The default value is 0, which is for your best interest if you are going to profile multiple BAM files which are then going to be merged for a cross sectional or time series analysis.')
-    general.add_argument('--skip-SNV-profiling', action='store_true', help='The use of this flag will instruct profiler to skip that step.')
-    general.add_argument('--profile-SCVs', action='store_true', help='Anvi’o parameter to perform accurate characterization of codon frequencies in genes during profiling.')
+    general.add_argument('--run-HMMS', action = 'store_true', help='Run anvi-run-hmms command from anvi’o for identifying single-copy core genes.')
+    general.add_argument('--min-contigs-length', default=0, type=int, help='Minimum length of contigs.')  
+    general.add_argument('--min-mean-coverage', default=0, type=int, help='Minimum mean coverage for contigs.')
+    general.add_argument('--skip-SNV-profiling', action='store_true', help='To skip the profiling of SNV.')
+    general.add_argument('--profile-SCVs', action='store_true', help='Perform characterization of codon frequencies in genes.')
     
     args = general.parse_args()
     
@@ -62,7 +82,7 @@ def run_command(command):# run_command
 
 #FUN: Check arguments
 def check_argument(project):
-    #Check if the directory exists and contains at least the required arguments:
+    """Check if the directory exists and contains at least the required arguments"""
     if os.path.isdir('./{}'.format(project)):
         files=[]
         for f in ['_anvio_contigs', '_anvio_genes', '_anvio_functions','_anvio_taxonomy','_anvio_contig_taxonomy']:
@@ -111,7 +131,7 @@ def main(args):
     else:
         contigs, genes, functions, tax_genes, tax_contigs, bams = check_argument(args.project)
         #! SECOND: Start running anvio, independently of number of samples. Make complete CONTIGS.db
-        print('Anvi’o is preparing your contig database: loading contigs, genes, functions and taxonomy!')
+        print('Preparing your contig database: loading contigs, genes, functions and taxonomy!')
         # Load contigs & genes with some parameters from anvio
         command=['anvi-gen-contigs-database', '-f', contigs,'-n',args.project,'-o', 'CONTIGS.db',  '--external-gene-call', genes,'--ignore-internal-stop-codons']
         run_command(command)
@@ -181,23 +201,23 @@ def main(args):
                         
             
     #! THIRD: Make profiles.db. Load bam files, important: distinguish number of samples
-        print('Anvi\'o will load your bam files')
+        print('Loading your bam files')
         samples = [f for f in os.listdir('{}/bam'.format(args.project)) if f.endswith('-RAW.bam')]
         profiles_names= ['{}_{}_{}'.format(f.replace('-RAW.bam',''),args.min_contigs_length,args.min_mean_coverage) for f in samples]
         if not samples:
-                profile_name='BLANK_PROFILE_{}'.format(args.mincontigs_length)
+                profile_name='BLANK_PROFILE_{}'.format(args.min_contigs_length)
                 command_base=['anvi-profile', '-o', profile_name, '-c', 'CONTIGS.db', '--blank-profile','-S','Blank','--min-contig-length',args.min_contigs_length ,'--num-threads' ,args.num_threads,'--skip-hierarchical-clustering']
                 run_command(command_base)
                 #Load Bin collection
                 if len(glob('{}/*anvio_bins.txt'.format(args.project)))==1:
                     if os.path.isfile(glob('{}/*anvio_bins.txt'.format(args.project))[0]):
-                        print('Anvi’o will load your DAS collection')
+                        print('Loading your DAS collection')
                         samples_profiles=['{}/PROFILE.db'.format(profile_name)]
                         command=['anvi-import-collection',glob('{}/*anvio_bins.txt'.format(args.project))[0],'-c','CONTIGS.db','-p'] + samples_profiles + ['-C', 'DAS', '--contigs-mode']
                         run_command(command)
-                        print('Anvi’o finished to load your DAS collection')
+                        print('Your DAS collection is loaded')
                     else: print('Your bins file is not a file! We really thought this would never happen!')
-                else:print('There is none bins collection')
+                else:print('There is no bins collection or there are more than two! Skipping')
                 
         else:
             # Iterate over directory with bam files
@@ -228,13 +248,13 @@ def main(args):
                     #Load Bin collection
                     if len(glob('{}/*anvio_bins.txt'.format(args.project)))==1:
                         if os.path.isfile(glob('{}/*anvio_bins.txt'.format(args.project))[0]):
-                            print('Anvi\'o will load your DAS collection')
+                            print('Loading your DAS collection')
                             samples_profiles=['{}/PROFILE.db'.format(profile_name)]
                             command=['anvi-import-collection',glob('{}/*anvio_bins.txt'.format(args.project))[0],'-c','CONTIGS.db','-p'] + samples_profiles + ['-C', 'DAS', '--contigs-mode']
                             run_command(command)
-                            print('Anvi’o finished to load your DAS collection')
+                            print('Your DAS collection is loaded')
                         else: print('Your bins file is not a file! We really thought this would never happen!')
-                    else:print('There is none bins collection')
+                    else:print('There is no bins collection or there are more than two! Skipping...')
                     
                     
                 else:
@@ -246,7 +266,7 @@ def main(args):
                 
     # If there are 2 or more samples: Merge profiles.db
         if len(samples) > 1:
-            print('Anvi’o will merge your profile databases')
+            print('Merging your profile databases')
             profile_dir=['{}/PROFILE.db'.format(p) for p in profiles_names]
             print('These are the profiles db {} that will be merged'.format(profile_dir))
             command=['anvi-merge'] + profile_dir + ['-c','CONTIGS.db','-o','SAMPLES-MERGED_{}_{}'.format(args.min_contigs_length,args.min_mean_coverage),'--skip-concoct-binning','--skip-hierarchical-clustering']
@@ -255,15 +275,16 @@ def main(args):
             #Load Bin collection
             if len(glob('{}/*anvio_bins.txt'.format(args.project)))==1:
                 if os.path.isfile(glob('{}/*anvio_bins.txt'.format(args.project))[0]):
-                    print('Anvi’o will load your DAS collection')
+                    print('Loading your DAS collection')
                     samples_profiles=['{}/PROFILE.db'.format(profile_name)]
                     command=['anvi-import-collection',glob('{}/*anvio_bins.txt'.format(args.project))[0],'-c','CONTIGS.db','-p', 'SAMPLES-MERGED_{}_{}/PROFILE.db'.format(args.min_contigs_length,args.min_mean_coverage), '-C', 'DAS', '--contigs-mode']
                     run_command(command)
-                    print('Anvi’o finished to load your DAS collection')
+                    print('Your DAS collection is loaded')
                 else: print('Your bins file is not a file! We really thought this would never happen!')
-            else:print('There is no bins collection. Skipping...')
+            else:print('There is no bins collection or there are more than two! Skipping...')
+            print('Your data has been loaded. If you want to explore them you can use anvi-filter-sqm.py :)')
         else:
-            print('Anvi’o finished to load your data :)')
+            print('Your data has been loaded. If you want to explore them you can use anvi-filter-sqm.py :)')
         
 ################################################################################################################
     
