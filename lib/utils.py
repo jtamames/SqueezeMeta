@@ -102,15 +102,15 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
         infile.readline() # Burn comment.
         header = infile.readline().strip().split('\t')
         idx =  {h: i for i,h in enumerate(header)}
-        samples = [h for h in header if 'RAW READ COUNT' in h]
-        sampleNames = [s.replace('RAW READ COUNT ', '') for s in samples]
+        samples = [h for h in header if 'Raw read count' in h]
+        sampleNames = [s.replace('Raw read count ', '') for s in samples]
 
         for line in infile:
             line = line.strip().split('\t')
-            orf = line[idx['ORF']]
+            orf = line[idx['ORF ID']]
             if orfSet and orf not in orfSet:
                 continue
-            length = line[idx['LENGTH NT']]
+            length = line[idx['Length NT']]
             length = int(length) if length else 0 # Fix for rRNAs being in the ORFtable but having no length.
             if not length:
                 print(line)
@@ -191,8 +191,8 @@ def parse_contig_table(contig_table):
         infile.readline() # Burn comment.
         header = infile.readline().strip().split('\t')
         idx =  {h: i for i,h in enumerate(header)}
-        samples = [h for h in header if 'RAW READ COUNT' in h]
-        sampleNames = [s.replace('RAW READ COUNT ', '') for s in samples]
+        samples = [h for h in header if 'Raw read count' in h]
+        sampleNames = [s.replace('Raw read count ', '') for s in samples]
         for line in infile:
             line = line.strip().split('\t')
             contig, tax = line[idx['Contig ID']], line[idx['Tax']]

@@ -8,6 +8,7 @@ Create the files required for loading a SqueezeMeta project into the web interfa
 USAGE: make-SqueezeMdb-files.py <PROJECT_NAME> <OUTPUT_DIRECTORY> 
 """
 
+
 from os.path import abspath, dirname, realpath
 from os import mkdir, system
 from sys import path
@@ -40,12 +41,17 @@ def main(args):
 
 
     ### Create orftable.
+    def new2old(str):
+        """Replace 1.0 headers with old headers, so we don't have to modify and re-deploy SQMdb"""
+        return f.replace('Coverage', 'COVERAGE').replace('Raw read', 'RAW READ').replace('Raw base', 'RAW BASE')
+
     allORFs = []
+    # v1.0 fields are names ['ORF ID', 'Contig ID', 'Length AA', 'GC perc', 'Gene Name', 'Tax', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
     goodFields = ['ORF', 'CONTIG ID', 'LENGTH AA', 'GC perc', 'GENNAME', 'TAX ORF', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
     with open(perlVars['$mergedfile']) as infile, open('{}/genes.tsv'.format(args.output_dir), 'w') as outfile:
         outfile.write(infile.readline())
         header = infile.readline().strip().split('\t')
-        goodFields.extend([f for f in header if f.startswith('TPM ') or f.startswith('COVERAGE ') or f.startswith('RAW READ ') or f.startswith('RAW BASE ')])
+        goodFields.extend([new2old(f) for f in header if f.startswith('TPM ') or f.startswith('Coverage ') or f.startswith('Raw read ') or f.startswith('Raw base ')])
         outfile.write('\t'.join(goodFields) + '\n')
         idx =  {f: i for i,f in enumerate(header) if f in goodFields}
         for line in infile:
@@ -56,7 +62,10 @@ def main(args):
 
 
     ### Create contigtable.
-    system('cp {} {}/contigs.tsv'.format(perlVars['$contigtable'], args.output_dir))
+    with open(perlVars['$contigtable']) as infile, open('{}/contigs.tsv'.format(args.output_dir), 'w') as outfile:
+        outfile.write(infile.readline())
+        outfile.write(new2old(infile.readline())) # adapt header
+        [outfile.write(line) for line in infile]
     
 
     ### Create bintable.
