@@ -22,9 +22,10 @@ sudo yum -y install perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl
 
 
 ###Install Python modules.
-sudo yum -y install python-pip
-sudo yum -y install python-matplotlib
+sudo yum -y install python-pip python-matplotlib python34 python34-numpy
 sudo python -m pip install scipy dendropy pysam
+
+sudo ln -s /usr/bin/python3.4 /usr/bin/python3 # Assuming python3 is not already in your path!
 
 
 ### Install R.

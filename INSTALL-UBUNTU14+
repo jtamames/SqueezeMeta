@@ -30,7 +30,7 @@ sudo apt-get install libtie-ixhash-perl libclass-dbi-mysql-perl libxml-parser-pe
 
 
 ### Python modules.
-sudo apt-get install python-pip python-dev python-scipy python-matplotlib 
+sudo apt-get install python-pip python-dev python-scipy python-matplotlib python3-numpy 
 sudo -H pip install dendropy pysam
 
 
