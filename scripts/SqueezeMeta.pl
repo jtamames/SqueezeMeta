@@ -292,7 +292,15 @@ if($mode=~/sequential/i) {
 			}
  			 else { die "Can't find read file $file (Sample $sample). Please check if it exists\n"; }
 
-	system("cp $equivfile $mappingfile");
+	open(infile0,$equivfile) || die;	#-- Deleting \r in samples file for windows compatibility
+	open(outfile0,">$mappingfile") || die;
+	while(<infile0>) {
+		$_=~s/\r//g;
+		print outfile0 $_;
+		}
+	close outfile0;
+	close infile0;
+	# system("cp $equivfile $mappingfile");
 	system("cp $scriptdir/parameters.pl $projectdir");
 
 	
