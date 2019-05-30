@@ -161,6 +161,7 @@ open(infile1,$equivfile) || die "Can't open samples file (-s) in $equivfile. Ple
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
+	$_=~s/\r//g;
 	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 	if($_=~/ /) { die "Please do not use blank spaces in the samples file\n"; }
 	if(($iden ne "pair1") && ($iden ne "pair2")) { die "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; }
