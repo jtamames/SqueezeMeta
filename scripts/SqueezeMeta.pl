@@ -475,7 +475,15 @@ sub moving {
 	if($numsamples==1) { print "$numsamples sample found: Skipping all binning methods\n"; }
 	else { print "$numsamples samples found\n"; }
 
-	system("cp $equivfile $mappingfile");
+	open(infile0,$equivfile) || die;	#-- Deleting \r in samples file for windows compatibility
+	open(outfile0,">$mappingfile") || die;
+	while(<infile0>) {
+		$_=~s/\r//g;
+		print outfile0 $_;
+		}
+	close outfile0;
+	close infile0;
+	# system("cp $equivfile $mappingfile");
 	system("cp $scriptdir/parameters.pl $projectdir");
 
 	#-- For coassembly mode, we merge all individual files for each pair
