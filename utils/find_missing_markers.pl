@@ -94,7 +94,7 @@ foreach my $bin(sort @binlist) {
 	next if (!(-e $binname));
 	my(%consensus,%alltaxa);
 	my @misslist;
-	$thres=0;
+	($skip,$thres)=0;
 	open(infile1,$binname) || die "Can't open $binname\n";
 	print "\nFound bin $bin: ";
 	while(<infile1>) { 
