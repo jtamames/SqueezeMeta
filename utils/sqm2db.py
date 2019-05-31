@@ -8,6 +8,7 @@ Create the files required for loading a SqueezeMeta project into the web interfa
 USAGE: make-SqueezeMdb-files.py <PROJECT_NAME> <OUTPUT_DIRECTORY> 
 """
 
+
 from os.path import abspath, dirname, realpath
 from os import mkdir, system
 from sys import path
@@ -40,28 +41,44 @@ def main(args):
 
 
     ### Create orftable.
+    def new2old(str_, orftable=False):
+        """Replace 1.0 headers with old headers, so we don't have to modify and re-deploy SQMdb"""
+        if orftable:
+            str_ = str_.replace('Coverage', 'COVERAGE').replace('Raw read count', 'RAW READ COUNT').replace('Raw base count', 'RAW BASE COUNT')
+        else:
+            str_ = str_.replace('Strain het', 'Strain Het').replace('Raw read count', 'Raw')
+        return str_
+
     allORFs = []
+    newFields =  ['ORF ID', 'Contig ID', 'Length AA', 'GC perc', 'Gene Name', 'Tax', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
     goodFields = ['ORF', 'CONTIG ID', 'LENGTH AA', 'GC perc', 'GENNAME', 'TAX ORF', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
     with open(perlVars['$mergedfile']) as infile, open('{}/genes.tsv'.format(args.output_dir), 'w') as outfile:
         outfile.write(infile.readline())
         header = infile.readline().strip().split('\t')
-        goodFields.extend([f for f in header if f.startswith('TPM ') or f.startswith('COVERAGE ') or f.startswith('RAW READ ') or f.startswith('RAW BASE ')])
+        newFields.extend([f for f in header if f.startswith('TPM ') or f.startswith('Coverage ') or f.startswith('Raw read ') or f.startswith('Raw base ')])
+        goodFields.extend([new2old(f, True) for f in header if f.startswith('TPM ') or f.startswith('Coverage ') or f.startswith('Raw read ') or f.startswith('Raw base ')])
         outfile.write('\t'.join(goodFields) + '\n')
-        idx =  {f: i for i,f in enumerate(header) if f in goodFields}
+        idx =  {f: i for i,f in enumerate(header) if f in newFields}
         for line in infile:
             line = line.strip().split('\t')
             if line[2] == 'CDS':
                 allORFs.append(line[0])
-                outfile.write('{}\n'.format('\t'.join([line[idx[f]] for f in goodFields])))
+                outfile.write('{}\n'.format('\t'.join([line[idx[f]] for f in newFields])))
 
 
     ### Create contigtable.
-    system('cp {} {}/contigs.tsv'.format(perlVars['$contigtable'], args.output_dir))
+    with open(perlVars['$contigtable']) as infile, open('{}/contigs.tsv'.format(args.output_dir), 'w') as outfile:
+        outfile.write(infile.readline())
+        outfile.write(new2old(infile.readline())) # adapt header
+        [outfile.write(line) for line in infile]
     
 
     ### Create bintable.
     if not int(perlVars['$nobins']):
-        system('cp {} {}/bins.tsv'.format(perlVars['$bintable'], args.output_dir))
+        with open(perlVars['$bintable']) as infile, open('{}/bins.tsv'.format(args.output_dir), 'w') as outfile:
+            outfile.write(infile.readline())
+            outfile.write(new2old(infile.readline())) # adapt header
+            [outfile.write(line) for line in infile]
 
 
     ### Create sequences file.

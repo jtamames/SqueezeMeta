@@ -111,35 +111,35 @@ while(<infile4>) {
 	my $taxorf;
 	foreach(my $pos=0; $pos<=$#k; $pos++) {
 		my $f=$head[$pos];
-		if($f eq "TAX ORF") { 
+		if($f eq "Tax") { 
 			$taxorf=$k[$pos]; 
 			if(!$taxorf) { $genes{notassigned}++; }
 			}
 		if(($f eq "KEGG ID") && $k[$pos]) { $genes{kegg}++; }
 		if(($f eq "COG ID") && $k[$pos]) { $genes{cog}++; }
 		if(($f eq "PFAM") && $k[$pos]) { $genes{pfam}++; }
-		if(($f eq "MOLECULE") && ($k[$pos] eq "RNA")) { $genes{rnas}++; }
-		if($f eq "METHOD") { $genes{method}{$k[$pos]}++; }
-		if(($f eq "HITS") && !$k[$pos]) { $genes{orphans}++; }
-		if(($f eq "HITS") && $k[$pos] && (!$taxorf)) { $genes{notassignedwhits}++; }
+		if(($f eq "Molecule") && ($k[$pos] eq "RNA")) { $genes{rnas}++; }
+		if($f eq "Method") { $genes{method}{$k[$pos]}++; }
+		if(($f eq "Hits") && !$k[$pos]) { $genes{orphans}++; }
+		if(($f eq "Hits") && $k[$pos] && (!$taxorf)) { $genes{notassignedwhits}++; }
 		if($opt{$f} && $k[$pos]) { $genes{$f}++; }
-		if($f=~/RAW READ COUNT (.*)/) {
+		if($f=~/Raw Read Count (.*)/) {
 			my $tsam=$1;
 			if($k[$pos]>0) {
 				$genes{$tsam}{totgenes}++;
 				foreach(my $pos2=0; $pos2<=$#k; $pos2++) {
 					my $f2=$head[$pos2];
-					if($f eq "TAX ORF") { 
+					if($f eq "Tax") { 
 						$taxorf=$k[$pos]; 
 						if(!$taxorf && $k[$pos2]) { $genes{$tsam}{notassigned}++; }
 						}
 					if(($f2 eq "KEGG ID") && $k[$pos2]) { $genes{$tsam}{kegg}++; }
 					if(($f2 eq "COG ID") && $k[$pos2]) { $genes{$tsam}{cog}++; }
 					if(($f2 eq "PFAM") && $k[$pos2]) { $genes{$tsam}{pfam}++; }
-					if($f2 eq "METHOD") { $genes{$tsam}{method}{$k[$pos2]}++; }
-					if(($f2 eq "MOLECULE") && ($k[$pos2] eq "RNA")) { $genes{$tsam}{rnas}++; }
-					if(($f2 eq "HITS") && !$k[$pos2]) { $genes{$tsam}{orphans}++; }
-					if(($f2 eq "HITS") && $k[$pos2] && (!$taxorf)) { $genes{$tsam}{notassignedwhits}++; }
+					if($f2 eq "Method") { $genes{$tsam}{method}{$k[$pos2]}++; }
+					if(($f2 eq "Molecule") && ($k[$pos2] eq "RNA")) { $genes{$tsam}{rnas}++; }
+					if(($f2 eq "Hits") && !$k[$pos2]) { $genes{$tsam}{orphans}++; }
+					if(($f2 eq "Hits") && $k[$pos2] && (!$taxorf)) { $genes{$tsam}{notassignedwhits}++; }
 					if($opt{$f2} && $k[$pos2]) { $genes{$tsam}{$f2}++; }
 					}
 				}
