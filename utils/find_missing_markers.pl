@@ -105,7 +105,7 @@ foreach my $bin(sort @binlist) {
  			$size=~s/Total size\: //g;
  			$consensus{$bin}=$taxbin;
  		 	my @k=split(/\;/,$taxbin);
-		 	if($taxbin!~/k\_/) { print "No consensus tax. Skipping\n"; $skip=1; return; }
+		 	if($taxbin!~/k\_/) { print "No consensus tax. Skipping\n"; $skip=1; last; }
  		 	print "$taxbin\n";
 			
 			 		 #-- We store the full taxonomy for the bin because not all taxa have checkm markers
@@ -123,6 +123,7 @@ foreach my $bin(sort @binlist) {
 			}
 		}
 	close infile1;
+	next if($skip);
 	my $genetable=$mergedfile;
 	if(!$genetable) { die "Missing gene table\n"; }
 	if(!$contigtable) { die "Missing contig table\n"; }
