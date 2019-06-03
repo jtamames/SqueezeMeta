@@ -111,7 +111,7 @@ close infile4;
  
 open(outfile1,">$mcountfile") || die "Can't open $mcountfile for writing\n";
 print outfile1 "Rank\tTaxon\tAccumulated contig size";
-foreach my $samp(sort keys %samples) { print outfile1 "\t$samp reads\t$samp bases"; }
+foreach my $samp(sort keys %samples) { print outfile1 "\t$samp bases\t$samp reads"; }
 print outfile1 "\n";
 foreach my $kk(sort { $accum{$b}<=>$accum{$a}; } keys %accum) { 
 	my $k=$kk;
