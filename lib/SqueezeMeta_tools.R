@@ -31,7 +31,7 @@ read.namedvector = function(file)
 aggregate.taxa = function(SQM, rank)
     {
     res = aggregate(SQM$contigs$abund, by=list(SQM$contigs$tax[,rank]), FUN=sum)
-    rownames(res) = SQM$misc$long_names[[rank]][res[,1]]
+    rownames(res) = res[,1] # SQM$misc$tax_names_long[[rank]][res[,1]]
     res = res[,-1]
     return(as.matrix(res))
     }
@@ -245,6 +245,7 @@ combineSQM_ = function(SQM1, SQM2, trusted_functions_only = F, ignore_unclassifi
     combSQM$orfs$tax                  = rbind(combSQM$orfs$tax, SQM2$orfs$tax[extraORFs,])
     combSQM$orfs$tax                  = combSQM$orfs$tax[rownames(combSQM$orfs$table),]
     
+    
     ### Contigs
     extraContigs                      = setdiff(rownames(SQM2$contigs$table), rownames(SQM1$contigs$table))
     #    Table
@@ -312,6 +313,24 @@ combineSQM_ = function(SQM1, SQM2, trusted_functions_only = F, ignore_unclassifi
     }
 
 
+
+rowMins = function(table)
+    {
+    res = do.call(pmin, as.data.frame(table))
+    names(res) = rownames(table)
+    return(res)
+    }
+
+
+rowMaxs = function(table)
+    {
+    res = do.call(pmax, as.data.frame(table))
+    names(res) = rownames(table)
+    return(res)
+    }
+
+
+
 exportTable = function(table, outName)
     {
     write.table(table, outName, col.names=NA, sep='\t', quote=F)
@@ -332,7 +351,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     
     project_name                  = tail(unlist(strsplit(project_path, split='/')), 1)
     SQM$misc                      = list()
-    SQM$misc$projectName          = project_name
+    SQM$misc$project_name         = project_name
 
     cat('Loading orfs\n')
     SQM$orfs                      = list()
@@ -342,7 +361,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
                                                header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=F)
     cat('    abundances...\n')
     SQM$orfs$abund                = as.matrix(SQM$orfs$table[,grepl('Raw read count', colnames(SQM$orfs$table))])
-    colnames(SQM$orfs$abund)      = gsub('Raw.read.count ', '', colnames(SQM$orfs$abund), fixed=T)
+    colnames(SQM$orfs$abund)      = gsub('Raw read count ', '', colnames(SQM$orfs$abund), fixed=T)
     SQM$orfs$tpm                  = as.matrix(SQM$orfs$table[,grepl('TPM', colnames(SQM$orfs$table))])
     colnames(SQM$orfs$tpm)        = gsub('TPM ', '', colnames(SQM$orfs$tpm), fixed=T)
     SQM$misc$samples              = colnames(SQM$orfs$abund)
@@ -358,7 +377,21 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     SQM$orfs$abund                = SQM$orfs$abund[rownames(SQM$orfs$table),]
     SQM$orfs$tpm                  = SQM$orfs$tpm[rownames(SQM$orfs$table),]
     SQM$orfs$seqs                 = SQM$orfs$seqs[rownames(SQM$orfs$table)]
-
+   
+    # Load KEGG/COG names as misc data
+    KEGGids                      = SQM$orfs$table[,'KEGG ID']
+    KEGGids                      = gsub('*', '', KEGGids, fixed=T)
+    KEGGnames                    = SQM$orfs$table[,'KEGGFUN']
+    KEGGnames                    = KEGGnames[KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
+    SQM$misc$KEGG_names          = KEGGnames
+    names(SQM$misc$KEGG_names)   = KEGGids  [KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
+    
+    COGids                       = SQM$orfs$table[,'COG ID']
+    COGids                       = gsub('*', '', COGids, fixed=T)
+    COGnames                     = SQM$orfs$table[,'COGFUN']
+    COGnames                     = COGnames[COGids!='' & !grepl(';', COGids, fixed=T)]
+    SQM$misc$COG_names           = COGnames
+    names(SQM$misc$COG_names)    = COGids  [COGids!='' & !grepl(';', COGids, fixed=T)]
 
     cat('Loading contigs\n')
     SQM$contigs                   = list()
@@ -441,28 +474,48 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     SQM$taxa$species$percent      = 100 * t(t(SQM$taxa$species$abund)      / colSums(SQM$taxa$species$abund))
 
     
-    SQM$misc$long_names               = list()
+    SQM$misc$tax_names_long               = list()
 
-    SQM$misc$long_names$superkingdom  = rownames(SQM$tax$superkingdom$abund)
-    names(SQM$misc$long_names$superkingdom) = gsub('^k_', '', SQM$misc$long_names$superkingdom) # :'(
+    SQM$misc$tax_names_long$superkingdom  = rownames(SQM$tax$superkingdom$abund)
+    names(SQM$misc$tax_names_long$superkingdom) = gsub('^k_', '', SQM$misc$tax_names_long$superkingdom)
 
-    SQM$misc$long_names$phylum        = rownames(SQM$tax$phylum$abund)
-    names(SQM$misc$long_names$phylum) = sapply(strsplit(SQM$misc$long_names$phylum, split=';p_'), FUN = function(x) x[2])
+    SQM$misc$tax_names_long$phylum        = rownames(SQM$tax$phylum$abund)
+    names(SQM$misc$tax_names_long$phylum) = sapply(strsplit(SQM$misc$tax_names_long$phylum,  split=';p_'), FUN = function(x) x[2])
 
-    SQM$misc$long_names$class         = rownames(SQM$tax$class$abund)
-    names(SQM$misc$long_names$class)  = sapply(strsplit(SQM$misc$long_names$class, split=';c_'), FUN = function(x) x[2])
+    SQM$misc$tax_names_long$class         = rownames(SQM$tax$class$abund)
+    names(SQM$misc$tax_names_long$class)  = sapply(strsplit(SQM$misc$tax_names_long$class,   split=';c_'), FUN = function(x) x[2])
 
-    SQM$misc$long_names$order         = rownames(SQM$tax$order$abund)
-    names(SQM$misc$long_names$order)  = sapply(strsplit(SQM$misc$long_names$order, split=';o_'), FUN = function(x) x[2])
+    SQM$misc$tax_names_long$order         = rownames(SQM$tax$order$abund)
+    names(SQM$misc$tax_names_long$order)  = sapply(strsplit(SQM$misc$tax_names_long$order,   split=';o_'), FUN = function(x) x[2])
 
-    SQM$misc$long_names$family        = rownames(SQM$tax$family$abund)
-    names(SQM$misc$long_names$family) = sapply(strsplit(SQM$misc$long_names$family, split=';f_'), FUN = function(x) x[2])
+    SQM$misc$tax_names_long$family        = rownames(SQM$tax$family$abund)
+    names(SQM$misc$tax_names_long$family) = sapply(strsplit(SQM$misc$tax_names_long$family,  split=';f_'), FUN = function(x) x[2])
 
-    SQM$misc$long_names$genus         = rownames(SQM$tax$genus$abund)
-    names(SQM$misc$long_names$genus)  = sapply(strsplit(SQM$misc$long_names$genus, split=';g_'), FUN = function(x) x[2])
+    SQM$misc$tax_names_long$genus         = rownames(SQM$tax$genus$abund)
+    names(SQM$misc$tax_names_long$genus)  = sapply(strsplit(SQM$misc$tax_names_long$genus,   split=';g_'), FUN = function(x) x[2])
 
-    SQM$misc$long_names$species       = rownames(SQM$tax$species$abund)
-    names(SQM$misc$long_names$species)= sapply(strsplit(SQM$misc$long_names$species, split=';s_'), FUN = function(x) x[2]) 
+    SQM$misc$tax_names_long$species       = rownames(SQM$tax$species$abund)
+    names(SQM$misc$tax_names_long$species)= sapply(strsplit(SQM$misc$tax_names_long$species, split=';s_'), FUN = function(x) x[2]) 
+
+    SQM$misc$tax_names_short              = unlist(lapply(SQM$misc$tax_names_long, names))
+    names(SQM$misc$tax_names_short)       = unlist(SQM$misc$tax_names_long)
+
+    # Use short names for taxonomy tables, since it makes it easier to search for specific taxa
+    rownames(SQM$taxa$superkingdom$abund) = SQM$misc$tax_names_short[rownames(SQM$taxa$superkingdom$abund)]
+    rownames(SQM$taxa$phylum$abund)       = SQM$misc$tax_names_short[rownames(SQM$taxa$phylum$abund)]
+    rownames(SQM$taxa$class$abund)        = SQM$misc$tax_names_short[rownames(SQM$taxa$class$abund)]
+    rownames(SQM$taxa$order$abund)        = SQM$misc$tax_names_short[rownames(SQM$taxa$order$abund)]
+    rownames(SQM$taxa$family$abund)       = SQM$misc$tax_names_short[rownames(SQM$taxa$family$abund)]
+    rownames(SQM$taxa$genus$abund)        = SQM$misc$tax_names_short[rownames(SQM$taxa$genus$abund)]
+    rownames(SQM$taxa$species$abund)      = SQM$misc$tax_names_short[rownames(SQM$taxa$species$abund)]
+
+    rownames(SQM$taxa$superkingdom$percent)= SQM$misc$tax_names_short[rownames(SQM$taxa$superkingdom$percent)] # :'(
+    rownames(SQM$taxa$phylum$percent)     = SQM$misc$tax_names_short[rownames(SQM$taxa$phylum$percent)]
+    rownames(SQM$taxa$class$percent)      = SQM$misc$tax_names_short[rownames(SQM$taxa$class$percent)]
+    rownames(SQM$taxa$order$percent)      = SQM$misc$tax_names_short[rownames(SQM$taxa$order$percent)]
+    rownames(SQM$taxa$family$percent)     = SQM$misc$tax_names_short[rownames(SQM$taxa$family$percent)]
+    rownames(SQM$taxa$genus$percent)      = SQM$misc$tax_names_short[rownames(SQM$taxa$genus$percent)]
+    rownames(SQM$taxa$species$percent)    = SQM$misc$tax_names_short[rownames(SQM$taxa$species$percent)]
 
 
     cat('Loading functions\n')
@@ -481,9 +534,9 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
 
     SQM$functions$PFAM            = list()
     SQM$functions$PFAM$abund      = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name),
-                                                         header=T, sep='\t', row.names=1, check.names=F))
+                                                         header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
     SQM$functions$PFAM$tpm        = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.tpm.tsv', project_path, project_name),
-                                                         header=T, sep='\t', row.names=1, check.names=F))
+                                                         header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
 
     cat('Loading total reads\n')
     SQM$total_reads               = as.matrix(

@@ -21,6 +21,7 @@ OPTIONS:
 
 from os.path import abspath, dirname, realpath
 from os import mkdir
+from sys import exit
 import argparse
 
 from collections import defaultdict
@@ -42,6 +43,9 @@ def main(args):
     except OSError as e:
         if e.errno != 17:
             raise
+        else:
+            print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
+            exit(1)
 
     ### Calculate tables and write results.
     prefix = args.output_dir + '/' + perlVars['$projectname'] + '.'

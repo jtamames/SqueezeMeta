@@ -225,7 +225,7 @@ def parse_bin_table(bin_table):
         for line in infile:
             line = line.strip().split('\t')
             bin_, tax = line[idx['Bin ID']], line[idx['Tax']]
-            if not tax:
+            if not tax or tax=='No consensus':
                 tax = 'n_Unclassified' # Add mock empty taxonomy, as the read is fully unclassified.
             bin_tax[bin_], bin_tax_wranks[bin_] = parse_tax_string(tax)
             bin_tpm[bin_] = array([float(line[idx[sample]]) for sample in samples])

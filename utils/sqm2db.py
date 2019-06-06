@@ -11,7 +11,7 @@ USAGE: make-SqueezeMdb-files.py <PROJECT_NAME> <OUTPUT_DIRECTORY>
 
 from os.path import abspath, dirname, realpath
 from os import mkdir, system
-from sys import path
+from sys import exit, path
 import argparse
 
 utils_home = abspath(dirname(realpath(__file__)))
@@ -28,6 +28,10 @@ def main(args):
     except OSError as e:
         if e.errno != 17:
             raise
+        else:
+            print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
+            exit(1)
+
     
     ### Create samples file.
     with open(perlVars['$mappingfile']) as infile, open('{}/samples.tsv'.format(args.output_dir), 'w') as outfile:
