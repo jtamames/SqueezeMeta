@@ -167,9 +167,11 @@ my $samlist=join(" ",@samfiles);
 closedir indir1;
 if($#samfiles>=0) { 
 	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder? ";
-	$samkeep=<STDIN>;
-	chomp $samkeep;
-	if($samkeep!~/^y$/i) { $samkeep=""; } else { print "Compressing SAM files to the BAM format\n"; }
+	while(!$samkeep) {
+		$samkeep=<STDIN>;
+		chomp $samkeep;
+		if($samkeep!~/^y$/i) { $samkeep=""; } else { print "Compressing SAM files to the BAM format\n"; }
+		}
 	} 
 
 

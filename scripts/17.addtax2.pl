@@ -35,6 +35,7 @@ while(<infile0>) {
 	next if !$_;
 	my ($tax,$par)=split(/\t/,$_);
 	$tax=~s/\[|\]//g;
+	$tax=~s/ \<prokaryotes\>//;
 	$parents{$tax}{wranks}=$par;
 	my @m=split(/\;/,$par);
 	foreach my $y(@m) {
