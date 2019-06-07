@@ -43,6 +43,8 @@ def main(args):
     except OSError as e:
         if e.errno != 17:
             raise
+        elif args.sqm2anvio: # We know what we are doing.
+            pass
         else:
             print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
             exit(1)

@@ -23,7 +23,8 @@ def subset_anvio(splits, contigs_db, profile_db, outdir):
     conn.close()
     genesSub = '({})'.format(','.join('?' * len(genes)))
 
-    aux_db = '{}/AUXILIARY-DATA.db'.format('/'.join(profile_db.split('/')[:-1]))
+    aux_db = '{}/AUXILIARY-DATA.db'.format('/'.join(profile_db.split('/')[:-1]))  if '/' in profile_db else 'AUXILIARY-DATA.db'
+    
     new_contigs_db = '{}/CONTIGS.db'.format(outdir)
     new_profile_db = '{}/PROFILE.db'.format(outdir)
     new_aux_db = '{}/AUXILIARY-DATA.db'.format(outdir)

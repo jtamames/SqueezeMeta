@@ -18,14 +18,14 @@ OPTIONS:
   the filtered anvi'o databases. It defaults to "filteredDB".
 
 - The "-m/--max-splits" parameter controls the maximum number of splits
-  that will be loaded into anvi\'o. If the provided query returns a
+  that will be loaded into anvi'o. If the provided query returns a
   higher number of splits, the program will stop. By default it is set
-  to 25,000, larger values may make the anvi\'o interface to respond
+  to 25,000, larger values may make the anvi'o interface to respond
   slowly. Setting --max-splits to 0 will allow an arbitrarily large
   number of splits to be loaded.
 
 - By default, splits are only clustered based on their taxonomy. Passing
-  the "--enforce-clustering" flag will make anvi\'o perform an
+  the "--enforce-clustering" flag will make anvi'o perform an
   additional clustering based on abundances across samples and sequence
   composition.
 
@@ -79,7 +79,7 @@ QUERY SYNTAX:
 - Possible subjects are:
     - FUN: search within all the combined databases used for functional
            annotation.
-    - FUNH: search within the KEGG BRITE functional hierarchy
+    - FUNH: search within the KEGG BRITE and COG functional hierarchies
          (e.g. "FUNH CONTAINS Carbohydrate metabolism" will select all
           the splits containing a gene associated with the broad
           "Carbohydrate metabolism" category)
@@ -99,8 +99,9 @@ QUERY SYNTAX:
 """
 
 import argparse
-from os.path import abspath, dirname, realpath
+from os.path import abspath, dirname, realpath, exists
 from sys import path
+import glob
 utils_home = abspath(dirname(realpath(__file__)))
 path.append('{}/../lib/'.format(utils_home))
 import dendropy
@@ -119,19 +120,34 @@ COLLECTION_NAME = 'SqueezeMeta'
 
 def main(args):
     
-    outdir = args.output_dir.rstrip('/') 
+    ### Check that the output directory does not exist.
+    outdir = args.output_dir.rstrip('/')
+    if exists(outdir):
+        print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
+        exit(1)
+    if exists(outdir+'_YOLO'): # Due to an aborted run.
+        call(['rm', '-r', outdir+'_YOLO'])
+
+    ### Check that anvi'o can be found in PATH
     missingAnvi = call(['which', 'anvi-self-test'], stdout=DEVNULL)
     if missingAnvi: # ecode of which was 1
         print('We can\'t find anvi\'o in your PATH. Is the environment activated?')
-        exit(-1)
+        exit(1)
+
+    ### Load data
     sfilter = SplitFilter(args.contigs_db, args.profile_db, args.taxonomy)
     splits, samples, contigTax = sfilter.get_parsed_annotations()
     print('')
     print('- {} splits found in anvi\'o profile database.'.format(len(splits)))
     print('')
-    print('- Sample names are:')
-    print('\t{}'.format('\t'.join(samples)))
-    print('')
+    if samples:
+        print('- Sample names are:')
+        print('\t{}'.format('\t'.join(samples)))
+        print('')
+    else:
+        print('- You provided a blank profile. Queries based on sample abundances will not work')
+
+    ### Run filter
     print('- Query tree is:')
     sfilter.print_tree(args.query)
     print('')
@@ -139,24 +155,25 @@ def main(args):
     print('- {} splits fulfilling the required conditions.'.format(len(goodSplits)))
     if not goodSplits:
         print ('Exiting')
-        exit(0)
+        exit(1)
     if args.max_splits and len(goodSplits) > args.max_splits:
         print('')
         print('Too many splits satisfying the provided query.')
         print('Loading too many splits can make anvi\'o slow to respond. Please consider providing a narrower query.')
         print('Alternatively, use --max-splits NUMBER to increase this threshold or --max-splits 0 to disable it completely')
         print('')
-        exit(0) 
+        exit(1) 
     doubleParents = makeTaxTree(goodSplits, contigTax, OUTTREE)
     # assert not doubleParents # There shouldn't be any, but comment for being lenient. The makeTaxTree function warns the user if double parents are found.
 
+    ### Run anvi'o pipeline
     call(['anvi-delete-collection', '-p', args.profile_db, '-C', COLLECTION_NAME], stdout=DEVNULL, stderr=DEVNULL)
 
     with open('good_splits.tsv', 'w') as outfile:
         for split in goodSplits:
             outfile.write('{}\t{}\n'.format(split, COLLECTION_NAME))
 
-    if args.split_mode == 'safe':
+    if args.split_mode == 'safe' or not samples: # Yolo parser expects non-blank profiles.
         cdb = args.contigs_db
         pdb = args.profile_db
 
@@ -174,15 +191,34 @@ def main(args):
         splitCommand.append('--skip-hierarchical-clustering')
     call(splitCommand)
     
-    if args.split_mode == 'yolo':
+    if args.split_mode == 'yolo' and samples:
       call(['rm', '-r', outdir + '_YOLO']) # leave no evidence
-      
+ 
+    if not samples: # Anvi-split creates no profile file if called with a blank profile. We re-generate it.
+        profileCommand = ['anvi-profile', '-o', '{}/{}/BLANK'.format(outdir, COLLECTION_NAME), '-c', '{}/{}/CONTIGS.db'.format(outdir, COLLECTION_NAME),
+                          '-S','Blank', '--blank-profile']
+        if args.enforce_clustering:
+            if args.enforce_clustering:
+                profileCommand.append('--enforce-hierarchical-clustering')
+            else:
+                profileCommand.append('--skip-hierarchical-clustering')
+        call(profileCommand)
+        blankFiles = glob.glob('{}/{}/BLANK/*'.format(outdir, COLLECTION_NAME))
+        call(['mv'] + blankFiles + ['{}/{}/'.format(outdir, COLLECTION_NAME)])
+        call(['rmdir', '{}/{}/BLANK'.format(outdir, COLLECTION_NAME)])
+
     
     # Move files before calling anvi-interactive
     call(['mv', 'good_splits.tsv', outdir])
     call(['mv', OUTTREE, outdir])
 
-    interactiveCommand = ['anvi-interactive', '-c', '{}/{}/CONTIGS.db'.format(outdir, COLLECTION_NAME), '-p', '{}/{}/PROFILE.db'.format(outdir, COLLECTION_NAME), '-t', '{}/{}'.format(outdir, OUTTREE)]
+    ### Run anvi interactive
+
+    interactiveCommand = ['anvi-interactive', '-c', '{}/{}/CONTIGS.db'.format(outdir, COLLECTION_NAME), '-p', '{}/{}/PROFILE.db'.format(outdir, COLLECTION_NAME)]
+    if samples:
+         interactiveCommand.extend(['-t', '{}/{}'.format(outdir, OUTTREE)])
+    else:
+        print('anvi-interactive fails to display the custom taxonomy tree when no SAM files are present, so we won\'t include it')
 
     if args.extra_anvio_args:
         interactiveCommand.extend([x.strip() for x in args.extra_anvio_args.split(' ')])
@@ -260,7 +296,7 @@ def parse_args():
     parser.add_argument('-c', '--contigs-db', type=str, required=True, help='Anvi\'o contigs database')
     parser.add_argument('-t', '--taxonomy', type=str, required = True, help='SqueezeMeta contigs taxonomy')
     parser.add_argument('-q', '--query', type=str, required=True, nargs='+')
-    parser.add_argument('-o', '--output_dir', type=str, default='filteredDB', help='Output directory')
+    parser.add_argument('-o', '--output-dir', type=str, default='filteredDB', help='Output directory')
     parser.add_argument('-m', '--max-splits', type=int, default=25000, help='Maximum number of splits to visualize')
     parser.add_argument('--enforce-clustering', action='store_true', help='Hierarchically cluster splits based on abundances and composition')
     parser.add_argument('--extra-anvio-args', type=str, help='Extra arguments for anvi-interactive')

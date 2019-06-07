@@ -19,30 +19,56 @@ class SplitFilter():
         self.contigs_db_path  = contigs_db_path
         self.profile_db_path  = profile_db_path
         self.contigs_tax_path = contigs_tax_path
-        self.SAMPLES = self.load_anvio_samples(self.profile_db_path)
-        self.ALL_KEYWORDS = self.TAX_KEYWORDS + self.FUN_KEYWORDS + self.SAMPLES
-        self.splits = self.load_splits(self.profile_db_path)
+        self.has_blank_profile = self.is_blank_profile(self.profile_db_path)
+        if not self.has_blank_profile:
+            self.SAMPLES = self.load_anvio_samples(self.profile_db_path)
+            self.splits  = self.load_anvio_splits(self.profile_db_path, 'abundance_splits')
+        else:
+            self.SAMPLES = []
+            self.splits  = self.load_anvio_splits(self.profile_db_path, 'atomic_data_splits')
+        self.ALL_KEYWORDS = self.TAX_KEYWORDS + self.FUN_KEYWORDS + self.SAMPLES # Add sample names to the list of valid keywords.
         self.contigTax = self.load_taxonomy(self.contigs_tax_path)
+
+
+    @staticmethod
+    def is_blank_profile(profile_db_path):
+        """
+        From our tests, the profile database contains the table "abundance_splits"
+        the profile has samples, and the table "atomic_data_splits" if the profile
+        is blank.
+        """ 
+        conn = sqlite3.connect(profile_db_path)
+        c = conn.cursor()
+        c.execute('SELECT * FROM SQLITE_MASTER')
+        tables = [x[2] for x in c.fetchall() if x[0]=='table']
+        if 'atomic_data_splits' in tables and 'abundance_splits' in tables:
+            raise Exception('Your profile database contains one table named "atomic_data_splits" and another named "abundance_splits", \
+                             so we can\'t tell whether it is a blank profile or not. This might be our fault, let us know.')
+        return 'atomic_data_splits' in tables
+    
 
 
     @staticmethod
     def load_anvio_samples(profile_db_path):
         conn = sqlite3.connect(profile_db_path)
         c = conn.cursor()
-        c.execute('PRAGMA table_info("abundance_splits");')
+        c.execute('PRAGMA table_info("abundance_splits")')
         samples = [x[1] for x in c.fetchall()][1:-1]
         conn.close()
         return samples
+
     
 
     @staticmethod
-    def load_splits(profile_db_path):
+    def load_anvio_splits(profile_db_path, table):
         conn = sqlite3.connect(profile_db_path)
         c = conn.cursor()
-        c.execute('SELECT contig FROM abundance_splits') # named contig, but they're really splits
+        c.execute('SELECT * FROM SQLITE_MASTER')
+        c.execute('SELECT contig FROM {}'.format(table)) # named contig, but they're really splits
         splits = set([x[0] for x in c.fetchall()])
         conn.close()   
         return splits
+
 
 
     @staticmethod
@@ -57,9 +83,11 @@ class SplitFilter():
         return contigTax
 
 
+
     def get_parsed_annotations(self):
         return self.splits, self.SAMPLES, self.contigTax
     
+
 
     def parse_query(self, query):
         """
