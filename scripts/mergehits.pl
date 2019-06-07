@@ -15,8 +15,10 @@ open(in,$file) || die "Can't open $file\n";
 while(<in>) {
 	chomp;
 	my @fields=split(/\t/,$_);
-	my @culist=split(/\|/,$fields[0]);
-	my $contig=$culist[0];
+	#my @culist=split(/\|/,$fields[0]);
+	#my $contig=$culist[0];
+	#$contig=~s/\_[^_]+$//;
+	my $contig=$fields[0];
 	$contig=~s/\_[^_]+$//;
 	my $current=$contig;
 	if($current eq $last) {
