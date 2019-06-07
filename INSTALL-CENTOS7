@@ -6,7 +6,6 @@
 
 ### Enable Extended Packages for Enterprise Linux.
 sudo yum -y install epel-release
-sudo yum update
 
 
 ### Install ncurses-devel
@@ -18,14 +17,14 @@ sudo yum -y install ruby
 
 
 ### Install Perl modules.
-sudo yum -y install perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl-DBD-SQLite perl-Time-Piece
+sudo yum -y install perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl-XML-Parser perl-DBD-SQLite perl-Time-Piece
 
 
 ###Install Python modules.
-sudo yum -y install python-pip python-matplotlib python34 python34-numpy
-sudo python -m pip install scipy dendropy pysam
+sudo yum -y install python-pip scipy python-matplotlib python34 python34-numpy
+sudo python -m pip install dendropy pysam
 
-sudo ln -s /usr/bin/python3.4 /usr/bin/python3 # Assuming python3 is not already in your path!
+sudo ln -s /usr/bin/python3.4 /usr/bin/python3 # Only if python3 is not already in your path!
 
 
 ### Install R.
