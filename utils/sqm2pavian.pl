@@ -113,3 +113,4 @@ foreach my $insample(sort keys %store) {
 		}
 	print "Output in $feature for sample $insample in $outfile\n";	
 	}
+print "You can now use these data in your R pavian or in the web app https://fbreitwieser.shinyapps.io/pavian\n";

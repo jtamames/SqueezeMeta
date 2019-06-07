@@ -30,13 +30,14 @@ my(%genstore,%genindex);
 my $project_name = ( split(/\//,$project) )[-1];
 
 print "======== sqm2anvio.pl, v$version ========\n";
-if(-e $gff_file_blastx) { $gff=$gff_file_blastx; }
-elsif(-e $gff_file) { $gff=$gff_file; }
-else { die "Cannot open gff file\n"; }
 
 my $ecode = system("mkdir $outdir 2> /dev/null");
 if($ecode!=0) { die("Directory $outdir already exists or can't be created"); }
 system("mkdir $outdir/bam");
+
+if(-e $gff_file_blastx) { $gff=$gff_file_blastx; }
+elsif(-e $gff_file) { $gff=$gff_file; }
+else { die "Cannot open gff file\n"; }
 
 my $genes_out="$project_name\_anvio_genes.txt";
 my $equivalence_out="$project_name\_anvio_SQMequivalence.txt";
@@ -170,11 +171,14 @@ my $samlist=join(" ",@samfiles);
 closedir indir1;
 if($#samfiles>=0) { 
 	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder (y/n)? ";
-	$samkeep=<STDIN>;
-	chomp $samkeep;
-	if($samkeep!~/^y$/i) { $samkeep=""; } else { print "Compressing SAM files to the BAM format\n"; }
-	} 
-
+        while(1) {
+		$samkeep=<STDIN>;
+		chomp $samkeep;
+		if($samkeep eq 'y' or $samkeep eq 'yes'){ $samkeep=1; print "Compressing SAM files to the BAM format\n"; last }
+		elsif($samkeep eq 'n' or $samkeep eq 'no') { $samkeep=0; print "SAM files will be ignored\n"; last }
+                else { print "Only y(es) or n(o) are valid answers\n" }
+		}
+	}
 
 if($samkeep) { 
 	foreach my $sam(@samfiles) {

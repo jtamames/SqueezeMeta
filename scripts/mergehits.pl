@@ -9,13 +9,16 @@ $|=1;
 my $file=$ARGV[0];
 my(%store,%frames);
 my($nh,$current,$last);
+my $verbose=0;
 
 open(in,$file) || die "Can't open $file\n";
 while(<in>) {
 	chomp;
 	my @fields=split(/\t/,$_);
-	my @culist=split(/\|/,$fields[0]);
-	my $contig=$culist[0];
+	#my @culist=split(/\|/,$fields[0]);
+	#my $contig=$culist[0];
+	#$contig=~s/\_[^_]+$//;
+	my $contig=$fields[0];
 	$contig=~s/\_[^_]+$//;
 	my $current=$contig;
 	if($current eq $last) {
@@ -83,7 +86,7 @@ sub mergehits {
 				#   print "Unir:\n**$ak[$pos1]\n**$ak[$pos2]\n$multiple\n\n\n"; 
 				my $long1=$fields1[3];
 				my $long2=$fields2[3];
-				#   print "Unir por $muls:\n**$ak[$pos1]\n**$ak[$pos2]\n\n\n"; 
+				if($verbose) { print " >>Joining because $muls:\n**$ak[$pos1]\n**$ak[$pos2]\n\n\n"; }
 				if($long1>$long2) { @newl=@fields1; } else { @newl=@fields2; }
 				#   $frames{"$fields1[6]-$fields1[7]"}=$fields1[$#fields1];
 				#   $frames{"$fields2[6]-$fields2[7]"}=$fields2[$#fields2];
@@ -111,7 +114,7 @@ sub mergehits {
 				my $newlong=$newl[9]-$newl[8];
 				splice(@newl,3,1,$newlong);
 				my $newline=join("\t",@newl);
-				#   print "Genera:\n**$newline\n\n\n";
+				if($verbose) { print " --Creating:\n**$newline\n\n\n"; }
 				# print "$newline\n";     
 				delete $store{$ak[$pos1]};
 				delete $store{$ak[$pos2]};     
