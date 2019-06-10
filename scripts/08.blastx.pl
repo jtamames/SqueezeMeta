@@ -67,7 +67,7 @@ sub moving {		#-- Places files in rigth location for restart purposes
 	
 
 sub masking {
-	print "Getting segments for masking\n";
+	print "  Getting segments for masking\n";
 	open(infile1,"$fun3tax.wranks") || die "Can't open wranks file in $fun3tax.wranks\n";
 	while(<infile1>) {
 		my @t=split(/\t/,$_);
@@ -123,7 +123,7 @@ sub masking {
 		}	
 
 
-	print "Masking contigs\n";
+	print "  Masking contigs\n";
 	$maskedfile=$contigsfna;
 	$maskedfile="$tempdir/08.$project.masked.fna";
 	# if (-e $maskedfile) { die "File $maskedfile already exists\n"; }
@@ -156,7 +156,7 @@ sub masking {
 		}
 	close infile3;
 	close outfile;
-	print "Output in $maskedfile\n";
+	print "  Output in $maskedfile\n";
 	}
 
 
@@ -164,7 +164,7 @@ sub run_blastx {
 
 	#-- Run Diamond search
 
-	print "Running Diamond BlastX (This can take a while, please be patient)\n";
+	print "  Running Diamond BlastX (This can take a while, please be patient)\n";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
 	# print "$blastx_command\n";
 	 system $blastx_command;
@@ -174,7 +174,7 @@ sub collapse {
 
 	#-- Collapse hits using blastxcollapse.pl
 
-	print "Collapsing hits with blastxcollapse.pl\n";
+	print "  Collapsing hits with blastxcollapse.pl\n";
 	my $collapse_command="$scriptdir/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
 	system $collapse_command;
 	}
@@ -184,7 +184,7 @@ sub merge {
 	#-- Merge frameshifts
 
 	my $merge_command="$scriptdir/mergehits.pl $collapsed > $collapsedmerged";
-	print "Merging splitted hits with mergehits.pl\n";
+	print "  Merging splitted hits with mergehits.pl\n";
 	system $merge_command;
 	}
 
@@ -192,7 +192,7 @@ sub getseqs {
 
 	#-- Get new nt sequences
 
-	print "Getting nt sequences\n";
+	print "  Getting nt sequences\n";
 	my %orfstoget;
 	open(infile4,$collapsedmerged) || die "Can't open $collapsedmerged\n";
 	while(<infile4>) {
@@ -238,7 +238,7 @@ sub getseqs {
 		print outfile2 ">$currcontig\_$gorf\n$mseq\n";
 		}
 	close outfile2;	
-	print "Sequences stored in $ntmerged\n";				
+	print "  Sequences stored in $ntmerged\n";				
 	}
 
 sub lca {
@@ -246,7 +246,7 @@ sub lca {
 	#-- Assign with lca_collapsed
 
 	my $command="perl $scriptdir/lca_collapse.pl $project $collapsedmerged";
-	print "Now running lca_collapse.pl: $command\n";
+	print "  Now running lca_collapse.pl: $command\n";
 	system($command);
 	}
 
@@ -257,7 +257,7 @@ sub functions {
 	if(!$nocog) {
 		$cogfun="$tempdir/08.$project.fun3.blastx.cog.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
-		print "Running Diamond blastx for COGS\n";
+		print "  Running Diamond blastx for COGS\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{cog}=$fun3cog_blastx;
@@ -268,7 +268,7 @@ sub functions {
 	if(!$nokegg) {
 		$keggfun="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
-		print "Running Diamond blastx for KEGG\n";
+		print "  Running Diamond blastx for KEGG\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{kegg}=$fun3kegg_blastx;
@@ -284,18 +284,18 @@ sub functions {
 			my($dbname,$extdb,$dblist)=split(/\t/,$_);
 			$optdbfun="$tempdir/08.$project.fun3.blastx.$dbname.m8";
 			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
-			print "Running Diamond blastx for OPTDB $dbname\n";
+			print "  Running Diamond blastx for OPTDB $dbname\n";
 			my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
 			$olist{$dbname}="$resultpath/08.$project.fun3.$dbname";
 			}
 		}
-	print "Assigning with fun3\n";
+	print "  Assigning with fun3\n";
 	system("perl $scriptdir/07.fun3assign.pl $project blastx");
 	}
 
 sub remaketaxtables {
-	print "Merging tax tables\n";
+	print "  Merging tax tables\n";
 	my %ttables=(
 			'filters' => {
 					'original' => $fun3tax.".wranks",
@@ -380,7 +380,7 @@ sub remaketaxtables {
 sub remakefuntables {
 	foreach my $thisdb(sort keys %olist) {
 		my(%intable,%methods);
-		print "Merging $thisdb tables\n";
+		print "  Merging $thisdb tables\n";
 		my $oldcogtable="$resultpath/07.$project.fun3.$thisdb";
 		my $blastxcogtable="$tempdir/08.$project.fun3.blastx.$thisdb";
 		my $newcogtable=$olist{$thisdb};
@@ -441,7 +441,7 @@ sub remakefuntables {
 	
 		
 sub remakegff {
-	print "Merging GFF tables\n";
+	print "  Merging GFF tables\n";
 	my %gffstore;
 	my $gfftable="$resultpath/03.$project.gff";
 	my $newtable=$gff_file_blastx;
@@ -505,10 +505,10 @@ sub remakegff {
 	
 		}
 	close outfile3;	
-	print "New GFF table created in $newtable\n";
+	print "  New GFF table created in $newtable\n";
 	$movecommands.="mv $gfftable $interdir/03.$project.gff";
 	my $wc=qx(wc -l $newtable);	#-- Avoid moving files if the script failed (to be able to restart with all files in place)
 	my($wsize,$rest)=split(/\s+/,$wc);
 	# print "$movecommands\n";
-	if($wsize>=2)         { print "Moving old files to dir intermediate\n"; system($movecommands); } 
+	if($wsize>=2)         { print "  Moving old files to dir intermediate\n"; system($movecommands); } 
 	}

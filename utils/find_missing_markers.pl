@@ -11,15 +11,17 @@ use Getopt::Long;
 my $pwd=cwd();
 my $project=$ARGV[0];
 $project=~s/\/$//; 
-if(!$project) { die "Usage: $0 <project> [bin name]\n"; }
+if(!$project) { die "Usage: $0 <project> [bin name] [strict|relaxed]\n"; }
 my $binreq=$ARGV[1];
+my $mode=$ARGV[2];
 if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project name ok?\n"; }
 do "$project/SqueezeMeta_conf.pl";
 do "$project/parameters.pl";
 
 my $verbose=0;		# For debugging purposes
 
-my $mode="strict";	# "strict" (taxonomy of the contig must match exactly the one for the bin) or "relaxed" (taxonomy of the contig must not contradict the one for the bin)
+if($mode=~/relaxed/i) { $mode="relaxed"; }  else { $mode="strict"; } 	# "strict" (taxonomy of the contig must match exactly the one for the bin) or "relaxed" (taxonomy of the contig must not contradict the one for the bin)
+print "Working in $mode mode\n";
 
 our($alllog,%bindir,%dasdir,$installpath,$checkm_soft,$numthreads,$datapath,$tempdir,$taxlist,$mergedfile,$contigtable,$bindir,$databasepath,$contigsinbins,$contigtable);
 my %branks=('k','domain','p','phylum','c','class','o','order','f','family','g','genus','s','species');
@@ -88,6 +90,23 @@ while(<infile1>) {
 
 my $skip;
 my($taxbin,$size,$chim,$chimlev,$thres)="";
+my %contigsinbins;
+
+foreach my $bin(sort @binlist) {	#-- Creates a list of the contigs in each bin
+	my $fastaname="$bindir/$bin";
+	my $binname="$bindir/$bin\.tax";
+	open(infile1,$binname) || die "Can't open $binname\n";
+	while(<infile1>) { 
+		chomp;
+		next if(($_=~/^Consensus/) || ($_=~/^List/));
+		my($tcont,$rest)=split(/\s+|\t/,$_);
+		$tcont=~s/^\>//;
+		$contigsinbins{$tcont}=$bin;
+		}
+	}
+
+
+
 foreach my $bin(sort @binlist) {
 	my $fastaname="$bindir/$bin";
 	my $binname="$bindir/$bin\.tax";
@@ -128,7 +147,7 @@ foreach my $bin(sort @binlist) {
 	if(!$genetable) { die "Missing gene table\n"; }
 	if(!$contigtable) { die "Missing contig table\n"; }
 
- # my $intdist=centroid($bin);
+ my $intdist=centroid($bin);
  # print "\nCentroid: $intdist";
  my $inloop=1;
  
@@ -208,6 +227,8 @@ foreach my $bin(sort @binlist) {
 		next;
 		}	
       		my @k=split(/\t/,$_);
+		my $inbin=$contigsinbins{$k[1]};
+		next if($inbin eq $bin);	#-- The contig belongs to the current bin
 		# next if($k[5]!~/$rank\:$lookingfor/);
 		my $pfam=$k[$pfampos];
 		next if(!$pfam);
@@ -228,7 +249,7 @@ next if(!$thres);
 my(%strings,%strnum);
 print outfile1 "$bin; Consensus: $taxbin\n"; 
 print outfile1 "Missing markers for $bin: @misslist\n";
-print outfile1 "Bin\tContig\tMarker\tGene\tContig tax\n";
+print outfile1 "Bin\tContig\tMarker\tGene\tContig bin\tContig tax\tNorm dist to bin centroid\n";
 open(infile4,$contigtable);
 while(<infile4>) {
         chomp;
@@ -239,10 +260,11 @@ while(<infile4>) {
 	foreach my $igen(keys %{ $incontig{$contigid} }) {
 		next if(($mode eq "strict") && ($contigtax!~/$taxbin/));
 		next if(($mode eq "relaxed") && ($taxbin!~/$contigtax/));
-		#my $contigdist=dist_to_centroid($contigid);
-		#my $normdist=$contigdist/$intdist;
 		# print outfile1 "$bin\t$contigid\t$igen\t$incontig{$contigid}{$igen}\t$contigtax\n";
-		$strings{$contigid}.="$bin\t$contigid\t$igen\t$incontig{$contigid}{$igen}\t$contigtax\n";
+		my $contigdist=dist_to_centroid($contigid);
+		my $normdist=$contigdist/$intdist;
+		my $contigbin=$contigsinbins{$contigid};
+		$strings{$contigid}.="$bin\t$contigid\t$igen\t$incontig{$contigid}{$igen}\t$contigbin\t$contigtax\t$normdist\n";
 		$strnum{$contigid}++;
 		}
 	}
@@ -283,8 +305,9 @@ sub centroid {
 		}
 	close infile5;
 	foreach my $dp(sort keys %tpmsets) {
-		foreach my $points(sort keys %tpm) { $centroid{$dp}+=$tpm{$points}{$dp}; }
-		$centroid{$dp}/=$dimensions;	
+		my $numd=0;
+		foreach my $points(sort keys %tpm) { $centroid{$dp}+=$tpm{$points}{$dp}; $numd++; }
+		$centroid{$dp}/=$numd;	
 		# print "$dp: $centroid{$dp} ";		
 		}
 	# print "\n";
@@ -320,14 +343,18 @@ sub dist_to_centroid {
 		@e=split(/\t/,$_);
 		if($e[0] eq $thiscontig) { 
 			for(my $pos=0; $pos<=$#e; $pos++) {
-				if($headerp[$pos]=~/^TPM/) { $tpm{$headerp[$pos]}=$e[$pos]; }
-				if($headerp[$pos]=~/^GC perc/) { $gc=$e[$pos]; }
+				if($headerp[$pos]=~/^TPM/) { 
+					$tpm{$headerp[$pos]}=$e[$pos]; 
+					# print "***$thiscontig $headerp[$pos] $e[$pos]\n"; 
+					}
+				if($headerp[$pos]=~/^GC perc/) { $gc=$e[$pos]; }				
 				}
 			}
 		}
 	close infile5;
-	foreach my $dp(sort keys %tpmsets) {
-		foreach my $points(sort keys %tpm) { $distaccum+=($tpm{$dp}-$centroid{$dp})**2; }
+	foreach my $dp(sort keys %tpm) { 
+		$distaccum+=($tpm{$dp}-$centroid{$dp})**2; 
+		# print ">>>$thiscontig $dp $tpm{$dp} $centroid{$dp} $distaccum\n"; 
 		}
 	$distaccum=sqrt $distaccum;
 	return $distaccum;
