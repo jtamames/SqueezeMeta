@@ -27,21 +27,24 @@ my $version="1.1";
 my $gff;
 my(%genstore,%genindex);
 
+my $project_name = ( split(/\//,$project) )[-1];
+
 print "======== sqm2anvio.pl, v$version ========\n";
-if(-e $gff_file_blastx) { $gff=$gff_file_blastx; }
-elsif(-e $gff_file) { $gff=$gff_file; }
-else { die "Cannot open gff file\n"; }
 
 my $ecode = system("mkdir $outdir 2> /dev/null");
 if($ecode!=0) { die("Directory $outdir already exists or can't be created"); }
 system("mkdir $outdir/bam");
 
-my $genes_out="$project\_anvio_genes.txt";
-my $equivalence_out="$project\_anvio_SQMequivalence.txt";
-my $contigs_out="$project\_anvio_contigs.txt";
-my $functions_out="$project\_anvio_functions.txt";
-my $taxonomy_out="$project\_anvio_taxonomy.txt";
-my $bin_out="$project\_anvio_bins.txt";
+if(-e $gff_file_blastx) { $gff=$gff_file_blastx; }
+elsif(-e $gff_file) { $gff=$gff_file; }
+else { die "Cannot open gff file\n"; }
+
+my $genes_out="$project_name\_anvio_genes.txt";
+my $equivalence_out="$project_name\_anvio_SQMequivalence.txt";
+my $contigs_out="$project_name\_anvio_contigs.txt";
+my $functions_out="$project_name\_anvio_functions.txt";
+my $taxonomy_out="$project_name\_anvio_taxonomy.txt";
+my $bin_out="$project_name\_anvio_bins.txt";
 
 open(infile1,$gff) || die "Cannot open gff file $gff\n";
 open(outfile1,">$outdir/$genes_out") || die "Cannot open gen outfile $outdir/$genes_out\n";
@@ -82,7 +85,7 @@ my $firstline;
 
 # get sqm2tables.py taxonomy
 system("$installpath/utils/sqm2tables.py $project $outdir --sqm2anvio");
-open(infile2, "$outdir/$project.orf.tax.allfilter.tsv");
+open(infile2, "$outdir/$project_name.orf.tax.allfilter.tsv") || die "Cannot open taxonomy table $outdir/$project_name.orf.tax.allfilter.tsv";
 while(<infile2>) {
 	chomp;
 	if(!$firstline) { $firstline=$_ ; next;}
@@ -108,6 +111,7 @@ while(<infile3>) {
 		if(($f eq "KEGG ID") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tKEGG\t$k[$pos]\t$k[$pos+1]\t0\n"; }
 		if(($f eq "KEGGPATH") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tKEGGPATH\t\t$k[$pos]\t0\n"; }
 		if(($f eq "COG ID") && $k[$pos]) { print outfile3 "$genindex{$k[0]}\tCOG\t$k[$pos]\t$k[$pos+1]\t0\n"; }
+                if(($f eq "COGPATH") && $k[$pos]) { print outfile3  "$genindex{$k[0]}\tCOGPATH\t\t$k[$pos]\t0\n"; }
 		if(($f eq "PFAM") && $k[$pos]) { 
 			my($pfid,$pffun)=split(/\s+/,$k[$pos], 2);
 			$pffun=~s/\[|\]//g;
@@ -132,8 +136,8 @@ close infile3;
 close outfile3;
 close outfile4;
 
-system("rm $outdir/$project.orf.tax.allfilter.tsv"); # we don't need this anymore
-system("mv $outdir/$project.contig.tax.tsv $outdir/$project\_anvio_contig_taxonomy.txt"); # so Natalia is happy
+system("rm $outdir/$project_name.orf.tax.allfilter.tsv"); # we don't need this anymore
+system("mv $outdir/$project_name.contig.tax.tsv $outdir/$project_name\_anvio_contig_taxonomy.txt"); # so Natalia is happy
 
 open(infile4,$contigsfna) || die "Cannot open contig file $contigsfna\n";
 open(outfile5,">$outdir/$contigs_out") || die "Cannot open output in $outdir/$contigs_out\n";
@@ -166,14 +170,15 @@ my @samfiles=grep(/\.sam$/,readdir indir1);
 my $samlist=join(" ",@samfiles);
 closedir indir1;
 if($#samfiles>=0) { 
-	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder? ";
-	while(!$samkeep) {
+	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder (y/n)? ";
+        while(1) {
 		$samkeep=<STDIN>;
 		chomp $samkeep;
-		if($samkeep!~/^y$/i) { $samkeep=""; } else { print "Compressing SAM files to the BAM format\n"; }
+		if($samkeep eq 'y' or $samkeep eq 'yes'){ $samkeep=1; print "Compressing SAM files to the BAM format\n"; last }
+		elsif($samkeep eq 'n' or $samkeep eq 'no') { $samkeep=0; print "SAM files will be ignored\n"; last }
+                else { print "Only y(es) or n(o) are valid answers\n" }
 		}
-	} 
-
+	}
 
 if($samkeep) { 
 	foreach my $sam(@samfiles) {

@@ -124,9 +124,9 @@ close outfile2;
 #close outfile3;
 close outfile4;
 
-if(!$thereareresults) { die "Tax assignment done in $fun3tax but no results found. Aborting\n"; }
+if(!$thereareresults) { die "Tax assignment done in $fun3tax.wranks but no results found. Aborting\n"; }
 
-print "Tax assignment done! Result stored in file $fun3tax\n";
+print "Tax assignment done! Result stored in file $fun3tax.wranks\n";
 
 
 sub query {
