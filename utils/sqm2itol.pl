@@ -73,7 +73,7 @@ while(<infile1>) {
 	$numbins++;
 	chop $k[2]; 
 	my @mtx=split(/\;/,$k[2]);
-	my ($lrank,$ltax)=split(/\:/,$mtx[$#mtx]);
+	my ($lrank,$ltax)=split(/\_/,$mtx[$#mtx]);
 	my $binname="$k[0]_$ltax";
 	$binname=~s/\s+/\_/g;
 	$binname=~s/sp\./sp/g;
@@ -154,7 +154,7 @@ foreach my $phyl(sort { $countphylo{genus}{$b}<=>$countphylo{genus}{$a}; } keys 
 	if($cphy>$numtaxalabels) { delete $countphylo{genus}{$phyl}; } else { $color{genus}{$phyl}=$colors2[$cphy-1]; }
 	}
 
-my $distfile="$resultpath/maxbin/aai/dist.out";
+my $distfile="$dirbin/aai/dist.out";
 my $treefile="$extpath/$project.nw";
 my ($contig);
 
@@ -205,11 +205,11 @@ else {						#-- Run compareM only if we have not done it before
 		close outfile1;
 		}
 
-	my $command="comparem aai_wf --proteins $tempoutdir -x faa $resultpath/maxbin";	
+	my $command="comparem aai_wf --proteins $tempoutdir -x faa $dirbin";	
 	print "\nRunning CompareM: $command\n";
 	system($command);
 
-	open(infile4,"$resultpath/maxbin/aai/aai_summary.tsv") || die;
+	open(infile4,"$dirbin/aai/aai_summary.tsv") || die;
 	$_=<infile4>;
 	while(<infile4>) {
 		chomp;
