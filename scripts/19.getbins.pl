@@ -139,13 +139,13 @@ foreach my $binmethod(sort keys %dasdir) {
 		my @k=split(/\t/,$_); 
 		my $bincorr=$contigs{$binmethod}{$k[0]}; 
 		next if(!$bincorr);
-		my $mappedbases=$k[1]*$k[3];
+		my $mappedbases=$k[6];
 		my $sample=$k[$#k];
 		$allsamples{$sample}=1;
 		$mapped{$binmethod}{$bincorr}{$sample}{bases}+=$mappedbases;
-		$mapped{$binmethod}{$bincorr}{$sample}{reads}+=$k[4];
-		$rinsample{$binmethod}{$sample}{$bincorr}+=$k[4];
-		$totalreadcount{$binmethod}{$sample}+=$k[4];
+		$mapped{$binmethod}{$bincorr}{$sample}{reads}+=$k[5];
+		$rinsample{$binmethod}{$sample}{$bincorr}+=$k[5];
+		$totalreadcount{$binmethod}{$sample}+=$k[5];
 		}
 	close infile5;
 
@@ -168,6 +168,7 @@ foreach my $binmethod(sort keys %dasdir) {
 			$bins{$binmethod}{$binst}{coverage}{$samps}=$coverage;
 			$bins{$binmethod}{$binst}{rpkm}{$samps}=$rpkm;
 			printf outfile1 "$binst\t$binmethod\t%.2f\t%.2f\t%.2f\t$samps\n",$coverage,$rpkm,$tpm;
+			# print "$binst**$samps**$mapped{$binmethod}{$binst}{$samps}{reads}**$bins{$binmethod}{$binst}{size}**$totalreadcount{$binmethod}{$samps}**\n";
 			}
 		}
 

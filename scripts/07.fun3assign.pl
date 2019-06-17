@@ -51,11 +51,16 @@ if(!$nocog) {
  		chomp;
  		next if(!$_ || ($_=~/^\#/));
  		@f=split(/\t/,$_);
+		my $presentorf=$f[0];
+		my $hitid=$f[2];
+		my $bitscore=$f[7];
+		if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
+		my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
 		
 		#-- If we finished reading the hits for last ORF, we output its best hit,
 		#-- and also calculate and output the best average, if any
 		
- 		if($currorf && ($f[0] ne $currorf)) {	
+ 		if($currorf && ($presentorf ne $currorf)) {	
 		
 			#-- Calculate the best average
 		
@@ -71,17 +76,15 @@ if(!$nocog) {
 
   				print outfile1 "$currorf\t$cog{$currorf}{besthit}\t$cog{$currorf}{bestaver}\n";
 				    }
-  			$currorf=$f[0];		#-- And current ORF is the new one just read
+  			$currorf=$presentorf;		#-- And current ORF is the new one just read
   			(%accum,%count)=();
 			}
 			
 		#-- If we are still reading the hits for current ORF, just store them if they pass the filters
 
-		$currorf=$f[0];
-		if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
-		my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
+		$currorf=$presentorf;
 		next if($olap<$minolap7);	#-- Partial hits are not allowed
-		my @c=split(/\|/,$f[2]);
+		my @c=split(/\|/,$hitid);
 		my $khit=$c[1];			#-- This is the COG for the hit
 		if(!$cog{$currorf}{besthit}) {
 			$cog{$currorf}{besthit}=$khit;	#-- If it is the first hit, then it is best hit
@@ -89,7 +92,7 @@ if(!$nocog) {
 			}
 		next if($count{$khit} && ($count{$khit}>=$maxhits7));	#-- If we have already $maxhits hits for that COG, skip this hit
 		$count{$khit}++;
-		$accum{$khit}+=$f[7];
+		$accum{$khit}+=$bitscore;
 		}
 		
 	close infile1;
@@ -132,11 +135,16 @@ if(!$nokegg) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
 		@f=split(/\t/,$_);
+		my $presentorf=$f[0];
+		my $hitid=$f[2];
+		my $bitscore=$f[7];
+		if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
+		my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
 		
 		#-- If we finished reading the hits for last ORF, we output its best hit,
 		#-- and also calculate and output the best average, if any
 
-		if($currorf && ($f[0] ne $currorf)) {
+		if($currorf && ($presentorf ne $currorf)) {
 		
 			#-- Calculate the best average
 		
@@ -152,18 +160,16 @@ if(!$nokegg) {
 
  				print outfile2 "$currorf\t$kegg{$currorf}{besthit}\t$kegg{$currorf}{bestaver}\n";
 				   }
-			$currorf=$f[0];			#-- And current ORF is the new one just read
+			$currorf=$presentorf;			#-- And current ORF is the new one just read
 			(%accum,%count)=();
 			}
 			
 		#-- If we are still reading the hits for current ORF, just store them if they pass the filters
 			
 			
-		if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
-		my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
 		next if($olap<$minolap7);	#-- Partial hits are not allowed
-		$currorf=$f[0];
-		my @c=split(/\|/,$f[2]);
+		$currorf=$presentorf;
+		my @c=split(/\|/,$hitid);
 		my $khit=$c[1];			#-- This is the KEGG for the hit
 		if(!$kegg{$currorf}{besthit}) {
 			$kegg{$currorf}{besthit}=$khit;	#-- If it is the first hit, then it is best hit
@@ -171,7 +177,7 @@ if(!$nokegg) {
 			}
 		next if($count{$khit}>=$maxhits7);	#-- If we have already $maxhits hits for that KEGG, skip this hit
 		$count{$khit}++;
-		$accum{$khit}+=$f[7];
+		$accum{$khit}+=$bitscore;
 	     }
 	close infile2;
 
@@ -216,11 +222,16 @@ if($opt_db) {
  			chomp;
  			next if(!$_ || ($_=~/^\#/));
  			@f=split(/\t/,$_);
+			my $presentorf=$f[0];
+			my $hitid=$f[2];
+			my $bitscore=$f[7];
+			if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
+			my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
 		
 			#-- If we finished reading the hits for last ORF, we output its best hit,
 			#-- and also calculate and output the best average, if any
 		
- 		if($currorf && ($f[0] ne $currorf)) {	
+ 		if($currorf && ($presentorf ne $currorf)) {	
 		
 			#-- Calculate the best average
 		
@@ -236,15 +247,13 @@ if($opt_db) {
 
   				print outfile1 "$currorf\t$optdb{$currorf}{besthit}\t$optdb{$currorf}{bestaver}\n";
 				    }
-  			$currorf=$f[0];		#-- And current ORF is the new one just read
+  			$currorf=$presentorf;		#-- And current ORF is the new one just read
   			(%accum,%count)=();
 			}
 			
 			#-- If we are still reading the hits for current ORF, just store them if they pass the filters
 
-			$currorf=$f[0];
-			if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
-			my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
+			$currorf=$presentorf;
 			next if($olap<$minolap7);	#-- Partial hits are not allowed
 			my @c=split(/\|/,$f[2]);
 			my $khit=$c[$#c];			#-- This is the OPT_DB for the hit
@@ -254,7 +263,7 @@ if($opt_db) {
 				}
 			next if($count{$khit} && ($count{$khit}>=$maxhits7));	#-- If we have already $maxhits hits for that OPT_DB, skip this hit
 			$count{$khit}++;
-			$accum{$khit}+=$f[7];
+			$accum{$khit}+=$bitscore;
 			}
 		
 		close infile1;
