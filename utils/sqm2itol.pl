@@ -71,7 +71,7 @@ while(<infile1>) {
 	next if($k[8]<$complete_cutoff);
 	next if($k[9]>$contamination_cutoff);
 	$numbins++;
-	chop $k[2]; 
+	$k[2]=~s/\;$//; 
 	my @mtx=split(/\;/,$k[2]);
 	my ($lrank,$ltax)=split(/\_/,$mtx[$#mtx]);
 	my $binname="$k[0]_$ltax";
