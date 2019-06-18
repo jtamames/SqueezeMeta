@@ -223,7 +223,7 @@ else {						#-- Run compareM only if we have not done it before
 	close infile4;
 
 	open(outfile2,">$distfile") || die;
-	print outfile2 "Genome A\tGenome B\tDissimilarity\n";
+	print outfile2 "#Genome A\tGenome B\tDissimilarity\n";
 
 	foreach my $p1(sort keys %distance) { 
 		foreach my $p2(sort keys %distance) { 
