@@ -84,7 +84,8 @@ my %orftax;
 my $firstline;
 
 # get sqm2tables.py taxonomy
-system("$installpath/utils/sqm2tables.py $project $outdir --sqm2anvio");
+my $ecode = system("$installpath/utils/sqm2tables.py $project $outdir --sqm2anvio");
+if($ecode!=0) { die("Error running subprocess: $installpath/utils/sqm2tables.py $project $outdir --sqm2anvio"); }
 open(infile2, "$outdir/$project_name.orf.tax.allfilter.tsv") || die "Cannot open taxonomy table $outdir/$project_name.orf.tax.allfilter.tsv";
 while(<infile2>) {
 	chomp;

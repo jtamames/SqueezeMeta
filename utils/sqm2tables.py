@@ -28,7 +28,7 @@ from collections import defaultdict
 
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
-path.append('{}/../lib/'.format(utils_home))
+path.insert(0, '{}/../lib/'.format(utils_home))
 from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, TAXRANKS, TAXRANKS_SHORT 
 
 

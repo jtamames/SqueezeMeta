@@ -61,25 +61,25 @@ For installing SqueezeMeta, download the latest release from the GitHub reposito
 SqueezeMeta uses several databases. GenBank nr for taxonomic assignment, and eggnog, KEGG and Pfam for functional assignment. 
 The script *download_databases.pl* can be run to download a pre-formatted version of all the databases required by SqueezeMeta.
 
-`<installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <datapath>`
+`/path/to/SqueezeMeta/scripts/preparing_databases/download_databases.pl /download/path`
 
 , where `<datapath>` is the destination folder. This is the recommended option.
 
 Alternatively, the script *make_databases.pl* can be run to download from source and format the latest version of the databases.
 
-`<installpath>/SqueezeMeta/scripts/preparing_databases/make_databases.pl <datapath>`
+`/path/to/SqueezeMeta/scripts/preparing_databases/make_databases.pl /download/path`
 
 The databases occupy 200Gb, but we recommend having at least 350Gb free disk space during the building process.
 
 If the SqueezeMeta databases are already built in another location in the system, a different copy of SqueezeMeta can be configured to use them with
 
-`<installpath>/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl <database_location>`
+`/path/to/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl /path/to/db`
 
 
 ## 4. Execution, restart and running scripts
 
 ### Scripts location
-The scripts composing the SqueezeMeta pipeline can be found in the `.../SqueezeMeta/scripts` directory. Other utility scripts can be found in the `.../SqueezeMeta/utils` directory. See the PDF manual for more information on utility scripts.
+The scripts composing the SqueezeMeta pipeline can be found in the `/path/to/SqueezeMeta/scripts` directory. Other utility scripts can be found in the `/path/to/SqueezeMeta/utils` directory. See the PDF manual for more information on utility scripts.
 
 ### Execution
 
@@ -191,9 +191,9 @@ Version 1.0 implements the *--D* option (*doublepass*), that attempts to provide
 
 
 ## 8. Testing SqueezeMeta
-The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `<datapath>` as its target the test run can be executed with
+The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `/download/path` as its target the test run can be executed with
 
-`cd <datapath/test>`  
+`cd </download/path/test>`  
 `SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
 
 Alternatively, `-m sequential` or `-m merged` can be used.
@@ -217,7 +217,7 @@ SqueezeMeta includes a built in MySQL database that can be queried via a web-bas
 ## 12. Updating SqueezeMeta
 Assuming your databases are not inside the SqueezeMeta directory, just remove it, download the new version and configure it with
 
-`<installpath>/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl <database_location>`
+`/path/to/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl /path/to/db`
 
 
 ## 13. License and third-party software
