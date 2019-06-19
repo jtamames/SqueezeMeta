@@ -6,7 +6,7 @@ use strict;
 
 $|=1;
 
-my($complete_cutoff,$contamination_cutoff,$funclass,$reqfunctions,$hel,$project);
+my($complete_cutoff,$contamination_cutoff,$funclass,$reqfunctions,$abunmethod,$maxabun,$hel,$project);
 
 #-- Define help text
 
@@ -19,6 +19,8 @@ Options:
    -contamination [number]: Select only bins with contamination BELOW that threshold (Default: 100)
    -classification [metacyc|kegg]: Functional classification to use (Default:metacyc)
    -functions [file]: File containing the name of the fucntions to be considered
+   -abundances [RPKM|TPM|coverage]: Abundance measure used (Default: RPKM)
+   -maxabun [number]: Maximum abundance to display. Higher values will be reduced to this one (Default: 0)
    -h: This help
      
 END_MESSAGE
@@ -27,6 +29,8 @@ my $result = GetOptions ("completion=i" => \$complete_cutoff,
                      "contamination=i" => \$contamination_cutoff,
                      "classification=s" => \$funclass,
 		     "functions=s" => \$reqfunctions,
+		     "abundances=s" => \$abunmethod,
+		     "maxabun=i" => \$maxabun,
 		     "p=s" => \$project,
 		     "h" => \$hel
  		    );
@@ -44,6 +48,10 @@ our($extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpat
 if(!$complete_cutoff) { $complete_cutoff=30; }		#-- Do not consider bins below this level of completion
 if(!$contamination_cutoff) { $contamination_cutoff=100; }		#-- Do not consider bins above this level of contamination
 if(!$funclass) { $funclass="metacyc"; }
+die "Functional classification must be either \"metacyc\" or \"kegg\"\n" if(($funclass ne "kegg") && ($funclass ne "metacyc"));
+if(!$abunmethod) { $abunmethod="RPKM"; }
+die "Abundances must be either \"RPKM\", \"TPM\" or \"coverage\"\n" if(($abunmethod ne "RPKM") && ($abunmethod ne "TPM") && ($abunmethod ne "coverage"));
+if(!$maxabun) { $maxabun=0; }
 my $numtaxalabels=4;
 
 my $dirbin=$dasdir{DASTool};
@@ -81,8 +89,8 @@ while(<infile1>) {
 	$complete{$binname}=$k[8];
 	$tax{$binname}=$k[2];
 	for(my $pos=0; $pos<=$#k; $pos++) {
-		if($header[$pos]=~/RPKM (.*)/) {
-			my $corrdata=$1;
+		if($header[$pos]=~/$abunmethod (.*)/i) { 
+			my $corrdata=$1; 
 			$store{$binname}{$corrdata}=$k[$pos];
 			$samcode{$corrdata}=1;
 			}
@@ -93,8 +101,8 @@ while(<infile1>) {
 	if($k[2]=~/genus\:([^;]+)/) { $phylo{$binname}{genus}=$1; $countphylo{genus}{$1}++;}
 	}
 close infile1;
-print "Found $totalbins bins\nWorking with $numbins bins with more than $complete_cutoff % completion and less than $contamination_cutoff % contamination\n";
-
+print "Found $totalbins bins\nWorking with $numbins bins with more than $complete_cutoff% completion and less than $contamination_cutoff% contamination\n";
+print "Using $abunmethod values\n";
 
 if($reqfunctions) {
 	open(infile1,$reqfunctions) || die "Cannot open requested functions file $reqfunctions\n";
@@ -261,7 +269,7 @@ foreach my $meta(keys %fun) {
 	print out1 "$meta";
 	foreach my $sam(sort keys %samcode) {
 		my $value= $store{$meta}{$sam};
-		if($value>20) { $value=20; }
+		if($maxabun && ($value>$maxabun)) { $value=$maxabun; }
 		print out1 "\t$value"; 
 		}
 	print out1 "\n";
