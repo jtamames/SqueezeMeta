@@ -166,7 +166,7 @@ my $distfile="$dirbin/aai/dist.out";
 my $treefile="$extpath/$project.nw";
 my ($contig);
 
-if(-e $treefile) {}
+if(-e $treefile) { print "Tree found in $treefile\n"; }
 else {						#-- Run compareM only if we have not done it before
 	open(infile2,$contigsinbins) || die "Cannot open contigsinbins file $contigsinbins\n";
 	while(<infile2>) {
