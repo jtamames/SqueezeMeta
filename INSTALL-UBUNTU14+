@@ -49,6 +49,13 @@ quit(save='no')
 sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
 
 
+### Install the SQMtools R package for downstream analysis of SqueezeMeta results.
+sudo R
+install.packages("reshape2")
+quit(save='no')
+sudo R CMD INSTALL <installpath>/SqueezeMeta/lib/SQMtools_*.tar.gz
+
+
 ### Install databases and test data.
 # This will occupy around 200Gb.
 <installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <datapath>

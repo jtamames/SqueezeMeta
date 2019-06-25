@@ -60,14 +60,14 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
             samples, respectively.
     """
 
-    orfs = {res: {}               for res in ('abundances', 'copies', 'lengths')} # I know I'm being inconsistent with camelcase and underscores... ¯\_(ツ)_/¯
-    kegg = {res: defaultdict(int) for res in ('abundances', 'copies', 'lengths')}
-    cog  = {res: defaultdict(int) for res in ('abundances', 'copies', 'lengths')}
-    pfam = {res: defaultdict(int) for res in ('abundances', 'copies', 'lengths')}
+    orfs = {res: {}               for res in ('abundances', 'coverages', 'copies', 'lengths')} # I know I'm being inconsistent with camelcase and underscores... ¯\_(ツ)_/¯
+    kegg = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
+    cog  = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
+    pfam = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
 
     ### Define helper functions.
     def update_dicts(funDict, funIdx, trusted_only):
-        # abundances, copies, lengths and ignore_unclassified_fun are taken from the outer scope.
+        # abundances, coverages, copies, lengths and ignore_unclassified_fun are taken from the outer scope.
         if trusted_only and line[funIdx] and line[funIdx][-1] != '*': # Functions confirmed with the bestaver algorithm have a trailing asterisk.
             pass
         else:
@@ -78,6 +78,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
                     continue
                 # If we have a multi-KO annotation, split counts between all KOs.
                 funDict['abundances'][fun] += abundances / len(funs)
+                funDict['coverages'][fun]  += coverages / len(funs)
                 funDict['copies'][fun]     += copies # We treat every KO as an individual smaller gene: less size, less reads, one copy.
                 funDict['lengths'][fun]    += lengths / len(funs)
 
@@ -103,6 +104,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
         header = infile.readline().strip().split('\t')
         idx =  {h: i for i,h in enumerate(header)}
         samples = [h for h in header if 'Raw read count' in h]
+        samplesCov = [h for h in header if 'Coverage' in h]
         sampleNames = [s.replace('Raw read count ', '') for s in samples]
 
         for line in infile:
@@ -117,9 +119,11 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
                 continue # print and continue for debug info.
 
             abundances = array([int(line[idx[sample]]) for sample in samples])
+            coverages = array([float(line[idx[sample]]) for sample in samplesCov])
             copies = (abundances>0).astype(int) # 1 copy if abund>0 in that sample, else 0.
             lengths = length * copies   # positive if abund>0 in that sample, else 0.
             orfs['abundances'][orf] = abundances
+            orfs['coverages'][orf] = coverages
             orfs['copies'][orf] = copies
             orfs['lengths'][orf] = lengths
 
@@ -139,6 +143,15 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
     if not nopfam:
         pfam['tpm'] = tpm(pfam)
 
+    # If RecA/RadA is present (it should!), calculate copy numbers.
+    if not nocog and 'COG0468' in cog['coverages']:
+        RecA = cog['coverages']['COG0468']
+        kegg['copyNumber'] = {k: cov/RecA for k, cov in kegg['coverages'].items()}
+        cog['copyNumber']  = {k: cov/RecA for k, cov in cog['coverages'].items() }
+        pfam['copyNumber'] = {k: cov/RecA for k, cov in pfam['coverages'].items()}
+    else:
+        kegg['copyNumber'] = cog['copyNumber'] = pfam['copyNumber'] = {}
+        print('COG0468 (RecA/RadA) was not present in your data. This is weird, as RecA should be universal, so you probably just skipped COG annotation. Skipping copy number calculation...')
 
     return sampleNames, orfs, kegg, cog, pfam
 

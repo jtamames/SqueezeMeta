@@ -68,12 +68,19 @@ def main(args):
         if not nokegg:
             write_results(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
             write_results(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
+            if 'copyNumber' in kegg:
+                write_results(sampleNames, kegg['copyNumber'], prefix + 'KO.copyNumber.tsv')
         if not nocog:
             write_results(sampleNames, cog['abundances'], prefix + 'COG.abund.tsv')
             write_results(sampleNames, cog['tpm'], prefix + 'COG.tpm.tsv')
+            if 'copyNumber' in cog:
+                write_results(sampleNames, cog['copyNumber'], prefix + 'COG.copyNumber.tsv')
+                write_results(sampleNames, {'COG0468': cog['coverages']['COG0468']}, prefix + 'RecA.tsv')
         if not nopfam:
             write_results(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
             write_results(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
+            if 'copyNumber' in pfam:
+                write_results(sampleNames, pfam['copyNumber'], prefix + 'PFAM.copyNumber.tsv')
    
     else:
         # Not super beautiful code. Just read the orf names and create a fake orf dict
