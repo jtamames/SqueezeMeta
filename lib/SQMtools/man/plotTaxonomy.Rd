@@ -5,8 +5,8 @@
 \title{Barplot of the most abundant taxa in a SQM object}
 \usage{
 plotTaxonomy(SQM, rank = "phylum", count = "percent", N = 15,
-  tax = NULL, others = T, color = NULL, rescale = F,
-  ignore_unclassified = F)
+  tax = NULL, others = T, ignore_unclassified = F, rescale = F,
+  color = NULL, base_size = 11)
 }
 \arguments{
 \item{SQM}{A SQM object.}
@@ -21,11 +21,13 @@ plotTaxonomy(SQM, rank = "phylum", count = "percent", N = 15,
 
 \item{others}{logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).}
 
-\item{color}{Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).}
+\item{ignore_unclassified}{logical. Don't include unclassified contigs in the plot (default \code{FALSE}).}
 
 \item{rescale}{logical. Re-scale results to percentages (default \code{FALSE}).}
 
-\item{ignore_unclassified}{logical. Don't include unclassified contigs in the plot (default \code{FALSE}).}
+\item{color}{Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).}
+
+\item{base_size}{numeric. Base font size (default \code{11}).}
 }
 \value{
 a ggplot2 plot object.

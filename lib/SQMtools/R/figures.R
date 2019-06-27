@@ -1,5 +1,5 @@
-library(ggplot2)
-library(reshape2)
+require(ggplot2)
+require(reshape2)
 
 #' Plot a heatmap using ggplot2
 #'
@@ -9,6 +9,7 @@ library(reshape2)
 #' @param label_y character Label for the y axis (default \code{"Features"}).
 #' @param label_fill character Label for color scale (default \code{"Abundance"}).
 #' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
+#' @param base_size numeric. Base font size (default \code{11}).
 #' @return A ggplot2 plot object.
 #' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the top functional categories of a SQM object; \code{\link[plotBars]{plotBars}} for plotting a barplot with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 #' @examples
@@ -21,7 +22,7 @@ library(reshape2)
 #' data(Hadza)
 #' phyla_percent = Hadza$taxa$phylum$percent
 #' plotHeatmap(phyla_percent, label_y = 'Phylum', label_fill = 'Percentage')
-plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fill = 'Abundance', gradient_col = c('ghostwhite', 'dodgerblue4'))
+plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fill = 'Abundance', gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
     if(length(gradient_col) < 2)
@@ -30,7 +31,7 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
         }
     data=t(data)
     # data = data[, order(colSums(data), decreasing = T), drop = F] # Order functions according to their abundances
-    data_melt = melt(as.matrix(data), value.name = 'abun')
+    data_melt = reshape2::melt(as.matrix(data), value.name = 'abun')
     colnames(data_melt) = c('sample', 'item', 'abun')
     data_melt$abun = as.numeric(data_melt$abun)
     #PLOT DATA
@@ -39,17 +40,17 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
     if(is.na(label_x)  ) { label_x = '' }
     if(is.na(label_y)  ) { label_y = '' }
 
-    if(nchar(label_x)==0) { theme_x = element_blank()
-    }else{ theme_x = element_text(size = 12) }
-    if(nchar(label_y)==0) { theme_y = element_blank()
-    }else{ theme_y = element_text(size = 12) }
+    if(nchar(label_x)==0) { theme_x = ggplot2::element_blank()
+    }else{ theme_x = ggplot2::element_text() }
+    if(nchar(label_y)==0) { theme_y = ggplot2::element_blank()
+    }else{ theme_y = ggplot2::element_text() }
         
-    p = ggplot(data_melt, aes(x = sample, y = item, fill = abun))
-    p = p + geom_tile()
-    p = p + scale_fill_gradient(low = gradient_col[1], high = gradient_col[2])
-    p = p + theme_light()
-    p = p + theme(axis.title.x = theme_x, axis.title.y = theme_y)
-    p = p + labs(x = label_x, y = label_y, fill = label_fill)
+    p = ggplot2::ggplot(data_melt, ggplot2::aes(x = sample, y = item, fill = abun))
+    p = p + ggplot2::geom_tile()
+    p = p + ggplot2::scale_fill_gradient(low = gradient_col[1], high = gradient_col[2])
+    p = p + ggplot2::theme_light(base_size = base_size)
+    p = p + ggplot2::theme(axis.title.x = theme_x, axis.title.y = theme_y)
+    p = p + ggplot2::labs(x = label_x, y = label_y, fill = label_fill)
     return(p)
     }
 
@@ -63,22 +64,23 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
 #' @param label_y character Label for the y axis (default \code{"Abundances"}).
 #' @param label_fill character Label for color categories (default \code{"Features"}).
 #' @param color Vector with custom colors for the different features. If empty, the default ggplot2 palette will be used (default \code{NULL}).
+#' @param base_size numeric. Base font size (default \code{11}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotHeatmap}} for plotting a heatmap with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 #' data(Hadza)
 #' sk = Hadza$taxa$superkingdom$abund
 #' plotBars(sk, label_y = 'Raw reads', label_fill = 'Superkingdom')
 #' @export
-plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fill = 'Features', color = NULL)
+plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fill = 'Features', color = NULL, base_size = 11)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
     data=t(data)
-    data_melt = melt(as.matrix(data), value.name = 'abun')
+    data_melt = reshape2::melt(as.matrix(data), value.name = 'abun')
     colnames(data_melt) = c('sample', 'item', 'abun')
     data_melt$abun = as.numeric(data_melt$abun)
     #PLOT DATA
-    p = ggplot(data_melt, aes(x = sample, y = abun, fill = item))
-    p = p + geom_col()
+    p = ggplot2::ggplot(data_melt, ggplot2::aes(x = sample, y = abun, fill = item))
+    p = p + ggplot2::geom_col()
     # There are two types of bar charts: geom_bar() and geom_col().
     # geom_bar() makes the height of the bar proportional to the number of cases in each group (or if the weight aesthetic is supplied, the sum of the weights).
     # If you want the heights of the bars to represent values in the data, use geom_col() instead.
@@ -91,17 +93,17 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
     if(is.na(label_x)  ) { label_x = '' }
     if(is.na(label_y)  ) { label_y = '' }
 
-    if(nchar(label_x)==0) { theme_x = element_blank()
-    }else{ theme_x = element_text(size = 12) }
-    if(nchar(label_y)==0) { theme_y = element_blank()
-    }else{ theme_y = element_text(size = 12) }
+    if(nchar(label_x)==0) { theme_x = ggplot2::element_blank()
+    }else{ theme_x = ggplot2::element_text() }
+    if(nchar(label_y)==0) { theme_y = ggplot2::element_blank()
+    }else{ theme_y = ggplot2::element_text() }
 
-    p = p + theme_light()
-    p = p + theme(axis.title.x = theme_x, axis.title.y = theme_y)
-    p = p + labs(x = label_x, y = label_y, fill = label_fill)
+    p = p + ggplot2::theme_light(base_size = base_size)
+    p = p + ggplot2::theme(axis.title.x = theme_x, axis.title.y = theme_y)
+    p = p + ggplot2::labs(x = label_x, y = label_y, fill = label_fill)
     if (!is.null(color) & length(color) >= length(unique(as.character(data_melt$item))))
         {
-        p = p + scale_fill_manual( values = setNames(color, unique(as.character(data_melt$item))) )
+        p = p + ggplot2::scale_fill_manual( values = setNames(color, unique(as.character(data_melt$item))) )
         }
     return(p)
     }
@@ -116,15 +118,16 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' @param count character. Either \code{"tpm"} for TPM normalized values, \code{"abund"} for raw abundances or \code{"copy_number"} for copy numbers (default \code{"tpm"}).
 #' @param N integer Plot the \code{N} most abundant functions (default \code{25}).
 #' @param fun character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).
-#' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
 #' @param ignore_unclassified logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).
+#' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
+#' @param base_size numeric. Base font size (default \code{11}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
-plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c(), gradient_col = c('ghostwhite', 'dodgerblue4'), ignore_unclassified = T)
+plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c(), ignore_unclassified =T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     if ((fun_level != 'KEGG' & fun_level != 'COG' & fun_level != 'PFAM'))
@@ -170,7 +173,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
         data = data[niceOrder,]
         }
     nice_label = c(abund='Raw abundance', tpm='TPM', copy_number='Copy number')[count]
-    p = plotHeatmap(data, label_y = fun_level, label_fill = nice_label, gradient_col = gradient_col)
+    p = plotHeatmap(data, label_y = fun_level, label_fill = nice_label, gradient_col = gradient_col, base_size = base_size)
     return(p)
     }  
 
@@ -185,9 +188,10 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
 #' @param N integer Plot the \code{N} most abundant taxa (default \code{15}).
 #' @param tax character. Custom taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).
-#' @param color Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).
-#' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
 #' @param ignore_unclassified logical. Don't include unclassified contigs in the plot (default \code{FALSE}).
+#' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
+#' @param color Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).
+#' @param base_size numeric. Base font size (default \code{11}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
@@ -196,7 +200,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, 'family')
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, color = NULL, rescale = F, ignore_unclassified = F)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, ignore_unclassified = F, rescale = F, color = NULL, base_size = 11)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
@@ -274,7 +278,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         }
     nice_label = c(abund='Raw abundance', percent='Percentage')[count]
     nice_rank  = paste0(toupper(substr(rank,1,1)), substr(rank,2,nchar(rank)))
-    p = plotBars(data, label_y = nice_label, color = color, label_fill = nice_rank)
+    p = plotBars(data, label_y = nice_label, color = color, label_fill = nice_rank, base_size = base_size)
     return(p)
     }
 

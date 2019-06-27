@@ -5,8 +5,8 @@
 \title{Heatmap of the most abundant functions in a SQM object}
 \usage{
 plotFunctions(SQM, fun_level = "KEGG", count = "tpm", N = 25,
-  fun = c(), gradient_col = c("ghostwhite", "dodgerblue4"),
-  ignore_unclassified = T)
+  fun = c(), ignore_unclassified = T, gradient_col = c("ghostwhite",
+  "dodgerblue4"), base_size = 11)
 }
 \arguments{
 \item{SQM}{A SQM object.}
@@ -19,9 +19,11 @@ plotFunctions(SQM, fun_level = "KEGG", count = "tpm", N = 25,
 
 \item{fun}{character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).}
 
+\item{ignore_unclassified}{logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).}
+
 \item{gradient_col}{A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).}
 
-\item{ignore_unclassified}{logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).}
+\item{base_size}{numeric. Base font size (default \code{11}).}
 }
 \value{
 a ggplot2 plot object.

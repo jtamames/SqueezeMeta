@@ -6,7 +6,7 @@
 \usage{
 plotHeatmap(data, label_x = "Samples", label_y = "Features",
   label_fill = "Abundance", gradient_col = c("ghostwhite",
-  "dodgerblue4"))
+  "dodgerblue4"), base_size = 11)
 }
 \arguments{
 \item{data}{numeric matrix or data frame.}
@@ -18,6 +18,8 @@ plotHeatmap(data, label_x = "Samples", label_y = "Features",
 \item{label_fill}{character Label for color scale (default \code{"Abundance"}).}
 
 \item{gradient_col}{A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).}
+
+\item{base_size}{numeric. Base font size (default \code{11}).}
 }
 \value{
 A ggplot2 plot object.

@@ -1,4 +1,4 @@
-library(reshape2)
+require(reshape2)
 
 #' Load a SqueezeMeta project into R
 #'
@@ -186,7 +186,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     cat('    binning info...\n')
     inBins                        = read.table(sprintf('%s/intermediate/19.%s.contigsinbins', project_path, project_name),
                                                header=T, sep='\t', quote='', comment.char='', skip=1, as.is=T)
-    inBins                        = dcast(inBins, X..Contig~Method, value.var="Bin.ID")
+    inBins                        = reshape2::dcast(inBins, X..Contig~Method, value.var="Bin.ID")
     rownames(inBins)              = inBins[,1]
     SQM$contigs$bins              = as.matrix(inBins[,-1,drop=F])
     notInBins                     = setdiff(rownames(SQM$contigs$table), SQM$contigs$bins)
