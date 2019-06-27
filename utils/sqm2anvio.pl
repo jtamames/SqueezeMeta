@@ -6,7 +6,10 @@
 
 use strict;
 use Cwd;
-use lib "."; 
+use lib ".";
+
+use File::Basename;
+use Cwd 'abs_path';
 
 $|=1;
 
@@ -21,7 +24,10 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$contigsinbins,$datapath,$installpath);
+our($resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$contigsinbins,$datapath);
+
+our $scriptdir = abs_path(dirname(__FILE__));
+our $installpath = "$scriptdir/..";
 
 my $version="1.1";
 my $gff;
