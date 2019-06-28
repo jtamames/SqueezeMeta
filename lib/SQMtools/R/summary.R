@@ -69,6 +69,8 @@ summary.SQM = function(SQM)
     }
 
 
+#' @export
+#' @noRd
 print.summary.SQM = function(summ)
     {
     cat('\n')
