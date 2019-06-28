@@ -9,7 +9,7 @@ require(reshape2)
 #' \enumerate{
 #'     \item Run \href{http://github.com/jtamames/SqueezeMeta}{SqueezeMeta}! An example call for running it would be:
 #'
-#'         \code{/path/to/SqueezeMeta -m coassembly -f fasta_dir -s samples_file -p project_dir }
+#'         \code{/path/to/SqueezeMeta/scripts/SqueezeMeta.pl -m coassembly -f fastq_dir -s samples_file -p project_dir}
 #'     \item Generate tabular outputs with the \code{sqm2tables.py} script included in the \code{path/to/SqueezeMeta/utils} directory:
 #'
 #'         \code{/path/to/SqueezeMeta/utils/sqm2tables.py project_dir project_dir/results/tables}
