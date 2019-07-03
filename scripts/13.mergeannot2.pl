@@ -419,7 +419,7 @@ open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
 	#-- Headers
 
 print outfile1 "#--Created by $0, ",scalar localtime,"\n";
-print outfile1 "ORF ID\tContig ID\tMolecule\tMethod\tLength NT\tLength AA\tGC perc\tGene Name\tTax\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
+print outfile1 "ORF ID\tContig ID\tMolecule\tMethod\tLength NT\tLength AA\tGC perc\tGene name\tTax\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
 if($opt_db) { 
 	foreach my $topt(sort keys %optlist) { print outfile1 "\t$topt\t$topt NAME"; }
 	}

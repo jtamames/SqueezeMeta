@@ -54,7 +54,7 @@ def main(args):
         return str_
 
     allORFs = []
-    newFields =  ['ORF ID', 'Contig ID', 'Length AA', 'GC perc', 'Gene Name', 'Tax', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
+    newFields =  ['ORF ID', 'Contig ID', 'Length AA', 'GC perc', 'Gene name', 'Tax', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
     goodFields = ['ORF', 'CONTIG ID', 'LENGTH AA', 'GC perc', 'GENNAME', 'TAX ORF', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM']
     with open(perlVars['$mergedfile']) as infile, open('{}/genes.tsv'.format(args.output_dir), 'w') as outfile:
         outfile.write(infile.readline())

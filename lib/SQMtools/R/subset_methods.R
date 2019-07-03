@@ -18,7 +18,7 @@ subsetFun = function(SQM, fun, fixed=F, trusted_functions_only = F, ignore_uncla
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     goodORFs = rownames(SQM$orfs$table)[
-                                        grepl(fun, SQM$orfs$table[,'Gene Name'],fixed=fixed) |
+                                        grepl(fun, SQM$orfs$table[,'Gene name'],fixed=fixed) |
                                         grepl(fun, SQM$orfs$table[,'KEGG ID'],  fixed=fixed) |
                                         grepl(fun, SQM$orfs$table[,'KEGGFUN'],  fixed=fixed) |
                                         grepl(fun, SQM$orfs$table[,'KEGGPATH'], fixed=fixed) |
