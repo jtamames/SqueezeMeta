@@ -45,12 +45,14 @@ def main(args):
 
 
     ### Create orftable.
-    def new2old(str_, orftable=False):
+    def new2old(str_, orftable=False, bintable=False):
         """Replace 1.0 headers with old headers, so we don't have to modify and re-deploy SQMdb"""
         if orftable:
             str_ = str_.replace('Coverage', 'COVERAGE').replace('Raw read count', 'RAW READ COUNT').replace('Raw base count', 'RAW BASE COUNT')
         else:
             str_ = str_.replace('Strain het', 'Strain Het').replace('Raw read count', 'Raw')
+        if bintable:
+            str_ = str_.replace('Length', 'Size')
         return str_
 
     allORFs = []
@@ -81,7 +83,7 @@ def main(args):
     if not int(perlVars['$nobins']):
         with open(perlVars['$bintable']) as infile, open('{}/bins.tsv'.format(args.output_dir), 'w') as outfile:
             outfile.write(infile.readline())
-            outfile.write(new2old(infile.readline())) # adapt header
+            outfile.write(new2old(infile.readline(), bintable=True)) # adapt header
             [outfile.write(line) for line in infile]
 
 
