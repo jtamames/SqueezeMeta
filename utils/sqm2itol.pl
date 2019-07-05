@@ -3,6 +3,8 @@
 use Cwd;
 use Getopt::Long;
 use strict;
+use File::Basename;
+use Cwd 'abs_path';
 
 $|=1;
 
@@ -44,6 +46,9 @@ if(!$project) { die "Please provide project name\nUsage: sqm2itol.pl <options> -
 do "$project/SqueezeMeta_conf.pl";
 
 our($extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,%bindirs,%dasdir);
+
+our $scriptdir = abs_path(dirname(__FILE__));
+our $installpath = "$scriptdir/..";
 
 if(!$complete_cutoff) { $complete_cutoff=30; }		#-- Do not consider bins below this level of completion
 if(!$contamination_cutoff) { $contamination_cutoff=100; }		#-- Do not consider bins above this level of contamination
@@ -213,7 +218,7 @@ else {						#-- Run compareM only if we have not done it before
 		close outfile1;
 		}
 
-	my $command="comparem aai_wf --proteins $tempoutdir -x faa $dirbin";	
+	my $command="PATH=$installpath/bin:\$PATH comparem aai_wf --proteins $tempoutdir -x faa $dirbin";	
 	print "\nRunning CompareM: $command\n";
 	system($command);
 
@@ -242,7 +247,7 @@ else {						#-- Run compareM only if we have not done it before
 		}
 	close outfile2;
 
-	$command="comparem hclust $distfile $treefile";
+	$command="PATH=$installpath/bin:\$PATH comparem hclust $distfile $treefile";
 	system $command;
 	print "Tree created in $treefile\n";
 	}
