@@ -222,12 +222,19 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
             {
             if('COG0468' %in% rownames(COG$cov))
                 {
-                RecA = COG$cov['COG0468',]
+                if(all(COG$cov['COG0468',]>0))
+	            {
+                    RecA = COG$cov['COG0468',]
+		}else
+	            {
+	            warning('RecA has zero abundance in at least one sample in this subset. Will not rescale copy numbers.')
+		    RecA = SQM$misc$RecA_cov
+		    }
             }else
                 {
                 warning('RecA is not present in this subset. Will not rescale copy numbers.')
                 RecA = SQM$misc$RecA_cov
-                }
+                } 
         }else
            {
            RecA = SQM$misc$RecA_cov
@@ -242,6 +249,5 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     #subSQM$total_reads		     = colSums(subSQM$contigs$abund)
 
     return(subSQM)
-
     }
 
