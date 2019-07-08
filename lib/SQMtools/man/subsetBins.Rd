@@ -5,7 +5,8 @@
 \title{Create a SQM object containing only the requested bins, and the contigs and ORFs contained in them.}
 \usage{
 subsetBins(SQM, bins, trusted_functions_only = F,
-  ignore_unclassified_functions = F, rescale_copy_number = T)
+  ignore_unclassified_functions = F, rescale_tpm = T,
+  rescale_copy_number = T)
 }
 \arguments{
 \item{SQM}{SQM object to be subsetted.}
@@ -16,7 +17,9 @@ subsetBins(SQM, bins, trusted_functions_only = F,
 
 \item{ignore_unclassified_functions}{logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).}
 
-\item{rescale_copy_number}{logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the original object. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected bins}.}
+\item{rescale_tpm}{logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected bins}.}
+
+\item{rescale_copy_number}{logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected bins}.}
 }
 \value{
 SQM object containing only the requested bins.

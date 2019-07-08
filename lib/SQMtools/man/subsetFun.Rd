@@ -4,13 +4,16 @@
 \alias{subsetFun}
 \title{Filter results by function}
 \usage{
-subsetFun(SQM, fun, fixed = F, trusted_functions_only = F,
-  ignore_unclassified_functions = F, rescale_copy_number = F)
+subsetFun(SQM, fun, ignore_case = T, fixed = F,
+  trusted_functions_only = F, ignore_unclassified_functions = F,
+  rescale_tpm = F, rescale_copy_number = F)
 }
 \arguments{
 \item{SQM}{SQM object to be subsetted.}
 
 \item{fun}{character, pattern to search for in the different functional classifications.}
+
+\item{ignore_case}{logical Make pattern matching case-insensitive (default \code{TRUE}).}
 
 \item{fixed}{logical. If \code{TRUE}, pattern is a string to be matched as is. If \code{FALSE} the pattern is treated as a regular expression (default \code{FALSE}).}
 
@@ -18,7 +21,9 @@ subsetFun(SQM, fun, fixed = F, trusted_functions_only = F,
 
 \item{ignore_unclassified_functions}{logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).}
 
-\item{rescale_copy_number}{logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the original object (default \code{FALSE}).}
+\item{rescale_tpm}{logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).}
+
+\item{rescale_copy_number}{logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.}
 }
 \value{
 SQM object containing only the requested function.

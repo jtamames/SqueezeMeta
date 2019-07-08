@@ -3,10 +3,12 @@
 #' Create a SQM object containing only the ORFs with a given function, and the contigs and bins that contain them.
 #' @param SQM SQM object to be subsetted.
 #' @param fun character, pattern to search for in the different functional classifications.
+#' @param ignore_case logical Make pattern matching case-insensitive (default \code{TRUE}).
 #' @param fixed logical. If \code{TRUE}, pattern is a string to be matched as is. If \code{FALSE} the pattern is treated as a regular expression (default \code{FALSE}).
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
-#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the original object (default \code{FALSE}).
+#' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
+#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
 #' @seealso \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.
 #' @return SQM object containing only the requested function.
 #' @examples
@@ -14,22 +16,37 @@
 #' Hadza.iron = subsetFun(Hadza, 'iron')
 #' Hadza.carb = subsetFun(Hadza, 'Carbohydrate metabolism')
 #' @export
-subsetFun = function(SQM, fun, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_copy_number = F)
+subsetFun = function(SQM, fun, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
-    goodORFs = rownames(SQM$orfs$table)[
-                                        grepl(fun, SQM$orfs$table[,'Gene name'],fixed=fixed) |
-                                        grepl(fun, SQM$orfs$table[,'KEGG ID'],  fixed=fixed) |
-                                        grepl(fun, SQM$orfs$table[,'KEGGFUN'],  fixed=fixed) |
-                                        grepl(fun, SQM$orfs$table[,'KEGGPATH'], fixed=fixed) |
-                                        grepl(fun, SQM$orfs$table[,'COG ID'],   fixed=fixed) |
-                                        grepl(fun, SQM$orfs$table[,'COGFUN'],   fixed=fixed) |
-                                        grepl(fun, SQM$orfs$table[,'COGPATH'],  fixed=fixed) | 
-                                        grepl(fun, SQM$orfs$table[,'PFAM'],     fixed=fixed)
-                                       ]
+
+    searchSpace = paste(SQM$orfs$table[,'Gene name'],
+                        SQM$orfs$table[,'KEGG ID'],
+                        SQM$orfs$table[,'KEGGFUN'],
+                        SQM$orfs$table[,'KEGGPATH'],
+                        SQM$orfs$table[,'COG ID'],
+                        SQM$orfs$table[,'COGFUN'],
+                        SQM$orfs$table[,'COGPATH'],
+                        SQM$orfs$table[,'PFAM'])
+    goodORFs = grepl(fun, searchSpace, ignore.case = ignore_case, fixed=fixed)
+
+
+    # In the old code below, multi-pattern greps with AND had to be ALL TRUE in at least one table field.
+    # The code above creates a single query string per gene, so the different patterns can be TRUE in different fields, and multi-pattern grep will still be TRUE.
+    #goodORFs = rownames(SQM$orfs$table)[
+    #                                    grepl(fun, SQM$orfs$table[,'Gene name'], ignore.case=ignore_case, fixed=fixed) |
+    #                                    grepl(fun, SQM$orfs$table[,'KEGG ID']  , ignore.case=ignore_case, fixed=fixed) |
+    #                                    grepl(fun, SQM$orfs$table[,'KEGGFUN']  , ignore.case=ignore_case, fixed=fixed) |
+    #                                    grepl(fun, SQM$orfs$table[,'KEGGPATH'] , ignore.case=ignore_case, fixed=fixed) |
+    #                                    grepl(fun, SQM$orfs$table[,'COG ID']   , ignore.case=ignore_case, fixed=fixed) |
+    #                                    grepl(fun, SQM$orfs$table[,'COGFUN']   , ignore.case=ignore_case, fixed=fixed) |
+    #                                    grepl(fun, SQM$orfs$table[,'COGPATH']  , ignore.case=ignore_case, fixed=fixed) | 
+    #                                    grepl(fun, SQM$orfs$table[,'PFAM']     , ignore.case=ignore_case, fixed=fixed)
+    #                                   ]
     return ( subsetORFs(SQM, goodORFs, tax_source = 'orfs',
                         trusted_functions_only = trusted_functions_only,
                         ignore_unclassified_functions=ignore_unclassified_functions,
+                        rescale_tpm         = rescale_tpm,
                         rescale_copy_number = rescale_copy_number)
            )
 
@@ -45,7 +62,8 @@ subsetFun = function(SQM, fun, fixed=F, trusted_functions_only = F, ignore_uncla
 #' @param tax character. The taxon to select.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
-#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the original object. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected taxa}.
+#' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected taxon}.
+#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected taxon}.
 #' @return SQM object containing only the requested taxon.
 #' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetContigs]{subsetContigs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.
 #' @examples
@@ -53,13 +71,14 @@ subsetFun = function(SQM, fun, fixed=F, trusted_functions_only = F, ignore_uncla
 #' Hadza.Escherichia = subsetTax(Hadza, 'genus', 'Escherichia')
 #' Hadza.Bacteroidetes = subsetTax(Hadza, 'phylum', 'Bacteroidetes')
 #' @export
-subsetTax = function(SQM, rank, tax, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_copy_number = T)
+subsetTax = function(SQM, rank, tax, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm =T, rescale_copy_number = T)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     goodContigs = rownames(SQM$contigs$tax)[SQM$contigs$tax[,rank] == tax]
     return ( subsetContigs(SQM, goodContigs,
                            trusted_functions_only = trusted_functions_only,
                            ignore_unclassified_functions=ignore_unclassified_functions,
+                           rescale_tpm = rescale_tpm,
                            rescale_copy_number = rescale_copy_number)
            )
    
@@ -73,7 +92,8 @@ subsetTax = function(SQM, rank, tax, trusted_functions_only = F, ignore_unclassi
 #' @param bins character. Vector of bins to be selected.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
-#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the original object. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected bins}.
+#' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected bins}.
+#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected bins}.
 #' @return SQM object containing only the requested bins.
 #' @seealso \code{\link[subsetContigs]{subsetContigs}}, \code{\link[subsetORFs]{subsetORFs}}
 #' @examples 
@@ -82,13 +102,14 @@ subsetTax = function(SQM, rank, tax, trusted_functions_only = F, ignore_unclassi
 #' topBinNames = rownames(Hadza$bins$table)[order(Hadza$bins$table[,'Completeness'], decreasing=T)][1:5]
 #' topBins = subsetBins(Hadza, topBinNames)
 #' @export
-subsetBins = function(SQM, bins, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_copy_number = T)
+subsetBins = function(SQM, bins, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = T, rescale_copy_number = T)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     goodContigs = names(SQM$contigs$bins)[SQM$contigs$bins %in% bins]
     return ( subsetContigs(SQM, goodContigs,  
                            trusted_functions_only = trusted_functions_only,
                            ignore_unclassified_functions=ignore_unclassified_functions,
+                           rescale_tpm = rescale_tpm,
                            rescale_copy_number = rescale_copy_number)
            )
     }
@@ -101,7 +122,8 @@ subsetBins = function(SQM, bins, trusted_functions_only = F, ignore_unclassified
 #' @param contigs character. Vector of contigs to be selected.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
-#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the original object (default \code{FALSE}).
+#' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
+#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
 #' @return SQM object containing only the selected contigs.
 #' @seealso \code{\link[subsetORFs]{subsetORFs}}
 #' @examples
@@ -111,13 +133,14 @@ subsetBins = function(SQM, bins, trusted_functions_only = F, ignore_unclassified
 #' lowGCcontigs = subsetContigs(Hadza, lowGCcontigNames)
 #' hist(lowGCcontigs$contigs$table[,'GC perc'])
 #' @export
-subsetContigs = function(SQM, contigs, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_copy_number = F)
+subsetContigs = function(SQM, contigs, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     goodORFs = rownames(SQM$orfs$table)[SQM$orfs$table[,'Contig ID'] %in% contigs]
     return ( subsetORFs(SQM, goodORFs, tax_source = 'contigs',
                         trusted_functions_only = trusted_functions_only,
                         ignore_unclassified_functions=ignore_unclassified_functions,
+                        rescale_tpm = rescale_tpm,
                         rescale_copy_number = rescale_copy_number)
            )
     }
@@ -147,7 +170,8 @@ subsetRand = function(SQM, N)
 #' @param tax_source character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}).
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
-#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the original object (default \code{FALSE}).
+#' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
+#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
 #' @return SQM object containing the requested ORFs.
 #' @section A note on contig/bins subsetting:
 #' While this function selects the contigs and bins that contain the desired orfs, it DOES NOT recalculate contig/bin abundance and statistics based on the selected ORFs only. This means that the abundances presented in tables such as \code{SQM$contig$abund} or \code{SQM$bins$tpm} will still refer to the complete contigs and bins, regardless of whether only a fraction of their ORFs are actually present in the returned SQM object. This is also true for the statistics presented in \code{SQM$contigs$table} and \code{SQM$bins$table}.
@@ -157,7 +181,7 @@ subsetRand = function(SQM, N)
 #' mostAbundantORFnames = names(sort(rowSums(Hadza$orfs$tpm), decreasing=T))[1:100]
 #' mostAbundantORFs = subsetORFs(Hadza, mostAbundantORFnames)
 #' @export
-subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_copy_number = F)
+subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
 
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
@@ -210,11 +234,20 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     PFAM                              = aggregate.fun(subSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
 
     subSQM$functions$KEGG$abund       = KEGG$abund
-    subSQM$functions$KEGG$tpm         = KEGG$tpm
     subSQM$functions$COG$abund        = COG$abund
-    subSQM$functions$COG$tpm          = COG$tpm
     subSQM$functions$PFAM$abund       = PFAM$abund
-    subSQM$functions$PFAM$tpm         = PFAM$tpm
+
+    if(rescale_tpm)
+        {
+        subSQM$functions$KEGG$tpm     = KEGG$tpm_rescaled
+        subSQM$functions$COG$tpm      = COG$tpm_rescaled
+        subSQM$functions$PFAM$tpm     = PFAM$tpm_rescaled
+    }else
+        {
+        subSQM$functions$KEGG$tpm     = KEGG$tpm
+        subSQM$functions$COG$tpm      = COG$tpm
+        subSQM$functions$PFAM$tpm     = PFAM$tpm
+    }
 
     if(!is.null(subSQM$misc$RecA_cov))
         {

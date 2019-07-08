@@ -158,6 +158,7 @@ my @ntfiles=("$ntfile");
 if($doublepass) { push(@ntfiles,$fna_blastx); }
 
 print "Reading nt sequences\n";
+my($thisorf,$ntseq);
 foreach my $thisntfile(@ntfiles) {
 	open(infile3,$thisntfile) || die "I need the nucleotide sequences in file $thisntfile\n";
 	my($thisorf,$ntseq);
@@ -173,6 +174,10 @@ foreach my $thisntfile(@ntfiles) {
 		else { $ntseq.=$_; }		#-- Otherwise store the sequence of the current	      
 		}
 	close infile3;
+
+	if($ntseq) {
+        	$orfdata{$thisorf}{lengthnt}=(length $ntseq)+1;
+        	}
 	}
 
 
@@ -193,10 +198,10 @@ while(<infile4>) {
 			$orfdata{$thisrna}{method}="barrnap";
 			}
 		$thisrna=$mt[0];
-		my @l=split(/\s+/,$_,2);
+		my @l =split(/\s+/,$_,2);
 		my @ll=split(/\;/,$l[1]);
 		my $rnaname=$ll[0];
-		$orfdata{$thisorf}{name}=$rnaname;  
+		$orfdata{$thisrna}{name}=$rnaname;  
 		$rnaseq="";
 		}
 	else { $rnaseq.=$_; }		#-- Otherwise store the sequence of the current		      
@@ -204,7 +209,7 @@ while(<infile4>) {
 close infile4;
 if($rnaseq) { 
 	$orfdata{$thisrna}{ntseq}=$rnaseq; 
-	$orfdata{$thisrna}{length}=(length $rnaseq)+1;
+	$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
 	$orfdata{$thisrna}{molecule}="RNA";
 	$orfdata{$thisrna}{method}="barrnap";
 	}
