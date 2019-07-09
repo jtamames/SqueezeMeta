@@ -263,7 +263,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [Short-Pair](https://sourceforge.net/projects/short-pair/)
 * [SAMtools](http://samtools.sourceforge.net/)
 
-## 14. About
+## 15. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
 
 
