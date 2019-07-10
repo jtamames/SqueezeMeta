@@ -32,6 +32,9 @@ while(<infile1>) {
 	my @t=split(/\t/,$_);
 	my $contigid=$t[0]; 
 	$contigid=~s/\_RNA\d+$//;
+	my @cidtemp = split("_", $contigid);
+	pop @cidtemp;
+	$contigid = join("_", @cidtemp);
 	$taxrna{$contigid}{$t[4]}++;
 	}
 close infile1;
