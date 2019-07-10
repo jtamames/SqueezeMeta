@@ -30,11 +30,8 @@ Plot a ggplot2 heatmap from a matrix or data frame. The data should be in tabula
 \examples{
 data(Hadza)
 topPFAM = mostAbundant(Hadza$functions$PFAM$tpm)
-topPFAM = topPFAM[rownames(topPFAM) != 'Unclassified',] # Take out the Unclassified ORFs.
-plotHeatmap(topPFAM, label_x = 'Samples', label_y = 'PFAMs', label_fill = 'TPM')
-data(Hadza)
-phyla_percent = Hadza$taxa$phylum$percent
-plotHeatmap(phyla_percent, label_y = 'Phylum', label_fill = 'Percentage')
+topPFAM = topPFAM[rownames(topPFAM) != "Unclassified",] # Take out the Unclassified ORFs.
+plotHeatmap(topPFAM, label_x = "Samples", label_y = "PFAMs", label_fill = "TPM")
 }
 \seealso{
 \code{\link[plotFunctions]{plotFunctions}} for plotting the top functional categories of a SQM object; \code{\link[plotBars]{plotBars}} for plotting a barplot with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.

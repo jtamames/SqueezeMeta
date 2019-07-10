@@ -23,6 +23,7 @@
 #' data(RecA)
 #' ### Let's calculate the average copy number of each function in our samples.
 #' # We do it for COG annotations here, but we could also do it for KEGG or PFAMs.
-#' COG.coverage = SQMtools::aggregate.fun(Hadza, 'COG', trusted_functions_only=T, ignore_unclassified_functions=F)$cov
-#' COG.copynumber = t(t(COG.coverage) / COG.coverage[RecA,]) # Sample-wise division by RecA tpm.
+#' COG.coverage = SQMtools:::aggregate.fun(Hadza, "COG", trusted_functions_only=T,
+#'                                         ignore_unclassified_functions=F)$cov
+#' COG.copynumber = t(t(COG.coverage) / COG.coverage[RecA,]) # Sample-wise division by RecA coverage.
 "RecA"

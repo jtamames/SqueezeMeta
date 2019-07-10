@@ -15,13 +15,9 @@ require(reshape2)
 #' @examples
 #' data(Hadza)
 #' topPFAM = mostAbundant(Hadza$functions$PFAM$tpm)
-#' topPFAM = topPFAM[rownames(topPFAM) != 'Unclassified',] # Take out the Unclassified ORFs.
-#' plotHeatmap(topPFAM, label_x = 'Samples', label_y = 'PFAMs', label_fill = 'TPM')
+#' topPFAM = topPFAM[rownames(topPFAM) != "Unclassified",] # Take out the Unclassified ORFs.
+#' plotHeatmap(topPFAM, label_x = "Samples", label_y = "PFAMs", label_fill = "TPM")
 #' @export
-#' @examples
-#' data(Hadza)
-#' phyla_percent = Hadza$taxa$phylum$percent
-#' plotHeatmap(phyla_percent, label_y = 'Phylum', label_fill = 'Percentage')
 plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fill = 'Abundance', gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
@@ -67,9 +63,10 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
 #' @param base_size numeric. Base font size (default \code{11}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotHeatmap}} for plotting a heatmap with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
+#' @examples
 #' data(Hadza)
 #' sk = Hadza$taxa$superkingdom$abund
-#' plotBars(sk, label_y = 'Raw reads', label_fill = 'Superkingdom')
+#' plotBars(sk, label_y = "Raw reads", label_fill = "Superkingdom")
 #' @export
 plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fill = 'Features', color = NULL, base_size = 11)
     {
@@ -196,9 +193,9 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
 #' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
 #' data(Hadza)
-#' Hadza.amin = subsetFun(Hadza, 'Amino acid metabolism')
+#' Hadza.amin = subsetFun(Hadza, "Amino acid metabolism")
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
-#' plotTaxonomy(Hadza.amin, 'family')
+#' plotTaxonomy(Hadza.amin, "family")
 #' @export
 plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, ignore_unclassified = F, rescale = F, color = NULL, base_size = 11)
     {

@@ -26,9 +26,11 @@ a ggplot2 plot object.
 \description{
 Plot a ggplot2 barplot from a matrix or data frame. The data should be in tabular format (e.g. features in rows and samples in columns).
 }
-\seealso{
-\code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotHeatmap}} for plotting a heatmap with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
+\examples{
 data(Hadza)
 sk = Hadza$taxa$superkingdom$abund
-plotBars(sk, label_y = 'Raw reads', label_fill = 'Superkingdom')
+plotBars(sk, label_y = "Raw reads", label_fill = "Superkingdom")
+}
+\seealso{
+\code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotHeatmap}} for plotting a heatmap with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 }

@@ -37,9 +37,9 @@ This function selects the most abundant taxa across all samples in a SQM object 
 }
 \examples{
 data(Hadza)
-Hadza.amin = subsetFun(Hadza, 'Amino acid metabolism')
+Hadza.amin = subsetFun(Hadza, "Amino acid metabolism")
 # Taxonomic distribution of amino acid metabolism ORFs at the family level.
-plotTaxonomy(Hadza.amin, 'family')
+plotTaxonomy(Hadza.amin, "family")
 }
 \seealso{
 \code{\link[plotFunctions]{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.

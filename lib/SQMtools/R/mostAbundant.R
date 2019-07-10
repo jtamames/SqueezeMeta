@@ -9,17 +9,17 @@
 #' @return A matrix or data frame (same as input) with the selected rows.
 #' @examples
 #' data(Hadza)
-#' Hadza.carb = subsetFun(Hadza, 'Carbohydrate metabolism')
+#' Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 #' # Which are the 20 most abundant KEGG functions in the ORFs related to carbohydrate metabolism?
 #' topCarb = mostAbundant(Hadza.carb$functions$KEGG$tpm, N=20)
 #' # Now print them with nice names
-#' rownames(topCarb) = paste(rownames(topCarb), Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep='; ')
+#' rownames(topCarb) = paste(rownames(topCarb), Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
 #' topCarb
 #' We can pass this to any R function
 #' heatmap(topCarb)
 #' But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots
-#' plotHeatmap(topCarb, label_y='TPM')
-#' plotBars(topCarb, label_y='TPM')
+#' plotHeatmap(topCarb, label_y="TPM")
+#' plotBars(topCarb, label_y="TPM")
 #' @export
 mostAbundant = function(data, N = 10, items = NULL, others = F, rescale = F)
     {

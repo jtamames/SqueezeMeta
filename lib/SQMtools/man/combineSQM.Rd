@@ -30,10 +30,10 @@ Combine an arbitrary number of SQM objects into a single SQM object.
 \examples{
 data(Hadza)
 # Select Carbohydrate metabolism ORFs in Bacteroidetes, and Amino acid metabolism ORFs in Proteobacteria
-bact = subsetTax(Hadza, 'phylum', 'Bacteroidetes <phylum>')
-bact.carb = subsetFun(bact, 'Carbohydrate metabolism')
-proteo = subsetTax(Hadza, 'phylum', 'Proteobacteria')
-proteo.amins = subsetFun(proteo, 'Amino acid metabolism')
+bact = subsetTax(Hadza, "phylum", "Bacteroidetes")
+bact.carb = subsetFun(bact, "Carbohydrate metabolism")
+proteo = subsetTax(Hadza, "phylum", "Proteobacteria")
+proteo.amins = subsetFun(proteo, "Amino acid metabolism")
 bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=F)
 }
 \seealso{

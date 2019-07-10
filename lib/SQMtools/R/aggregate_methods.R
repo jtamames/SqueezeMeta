@@ -67,6 +67,7 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
         tpm      = tpm  [rownames(tpm)        !='Unclassified',]
         coverage = coverage[rownames(coverage)!='Unclassified',]
         lengths  = lengths[rownames(lengths)  !='Unclassified',]
+        copies   = copies[rownames(copies)    !='Unclassified',]
         }
 
     stopifnot(identical(rownames(abund), rownames(tpm)))

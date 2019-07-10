@@ -18,8 +18,8 @@ obtained from two hunter-gatherers of the Hadza ethnic group.
 }
 \examples{
 data(Hadza)
-plotTaxonomy(Hadza, 'genus', rescale=T)
-plotFunctions(Hadza, 'COG')
+plotTaxonomy(Hadza, "genus", rescale=T)
+plotFunctions(Hadza, "COG")
 
 }
 \references{

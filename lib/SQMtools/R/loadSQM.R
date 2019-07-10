@@ -90,17 +90,18 @@ require(reshape2)
 #'
 #' data(Hadza)
 #' # Which are the ten most abundant KEGG IDs in our data?
-#' topKEGG = sort(rowSums(Hadza$functions$KEGG$tpm), decreasing=T)[1:10]
+#' topKEGG = sort(rowSums(Hadza$functions$KEGG$tpm), decreasing=T)[1:11]
+#' topKEGG = topKEGG[names(topKEGG)!="Unclassified"]
 #' # Which functions do those KEGG IDs represent?
 #' Hadza$misc$KEGG_names[topKEGG]
 #' What is the relative abundance of the Gammaproteobacteria class across samples?
-#' Hadza$taxa$class$percent['Gammaproteobacteria',]
+#' Hadza$taxa$class$percent["Gammaproteobacteria",]
 #' # Which information is stored in the orf, contig and bin tables?
 #' colnames(Hadza$orfs$table)
 #' colnames(Hadza$contigs$table)
 #' colnames(Hadza$bins$table)
 #' # What is the GC content distribution of my metagenome?
-#' boxplot(Hadza$contigs$table[,'GC perc']) # Not weighted by contig length or abundance!
+#' boxplot(Hadza$contigs$table[,"GC perc"]) # Not weighted by contig length or abundance!
 #' @export
 
 loadSQM = function(project_path, tax_mode = 'allfilter')
@@ -195,8 +196,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     SQM$contigs$bins              = rbind(SQM$contigs$bins, notInBins)
     SQM$contigs$bins              = SQM$contigs$bins[rownames(SQM$contigs$table),,drop=F]
     SQM$contigs$bins[is.na(SQM$contigs$bins)] = 'No_bin'
-    names(SQM$contigs$bins)       = rownames(SQM$contigs$table)
-
 
     cat('Loading bins\n')
     cat('    table...\n')
@@ -207,7 +206,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     SQM$bins$tpm                  = as.matrix(SQM$bins$table[,grepl('TPM', colnames(SQM$bins$table)),drop=F])
     colnames(SQM$bins$tpm)        = gsub('TPM ', '', colnames(SQM$bins$tpm), fixed=T)
     cat('    taxonomy...\n')
-    SQM$bins$taxonomy             = as.matrix(read.table(sprintf('%s/results/tables/%s.bin.tax.tsv', project_path, project_name),
+    SQM$bins$tax                  = as.matrix(read.table(sprintf('%s/results/tables/%s.bin.tax.tsv', project_path, project_name),
                                                          header=T, row.names=1, sep='\t'))
     cat('Loading taxonomies\n')                                   
     SQM$taxa                      = list()
@@ -294,15 +293,15 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     SQM$functions                  = list()
     SQM$functions$KEGG             = list()
     SQM$functions$KEGG$abund       = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F))
+                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
     SQM$functions$KEGG$tpm         = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.tpm.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F))
+                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
                                                              
     SQM$functions$COG              = list()
     SQM$functions$COG$abund        = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F))
+                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
     SQM$functions$COG$tpm          = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.tpm.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F))
+                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
 
 
     SQM$functions$PFAM             = list()
@@ -314,11 +313,11 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     if(file.exists(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name)))
         {
         SQM$functions$KEGG$copy_number = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.copyNumber.tsv', project_path, project_name),
-                                                              header=T, sep='\t', row.names=1, check.names=F))
+                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$COG$copy_number  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.copyNumber.tsv', project_path, project_name),
-                                                              header=T, sep='\t', row.names=1, check.names=F))
+                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$PFAM$copy_number = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.copyNumber.tsv', project_path, project_name),
-                                                              header=T, sep='\t', row.names=1, check.names=F))
+                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$misc$RecA_cov              = unlist   (read.table(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name),
                                                               header=T, row.names=1) ['COG0468',] )
     }else

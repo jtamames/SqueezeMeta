@@ -30,9 +30,9 @@ Create a SQM object containing only the requested contigs, the ORFs contained in
 \examples{
 data(Hadza)
 # Which contigs have a GC content below 40?
-lowGCcontigNames = rownames(Hadza$contigs$table[Hadza$contigs$table[,'GC perc']<40,])
+lowGCcontigNames = rownames(Hadza$contigs$table[Hadza$contigs$table[,"GC perc"]<40,])
 lowGCcontigs = subsetContigs(Hadza, lowGCcontigNames)
-hist(lowGCcontigs$contigs$table[,'GC perc'])
+hist(lowGCcontigs$contigs$table[,"GC perc"])
 }
 \seealso{
 \code{\link[subsetORFs]{subsetORFs}}

@@ -24,15 +24,18 @@ data(USiCGs)
 KEGG.tpm = Hadza$functions$KEGG$tpm
 all(USiCGs \%in\% rownames(KEGG.tpm)) # Are all the USiCGs present in our dataset?
 # Plot a boxplot of USiCGs tpms and calculate median USiCGs tpm.
-# This looks weird in the test dataset bc it's only a subset of the metagenomes.
-# In a set of complete metagenomes USiCGs should have fairly similar TPM averages and low dispersion across samples.
-boxplot(t(KEGG.tpm[USiCGs,]), names=USiCGs, ylab='TPM', col='slateblue2')
+# This looks weird in the test dataset because it contains only a small subset of the metagenomes.
+# In a set of complete metagenomes USiCGs should have fairly similar TPM averages
+# and low dispersion across samples.
+boxplot(t(KEGG.tpm[USiCGs,]), names=USiCGs, ylab="TPM", col="slateblue2")
  
 ### Now let's calculate the average copy numbers of each function.
 # We do it for KEGG annotations here, but we could also do it for COGs or PFAMs.
-KEGG.coverage = SQMtools::aggregate.fun(Hadza, 'KEGG', trusted_functions_only=T, ignore_unclassified_functions=F)$cov
+KEGG.coverage = SQMtools:::aggregate.fun(Hadza, "KEGG", trusted_functions_only=T,
+                                         ignore_unclassified_functions=F)$cov
 USiCGs.cov = apply(KEGG.coverage[USiCGs,], 2, median)
-KEGG.copynumber = t(t(KEGG.coverage) / USiCGs.cov) # Sample-wise division by the median USiCG coverage.
+# Sample-wise division by the median USiCG coverage.
+KEGG.copynumber = t(t(KEGG.coverage) / USiCGs.cov)
 }
 \references{
 Carr, Shen-Orr & Borenstein (2013). 

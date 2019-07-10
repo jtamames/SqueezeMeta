@@ -33,8 +33,8 @@ Create a SQM object containing only the ORFs with a given function, and the cont
 }
 \examples{
 data(Hadza)
-Hadza.iron = subsetFun(Hadza, 'iron')
-Hadza.carb = subsetFun(Hadza, 'Carbohydrate metabolism')
+Hadza.iron = subsetFun(Hadza, "iron")
+Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 }
 \seealso{
 \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.

@@ -13,8 +13,8 @@
 #' @return SQM object containing only the requested function.
 #' @examples
 #' data(Hadza)
-#' Hadza.iron = subsetFun(Hadza, 'iron')
-#' Hadza.carb = subsetFun(Hadza, 'Carbohydrate metabolism')
+#' Hadza.iron = subsetFun(Hadza, "iron")
+#' Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 #' @export
 subsetFun = function(SQM, fun, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
@@ -68,8 +68,8 @@ subsetFun = function(SQM, fun, ignore_case=T, fixed=F, trusted_functions_only = 
 #' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetContigs]{subsetContigs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.
 #' @examples
 #' data(Hadza)
-#' Hadza.Escherichia = subsetTax(Hadza, 'genus', 'Escherichia')
-#' Hadza.Bacteroidetes = subsetTax(Hadza, 'phylum', 'Bacteroidetes')
+#' Hadza.Escherichia = subsetTax(Hadza, "genus", "Escherichia")
+#' Hadza.Bacteroidetes = subsetTax(Hadza, "phylum", "Bacteroidetes")
 #' @export
 subsetTax = function(SQM, rank, tax, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm =T, rescale_copy_number = T)
     {
@@ -98,14 +98,14 @@ subsetTax = function(SQM, rank, tax, trusted_functions_only = F, ignore_unclassi
 #' @seealso \code{\link[subsetContigs]{subsetContigs}}, \code{\link[subsetORFs]{subsetORFs}}
 #' @examples 
 #' data(Hadza)
-#' # Which are the five most complete bin?
-#' topBinNames = rownames(Hadza$bins$table)[order(Hadza$bins$table[,'Completeness'], decreasing=T)][1:5]
+#' # Which are the two most complete bins?
+#' topBinNames = rownames(Hadza$bins$table)[order(Hadza$bins$table[,"Completeness"], decreasing=T)][1:2]
 #' topBins = subsetBins(Hadza, topBinNames)
 #' @export
 subsetBins = function(SQM, bins, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = T, rescale_copy_number = T)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
-    goodContigs = names(SQM$contigs$bins)[SQM$contigs$bins %in% bins]
+    goodContigs = rownames(SQM$contigs$bins)[SQM$contigs$bins %in% bins]
     return ( subsetContigs(SQM, goodContigs,  
                            trusted_functions_only = trusted_functions_only,
                            ignore_unclassified_functions=ignore_unclassified_functions,
@@ -129,9 +129,9 @@ subsetBins = function(SQM, bins, trusted_functions_only = F, ignore_unclassified
 #' @examples
 #' data(Hadza)
 #' # Which contigs have a GC content below 40?
-#' lowGCcontigNames = rownames(Hadza$contigs$table[Hadza$contigs$table[,'GC perc']<40,])
+#' lowGCcontigNames = rownames(Hadza$contigs$table[Hadza$contigs$table[,"GC perc"]<40,])
 #' lowGCcontigs = subsetContigs(Hadza, lowGCcontigNames)
-#' hist(lowGCcontigs$contigs$table[,'GC perc'])
+#' hist(lowGCcontigs$contigs$table[,"GC perc"])
 #' @export
 subsetContigs = function(SQM, contigs, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {

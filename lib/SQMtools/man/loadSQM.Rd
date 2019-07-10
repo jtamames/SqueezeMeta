@@ -105,15 +105,16 @@ Hadza = loadSQM("Hadza") # Where Hadza is the path to the SqueezeMeta output dir
 
 data(Hadza)
 # Which are the ten most abundant KEGG IDs in our data?
-topKEGG = sort(rowSums(Hadza$functions$KEGG$tpm), decreasing=T)[1:10]
+topKEGG = sort(rowSums(Hadza$functions$KEGG$tpm), decreasing=T)[1:11]
+topKEGG = topKEGG[names(topKEGG)!="Unclassified"]
 # Which functions do those KEGG IDs represent?
 Hadza$misc$KEGG_names[topKEGG]
 What is the relative abundance of the Gammaproteobacteria class across samples?
-Hadza$taxa$class$percent['Gammaproteobacteria',]
+Hadza$taxa$class$percent["Gammaproteobacteria",]
 # Which information is stored in the orf, contig and bin tables?
 colnames(Hadza$orfs$table)
 colnames(Hadza$contigs$table)
 colnames(Hadza$bins$table)
 # What is the GC content distribution of my metagenome?
-boxplot(Hadza$contigs$table[,'GC perc']) # Not weighted by contig length or abundance!
+boxplot(Hadza$contigs$table[,"GC perc"]) # Not weighted by contig length or abundance!
 }

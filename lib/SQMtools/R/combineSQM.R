@@ -12,16 +12,16 @@
 #' @examples
 #' data(Hadza)
 #' # Select Carbohydrate metabolism ORFs in Bacteroidetes, and Amino acid metabolism ORFs in Proteobacteria
-#' bact = subsetTax(Hadza, 'phylum', 'Bacteroidetes <phylum>')
-#' bact.carb = subsetFun(bact, 'Carbohydrate metabolism')
-#' proteo = subsetTax(Hadza, 'phylum', 'Proteobacteria')
-#' proteo.amins = subsetFun(proteo, 'Amino acid metabolism')
+#' bact = subsetTax(Hadza, "phylum", "Bacteroidetes")
+#' bact.carb = subsetFun(bact, "Carbohydrate metabolism")
+#' proteo = subsetTax(Hadza, "phylum", "Proteobacteria")
+#' proteo.amins = subsetFun(proteo, "Amino acid metabolism")
 #' bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=F)
 #' @export
 combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = T, rescale_copy_number = T)
     {
     # intermediate function so that we can pass extra args to combineSQM
-    myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_copy_number)
+    myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number)
     return(Reduce(myFun, list(...)))
     }
 
@@ -47,8 +47,8 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     combSQM$orfs$tpm                   = as.matrix(combSQM$orfs$table[,grepl('TPM', colnames(combSQM$orfs$table)),drop=F])
     colnames(combSQM$orfs$tpm)         = gsub('TPM ', '', colnames(combSQM$orfs$tpm), fixed=T)
     #    Sequences
-    combSQM$orfs$sequences             = c(combSQM$orfs$sequences, SQM2$orfs$sequences[extraORFs])
-    combSQM$orfs$sequences             = combSQM$orfs$sequences[rownames(combSQM$orfs$table)]
+    combSQM$orfs$seqs                  = c(combSQM$orfs$seqs, SQM2$orfs$seqs[extraORFs])
+    combSQM$orfs$seqs                  = combSQM$orfs$seqs[rownames(combSQM$orfs$table)]
     #    Taxonomy
     combSQM$orfs$tax                   = rbind(combSQM$orfs$tax, SQM2$orfs$tax[extraORFs,,drop=F])
     combSQM$orfs$tax                   = combSQM$orfs$tax[rownames(combSQM$orfs$table),,drop=F]
@@ -62,11 +62,13 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     #    Abundances
     combSQM$contigs$abund              = as.matrix(combSQM$contigs$table[,grepl('Raw read count', colnames(combSQM$contigs$table)),drop=F])
     colnames(combSQM$contigs$abund)    = gsub('Raw read count ', '', colnames(combSQM$contigs$abund), fixed=T)
+    combSQM$contigs$cov                = as.matrix(combSQM$contigs$table[,grepl('Coverage', colnames(combSQM$contigs$table)),drop=F])
+    colnames(combSQM$contigs$cov)      = gsub('Coverage ', '', colnames(combSQM$contigs$abund), fixed=T)
     combSQM$contigs$tpm                = as.matrix(combSQM$contigs$table[,grepl('TPM', colnames(combSQM$contigs$table)),drop=F])
     colnames(combSQM$contigs$tpm)      = gsub('TPM ', '', colnames(combSQM$contigs$tpm), fixed=T)
     #    Sequences
-    combSQM$orfs$sequences             = c(combSQM$contigs$sequences, SQM2$contigs$sequences[extraContigs])
-    combSQM$orfs$sequences             = combSQM$contigs$sequences[rownames(combSQM$contigs$table)]
+    combSQM$contigs$seqs               = c(combSQM$contigs$seqs, SQM2$contigs$seqs[extraContigs])
+    combSQM$contigs$seqs               = combSQM$contigs$seqs[rownames(combSQM$contigs$table)]
     #    Taxonomy
     combSQM$contigs$tax                = rbind(combSQM$contigs$tax, SQM2$contigs$tax[extraContigs,,drop=F])
     combSQM$contigs$tax                = combSQM$contigs$tax[rownames(combSQM$contigs$table),,drop=F]
