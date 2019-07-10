@@ -1,8 +1,8 @@
 ### Install Java8 (alternatively install openjdk8).
-sudo add-apt-repository ppa:webupd8team/java -y
+sudo add-apt-repository ppa:linuxuprising/java -y
 sudo apt-get update
-sudo apt-get install oracle-java8-installer
-sudo apt-get install oracle-java8-set-default
+sudo apt-get install oracle-java12-installer
+sudo apt-get install oracle-java12-set-default
 
 
 ### Install Ruby.
@@ -12,10 +12,8 @@ sudo apt-get install ruby
 ### Install R 3.2.3 or higher.
 # If you are using Ubuntu 14 first add the cran repository:
 sudo vim /etc/apt/sources.list
-# add "deb http://cran.es.r-project.org/bin/linux/ubuntu trusty/"
+# add "deb https://cloud.r-project.org/bin/linux/ubuntu trusty-cran35/"
 #  (without the quotes) to the last line of the file.
-gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-key E084DAB9
-gpg -a --export E084DAB9 | sudo apt-key add -
 sudo apt-get update
 # Install R. This is the only command you'll need in ubuntu 16 or higher.
 sudo apt-get install r-base-core
