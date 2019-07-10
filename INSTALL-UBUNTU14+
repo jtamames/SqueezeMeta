@@ -11,7 +11,7 @@ sudo apt-get install ruby
 
 ### Install R 3.2.3 or higher.
 # If you are using Ubuntu 14 first add the cran repository:
-sudo vim /etc/apt/sources.list
+sudo gedit /etc/apt/sources.list
 # add "deb https://cloud.r-project.org/bin/linux/ubuntu trusty-cran35/"
 #  (without the quotes) to the last line of the file.
 sudo apt-get update
