@@ -13,7 +13,7 @@ use Tie::IxHash;
 use lib ".";
 use strict;
 
-my $version="1.0.0beta";
+my $version="1.0.0";
 my $start_run = time();
 
 my $longtrace=0;    #-- Reports an explanation msg for each of the steps

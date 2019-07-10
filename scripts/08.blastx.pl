@@ -5,7 +5,7 @@
 #-- Uses several external scripts:
 #	blastxcollapse.pl for collapsing blastx hits
 #	mergehits.pl for merging frameshifted ORFs
-#	lca_collapse.pl, remvamped version of lca.pl for working with the collapsed format
+#	lca_collapse.pl, revamped version of lca.pl for working with the collapsed format
 #	good old fun3assign.pl for annotating COGs/KEGGs
 
 
