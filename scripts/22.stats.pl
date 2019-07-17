@@ -123,10 +123,10 @@ while(<infile4>) {
 		if(($f eq "Hits") && !$k[$pos]) { $genes{orphans}++; }
 		if(($f eq "Hits") && $k[$pos] && (!$taxorf)) { $genes{notassignedwhits}++; }
 		if($opt{$f} && $k[$pos]) { $genes{$f}++; }
-		if($f=~/Raw Read Count (.*)/) {
+		if($f=~/Raw Read Count (.*)/i) {
 			my $tsam=$1;
 			if($k[$pos]>0) {
-				$genes{$tsam}{totgenes}++;
+				$genes{$tsam}{totgenes}++; 
 				foreach(my $pos2=0; $pos2<=$#k; $pos2++) {
 					my $f2=$head[$pos2];
 					if($f eq "Tax") { 
