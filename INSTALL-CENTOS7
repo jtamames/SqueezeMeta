@@ -1,15 +1,9 @@
-### Download SqueezeMeta.
-# You can download the latest release of SqueezeMeta from https://github.com/jtamames/SqueezeM/releases/latest
-# Alternatively you can clone the github repository.
-#     git clone http://github.com/jtamames/SqueezeMeta
-
-
 ### Enable Extended Packages for Enterprise Linux.
 sudo yum -y install epel-release
 
 
-### Install ncurses-devel
-sudo yum -y install ncurses-devel
+### Install ncurses-devel and git
+sudo yum -y install ncurses-devel git
 
 
 ### Install Ruby.
@@ -31,6 +25,12 @@ sudo ln -s /usr/bin/python3.4 /usr/bin/python3 # Only if python3 is not already 
 sudo yum -y install R
 
 
+### Download SqueezeMeta.
+## You can download the latest release of SqueezeMeta from https://github.com/jtamames/SqueezeM/releases/latest
+## Alternatively you can clone the github repository.
+##     git clone http://github.com/jtamames/SqueezeMeta
+
+
 ### Install R packages for DAS tool.
 sudo R
 install.packages("doMC")
@@ -38,6 +38,13 @@ install.packages("ggplot2")
 install.packages("data.table")
 quit(save='no')
 sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
+
+
+### Install the SQMtools R package for downstream analysis of SqueezeMeta results.
+sudo R
+install.packages("reshape2")
+quit(save='no')
+sudo R CMD INSTALL <installpath>/SqueezeMeta/lib/SQMtools
 
 
 ### Install databases and test data.

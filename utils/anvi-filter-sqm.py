@@ -100,7 +100,7 @@ QUERY SYNTAX:
 
 import argparse
 from os.path import abspath, dirname, realpath, exists
-from sys import path
+from sys import path, stderr
 import glob
 utils_home = abspath(dirname(realpath(__file__)))
 path.append('{}/../lib/'.format(utils_home))
@@ -178,7 +178,11 @@ def main(args):
         pdb = args.profile_db
 
     else: # yolo!
-        subset_anvio(goodSplits, args.contigs_db, args.profile_db, outdir+'_YOLO')
+        try:
+            subset_anvio(goodSplits, args.contigs_db, args.profile_db, outdir+'_YOLO')
+        except sqlite3.OperationalError:
+            stderr.write('\nSomething went wrong while using the yolo parser. Most likely SQLite\'s SQLITE_MAX_VARIABLE_NUMBER is too low. Please try again adding the "-s safe" parameter.\n\n')
+            raise
         cdb = outdir + '_YOLO/CONTIGS.db'
         pdb = outdir + '_YOLO/PROFILE.db'
 

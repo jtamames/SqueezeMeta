@@ -32,6 +32,9 @@ while(<infile1>) {
 	my @t=split(/\t/,$_);
 	my $contigid=$t[0]; 
 	$contigid=~s/\_RNA\d+$//;
+	my @cidtemp = split("_", $contigid);
+	pop @cidtemp;
+	$contigid = join("_", @cidtemp);
 	$taxrna{$contigid}{$t[4]}++;
 	}
 close infile1;
@@ -183,7 +186,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	#-- Headers
 	
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
-	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tSize\tGC perc\tNum contigs\tDisparity\tCompleteness\tContamination\tStrain het";
+	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tLength\tGC perc\tNum contigs\tDisparity\tCompleteness\tContamination\tStrain het";
 	foreach my $countfile(keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile"; }
 	print outfile3 "\n";
 	
