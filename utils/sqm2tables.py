@@ -94,7 +94,7 @@ def main(args):
 
     # Add ORFs not present in the input tax file.
     unclass_list = ['Unclassified' for rank in TAXRANKS_SHORT]
-    unclass_list_wranks = ['{}_Unclassified' for rank in TAXRANKS_SHORT]
+    unclass_list_wranks = ['{}_Unclassified'.format(rank) for rank in TAXRANKS_SHORT]
     for orf in orfs['abundances']:
         if orf not in orf_tax:
             assert orf not in orf_tax_wranks
