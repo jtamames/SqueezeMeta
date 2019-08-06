@@ -30,7 +30,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     {
 
     if(class(SQM1) != 'SQM' | class(SQM2) != 'SQM') { stop('This function only accepts SQM objects') }
-    stopifnot(class(SQM1)=='SQM' & stopifnot(class(SQM2)=='SQM'))
+
     stopifnot(identical(colnames(SQM1$orfs$table), colnames(SQM2$orfs$table)))
     combSQM = SQM1
 

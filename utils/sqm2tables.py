@@ -29,7 +29,7 @@ from collections import defaultdict
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
-from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, TAXRANKS, TAXRANKS_SHORT 
+from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, TAXRANKS 
 
 
 def main(args):
@@ -93,8 +93,7 @@ def main(args):
     orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.noidfilter.wranks')
 
     # Add ORFs not present in the input tax file.
-    unclass_list = ['Unclassified' for rank in TAXRANKS_SHORT]
-    unclass_list_wranks = ['{}_Unclassified' for rank in TAXRANKS_SHORT]
+    unclass_list, unclass_list_wranks = parse_tax_string('n_Unclassified')
     for orf in orfs['abundances']:
         if orf not in orf_tax:
             assert orf not in orf_tax_wranks
