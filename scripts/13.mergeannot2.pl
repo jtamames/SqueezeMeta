@@ -20,7 +20,7 @@ do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$interdir,$tempdir,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$doublepass,$taxdiamond,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
+our($datapath,$resultpath,$interdir,$tempdir,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$euknofilter,$doublepass,$taxdiamond,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
 
 my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist,%blasthits);
 tie %orfdata,"Tie::IxHash";
@@ -233,6 +233,23 @@ while(<infile5>) {
 	$datafiles{'allorfs'}=1;
 }
 close infile5;
+
+if($euknofilter) {	#-- Remove filters for Eukaryotes
+	my $eukinput=$taxfile;
+	$eukinput=~s/\.wranks/\.noidfilter\.wranks/;
+	open(infile5,$eukinput) || die "Can't open $eukinput\n";
+	while(<infile5>) {		#-- Looping on the ORFs
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my @t=split(/\t/,$_);
+		my $mdat=$t[1];
+		next if($mdat!~/k\_Eukaryota/);
+		$mdat=~s/\;$//;
+		$orfdata{$t[0]}{tax}=$mdat;
+		$datafiles{'allorfs'}=1;
+	}
+	close infile5;
+}
 
 	#-- Reading nt sequences for calculating GC content
 

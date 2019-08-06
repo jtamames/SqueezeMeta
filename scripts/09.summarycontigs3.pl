@@ -21,7 +21,7 @@ do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9);
+our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$euknofilter,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9);
 
 #-- Some local configuration variables
 
@@ -38,6 +38,7 @@ my $outputshort=$alllog;
 #-- Reading taxonomic infomation (extracted from NCBI's taxonomy)
 
 my(%taxcorr,%numorfs,%allcontigs,%orfs);
+if(!$euknofilter) { $euknofilter="0"; }
 
 open(infile1,$taxlist) || die "Can't open $taxlist\n";
 while(<infile1>) {
@@ -154,13 +155,46 @@ while(<infile3>) {		#-- Looping on the ORFs
 	}
 close infile3;
 
+if($euknofilter) {	#-- Remove filters for Eukaryotes
+	my $eukinput=$input;
+	$eukinput=~s/\.wranks/\.noidfilter\.wranks/;
+	open(infile3,$eukinput) || die "Can't open $eukinput\n";
+	while(<infile3>) {		#-- Looping on the ORFs
+		my $contigid;
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		my($node,$atax)=split(/\t/,$_);		#-- $node contains ORF name
+		next if($atax!~/k\_Eukaryota/);
+		$atax=~s/\"//g;
+		my @tf=split(/\;/,$atax);		#-- This contains rank:taxon pairs for the ORF
+		my @id=split(/\_/,$node);
+		# @id=split(/\|/,$node);
+	
+		#-- Different nomenclature for contigs in spades and other assemblers
+	
+		if($id[0]=~/NODE/) { $contigid="$id[0]\_$id[1]"; } else { $contigid="$id[0]"; }	
+
+		$contigid=$node;
+		$contigid=~s/\_\d+\-\d+$//;
+		$contigid=~s/\|\d+$//; 		#-- This is the contig name the current ORF belongs to
+		#-- Stores rank and taxa for all the ORFs in the contig
+
+		foreach my $uc(@tf) { 
+			my ($rank,$tax)=split(/\_/,$uc);
+			if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
+			}
+		}
+	close infile3;
+	}
+
+
 #-- Preparing output files
 
 print "Writing output to $outputshort\n";
 open(outfile1,">$outputlong") || die "Can't open $outputlong for writing\n";
 open(outfile2,">$outputshort") || die "Can't open $outputshort for writing\n";
-print outfile1 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, ",scalar localtime,"\n";
-print outfile2 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, ",scalar localtime,"\n";
+print outfile1 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, euknofilter=$euknofilter, ",scalar localtime,"\n";
+print outfile2 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, euknofilter=$euknofilter,",scalar localtime,"\n";
 
 foreach my $contig(keys %allcontigs) {
 	my ($sep,$lasttax,$strg,$cattax,$fulltax,$lasttax)="";

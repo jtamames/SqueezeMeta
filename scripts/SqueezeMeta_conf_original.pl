@@ -72,6 +72,7 @@ $blocksize=8;
 $nocog=0;
 $nokegg=0;
 $nopfam=0;
+$euknofilter=0;
 $nobins=0;
 $doublepass=0;
 $cleaning=0;

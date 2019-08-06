@@ -322,7 +322,7 @@ foreach my $optdb(sort keys %opt) {
 	
 	#-- Bins
 
-if(($mode ne "sequential") && (!$nobins)) {
+if(!$nobins) {
 	print outfile1 "\n#------------------- Statistics on bins\n#";
 	foreach my $method(sort keys %bins) { print outfile1 "\t$method"; }
 	print outfile1 "\n";

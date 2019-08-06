@@ -25,7 +25,7 @@ our $installpath = "$scriptdir/..";
 ###
 
 our $pwd=cwd();
-our($nocog,$nokegg,$nopfam,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
+our($nocog,$nokegg,$nopfam,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
@@ -60,6 +60,7 @@ Arguments:
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
+   --euk: Drop identity filters for eukaryotic annotation  (Default: no)
    --D|--doublepass: First pass looking for genes using gene prediction, second pass using BlastX  (Default: no)
    -extdb <database file>: List of user-provided databases
    -b|-block-size <block size>: block size for diamond against the nr database (Default: 8)
@@ -99,6 +100,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nopfam" => \$nopfam,  
+		     "euk" => \$euknofilter,
 		     "extdb=s" => \$opt_db, 
 		     "nobins" => \$nobins,   
 		     "nomaxbin" => \$nomaxbin,   
@@ -126,6 +128,7 @@ if(!$blocksize) { $blocksize=8; }
 if(!$nocog) { $nocog=0; }
 if(!$nokegg) { $nokegg=0; }
 if(!$nopfam) { $nopfam=0; }
+if(!$euknofilter) { $euknofilter=0; }
 if(!$doublepass) { $doublepass=0; }
 if(!$nobins) { $nobins=0; }
 if(!$nomaxbin) { $nomaxbin=0; }
@@ -234,7 +237,17 @@ if($mode=~/sequential/i) {
 		print outfile4 "Project: $project\n";
 		print outfile4 "Map file: $equivfile\n";
 		print outfile4 "Fastq directory: $rawfastq\n";
+		print outfile4 "Command: $commandline\n"; 
+		print outfile4 "Options: threads=$numthreads; contiglen=$mincontiglen; assembler=$assembler; mapper=$mapper; evalue=$evalue; miniden=$miniden;";
 		print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
+		if(!$nocog) { print outfile4 " COGS;"; }
+		if(!$nokegg) { print outfile4 " KEGG;"; }
+		if(!$nopfam) { print outfile4 " PFAM;"; }
+		if($opt_db) { print outfile4 " EXT_DB: $opt_db;"; }
+		if($euknofilter) { print outfile4 " EUKNOFILTER;"; } 
+		if($doublepass) { print outfile4 " DOUBLEPASS;"; }
+		if($lowmem) { print outfile4 " LOW MEMORY;"; }
+		print outfile4 "\n";
 		print outfile2 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
 		print "Now creating directories\n";
 		open(infile2,"$scriptdir/SqueezeMeta_conf.pl") || die "Can't open conf file $scriptdir/SqueezeMeta_conf.pl";
@@ -255,6 +268,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nocog/) { print outfile5 "\$nocog=$nocog;\n"; }
 			elsif($_=~/^\$nokegg/) { print outfile5 "\$nokegg=$nokegg;\n"; }
 			elsif($_=~/^\$nopfam/) { print outfile5 "\$nopfam=$nopfam;\n"; }
+			elsif($_=~/^\$euknofilter/) { print outfile5 "\$euknofilter=$euknofilter;\n"; }
 			elsif($_=~/^\$doublepass/) { print outfile5 "\$doublepass=$doublepass;\n"; }
 			elsif($_=~/^\$nobins/) { print outfile5 "\$nobins=$nobins;\n"; }
 			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
@@ -376,6 +390,7 @@ else {
 	if(!$nokegg) { print outfile4 " KEGG;"; }
 	if(!$nopfam) { print outfile4 " PFAM;"; }
 	if($opt_db) { print outfile4 " EXT_DB: $opt_db;"; }
+	if($euknofilter) { print outfile4 " EUKNOFILTER;"; } 
 	if($doublepass) { print outfile4 " DOUBLEPASS;"; }
 	if($lowmem) { print outfile4 " LOW MEMORY;"; }
 	print outfile4 "\n";
@@ -396,6 +411,7 @@ else {
 		elsif($_=~/^\$nocog/) { print outfile6 "\$nocog=$nocog;\n"; }
 		elsif($_=~/^\$nokegg/) { print outfile6 "\$nokegg=$nokegg;\n"; }
 		elsif($_=~/^\$nopfam/) { print outfile6 "\$nopfam=$nopfam;\n"; }
+		elsif($_=~/^\$euknofilter/) { print outfile6 "\$euknofilter=$euknofilter;\n"; }
 		elsif($_=~/^\$nobins/) { print outfile6 "\$nobins=$nobins;\n"; }
 		elsif($_=~/^\$nomaxbin/) { print outfile6 "\$nomaxbin=$nomaxbin;\n"; }
 		elsif($_=~/^\$nometabat/) { print outfile6 "\$nometabat=$nometabat;\n"; }
@@ -844,9 +860,13 @@ sub pipeline {
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
 			closedir indir1;
 			my $firstfile="$dirbin/$binfiles[0]";
-			my $wc=qx(wc -l $firstfile);
-			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2) { warn "WARNING in STEP14 -> $scriptname. File $firstfile is empty, no MaxBin results!\n"; }
+			my ($wsize,$rest);
+			if(-e $firstfile) {
+				my $wc=qx(wc -l $firstfile);
+				$wsize,$rest=split(/\s+/,$wc);
+				}
+			else { $wsize==0; }
+			if($wsize<2) { warn "WARNING in STEP14 -> $scriptname. No MaxBin results!\n"; }
 		}
 			
     #-------------------------------- STEP15: Running Metabat (only for merged or coassembly modes)		
@@ -865,9 +885,13 @@ sub pipeline {
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
-			my $wc=qx(wc -l $firstfile);
-			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. File $firstfile is empty, no Metabat2 results!\n"; }
+			my ($wsize,$rest);
+			if(-e $firstfile) {
+				my $wc=qx(wc -l $firstfile);
+				$wsize,$rest=split(/\s+/,$wc);
+				}
+			else { $wsize==0; }
+			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. No Metabat2 results!\n"; }
 		}
  
     #-------------------------------- STEP16: DAS Tool merging of binning results (only for merged or coassembly modes)		
@@ -882,12 +906,16 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
 			if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
-			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
+			opendir(indir2,$dirbin) || warn "Can't open $dirbin directory, no DAStool results\n";
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
-			my $wc=qx(wc -l $firstfile);
-			my($wsize,$rest)=split(/\s+/,$wc);
+			my ($wsize,$rest);
+			if(-e $firstfile) {
+				my $wc=qx(wc -l $firstfile);
+				my($wsize,$rest)=split(/\s+/,$wc);
+				}
+			else { $wsize==0; }
 			if($wsize<2) {
 				print("WARNING: File $firstfile is empty!. DAStool did not generate results\n");
 				$DAS_Tool_empty = 1;
