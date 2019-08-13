@@ -26,7 +26,7 @@ do "$scriptdir/SqueezeMeta_conf.pl";
 our($databasepath);
 
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$hel);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$hel,$nodiamond,$euknofilter);
 
 my $helptext = <<END_MESSAGE;
 Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]
@@ -41,6 +41,8 @@ Arguments:
  Options:
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
+   --nodiamond: Skip Diamond runs, assuming that you already did it (Default: no)
+   --euk: Drop identity filters for eukaryotic annotation  (Default: no)
    -e|-evalue: max evalue for discarding hits for Diamond run  (Default: 1e-03)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
@@ -55,6 +57,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "e|evalue=f" => \$evalue,   
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
+		     "nodiamond" => \$nodiamond,   
+		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
 		     "h" => \$hel
 		    );
@@ -83,7 +87,7 @@ my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGi
 my %ranks=('k',1,'phylum',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
 
 my $resultsdir=$project;
-if (-d $resultsdir) { die "Project name $project already exists\n"; } else { system("mkdir $resultsdir"); }
+if (-d $resultsdir) { warn "Project name $project already exists\n"; } else { system("mkdir $resultsdir"); }
 
 my $output_all="$project.out.allreads";
 open(outall,">$resultsdir/$output_all") || die;
@@ -124,7 +128,7 @@ foreach my $thissample(keys %allsamples) {
 	$sampnum++;
 	print "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; 
 	my $thissampledir="$resultsdir/$thissample";
-	system("mkdir $thissampledir");
+	if(-d $thissampledir) {} else { system("mkdir $thissampledir"); }
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		print "   File: $thisfile\n";
 		if($thisfile=~/fastq.gz/) { system("zcat $rawseqs/$thisfile | wc > rc.txt"); }
@@ -142,10 +146,11 @@ foreach my $thissample(keys %allsamples) {
 		print "   [",$currtime->pretty,"]: Running Diamond for taxa\n";
 		my $outfile="$thissampledir/$thisfile.tax.m8";
 		my $outfile_tax="$thissampledir/$thisfile.tax.wranks";
+		my $outfile_tax_nofilter="$thissampledir/$thisfile.tax_nofilter.wranks";
 		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b 8 -o $outfile";
 		# print "Running BlastX: $blastx_command\n";
 		my %iblast;
-		system($blastx_command);
+		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
 		open(inf,$outfile);
 		while(<inf>) {
 			chomp;
@@ -170,7 +175,16 @@ foreach my $thissample(keys %allsamples) {
 			$store{$f[0]}{tax}=$f[1];
 			}
 		close infiletax;
-		
+		if($euknofilter) {     #-- Drops the filters for eukaryotes
+			open(infiletax,$outfile_tax_nofilter) || die;
+			while(<infiletax>) {
+				chomp;
+				next if(!$_ || ($_=~/^\#/));
+				my @f=split(/\t/,$_);
+				if($f[1]=~/Eukaryota/) { $store{$f[0]}{tax}=$f[1]; }
+				}
+			close infiletax;
+			}
 		
 		$currtime=timediff();
 		if(!$nocog) {

@@ -38,7 +38,7 @@ Usage: SqueezeMeta.pl -m <mode> -p <project name> -s <samples file> -f <sequence
 Arguments:
 
  Mandatory parameters:
-   -m <mode>: Mode (sequential, coassembly, merged) (REQUIRED)
+   -m <mode>: Mode (sequential, coassembly, merged, seqmerge) (REQUIRED)
    -s|-samples <samples file>: Samples file (REQUIRED)
    -f|-seq <sequence dir>: fastq/fasta read files' directory (REQUIRED)
    -p <project name>: Project name (REQUIRED in coassembly and merged modes)
@@ -152,9 +152,9 @@ if($hel) { die "$helptext\n"; }
 if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if(!$mode) { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
-if(($mode!~/sequential/i) && (!$project)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
-if(($mode=~/sequential/i) && ($project)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
-if($mode!~/sequential|coassembly|merged/i) { $dietext.="UNRECOGNIZED run mode $mode\n"; }
+if(($mode!~/sequential$/i) && (!$project)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
+if(($mode=~/sequential$/i) && ($project)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
+if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED run mode $mode\n"; }
 if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
@@ -563,7 +563,7 @@ sub pipeline {
 
 		#-- In merged mode. Includes merging assemblies
 
-	elsif($mode=~/merged/) {
+	elsif($mode=~/merged|seqmerge/) {
 		if(!$extassembly) {
 			my $scriptname="01.run_assembly_merged.pl";
 			print outfile3 "1\t$scriptname\n";
@@ -578,7 +578,9 @@ sub pipeline {
 			#-- Merging individual assemblies 
 			#-- We still do it in $extassembly for computing contig lengths and prinseq stuff
  
-		my $scriptname="01.merge_assemblies.pl";
+		my $scriptname;
+		if($mode eq "merged") { $scriptname="01.merge_assemblies.pl"; }
+		elsif($mode eq "seqmerge") { $scriptname="merge_sequential.pl"; }
 		print outfile3 "1.5\t$scriptname\n";
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n";
