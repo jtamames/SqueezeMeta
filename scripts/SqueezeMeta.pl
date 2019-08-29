@@ -580,7 +580,7 @@ sub pipeline {
  
 		my $scriptname;
 		if($mode eq "merged") { $scriptname="01.merge_assemblies.pl"; }
-		elsif($mode eq "seqmerge") { $scriptname="merge_sequential.pl"; }
+		elsif($mode eq "seqmerge") { $scriptname="01.merge_sequential.pl"; }
 		print outfile3 "1.5\t$scriptname\n";
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n";

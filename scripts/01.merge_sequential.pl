@@ -72,7 +72,7 @@ else {
 			#-- Uses cd-hit to identify and remove contigs contained in others
 
 			my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
-			$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9 > /dev/null 2>&1";
+			$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
 			print "Running cd-hit-est: $command\n";
 			$ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
@@ -89,7 +89,7 @@ else {
 
 			#-- Uses minimus2 to assemble overlapping contigs
 
-			$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads > /dev/null 2>&1";
+			$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads";
 			print "Merging with minimus2: $command\n";
 			$ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }

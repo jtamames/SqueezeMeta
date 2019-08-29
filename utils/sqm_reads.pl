@@ -117,9 +117,9 @@ my $numsamples=$#nmg+1;
 my $sampnum;
 print "$numsamples metagenomes found";
 print "\n";
-print outall "# Created by $0 from data in $equivfile", scalar localtime,"\n";
+print outall "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
 print outall "# Sample\tRead\tTax\tCOG\tKEGG\n";
-print outcount "# Created by $0 from data in $equivfile", scalar localtime,"\n";
+print outcount "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
 print outcount "# Sample\tFile\tTotal Reads\tReads with hits to nr\n";
 
 my(%cogaccum,%keggaccum);
@@ -136,7 +136,9 @@ foreach my $thissample(keys %allsamples) {
 		elsif($thisfile=~/fasta.gz/) { system("zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"); }
 		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $rawseqs/$thisfile > rc.txt"); }
 		open(inw,"rc.txt");
-		my $numseqs=<inw>;
+		my $line=<inw>;
+		my @l=split(/\s+/,$line);
+		my $numseqs=$l[0];
 		close inw;
 		chomp $numseqs;
 		if($thisfile=~/fastq/) { $numseqs/=4; }
@@ -235,7 +237,7 @@ foreach my $thissample(keys %allsamples) {
 		
 		
 	foreach my $k(sort keys %store) {
-		my @tfields=split(/\;/,$store{$k}{tax});	#-- As this is a huge file, we do not report the full taxonomy, just the deepest taxon
+		my @tfields=split(/\;/,$store{$k}{tax});	#-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
 		my $lasttax=$tfields[$#tfields];
 		print outall "$thissample\t$k\t$lasttax\t$store{$k}{cog}\t$store{$k}{kegg}\n";
 		$store{$k}{cog}=~s/\*//;
