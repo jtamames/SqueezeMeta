@@ -862,8 +862,8 @@ sub pipeline {
 			my $firstfile="$dirbin/$binfiles[0]";
 			my ($wsize,$rest);
 			if(-e $firstfile) {
-				my $wc=qx(wc -l $firstfile);
-				$wsize,$rest=split(/\s+/,$wc);
+				$wc=qx(wc -l $firstfile);
+				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
 			if($wsize<2) { warn "WARNING in STEP14 -> $scriptname. No MaxBin results!\n"; }
@@ -887,8 +887,8 @@ sub pipeline {
 			my $firstfile="$dirbin/$binfiles[0]";
 			my ($wsize,$rest);
 			if(-e $firstfile) {
-				my $wc=qx(wc -l $firstfile);
-				$wsize,$rest=split(/\s+/,$wc);
+				$wc=qx(wc -l $firstfile);
+				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
 			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. No Metabat2 results!\n"; }
@@ -913,7 +913,7 @@ sub pipeline {
 			my ($wsize,$rest);
 			if(-e $firstfile) {
 				my $wc=qx(wc -l $firstfile);
-				my($wsize,$rest)=split(/\s+/,$wc);
+				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
 			if($wsize<2) {
