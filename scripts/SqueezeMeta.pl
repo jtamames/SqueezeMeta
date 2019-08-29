@@ -862,7 +862,7 @@ sub pipeline {
 			my $firstfile="$dirbin/$binfiles[0]";
 			my ($wsize,$rest);
 			if(-e $firstfile) {
-				$wc=qx(wc -l $firstfile);
+				my $wc=qx(wc -l $firstfile);
 				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
@@ -887,7 +887,7 @@ sub pipeline {
 			my $firstfile="$dirbin/$binfiles[0]";
 			my ($wsize,$rest);
 			if(-e $firstfile) {
-				$wc=qx(wc -l $firstfile);
+				my $wc=qx(wc -l $firstfile);
 				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
