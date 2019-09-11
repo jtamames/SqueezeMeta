@@ -1,0 +1,98 @@
+#!/usr/bin/perl -e $PATH=$ARGV[0]=~s/\/minimus2\_mod//r;exec("$PATH/runAmos -D PATH=$PATH -C @ARGV");
+#? minimus2 - The AMOS Pipeline for merging 2 assemblies
+
+#? Usage:          
+#?         minimus2 prefix \
+#?		-D REFCOUNT=<n>         \       # Number of sequences in the 1st assembly ; (Required)
+#?		-D OVERLAP=<n> 		\       # Assembly 1 vs 2 minimum overlap (Default 40bp)
+#?		-D CONSERR=<f>		\	# Maximum consensus error (0..1) (Default 0.06)
+#?		-D MINID=<n>		\	# Minimum overlap percent identity for alignments (Default 94)
+#?		-D MAXTRIM=<n>		\	# Maximum sequence trimming length (Default 20bp)
+#?		-D THREADS=<n>		\	# Number of threads (Default 1).
+
+### Modified from AMOS version 3.1.0 
+### by Fernando Puente-Sanchez on 2018-NOV-19, for compatibility with the SqueezeMeta pipeline
+### and in 2019-MAR-19 to allow multithreading in nucmer calls.
+### SqueezeMeta is released under the GPL-3 license.
+
+
+#--------------------------------------- USER DEFINED VALUES ------------------#
+
+REFCOUNT= 0
+MINID   = 94
+OVERLAP	= 40
+MAXTRIM = 20
+WIGGLE  = 15
+CONSERR = 0.06
+THREADS = 1
+
+#------------------------------------------------------------------------------#
+
+TGT     = $(PREFIX).afg
+BANK    = $(PREFIX).bnk
+REFSEQ  = $(PREFIX).ref.seq
+QRYSEQ  = $(PREFIX).qry.seq
+ALIGN   = $(PREFIX).delta
+COORDS  = $(PREFIX).coords
+OVLTAB  = $(PREFIX).ovl
+OVLAMOS = $(PREFIX).OVL
+CONTIG  = $(PREFIX).contig
+FASTA   = $(PREFIX).fasta
+
+SINGLETONS    = $(PREFIX).singletons
+SINGLETONSEQ  = $(PREFIX).singletons.seq
+
+#------------------------------------------------------------------------------#
+
+INPUTS  = $(TGT) $(REFCOUNT)
+OUTPUTS = $(CONTIG) $(FASTA)
+
+#------------------------------------------------------------------------------#
+
+## LIBPATH patch added by Fernando Puente-Sánchez, 19-XI-2018. 
+BINDIR          = $(PATH)
+LIBPATH         = $(PATH)/../../lib/mummer 
+NUCMER          = LD_LIBRARY_PATH=$(LIBPATH) $(PATH)/../mummer/nucmer
+DELTAFILTER	= LD_LIBRARY_PATH=$(LIBPATH) $(PATH)/../mummer/delta-filter
+SHOWCOORDS	= LD_LIBRARY_PATH=$(LIBPATH) $(PATH)/../mummer/show-coords
+
+
+#------------------------------------------------------------------------------#
+
+## Building AMOS bank & Dumping reads
+10: rm -fr $(BANK).1;rm -fr $(BANK).2;rm -fr $(BANK)
+11: $(BINDIR)/bank-transact -c -z -b $(BANK).1 -m $(TGT).1
+12: $(BINDIR)/bank-transact -c -z -b $(BANK).2 -m $(TGT).2
+13: $(BINDIR)/bank-transact -c -z -b $(BANK) -m $(TGT)
+14: $(BINDIR)/dumpreads $(BANK).1 -M $(REFCOUNT) > $(REFSEQ)
+15: $(BINDIR)/dumpreads $(BANK).2 -m $(REFCOUNT) > $(QRYSEQ)
+
+## Getting overlaps 
+20: $(NUCMER) --maxmatch --threads $(THREADS) -c $(OVERLAP) $(REFSEQ) $(QRYSEQ) -p $(PREFIX)
+21: $(SHOWCOORDS) -H -c -l -o -r -I $(MINID) $(ALIGN) | $(BINDIR)/nucmerAnnotate | egrep 'BEGIN|END|CONTAIN|IDENTITY' > $(COORDS) 
+22: $(BINDIR)/nucmer2ovl -ignore $(MAXTRIM) -tab $(COORDS) | $(BINDIR)/sort2 > $(OVLTAB)
+
+## Converting overlaps
+23: $(BINDIR)/ovl2OVL $(OVLTAB)  > $(OVLAMOS)
+
+## Loading overlaps to the bank
+24: rm -f $(BANK)/OVL.* 
+25: $(BINDIR)/bank-transact -z -b $(BANK) -m $(OVLAMOS)
+
+## Running contigger
+30: rm -f $(BANK)/LAY.*
+31: $(BINDIR)/tigger -b $(BANK)
+
+## Running consensus
+40: rm -f $(BANK)/CTG.*
+41: $(BINDIR)/make-consensus -B -e $(CONSERR) -b $(BANK) -w $(WIGGLE) 
+
+## Outputting contigs
+50: $(BINDIR)/bank2contig $(BANK) > $(CONTIG)
+
+## Converting to FastA file
+60: $(BINDIR)/bank2fasta -b $(BANK) > $(FASTA)
+
+## Getting singletons
+70: $(BINDIR)/listReadPlacedStatus -S -E $(BANK) > $(SINGLETONS)
+71: $(BINDIR)/dumpreads -e -E $(SINGLETONS) $(BANK) > $(SINGLETONSEQ)

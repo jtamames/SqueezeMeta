@@ -18,7 +18,7 @@ our $installpath = "$utilsdir/..";
 our $scriptdir = "$installpath/scripts";
 our $auxdir = "$installpath/lib/SQM_reads";
 
-my $version="0.1.0, Feb 2019";
+my $version="0.1.0, Sept 2019";
 my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
@@ -43,6 +43,7 @@ Arguments:
    --nokegg: Skip KEGG assignment (Default: no)
    --nodiamond: Skip Diamond runs, assuming that you already did it (Default: no)
    --euk: Drop identity filters for eukaryotic annotation  (Default: no)
+   -extdb <database file>: List of user-provided databases
    -e|-evalue: max evalue for discarding hits for Diamond run  (Default: 1e-03)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
