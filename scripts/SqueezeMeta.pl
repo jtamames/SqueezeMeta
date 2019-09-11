@@ -856,7 +856,7 @@ sub pipeline {
 			print "[",$currtime->pretty,"]: STEP14 -> MAXBIN BINNING: $scriptname\n";
 			if($longtrace) { print " (This will use MaxBin for creating a set of bins)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP14 -> $scriptname\n"; }
 			my $dirbin=$bindirs{maxbin};
 			opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
@@ -865,7 +865,7 @@ sub pipeline {
 			my ($wsize,$rest);
 			if(-e $firstfile) {
 				my $wc=qx(wc -l $firstfile);
-				$wsize,$rest=split(/\s+/,$wc);
+				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
 			if($wsize<2) { warn "WARNING in STEP14 -> $scriptname. No MaxBin results!\n"; }
@@ -881,7 +881,7 @@ sub pipeline {
 			print "[",$currtime->pretty,"]: STEP15 -> METABAT BINNING: $scriptname\n";
 			if($longtrace) { print " (This will use MetaBat for creating a set of bins)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
 			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
@@ -890,13 +890,13 @@ sub pipeline {
 			my ($wsize,$rest);
 			if(-e $firstfile) {
 				my $wc=qx(wc -l $firstfile);
-				$wsize,$rest=split(/\s+/,$wc);
+				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
 			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. No Metabat2 results!\n"; }
 		}
  
-    #-------------------------------- STEP16: DAS Tool merging of binning results (only for merged or coassembly modes)		
+    #-------------------------------- STEP16: DAS Tool merging of binning results	
 	
 		if(($rpoint<=16)) {
 			my $scriptname="16.dastool.pl";
@@ -906,7 +906,7 @@ sub pipeline {
 			print "[",$currtime->pretty,"]: STEP16 -> DAS_TOOL MERGING: $scriptname\n";
 			if($longtrace) { print " (This will use DASTool for creating a consensus between the sets of bins created in previous steps)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
 			opendir(indir2,$dirbin) || warn "Can't open $dirbin directory, no DAStool results\n";
 			my @binfiles=grep(/fa/,readdir indir2);

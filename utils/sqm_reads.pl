@@ -26,7 +26,7 @@ do "$scriptdir/SqueezeMeta_conf.pl";
 our($databasepath);
 
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$hel,$nodiamond,$euknofilter);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter);
 
 my $helptext = <<END_MESSAGE;
 Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]
@@ -58,6 +58,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nodiamond" => \$nodiamond,   
+		     "nodiamond" => \$nodiamond,   
+		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
 		     "h" => \$hel
@@ -74,7 +76,7 @@ if(!$rawseqs) { $dietext.="MISSING ARGUMENT: -f|-seq:Read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if($dietext) { die "$dietext\n$helptext\n"; }
 
-my(%allsamples,%ident,%noassembly,%accum,%totalseqs);
+my(%allsamples,%ident,%noassembly,%accum,%totalseqs,%optaccum);
 my($sample,$file,$iden,$mapreq);
 tie %allsamples,"Tie::IxHash";
 
@@ -122,6 +124,15 @@ print outall "# Sample\tRead\tTax\tCOG\tKEGG\n";
 print outcount "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
 print outcount "# Sample\tFile\tTotal Reads\tReads with hits to nr\n";
 
+my($extdbname,$extdb,$dblist,$optdbsw);
+if($opt_db) {
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+	($extdbname,$extdb,$dblist)=split(/\t/,$_);
+			}
+	close infile0;
+	}
+	
 my(%cogaccum,%keggaccum);
 foreach my $thissample(keys %allsamples) {
 	my %store;
@@ -233,6 +244,28 @@ foreach my $thissample(keys %allsamples) {
 				}
 			close infilekegg;
 			}
+		if($opt_db) {
+			$currtime=timediff();
+			print "   [",$currtime->pretty,"]: Running Diamond for $extdbname\n";
+			my $outfile="$thissampledir/$thisfile.$extdbname.m8";
+			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			#print "Running BlastX: $blastx_command\n";
+			system($blastx_command);
+			my $outfile_opt="$thissampledir/$thisfile.$extdbname";
+			my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
+			$currtime=timediff();
+			print "   [",$currtime->pretty,"]: Running fun3\n";
+			system($func_command);
+			open(infileopt,$outfile_opt) || die;
+			while(<infileopt>) {
+				chomp;
+				next if(!$_ || ($_=~/^\#/));
+				my @f=split(/\t/,$_);
+				$store{$f[0]}{opt}=$f[1];
+				if($f[1] eq $f[2]) { $store{$f[0]}{opt}.="*"; }
+				}
+			close infileopt;
+			}
 		}
 		
 		
@@ -250,6 +283,10 @@ foreach my $thissample(keys %allsamples) {
 		if($store{$k}{kegg}) { 
 			$accum{$thissample}{kegg}{$store{$k}{kegg}}++;		
 			$keggaccum{$store{$k}{kegg}}++;	
+			}	
+		if($store{$k}{opt}) { 
+			$accum{$thissample}{opt}{$store{$k}{opt}}++;		
+			$optaccum{$store{$k}{opt}}++;	
 			}	
 		}
 	}
@@ -357,6 +394,26 @@ if(!$nokegg) {
 		}
 
 	close outkegg;
+	}	 
+
+if(!$opt_db) {
+	print "$opt_db table: $resultsdir/$output_all.fun$extdbname\n";		
+	open(outopt,">$resultsdir/$output_all.fun$extdbname");
+	print outopt "# Created by $0 from data in $opt_db", scalar localtime,"\n";
+	print outopt "$extdbname\tTotal";
+	foreach my $sprint(sort keys %accum) { print outopt "\t$sprint"; }
+	# print outopt "\tFunction\tClass\n";
+	foreach my $nopt(sort { $optaccum{$b}<=>$optaccum{$a}; } keys %optaccum) {
+		print outopt "$nopt\t$optaccum{$nopt}";
+		foreach my $isam(sort keys %accum) {
+			my $dato=$accum{$isam}{$opt_db}{$nopt} || "0";
+			print outopt "\t$dato";
+			}
+		# print outopt "\t$kegg{$nkegg}{fun}\t$kegg{$nkegg}{path}\n";
+		print outopt "\n";
+		}
+
+	close outopt;
 	}	 
 
 print "Mapping statistics: $resultsdir/$output_counts\n";

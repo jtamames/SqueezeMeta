@@ -21,6 +21,8 @@ do "$project/SqueezeMeta_conf.pl";
 
 our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
 
+open(outtr,">$tempdir/merge.order");
+
 #-- Merges the assemblies in a single dataset
 
 my $finalcontigs="$resultpath/01.$project.fasta";
@@ -48,31 +50,16 @@ else {
 		$sample2.=".fasta";
 		close infile0;
 		print "MERGE $mergestep, $sample1 and $sample2\n";
-		#opendir(indir0,$interdir);
-		#my @indassemblies=grep(/fasta$/,readdir indir0);
-		#my @n=reverse sort @indassemblies;
-		#@indassemblies=@n;
-		#closedir indir0;
-		#my $numassemblies=$#indassemblies+1;
-		#for(my $posmix=1; $posmix<=($numassemblies-1); $posmix++) {
-		#	if($posmix==1) { 
-		#		$command="cat $interdir/$indassemblies[0]  $interdir/$indassemblies[1] > $merged"; 
-		#		print "Merging assemblies 1 ($indassemblies[0]) and 2 (",$indassemblies[1],")\n";
-		#		print "**$command\n";
-		#		}
-		#	else { 
-		#		$command="cat $merged $interdir/$indassemblies[$posmix] > $tempdir/interm.$project.fasta; mv $tempdir/interm.$project.fasta $merged"; 
-		#		print "Merging assembly ",$posmix+1," ($indassemblies[$posmix])\n";
-		#		print "**$command\n";
-		#		}
+		print outtr "MERGE $mergestep, $sample1 and $sample2 ($mdist)\n";
 		$command="cat $interdir/$sample1  $interdir/$sample2 > $merged";
 		system $command;
 		if(-z $merged) { die "$merged is empty\n"; }
+		
 
 			#-- Uses cd-hit to identify and remove contigs contained in others
 
 			my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
-			$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
+			$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9 > /dev/null 2>&1";
 			print "Running cd-hit-est: $command\n";
 			$ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
@@ -80,16 +67,20 @@ else {
 
 			#-- Uses Amos to chage format to afg (for minimus2)
 
-			my $afg_format="$tempdir/mergedassemblies.$project.99.afg";
+			my $afg_format="$tempdir/mergedassemblies.$project.afg";
 			$command="$toamos_soft -s $merged_clustered -o $afg_format";
 			print "Transforming to afg format: $command\n";
 			$ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
 			if(-z $afg_format) { die "$afg_format is empty\n"; }
 
+			#-- Now separate reference and query
+		
+			parseafg($afg_format);
+		
 			#-- Uses minimus2 to assemble overlapping contigs
 
-			$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads";
+			$command="$minimus2_soft\_mod $tempdir/mergedassemblies.$project -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads > /dev/null 2>&1";
 			print "Merging with minimus2: $command\n";
 			$ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
@@ -97,7 +88,7 @@ else {
 
 			#-- Create the final result (overlapping contigs plus singletons)
 
-			system("cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $merged.prov");
+			system("cat $tempdir/mergedassemblies.$project.fasta $tempdir/mergedassemblies.$project.singletons.seq > $merged.prov");
 
 			open(outfile0,">$merged") || die;
 			open(infile0,"$merged.prov") || die;
@@ -156,3 +147,58 @@ while(<infile1>) {
 }
 close infile1;
 close outfile1;
+close outtr;
+
+sub parseafg {
+	my $inafg=shift;
+	my($inred,$inpos,$accum);
+	my(%order,%samples);
+	open(inp1,$inafg) || die;
+	while(<inp1>) {
+	chomp;
+	next if !$_;
+	if($_=~/\{RED/) { $inred=1; }
+	elsif($_=~/\}/) { $inred=0; }
+	next if(!$inred);
+	if($_=~/eid\:(.*)/) {
+		$inpos++;
+		my @m=split(/\_/,$1);
+		my $ts=$m[$#m];
+		$order{$inpos}=$ts;
+		$samples{$ts}=1;
+		}
+	}
+	close inp1;
+	foreach my $p(sort keys %samples) { $accum++; $samples{$p}=$accum; }
+
+	open(out1,">$inafg.1") || die;
+	open(out2,">$inafg.2") || die;
+	my($headsw,$intofrg,$numfrg,$intored,$numred,$samp,$tofile);
+	open(inp2,$inafg) || die;
+	while(<inp2>) {
+		chomp;
+		next if !$_;
+		if($_=~/\{FRG/) { $headsw=1; $intofrg=1; $numfrg++; }
+		if($_=~/\{RED/) { $headsw=1; $intofrg=0; $intored=1; $numred++; }
+		if(!$headsw) {
+			print out1 "$_\n";
+			print out2 "$_\n";
+			next;
+			}
+		if($intofrg) {	
+			$samp=$order{$numfrg};
+			$tofile=$samples{$samp}; 
+			if($tofile==1) { print out1 "$_\n"; } else { print out2 "$_\n"; } 
+			}
+		elsif($intored) {
+			$samp=$order{$numred};
+			$tofile=$samples{$samp}; 
+			if($tofile==1) { print out1 "$_\n"; } else { print out2 "$_\n"; } 
+			}
+		
+		}
+	close inp2;
+	}
+		
+
+
