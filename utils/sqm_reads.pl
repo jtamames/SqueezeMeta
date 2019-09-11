@@ -114,16 +114,6 @@ while(<infile1>) {
 }
 close infile1;
 
-my @nmg=keys %allsamples;
-my $numsamples=$#nmg+1;
-my $sampnum;
-print "$numsamples metagenomes found";
-print "\n";
-print outall "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
-print outall "# Sample\tRead\tTax\tCOG\tKEGG\n";
-print outcount "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
-print outcount "# Sample\tFile\tTotal Reads\tReads with hits to nr\n";
-
 my($extdbname,$extdb,$dblist,$optdbsw);
 if($opt_db) {
 	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
@@ -132,6 +122,21 @@ if($opt_db) {
 			}
 	close infile0;
 	}
+
+my @nmg=keys %allsamples;
+my $numsamples=$#nmg+1;
+my $sampnum;
+print "$numsamples metagenomes found";
+print "\n";
+print outall "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
+print outall "# Sample\tRead\tTax";
+if(!$nocog) { print outall "\tCOG"; }
+if(!$nokegg) { print outall "\tKEGG"; }
+if($opt_db) {  print outall "\t$extdbname"; }
+print outall "\n";
+print outcount "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
+print outcount "# Sample\tFile\tTotal Reads\tReads with hits to nr\n";
+
 	
 my(%cogaccum,%keggaccum);
 foreach my $thissample(keys %allsamples) {
@@ -148,6 +153,7 @@ foreach my $thissample(keys %allsamples) {
 		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $rawseqs/$thisfile > rc.txt"); }
 		open(inw,"rc.txt");
 		my $line=<inw>;
+		$line=~s/^\s+//g;
 		my @l=split(/\s+/,$line);
 		my $numseqs=$l[0];
 		close inw;
@@ -205,7 +211,7 @@ foreach my $thissample(keys %allsamples) {
 			my $outfile="$thissampledir/$thisfile.cogs.m8";
 			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			system($blastx_command);
+			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
 			$currtime=timediff();
@@ -228,7 +234,7 @@ foreach my $thissample(keys %allsamples) {
 			my $outfile="$thissampledir/$thisfile.kegg.m8";
 			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			system($blastx_command);
+			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 			$currtime=timediff();
@@ -250,7 +256,7 @@ foreach my $thissample(keys %allsamples) {
 			my $outfile="$thissampledir/$thisfile.$extdbname.m8";
 			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			system($blastx_command);
+			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
 			my $outfile_opt="$thissampledir/$thisfile.$extdbname";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
 			$currtime=timediff();
@@ -272,9 +278,14 @@ foreach my $thissample(keys %allsamples) {
 	foreach my $k(sort keys %store) {
 		my @tfields=split(/\;/,$store{$k}{tax});	#-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
 		my $lasttax=$tfields[$#tfields];
-		print outall "$thissample\t$k\t$lasttax\t$store{$k}{cog}\t$store{$k}{kegg}\n";
+		print outall "$thissample\t$k\t$lasttax\t";
+		if(!$nocog) { print outall "\t$store{$k}{cog}"; }
+		if(!$nokegg) { print outall "\t$store{$k}{kegg}"; }
+		if($opt_db) { print outall "\t$store{$k}{opt}"; }
+		print outall "\n";
 		$store{$k}{cog}=~s/\*//;
 		$store{$k}{kegg}=~s/\*//;
+		$store{$k}{opt}=~s/\*//;
 		if($lasttax) { $accum{$thissample}{tax}{$store{$k}{tax}}++; }
 		if($store{$k}{cog}) { 
 			$accum{$thissample}{cog}{$store{$k}{cog}}++; 
@@ -297,7 +308,7 @@ close outcount;
 
 #------------ Global tables --------------#
 
-my(%cog,%kegg);
+my(%cog,%kegg,%opt);
 
 	#-- Reading data for KEGGs (names, pathways)
 
@@ -309,6 +320,17 @@ while(<infile2>) {
 	$kegg{$t[0]}{name}=$t[1];
 	$kegg{$t[0]}{fun}=$t[2];
 	$kegg{$t[0]}{path}=$t[3];
+	}
+close infile2;
+
+open(infile2,$dblist) || warn "Missing $extdbname equivalence file\n";
+while(<infile2>) {
+	chomp;
+	next if(!$_ || ($_=~/\#/));
+	my @t=split(/\t/,$_);
+	$opt{$t[0]}{fun}=$t[1];
+	#if($t[2]) { $opt{$t[0]}{fun}=$t[2]; }
+	#if($t[3]) { $opt{$t[0]}{path}=$t[3]; }
 	}
 close infile2;
 
@@ -396,21 +418,20 @@ if(!$nokegg) {
 	close outkegg;
 	}	 
 
-if(!$opt_db) {
-	print "$opt_db table: $resultsdir/$output_all.fun$extdbname\n";		
+if($opt_db) {
+	print "$extdbname table: $resultsdir/$output_all.fun$extdbname\n";		
 	open(outopt,">$resultsdir/$output_all.fun$extdbname");
 	print outopt "# Created by $0 from data in $opt_db", scalar localtime,"\n";
 	print outopt "$extdbname\tTotal";
 	foreach my $sprint(sort keys %accum) { print outopt "\t$sprint"; }
-	# print outopt "\tFunction\tClass\n";
+	print outopt "\tFunction\n";
 	foreach my $nopt(sort { $optaccum{$b}<=>$optaccum{$a}; } keys %optaccum) {
 		print outopt "$nopt\t$optaccum{$nopt}";
 		foreach my $isam(sort keys %accum) {
-			my $dato=$accum{$isam}{$opt_db}{$nopt} || "0";
+			my $dato=$accum{$isam}{opt}{$nopt} || "0";
 			print outopt "\t$dato";
 			}
-		# print outopt "\t$kegg{$nkegg}{fun}\t$kegg{$nkegg}{path}\n";
-		print outopt "\n";
+		 print outopt "\t$opt{$nopt}{fun}\n";
 		}
 
 	close outopt;
