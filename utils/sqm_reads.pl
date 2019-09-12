@@ -77,7 +77,7 @@ if(!$rawseqs) { $dietext.="MISSING ARGUMENT: -f|-seq:Read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if($dietext) { die "$dietext\n$helptext\n"; }
 
-my(%allsamples,%ident,%noassembly,%accum,%totalseqs,%optaccum);
+my(%allsamples,%ident,%noassembly,%accum,%totalseqs,%optaccum,%allext);
 my($sample,$file,$iden,$mapreq);
 tie %allsamples,"Tie::IxHash";
 
@@ -120,6 +120,7 @@ if($opt_db) {
 	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile0>) {
 	($extdbname,$extdb,$dblist)=split(/\t/,$_);
+	$allext{$extdbname}=$dblist;
 			}
 	close infile0;
 	}
@@ -133,7 +134,7 @@ print outall "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
 print outall "# Sample\tRead\tTax";
 if(!$nocog) { print outall "\tCOG"; }
 if(!$nokegg) { print outall "\tKEGG"; }
-if($opt_db) {  print outall "\t$extdbname"; }
+if($opt_db) {  foreach my $extdb(sort keys %allext) { print outall "\t$extdb"; } }
 print outall "\n";
 print outcount "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
 print outcount "# Sample\tFile\tTotal Reads\tReads with hits to nr\n";
@@ -251,27 +252,33 @@ foreach my $thissample(keys %allsamples) {
 				}
 			close infilekegg;
 			}
-		if($opt_db) {
-			$currtime=timediff();
-			print "   [",$currtime->pretty,"]: Running Diamond for $extdbname\n";
-			my $outfile="$thissampledir/$thisfile.$extdbname.m8";
-			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
-			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
-			my $outfile_opt="$thissampledir/$thisfile.$extdbname";
-			my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
-			$currtime=timediff();
-			print "   [",$currtime->pretty,"]: Running fun3\n";
-			system($func_command);
-			open(infileopt,$outfile_opt) || die;
-			while(<infileopt>) {
+		if($opt_db) {	
+			open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
+			while(<infile0>) {
 				chomp;
-				next if(!$_ || ($_=~/^\#/));
-				my @f=split(/\t/,$_);
-				$store{$f[0]}{opt}=$f[1];
-				if($f[1] eq $f[2]) { $store{$f[0]}{opt}.="*"; }
+				next if(!$_ || ($_=~/\#/));
+				my($extdbname,$extdb,$dblist)=split(/\t/,$_);
+				$currtime=timediff();
+				print "   [",$currtime->pretty,"]: Running Diamond for $extdbname\n";
+				my $outfile="$thissampledir/$thisfile.$extdbname.m8";
+				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+				#print "Running BlastX: $blastx_command\n";
+				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
+				my $outfile_opt="$thissampledir/$thisfile.$extdbname";
+				my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
+				$currtime=timediff();
+				print "   [",$currtime->pretty,"]: Running fun3\n";
+				system($func_command);
+				open(infileopt,$outfile_opt) || die;
+				while(<infileopt>) {
+					chomp;
+					next if(!$_ || ($_=~/^\#/));
+					my @f=split(/\t/,$_);
+					$store{$f[0]}{$extdbname}=$f[1];
+					if($f[1] eq $f[2]) { $store{$f[0]}{$extdbname}.="*"; }
+					}
+				close infileopt;
 				}
-			close infileopt;
 			}
 		}
 		
@@ -282,11 +289,12 @@ foreach my $thissample(keys %allsamples) {
 		print outall "$thissample\t$k\t$lasttax\t";
 		if(!$nocog) { print outall "\t$store{$k}{cog}"; }
 		if(!$nokegg) { print outall "\t$store{$k}{kegg}"; }
-		if($opt_db) { print outall "\t$store{$k}{opt}"; }
+		if($opt_db) { 
+			foreach my $extdb(sort keys %allext) { print outall "\t$store{$k}{$extdb}"; }
+			}
 		print outall "\n";
 		$store{$k}{cog}=~s/\*//;
 		$store{$k}{kegg}=~s/\*//;
-		$store{$k}{opt}=~s/\*//;
 		if($lasttax) { $accum{$thissample}{tax}{$store{$k}{tax}}++; }
 		if($store{$k}{cog}) { 
 			$accum{$thissample}{cog}{$store{$k}{cog}}++; 
@@ -296,9 +304,12 @@ foreach my $thissample(keys %allsamples) {
 			$accum{$thissample}{kegg}{$store{$k}{kegg}}++;		
 			$keggaccum{$store{$k}{kegg}}++;	
 			}	
-		if($store{$k}{opt}) { 
-			$accum{$thissample}{opt}{$store{$k}{opt}}++;		
-			$optaccum{$store{$k}{opt}}++;	
+		foreach my $topt(sort keys %allext) {
+			if($store{$k}{$topt}) { 		
+				$store{$k}{$topt}=~s/\*//;
+				$accum{$thissample}{$topt}{$store{$k}{$topt}}++;		
+				$optaccum{$topt}{$store{$k}{$topt}}++;	
+				}
 			}	
 		}
 	}
@@ -324,16 +335,18 @@ while(<infile2>) {
 	}
 close infile2;
 
-open(infile2,$dblist) || warn "Missing $extdbname equivalence file\n";
-while(<infile2>) {
-	chomp;
-	next if(!$_ || ($_=~/\#/));
-	my @t=split(/\t/,$_);
-	$opt{$t[0]}{fun}=$t[1];
-	#if($t[2]) { $opt{$t[0]}{fun}=$t[2]; }
-	#if($t[3]) { $opt{$t[0]}{path}=$t[3]; }
+foreach my $idb(keys %allext) {
+	open(infile2,$allext{$idb}) || warn "Missing $idb equivalence file\n";
+	while(<infile2>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my @t=split(/\t/,$_);
+		$opt{$idb}{$t[0]}{fun}=$t[1];
+		#if($t[2]) { $opt{$t[0]}{fun}=$t[2]; }
+		#if($t[3]) { $opt{$t[0]}{path}=$t[3]; }
+		}
+	close infile2;
 	}
-close infile2;
 
 
 $currtime=timediff();
@@ -420,22 +433,23 @@ if(!$nokegg) {
 	}	 
 
 if($opt_db) {
-	print "$extdbname table: $resultsdir/$output_all.fun$extdbname\n";		
-	open(outopt,">$resultsdir/$output_all.fun$extdbname");
-	print outopt "# Created by $0 from data in $opt_db", scalar localtime,"\n";
-	print outopt "$extdbname\tTotal";
-	foreach my $sprint(sort keys %accum) { print outopt "\t$sprint"; }
-	print outopt "\tFunction\n";
-	foreach my $nopt(sort { $optaccum{$b}<=>$optaccum{$a}; } keys %optaccum) {
-		print outopt "$nopt\t$optaccum{$nopt}";
-		foreach my $isam(sort keys %accum) {
-			my $dato=$accum{$isam}{opt}{$nopt} || "0";
-			print outopt "\t$dato";
+	foreach my $extdbname(keys %allext) {
+		print "$extdbname table: $resultsdir/$output_all.fun$extdbname\n";		
+		open(outopt,">$resultsdir/$output_all.fun$extdbname");
+		print outopt "# Created by $0 from data in $opt_db", scalar localtime,"\n";
+		print outopt "$extdbname\tTotal";
+		foreach my $sprint(sort keys %accum) { print outopt "\t$sprint"; }
+		print outopt "\tFunction\n";
+		foreach my $nopt(sort { $optaccum{$extdbname}{$b}<=>$optaccum{$extdbname}{$a}; } keys %{ $optaccum{$extdbname} }) {
+			print outopt "$nopt\t$optaccum{$extdbname}{$nopt}";
+			foreach my $isam(sort keys %accum) {
+				my $dato=$accum{$isam}{$extdbname}{$nopt} || "0";
+				print outopt "\t$dato";
+				}
+			 print outopt "\t$opt{$extdbname}{$nopt}{fun}\n";
 			}
-		 print outopt "\t$opt{$nopt}{fun}\n";
+		close outopt;
 		}
-
-	close outopt;
 	}	 
 
 print "Mapping statistics: $resultsdir/$output_counts\n";
