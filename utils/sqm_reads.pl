@@ -110,7 +110,7 @@ while(<infile1>) {
 	if(($iden ne "pair1") && ($iden ne "pair2")) { die "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; }
 	if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile. Missing fields\n"; }
 	if(-e "$rawseqs/$file") {} else { die "Cannot find sample file $rawseqs/$file for sample $sample in the samples file. Please check\n"; }
-	$allsamples{$sample}{$file}=1;
+	$allsamples{$sample}{$file}=$iden;
 	$ident{$sample}{$file}=$iden;
 }
 close infile1;
@@ -131,7 +131,7 @@ my $sampnum;
 print "$numsamples metagenomes found";
 print "\n";
 print outall "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
-print outall "# Sample\tRead\tTax";
+print outall "# Sample\tFile\tRead\tTax";
 if(!$nocog) { print outall "\tCOG"; }
 if(!$nokegg) { print outall "\tKEGG"; }
 if($opt_db) {  foreach my $extdb(sort keys %allext) { print outall "\t$extdb"; } }
@@ -149,6 +149,7 @@ foreach my $thissample(keys %allsamples) {
 	if(-d $thissampledir) {} else { system("mkdir $thissampledir"); }
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		print "   File: $thisfile\n";
+		my $idenf=$allsamples{$thissample}{$thisfile};
 		if($thisfile=~/fastq.gz/) { system("zcat $rawseqs/$thisfile | wc > rc.txt"); }
 		elsif($thisfile=~/fastq/) { system("wc $rawseqs/$thisfile > rc.txt"); }
 		elsif($thisfile=~/fasta.gz/) { system("zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"); }
@@ -193,7 +194,8 @@ foreach my $thissample(keys %allsamples) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
 			my @f=split(/\t/,$_);
-			$store{$f[0]}{tax}=$f[1];
+			my $orfid="$f[0]\_$idenf";
+			$store{$orfid}{tax}=$f[1];
 			}
 		close infiletax;
 		if($euknofilter) {     #-- Drops the filters for eukaryotes
@@ -202,7 +204,8 @@ foreach my $thissample(keys %allsamples) {
 				chomp;
 				next if(!$_ || ($_=~/^\#/));
 				my @f=split(/\t/,$_);
-				if($f[1]=~/Eukaryota/) { $store{$f[0]}{tax}=$f[1]; }
+				my $orfid="$f[0]\_$idenf";
+				if($f[1]=~/Eukaryota/) { $store{$orfid}{tax}=$f[1]; }
 				}
 			close infiletax;
 			}
@@ -224,8 +227,9 @@ foreach my $thissample(keys %allsamples) {
 				chomp;
 				next if(!$_ || ($_=~/^\#/));
 				my @f=split(/\t/,$_);
-				$store{$f[0]}{cog}=$f[1];
-				if($f[1] eq $f[2]) { $store{$f[0]}{cog}.="*"; }
+				my $orfid="$f[0]\_$idenf";
+				$store{$orfid}{cog}=$f[1];
+				if($f[1] eq $f[2]) { $store{$orfid}{cog}.="*"; }
 				}
 			close infilecog;
 			}
@@ -247,8 +251,9 @@ foreach my $thissample(keys %allsamples) {
 				chomp;
 				next if(!$_ || ($_=~/^\#/));
 				my @f=split(/\t/,$_);
-				$store{$f[0]}{kegg}=$f[1];
-				if($f[1] eq $f[2]) { $store{$f[0]}{kegg}.="*"; }
+				my $orfid="$f[0]\_$idenf";
+				$store{$orfid}{kegg}=$f[1];
+				if($f[1] eq $f[2]) { $store{$orfid}{kegg}.="*"; }
 				}
 			close infilekegg;
 			}
@@ -274,8 +279,9 @@ foreach my $thissample(keys %allsamples) {
 					chomp;
 					next if(!$_ || ($_=~/^\#/));
 					my @f=split(/\t/,$_);
-					$store{$f[0]}{$extdbname}=$f[1];
-					if($f[1] eq $f[2]) { $store{$f[0]}{$extdbname}.="*"; }
+					my $orfid="$f[0]\_$idenf";
+					$store{$orfid}{$extdbname}=$f[1];
+					if($f[1] eq $f[2]) { $store{$orfid}{$extdbname}.="*"; }
 					}
 				close infileopt;
 				}
@@ -286,7 +292,10 @@ foreach my $thissample(keys %allsamples) {
 	foreach my $k(sort keys %store) {
 		my @tfields=split(/\;/,$store{$k}{tax});	#-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
 		my $lasttax=$tfields[$#tfields];
-		print outall "$thissample\t$k\t$lasttax\t";
+		my @j=split(/\_/,$k);
+		my $rpair=pop @j;
+		my $rread=join("_",@j);
+		print outall "$thissample\t$rread\t$rpair\t$lasttax\t";
 		if(!$nocog) { print outall "\t$store{$k}{cog}"; }
 		if(!$nokegg) { print outall "\t$store{$k}{kegg}"; }
 		if($opt_db) { 
