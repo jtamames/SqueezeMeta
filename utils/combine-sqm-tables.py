@@ -16,6 +16,7 @@ USAGE:
 usage: combine-sqm-tables.py [-h] PROJECT_PATHS
                              [-o OUTPUT_DIR] [-p OUTPUT_PREFIX]
                              [--trusted-functions] [--ignore-unclassified]
+                             [--sqm-reads]
                              project_paths [project_paths ...]
 
 OPTIONS:
@@ -24,7 +25,8 @@ OPTIONS:
     --trusted-functions: Include only ORFs with highly trusted KEGG and
         COG assignments in aggregated functional tables
     --ignore-unclassified: Ignore ORFs without assigned functions in
-        TPM calculation
+        TPM calculation. Ignored if --sqm-reads is provided.
+    --sqmreads: Projects were generated using sqm_reads.pl
 
 
 """
@@ -58,13 +60,21 @@ def main(args):
 
     sampleNames = []
 
-    superkingdom = {}
-    phylum = {}
-    class_ = {}
-    order = {}
-    family = {}
-    genus = {}
-    species = {}
+    all_superkingdom = {}
+    all_phylum = {}
+    all_class = {}
+    all_order = {}
+    all_family = {}
+    all_genus = {}
+    all_species = {}
+
+    prok_superkingdom = {}
+    prok_phylum = {}
+    prok_class = {}
+    prok_order = {}
+    prok_family = {}
+    prok_genus = {}
+    prok_species = {}
 
     KOabund = {}
     KOcopy = {}
@@ -79,64 +89,98 @@ def main(args):
     PFAMtpm = {}
 
     for projPath in args.project_paths:
-        projName = projPath.split('/')[-1]
-        if not isfile('{}/SqueezeMeta_conf.pl'.format(projPath)):
-            raise Exception('Path "{}" does not exist, or does not contain a valid SQM project'.format(projPath))
+        projName = projPath.strip('/').split('/')[-1]
+        ### Validate projects.
+         if not args.sqmreads:
+             ok = isfile('{}/SqueezeMeta_conf.pl'.format(projPath)):
+         else:
+             ok = isfile('{}/{}.out.mappingstat'.format(args.projPath, projName)):
+         if not ok:
+             raise Exception('Path "{}" does not exist, or does not contain a valid SQM project'.format(projPath))
+
+        ### Create tables if needed.
         if not isdir('{}/results/tables'.format(projPath)):
             print('Creating tables for project {}'.format(projName))
-            command = ['{}/utils/sqm2tables.py'.format(SQMhome), '{}'.format(projpath), '{}/results/tables'.format(projPath)]
-            if args.trusted_functions:
-                command.append('--trusted-functions')
+            if args.sqmreads and not isdir('{}/projPath/results'):
+                mkdir('{}/projPath/results')
+            if not args.sqmreads:
+                command = ['{}/utils/sqm2tables.py'.format(SQMhome), '{}'.format(projpath), '{}/results/tables'.format(projPath)]
+                if args.ignore_unclassified:
+                    command.append('--ignore-unclassified')
+            else:
+                command = ['{}/utils/sqmreads2tables.py'.format(SQMhome), '{}'.format(projpath), '{}/results/tables'.format(projPath)]
             if args.ignore_unclassified:
                 command.append('--ignore-unclassified')
             call(command)
         else:
-            print('The "{}/results/tables" is already present. Skipping...'.format(projPath))
+            print('The "{}/results/tables" directory is already present. Skipping...'.format(projPath))
+
         
         samples = parse_table('{}/results/tables/{}.superkingdom.allfilter.abund.tsv'.format(projPath, projName), superkingdom)
         sampleNames.extend(samples)
 
-        parse_table('{}/results/tables/{}.phylum.allfilter.abund.tsv'.format(projPath, projName), phylum)
-        parse_table('{}/results/tables/{}.class.allfilter.abund.tsv'.format(projPath, projName), class_)
-        parse_table('{}/results/tables/{}.order.allfilter.abund.tsv'.format(projPath, projName), order)
-        parse_table('{}/results/tables/{}.family.allfilter.abund.tsv'.format(projPath, projName), family)
-        parse_table('{}/results/tables/{}.genus.allfilter.abund.tsv'.format(projPath, projName), genus)
-        parse_table('{}/results/tables/{}.species.allfilter.abund.tsv'.format(projPath, projName), species)
+        parse_table('{}/results/tables/{}.phylum.allfilter.abund.tsv'.format(projPath, projName), all_phylum)
+        parse_table('{}/results/tables/{}.class.allfilter.abund.tsv'.format(projPath, projName), all_class)
+        parse_table('{}/results/tables/{}.order.allfilter.abund.tsv'.format(projPath, projName), all_order)
+        parse_table('{}/results/tables/{}.family.allfilter.abund.tsv'.format(projPath, projName), all_family)
+        parse_table('{}/results/tables/{}.genus.allfilter.abund.tsv'.format(projPath, projName), all_genus)
+        parse_table('{}/results/tables/{}.species.allfilter.abund.tsv'.format(projPath, projName), all_species)
+
+        parse_table('{}/results/tables/{}.phylum.prokfilter.abund.tsv'.format(projPath, projName), prok_phylum)
+        parse_table('{}/results/tables/{}.class.prokfilter.abund.tsv'.format(projPath, projName), prok_class)
+        parse_table('{}/results/tables/{}.order.prokfilter.abund.tsv'.format(projPath, projName), prok_order)
+        parse_table('{}/results/tables/{}.family.prokfilter.abund.tsv'.format(projPath, projName), prok_family)
+        parse_table('{}/results/tables/{}.genus.prokfilter.abund.tsv'.format(projPath, projName), prok_genus)
+        parse_table('{}/results/tables/{}.species.prokfilter.abund.tsv'.format(projPath, projName), prok_species)
 
         parse_table('{}/results/tables/{}.KO.abund.tsv'.format(projPath, projName), KOabund)
-        parse_table('{}/results/tables/{}.KO.copyNumber.tsv'.format(projPath, projName), KOcopy)
-        parse_table('{}/results/tables/{}.KO.tpm.tsv'.format(projPath, projName), KOtpm)
+        if not args.sqmreads:
+            parse_table('{}/results/tables/{}.KO.copyNumber.tsv'.format(projPath, projName), KOcopy)
+            parse_table('{}/results/tables/{}.KO.tpm.tsv'.format(projPath, projName), KOtpm)
 
         parse_table('{}/results/tables/{}.COG.abund.tsv'.format(projPath, projName), COGabund)
-        parse_table('{}/results/tables/{}.COG.copyNumber.tsv'.format(projPath, projName), COGcopy)
-        parse_table('{}/results/tables/{}.COG.tpm.tsv'.format(projPath, projName), COGtpm)
+        if not args.sqmreads:
+            parse_table('{}/results/tables/{}.COG.copyNumber.tsv'.format(projPath, projName), COGcopy)
+            parse_table('{}/results/tables/{}.COG.tpm.tsv'.format(projPath, projName), COGtpm)
 
-        parse_table('{}/results/tables/{}.PFAM.abund.tsv'.format(projPath, projName), PFAMabund)
-        parse_table('{}/results/tables/{}.PFAM.copyNumber.tsv'.format(projPath, projName), PFAMcopy)
-        parse_table('{}/results/tables/{}.PFAM.tpm.tsv'.format(projPath, projName), PFAMtpm)
+        if not args.sqmreads:
+            parse_table('{}/results/tables/{}.PFAM.abund.tsv'.format(projPath, projName), PFAMabund)
+            parse_table('{}/results/tables/{}.PFAM.copyNumber.tsv'.format(projPath, projName), PFAMcopy)
+            parse_table('{}/results/tables/{}.PFAM.tpm.tsv'.format(projPath, projName), PFAMtpm)
 
 
     prefix = '{}/{}.'.format(args.output_dir, args.output_prefix)
 
-    write_feature_dict(sampleNames, superkingdom, prefix + 'superkingdom.abund.tsv')
-    write_feature_dict(sampleNames, phylum, prefix + 'phylum.abund.tsv')
-    write_feature_dict(sampleNames, class_, prefix + 'class.abund.tsv')
-    write_feature_dict(sampleNames, order, prefix + 'order.abund.tsv')
-    write_feature_dict(sampleNames, family, prefix + 'family.abund.tsv')
-    write_feature_dict(sampleNames, genus, prefix + 'genus.abund.tsv')
-    write_feature_dict(sampleNames, species, prefix + 'species.abund.tsv')
+    write_feature_dict(sampleNames, all_superkingdom, prefix + 'superkingdom.allfilter.abund.tsv')
+    write_feature_dict(sampleNames, all_phylum, prefix + 'phylum.allfilter.abund.tsv')
+    write_feature_dict(sampleNames, all_class, prefix + 'class.allfilter.abund.tsv')
+    write_feature_dict(sampleNames, all_order, prefix + 'order.allfilter.abund.tsv')
+    write_feature_dict(sampleNames, all_family, prefix + 'family.allfilter.abund.tsv')
+    write_feature_dict(sampleNames, all_genus, prefix + 'genus.allfilter.abund.tsv')
+    write_feature_dict(sampleNames, all_species, prefix + 'species.allfilter.abund.tsv')
+
+    write_feature_dict(sampleNames, prok_superkingdom, prefix + 'superkingdom.prokfilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_phylum, prefix + 'phylum.prokfilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_class, prefix + 'class.prokfilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_order, prefix + 'order.prokfilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_family, prefix + 'family.prokfilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_genus, prefix + 'genus.prokfilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_species, prefix + 'species.prokfilter.abund.tsv')
 
     write_feature_dict(sampleNames, KOabund, prefix + 'KO.abund.tsv')
-    write_feature_dict(sampleNames, KOcopy, prefix + 'KO.copyNumber.tsv')
-    write_feature_dict(sampleNames, KOtpm, prefix + 'KO.tpm.tsv')
+    if not args.sqmreads: 
+        write_feature_dict(sampleNames, KOcopy, prefix + 'KO.copyNumber.tsv')
+        write_feature_dict(sampleNames, KOtpm, prefix + 'KO.tpm.tsv')
 
     write_feature_dict(sampleNames, COGabund, prefix + 'COG.abund.tsv')
-    write_feature_dict(sampleNames, COGcopy, prefix + 'COG.copyNumber.tsv')
-    write_feature_dict(sampleNames, COGtpm, prefix + 'COG.tpm.tsv')
+    if not args.sqmreads:
+        write_feature_dict(sampleNames, COGcopy, prefix + 'COG.copyNumber.tsv')
+        write_feature_dict(sampleNames, COGtpm, prefix + 'COG.tpm.tsv')
 
-    write_feature_dict(sampleNames, PFAMabund, prefix + 'PFAM.abund.tsv')
-    write_feature_dict(sampleNames, PFAMcopy, prefix + 'PFAM.copyNumber.tsv')
-    write_feature_dict(sampleNames, PFAMtpm, prefix + 'PFAM.tpm.tsv')
+    if not args.sqmreads:
+        write_feature_dict(sampleNames, PFAMabund, prefix + 'PFAM.abund.tsv')
+        write_feature_dict(sampleNames, PFAMcopy, prefix + 'PFAM.copyNumber.tsv')
+        write_feature_dict(sampleNames, PFAMtpm, prefix + 'PFAM.tpm.tsv')
 
 
 
@@ -175,6 +219,7 @@ def parse_args():
     parser.add_argument('-p', '--output-prefix', type=str, default='combined', help='Prefix for output files')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
     parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
+    parser.add_argument('--sqm-reads', action='store_true', help='Projects were generated using sqm_reads.pl')
 
     return parser.parse_args()
 

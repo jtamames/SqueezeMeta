@@ -9,7 +9,6 @@ Generate tabular outputs from SqueezeMeta results.
 USAGE: sqm2tables.py [-h] project_path output_dir
                      [--trusted-functions] [--ignore-unclassified]
                      [--sqm2anvio]
-                     project_path output_dir
 
 OPTIONS:
     --trusted-functions: Include only ORFs with highly trusted KEGG and
