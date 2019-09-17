@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Part of the SqueezeMeta distribution. 25/03/2018 Original version,
                             (c) Fernando Puente-Sánchez, CNB-CSIC.
@@ -10,6 +11,8 @@ USAGE: sqm_reads2tables.py [-h] project_path output_dir
 OPTIONS:
     --trusted-functions: Include only ORFs with highly trusted KEGG and
         COG assignments in aggregated functional tables
+    --force-overwrite: Write results even if the output directory
+        already exists.
 """
 
 from os.path import abspath, dirname, realpath
@@ -36,6 +39,8 @@ def main(args):
     except OSError as e:
         if e.errno != 17:
             raise
+        elif args.force_overwrite:
+            pass
         else:
             print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
             exit(1)
@@ -43,7 +48,7 @@ def main(args):
 
     ### Project name and samples.
     project_name = args.project_path.strip('/').split('/')[-1]
-    output_prefix = args.output_dir.strip('/').split('/')[-1]
+    output_prefix = project_name #args.output_dir.strip('/').split('/')[-1]
     samples = defaultdict(int)
     with open('{}/{}.out.mappingstat'.format(args.project_path, project_name)) as infile:
         for line in infile:
@@ -72,11 +77,13 @@ def main(args):
 
         read_tax = {'nofilter': {}, 'allfilter': {}, 'prokfilter': {}}
 
+        ### Parse nofilter taxonomy.
         nofilter_tax_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith('.tax_nofilter.wranks')]
         for tax_file in nofilter_tax_files:
             path = '{}/{}/{}'.format(args.project_path, sample, tax_file)
             tax_file_to_dict(path, read_tax['nofilter'])
 
+        ### Parse taxonomy with filters.
         allfilter_tax_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith('.tax.wranks')]
         for tax_file in allfilter_tax_files:
             path = '{}/{}/{}'.format(args.project_path, sample, tax_file)
@@ -84,18 +91,22 @@ def main(args):
 
         assert read_tax['nofilter'].keys() == read_tax['allfilter'].keys()
 
+        ### Generate taxonomy with filters only for prokaryotes.
         for read in read_tax['nofilter']:
            if 'k_Bacteria' in (read_tax['nofilter'][read][0], read_tax['allfilter'][read][0]) or 'k_Archaea' in (read_tax['nofilter'][read][0], read_tax['allfilter'][read][0]):
                read_tax['prokfilter'][read] = read_tax['allfilter'][read]
            else:
                read_tax['prokfilter'][read] = read_tax['nofilter'][read]
               
+        ### Aggregate counts from the same taxa. 
+        for filt in TAXFILTERS:
+            for read, tax in read_tax[filt].items():
+                for i, rank in enumerate(TAXRANKS):
+                    tax_dict[filt][rank][sample][tax[i]] += 1
+   
 
-    for filt in TAXFILTERS:
-        for read, tax in read_tax[filt].items():
-            for i, rank in enumerate(TAXRANKS):
-                tax_dict[filt][rank][sample][tax[i]] += 1
-    
+    ### Add unclassified and write results.
+    for filt in TAXFILTERS: 
         for i, rank in enumerate(TAXRANKS):
             dict_to_write = tax_dict[filt][rank]
             for sample, taxa in dict_to_write.items():
@@ -140,6 +151,7 @@ def parse_args():
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
     parser.add_argument('output_dir', type=str, help='Output directory')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
+    parser.add_argument('--force-overwrite', action='store_true', help='Write results even if the output directory already exists')
 
     return parser.parse_args()
 

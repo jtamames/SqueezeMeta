@@ -27,8 +27,8 @@ OPTIONS:
     --ignore-unclassified: Ignore ORFs without assigned functions in
         TPM calculation. Ignored if --sqm-reads is provided.
     --sqmreads: Projects were generated using sqm_reads.pl
-
-
+    --force-overwrite: Write results even if the output directory
+        already exists.
 """
 
 from os.path import abspath, dirname, realpath
@@ -42,7 +42,7 @@ from pandas import DataFrame
 
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
-SQMpath = abspath('%s/../'.format(utils_home))
+SQMpath = abspath('{}/../'.format(utils_home))
 
 
 def main(args):
@@ -53,6 +53,8 @@ def main(args):
     except OSError as e:
         if e.errno != 17:
             raise
+        elif args.force_overwrite:
+            pass
         else:
             print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
             exit(1)
@@ -94,23 +96,24 @@ def main(args):
         if not args.sqmreads:
             ok = isfile('{}/SqueezeMeta_conf.pl'.format(projPath))
         else:
-            ok = isfile('{}/{}.out.mappingstat'.format(args.projPath, projName))
+            ok = isfile('{}/{}.out.mappingstat'.format(projPath, projName))
         if not ok:
             raise Exception('Path "{}" does not exist, or does not contain a valid SQM project'.format(projPath))
 
         ### Create tables if needed.
-        if not isdir('{}/results/tables'.format(projPath)):
+        if not isfile('{}/results/tables/{}.COG.abund.tsv'.format(projPath, projName)):
             print('Creating tables for project {}'.format(projName))
-            if args.sqmreads and not isdir('{}/projPath/results'):
-                mkdir('{}/projPath/results')
+            if args.sqmreads and not isdir('{}/results'.format(projPath)):
+                mkdir('{}/results'.format(projPath))
             if not args.sqmreads:
-                command = ['{}/utils/sqm2tables.py'.format(SQMhome), '{}'.format(projpath), '{}/results/tables'.format(projPath)]
+                command = ['{}/utils/sqm2tables.py'.format(SQMpath), '{}'.format(projpath), '{}/results/tables'.format(projPath)]
                 if args.ignore_unclassified:
-                    command.append('--ignore-unclassified')
+                    command.append('--ignore_unclassified')
             else:
-                command = ['{}/utils/sqmreads2tables.py'.format(SQMhome), '{}'.format(projpath), '{}/results/tables'.format(projPath)]
-            if args.ignore_unclassified:
-                command.append('--ignore-unclassified')
+                command = ['{}/utils/sqmreads2tables.py'.format(SQMpath), '{}'.format(projPath), '{}/results/tables'.format(projPath)]
+            if args.trusted_functions:
+                command.append('--trusted-functions')
+            command.append('--force-overwrite')
             call(command)
         else:
             print('The "{}/results/tables" directory is already present. Skipping...'.format(projPath))
@@ -206,7 +209,7 @@ def parse_table(path, targetDict):
 
 
 def write_feature_dict(sampleNames, featureDict, outName):
-    df = DataFrame.from_dict(featureDict)
+    df = DataFrame.from_dict(featureDict).fillna(0)
     df = df.sort_index()
     df = df[sampleNames]
     df.to_csv(outName, sep='\t')
@@ -221,6 +224,7 @@ def parse_args():
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
     parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
     parser.add_argument('--sqmreads', action='store_true', help='Projects were generated using sqm_reads.pl')
+    parser.add_argument('--force-overwrite', action='store_true', help='Write results even if the output directory already exists')
 
     return parser.parse_args()
 

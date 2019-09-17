@@ -16,6 +16,8 @@ OPTIONS:
     --ignore-unclassified: Ignore ORFs without assigned functions in
         TPM calculation
     --sqm2anvio: Write the required files for sqm2anvio
+    --force-overwrite: Write results even if the output directory
+        already exists.
 """
 
 from os.path import abspath, dirname, realpath
@@ -42,7 +44,7 @@ def main(args):
     except OSError as e:
         if e.errno != 17:
             raise
-        elif args.sqm2anvio: # We know what we are doing.
+        elif args.sqm2anvio or args.force_overwrite: # We know what we are doing.
             pass
         else:
             print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
@@ -152,6 +154,7 @@ def parse_args():
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
     parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
     parser.add_argument('--sqm2anvio', action='store_true', help='Write the required files for sqm2anvio')
+    parser.add_argument('--force-overwrite', action='store_true', help='Write results even if the output directory already exists')
 
     return parser.parse_args()
 
