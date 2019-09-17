@@ -91,12 +91,12 @@ def main(args):
     for projPath in args.project_paths:
         projName = projPath.strip('/').split('/')[-1]
         ### Validate projects.
-         if not args.sqmreads:
-             ok = isfile('{}/SqueezeMeta_conf.pl'.format(projPath)):
-         else:
-             ok = isfile('{}/{}.out.mappingstat'.format(args.projPath, projName)):
-         if not ok:
-             raise Exception('Path "{}" does not exist, or does not contain a valid SQM project'.format(projPath))
+        if not args.sqmreads:
+            ok = isfile('{}/SqueezeMeta_conf.pl'.format(projPath))
+        else:
+            ok = isfile('{}/{}.out.mappingstat'.format(args.projPath, projName))
+        if not ok:
+            raise Exception('Path "{}" does not exist, or does not contain a valid SQM project'.format(projPath))
 
         ### Create tables if needed.
         if not isdir('{}/results/tables'.format(projPath)):
@@ -116,7 +116,7 @@ def main(args):
             print('The "{}/results/tables" directory is already present. Skipping...'.format(projPath))
 
         
-        samples = parse_table('{}/results/tables/{}.superkingdom.allfilter.abund.tsv'.format(projPath, projName), superkingdom)
+        samples = parse_table('{}/results/tables/{}.superkingdom.allfilter.abund.tsv'.format(projPath, projName), all_superkingdom)
         sampleNames.extend(samples)
 
         parse_table('{}/results/tables/{}.phylum.allfilter.abund.tsv'.format(projPath, projName), all_phylum)
@@ -126,6 +126,7 @@ def main(args):
         parse_table('{}/results/tables/{}.genus.allfilter.abund.tsv'.format(projPath, projName), all_genus)
         parse_table('{}/results/tables/{}.species.allfilter.abund.tsv'.format(projPath, projName), all_species)
 
+        parse_table('{}/results/tables/{}.superkingdom.prokfilter.abund.tsv'.format(projPath, projName), prok_superkingdom)
         parse_table('{}/results/tables/{}.phylum.prokfilter.abund.tsv'.format(projPath, projName), prok_phylum)
         parse_table('{}/results/tables/{}.class.prokfilter.abund.tsv'.format(projPath, projName), prok_class)
         parse_table('{}/results/tables/{}.order.prokfilter.abund.tsv'.format(projPath, projName), prok_order)
@@ -219,7 +220,7 @@ def parse_args():
     parser.add_argument('-p', '--output-prefix', type=str, default='combined', help='Prefix for output files')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
     parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
-    parser.add_argument('--sqm-reads', action='store_true', help='Projects were generated using sqm_reads.pl')
+    parser.add_argument('--sqmreads', action='store_true', help='Projects were generated using sqm_reads.pl')
 
     return parser.parse_args()
 
