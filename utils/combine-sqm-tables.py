@@ -14,9 +14,10 @@ This script can combine the results of different samples ran using the
 
 USAGE:
 usage: combine-sqm-tables.py [-h] PROJECT_PATHS
+                             [-f PATHS_FILE]
                              [-o OUTPUT_DIR] [-p OUTPUT_PREFIX]
                              [--trusted-functions] [--ignore-unclassified]
-                             [--sqm-reads]
+                             [--sqm-reads] [--force-overwrite]
                              project_paths [project_paths ...]
 
 OPTIONS:
@@ -47,6 +48,18 @@ SQMpath = abspath('{}/../'.format(utils_home))
 
 def main(args):
 
+    ### Check arguments.
+    if args.paths_file:
+        if args.project_paths:
+            print('Project paths were provided directly as arguments and also in a file.')
+            print('Using project paths in the file: "{}"'.format(args.paths_file))
+        projPaths = [line.strip() for line in open(args.paths_file)]
+    elif args.project_paths:
+        projPaths = args.project_paths
+    else:
+        print('Project paths were not provided. Exiting...')
+        exit(1)
+
     ### Create output dir.
     try:
        mkdir(args.output_dir)
@@ -59,7 +72,7 @@ def main(args):
             print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
             exit(1)
 
-
+    ### Define stuff and things (Carl).
     sampleNames = []
 
     all_superkingdom = {}
@@ -90,7 +103,7 @@ def main(args):
     PFAMcopy = {}
     PFAMtpm = {}
 
-    for projPath in args.project_paths:
+    for projPath in projPaths:
         projName = projPath.strip('/').split('/')[-1]
         ### Validate projects.
         if not args.sqmreads:
@@ -218,7 +231,8 @@ def write_feature_dict(sampleNames, featureDict, outName):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB) 2019\n')
-    parser.add_argument('project_paths', type=str, nargs='+', help='Base path of the SqueezeMeta projects to combine')
+    parser.add_argument('project_paths', type=str, nargs='*', help='Base paths of the SqueezeMeta projects to combine')
+    parser.add_argument('-f', '--paths_file', type=str, help='File containing the base paths of the SqueezeMeta projects to combine (one per line)')
     parser.add_argument('-o', '--output-dir', type=str, default='combined', help='Output directory')
     parser.add_argument('-p', '--output-prefix', type=str, default='combined', help='Prefix for output files')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
