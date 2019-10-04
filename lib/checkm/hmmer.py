@@ -130,7 +130,7 @@ class HMMERParser():
         else:
             raise HMMERError("Mode %s not understood, please use 'dom' or 'tbl'" % mode)
 
-    def next(self):
+    def __next__(self):
         """Process each hit in the file."""
         while 1:
             if self.mode == 'domtblout':

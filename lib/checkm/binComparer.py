@@ -22,7 +22,7 @@
 import logging
 from collections import defaultdict
 
-from common import binIdFromFilename
+from .common import binIdFromFilename
 from checkm.util.seqUtils import readFasta, readFastaSeqIds
 
 
@@ -45,7 +45,7 @@ class BinComparer(object):
         binStats = {}
         processedSeqs = set()
         repeats = set()
-        for binId, seqs in bins.iteritems():
+        for binId, seqs in bins.items():
             numBinnedBases = 0
             for seqId in seqs:
                 numBinnedBases += seqLens[seqId]
@@ -71,7 +71,7 @@ class BinComparer(object):
         totalBases1K = 0
         numSeq5K = 0
         totalBases5K = 0
-        for seqId, seq in seqs.iteritems():
+        for seqId, seq in seqs.items():
             seqLen = len(seq)
             seqLens[seqId] = seqLen
             totalBases += seqLen
@@ -91,8 +91,8 @@ class BinComparer(object):
         binStats2, totalUniqueBinnedSeqs2, totalUniqueBinnedBases2, numRepeats2 = self.__binningStats(bins2, seqLens)
 
         # sort bins by size
-        binStats1 = sorted(binStats1.iteritems(), key=lambda x: x[1][1], reverse=True)
-        binStats2 = sorted(binStats2.iteritems(), key=lambda x: x[1][1], reverse=True)
+        binStats1 = sorted(iter(binStats1.items()), key=lambda x: x[1][1], reverse=True)
+        binStats2 = sorted(iter(binStats2.items()), key=lambda x: x[1][1], reverse=True)
 
         # report summary results
         self.logger.info('    Total seqs = %d (%.2f Mbp)' % (len(seqs), float(totalBases) / 1e6))

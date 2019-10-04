@@ -19,7 +19,7 @@
 #                                                                             #
 ###############################################################################
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.plot.gcPlots import GcPlots
 from checkm.plot.codingDensityPlots import CodingDensityPlots

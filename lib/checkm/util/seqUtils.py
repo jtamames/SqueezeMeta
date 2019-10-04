@@ -62,7 +62,7 @@ def isNucleotide(seq_file, req_perc=0.9, max_seqs_to_read=10):
         return True
 
     seq_count = 0
-    for _seq_id, seq in seqs.iteritems():
+    for _seq_id, seq in seqs.items():
         seq = seq.lower()
 
         nt_bases = 0
@@ -111,7 +111,7 @@ def queryYesNo(question, default="yes"):
 
     while True:
         sys.stdout.write(question + prompt)
-        choice = raw_input().lower()
+        choice = input().lower()
         if default is not None and choice == '':
             return valid[default]
         elif choice in valid:
@@ -141,7 +141,7 @@ def checkNuclotideSeqs(seq_files):
             
         if not isNucleotide(seq_file):
             print('Expected all files to contain sequences in nucleotide space.')
-            print('File %s appears to contain amino acids sequences.' % seq_file)
+            print(('File %s appears to contain amino acids sequences.' % seq_file))
 
             yes_response = queryYesNo('Do all files contain only nucleotide sequences?', default='no')
             if not yes_response:
@@ -170,7 +170,7 @@ def checkProteinSeqs(seq_files):
         
         if isNucleotide(seq_file):
             print('Expected all files to contain sequences in amino acid space.')
-            print('File %s appears to contain nucleotide sequences.' % seq_file)
+            print(('File %s appears to contain nucleotide sequences.' % seq_file))
 
             yes_response = queryYesNo('Do all files contain only amino acid sequences?', default='no')
             if not yes_response:
@@ -202,7 +202,7 @@ def readFasta(fastaFile, trimHeader=True):
             else:
                 seqs[seqId].append(line[0:-1])
 
-        for seqId, seq in seqs.iteritems():
+        for seqId, seq in seqs.items():
             seqs[seqId] = ''.join(seq)
     except:
         logger = logging.getLogger()
@@ -258,7 +258,7 @@ def readGenomicSeqsFromFasta(fastaFile, seqToIgnore=None):
         elif bRead:
             seqs[seqId].append(line[0:-1])
 
-    for seqId, seq in seqs.iteritems():
+    for seqId, seq in seqs.items():
         seqs[seqId] = ''.join(seq)
 
     return seqs
@@ -271,7 +271,7 @@ def writeFasta(seqs, outputFile):
     else:
         fout = open(outputFile, 'w')
 
-    for seqId, seq in seqs.iteritems():
+    for seqId, seq in seqs.items():
         fout.write('>' + seqId + '\n')
         fout.write(seq + '\n')
     fout.close()

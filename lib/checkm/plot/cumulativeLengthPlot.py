@@ -21,7 +21,7 @@
 
 import numpy as np
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.util.seqUtils import readFasta
 
@@ -40,7 +40,7 @@ class CumulativeLengthPlot(AbstractPlot):
         seqs = readFasta(fastaFile)
 
         seqLens = []
-        for seq in seqs.values():
+        for seq in list(seqs.values()):
             seqLens.append(len(seq))
 
         seqLens.sort(reverse=True)
@@ -87,7 +87,7 @@ class CumulativeLengthPlot(AbstractPlot):
         for line in axes.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in axes.spines.iteritems():
+        for loc, spine in axes.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:

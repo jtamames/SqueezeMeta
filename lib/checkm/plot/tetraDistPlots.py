@@ -21,7 +21,7 @@
 
 import numpy as np
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.util.seqUtils import readFasta
 from checkm.common import readDistribution, findNearest
@@ -62,7 +62,7 @@ class TetraDistPlots(AbstractPlot):
         data = []
         seqLens = []
         deltaTDs = []
-        for seqId, seq in seqs.iteritems():
+        for seqId, seq in seqs.items():
             start = 0
             end = self.options.td_window_size
 
@@ -110,7 +110,7 @@ class TetraDistPlots(AbstractPlot):
         for line in axesHist.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in axesHist.spines.iteritems():
+        for loc, spine in axesHist.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:
@@ -129,7 +129,7 @@ class TetraDistPlots(AbstractPlot):
 
         # plot reference distributions
         for distToPlot in distributionsToPlot:
-            boundKey = findNearest(dist[dist.keys()[0]].keys(), distToPlot)
+            boundKey = findNearest(list(dist[list(dist.keys())[0]].keys()), distToPlot)
 
             x = []
             y = []
@@ -144,8 +144,8 @@ class TetraDistPlots(AbstractPlot):
 
             # make sure x-values are strictly decreasing as y increases
             # as this is conservative and visually satisfying
-            for i in xrange(0, len(x) - 1):
-                for j in xrange(i + 1, len(x)):
+            for i in range(0, len(x) - 1):
+                for j in range(i + 1, len(x)):
                     if x[j] > x[i]:
                         if j == len(x) - 1:
                             x[j] = x[i]
@@ -190,7 +190,7 @@ class TetraDistPlots(AbstractPlot):
         for line in axesDeltaTD.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in axesDeltaTD.spines.iteritems():
+        for loc, spine in axesDeltaTD.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:

@@ -40,7 +40,7 @@ class Merger():
         self.logger.info('  Comparing marker sets between all pairs of bins.')
 
         # ensure all bins are using the same marker set
-        markerGenesI = binIdToBinMarkerSets[binIdToBinMarkerSets.keys()[0]].mostSpecificMarkerSet().getMarkerGenes()
+        markerGenesI = binIdToBinMarkerSets[list(binIdToBinMarkerSets.keys())[0]].mostSpecificMarkerSet().getMarkerGenes()
         for binIdJ in binIdToBinMarkerSets:
             if markerGenesI != binIdToBinMarkerSets[binIdJ].mostSpecificMarkerSet().getMarkerGenes():
                 self.logger.error('  [Error] All bins must use the same marker set to assess potential mergers.')
@@ -63,13 +63,13 @@ class Merger():
 
         binMarkerHits = resultsParser.results
         binIds = sorted(binMarkerHits.keys())
-        for i in xrange(0, len(binMarkerHits)):
+        for i in range(0, len(binMarkerHits)):
             binIdI = binIds[i]
 
             geneCountsI = binMarkerHits[binIdI].geneCounts(binIdToBinMarkerSets[binIdI].mostSpecificMarkerSet(), binMarkerHits[binIdI].markerHits, True)
             completenessI, contaminationI = geneCountsI[6:8]
 
-            for j in xrange(i + 1, len(binMarkerHits)):
+            for j in range(i + 1, len(binMarkerHits)):
                 binIdJ = binIds[j]
 
                 geneCountsJ = binMarkerHits[binIdJ].geneCounts(binIdToBinMarkerSets[binIdJ].mostSpecificMarkerSet(), binMarkerHits[binIdJ].markerHits, True)
@@ -77,10 +77,10 @@ class Merger():
 
                 # merge together hits from both bins and calculate completeness and contamination
                 mergedHits = {}
-                for markerId, hits in binMarkerHits[binIdI].markerHits.iteritems():
+                for markerId, hits in binMarkerHits[binIdI].markerHits.items():
                     mergedHits[markerId] = list(hits)
 
-                for markerId, hits in binMarkerHits[binIdJ].markerHits.iteritems():
+                for markerId, hits in binMarkerHits[binIdJ].markerHits.items():
                     if markerId in mergedHits:
                         mergedHits[markerId].extend(hits)
                     else:

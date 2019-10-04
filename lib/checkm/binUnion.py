@@ -30,7 +30,7 @@ import logging
 import math
 import csv
 
-from common import binIdFromFilename
+from .common import binIdFromFilename
 from checkm.util.seqUtils import readFasta
 
 
@@ -44,11 +44,11 @@ class UnionBin:
         self.binFile = binFile
 
     def numBasesOverlapping(self, anotherUnionBin):
-        commonContigs = set(self.seqs.keys()).intersection(anotherUnionBin.seqs.keys())
+        commonContigs = set(self.seqs.keys()).intersection(list(anotherUnionBin.seqs.keys()))
         return sum([len(self.seqs[contig]) for contig in commonContigs])
 
     def numBases(self):
-        return sum([len(seq) for seq in self.seqs.values()])
+        return sum([len(seq) for seq in list(self.seqs.values())])
 
     def compContSquaredScored(self):
         # The divide by 100s are not necessary for direct comparison, but have the
@@ -182,7 +182,7 @@ class BinUnion(object):
     def printMultiplyBinnedContigs(self, bestCandidates, multiplyBinnedOutput):
         contigToBin = {}
         for binn in bestCandidates:
-            for contigName in binn.seqs.keys():
+            for contigName in list(binn.seqs.keys()):
                 if contigName in contigToBin:
                     contigToBin[contigName].append(binn)
                 else:
@@ -191,7 +191,7 @@ class BinUnion(object):
         # IPython.embed()
         numMultiplyBinnedContigs = 0
         multiplyBinnedContigsLength = 0
-        for contigName, binList in contigToBin.iteritems():
+        for contigName, binList in contigToBin.items():
             if len(binList) > 1:
                 numMultiplyBinnedContigs += 1
                 multiplyBinnedContigsLength += len(binList[0].seqs[contigName])

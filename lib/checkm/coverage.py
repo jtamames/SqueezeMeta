@@ -62,7 +62,7 @@ class Coverage():
             binId = binIdFromFilename(binFile)
 
             seqs = readFasta(binFile)
-            for seqId, seq in seqs.iteritems():
+            for seqId, seq in seqs.items():
                 seqIdToBinId[seqId] = binId
                 seqIdToSeqLen[seqId] = len(seq)
 
@@ -97,12 +97,12 @@ class Coverage():
         print(header)
 
         # get length of all seqs
-        for bamFile, seqIds in coverageInfo.iteritems():
-            for seqId in seqIds.keys():
+        for bamFile, seqIds in coverageInfo.items():
+            for seqId in list(seqIds.keys()):
                 seqIdToSeqLen[seqId] = seqIds[seqId].seqLen
 
         # write coverage stats for all scaffolds to file
-        for seqId, seqLen in seqIdToSeqLen.iteritems():
+        for seqId, seqLen in seqIdToSeqLen.items():
             rowStr = seqId + '\t' + seqIdToBinId.get(seqId, DefaultValues.UNBINNED) + '\t' + str(seqLen)
             for bamFile in bamFiles:
                 bamId = binIdFromFilename(bamFile)
@@ -171,7 +171,7 @@ class Coverage():
             writeProc.join()
         except:
             # make sure all processes are terminated
-            print traceback.format_exc()
+            print(traceback.format_exc())
             for p in workerProc:
                 p.terminate()
 
@@ -271,16 +271,16 @@ class Coverage():
         if self.logger.getEffectiveLevel() <= logging.INFO:
             sys.stderr.write('\n')
 
-            print ''
-            print '    # total reads: %d' % totalReads
-            print '      # properly mapped reads: %d (%.1f%%)' % (totalMappedReads, float(totalMappedReads) * 100 / totalReads)
-            print '      # duplicate reads: %d (%.1f%%)' % (totalDuplicates, float(totalDuplicates) * 100 / totalReads)
-            print '      # secondary reads: %d (%.1f%%)' % (totalSecondary, float(totalSecondary) * 100 / totalReads)
-            print '      # reads failing QC: %d (%.1f%%)' % (totalFailedQC, float(totalFailedQC) * 100 / totalReads)
-            print '      # reads failing alignment length: %d (%.1f%%)' % (totalFailedAlignLen, float(totalFailedAlignLen) * 100 / totalReads)
-            print '      # reads failing edit distance: %d (%.1f%%)' % (totalFailedEditDist, float(totalFailedEditDist) * 100 / totalReads)
-            print '      # reads not properly paired: %d (%.1f%%)' % (totalFailedProperPair, float(totalFailedProperPair) * 100 / totalReads)
-            print ''
+            print('')
+            print('    # total reads: %d' % totalReads)
+            print('      # properly mapped reads: %d (%.1f%%)' % (totalMappedReads, float(totalMappedReads) * 100 / totalReads))
+            print('      # duplicate reads: %d (%.1f%%)' % (totalDuplicates, float(totalDuplicates) * 100 / totalReads))
+            print('      # secondary reads: %d (%.1f%%)' % (totalSecondary, float(totalSecondary) * 100 / totalReads))
+            print('      # reads failing QC: %d (%.1f%%)' % (totalFailedQC, float(totalFailedQC) * 100 / totalReads))
+            print('      # reads failing alignment length: %d (%.1f%%)' % (totalFailedAlignLen, float(totalFailedAlignLen) * 100 / totalReads))
+            print('      # reads failing edit distance: %d (%.1f%%)' % (totalFailedEditDist, float(totalFailedEditDist) * 100 / totalReads))
+            print('      # reads not properly paired: %d (%.1f%%)' % (totalFailedProperPair, float(totalFailedProperPair) * 100 / totalReads))
+            print('')
 
     def parseCoverage(self, coverageFile):
         """Read coverage information from file."""
@@ -301,7 +301,7 @@ class Coverage():
             if seqId not in coverageStats[binId]:
                 coverageStats[binId][seqId] = {}
 
-            for i in xrange(3, len(lineSplit), 3):
+            for i in range(3, len(lineSplit), 3):
                 bamId = lineSplit[i]
                 coverage = float(lineSplit[i + 1])
                 coverageStats[binId][seqId][bamId] = coverage
@@ -325,7 +325,7 @@ class Coverage():
 
             # calculate mean coverage (weighted by scaffold length)
             # for each bin under each BAM file
-            for i in xrange(3, len(lineSplit), 3):
+            for i in range(3, len(lineSplit), 3):
                 bamId = lineSplit[i]
                 coverage = float(lineSplit[i + 1])
                 binCoverages[binId][bamId].append(coverage)
@@ -341,13 +341,13 @@ class Coverage():
 
         profiles = defaultdict(dict)
         for binId in binStats:
-            for bamId, stats in binStats[binId].iteritems():
+            for bamId, stats in binStats[binId].items():
                 binLength, meanBinCoverage = stats
                 coverages = binCoverages[binId][bamId]
 
                 varCoverage = 0
                 if len(coverages) > 1:
-                    varCoverage = mean(map(lambda x: (x - meanBinCoverage) ** 2, coverages))
+                    varCoverage = mean([(x - meanBinCoverage) ** 2 for x in coverages])
 
                 profiles[binId][bamId] = [meanBinCoverage, sqrt(varCoverage)]
 

@@ -24,7 +24,7 @@ import sys
 
 import numpy as np
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.prodigal import ProdigalGeneFeatureParser
 from checkm.common import readDistribution, findNearest, binIdFromFilename
@@ -54,7 +54,7 @@ class CodingDensityPlots(AbstractPlot):
         # parse Prodigal output
         gffFile = os.path.join(self.options.out_folder, 'bins', binIdFromFilename(fastaFile), DefaultValues.PRODIGAL_GFF)
         if not os.path.exists(gffFile):
-            print 'Missing gene feature file (%s). This plot if not compatible with the --genes option.' % DefaultValues.PRODIGAL_GFF
+            print('Missing gene feature file (%s). This plot if not compatible with the --genes option.' % DefaultValues.PRODIGAL_GFF)
             sys.exit()
 
         prodigalParser = ProdigalGeneFeatureParser(gffFile)
@@ -67,7 +67,7 @@ class CodingDensityPlots(AbstractPlot):
 
         data = []
         seqLens = []
-        for seqId, seq in seqs.iteritems():
+        for seqId, seq in seqs.items():
             start = 0
             end = self.options.cd_window_size
 
@@ -114,7 +114,7 @@ class CodingDensityPlots(AbstractPlot):
         for line in axesHist.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in axesHist.spines.iteritems():
+        for loc, spine in axesHist.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:
@@ -134,13 +134,13 @@ class CodingDensityPlots(AbstractPlot):
 
         # plot reference distributions
         for distToPlot in distributionsToPlot:
-            closestCD = findNearest(np.array(dist.keys()), meanCD)
+            closestCD = findNearest(np.array(list(dist.keys())), meanCD)
 
             # find closest distribution values
-            sampleSeqLen = dist[closestCD].keys()[0]
+            sampleSeqLen = list(dist[closestCD].keys())[0]
             d = dist[closestCD][sampleSeqLen]
-            cdLowerBoundKey = findNearest(d.keys(), (100 - distToPlot) / 2.0)
-            cdUpperBoundKey = findNearest(d.keys(), (100 + distToPlot) / 2.0)
+            cdLowerBoundKey = findNearest(list(d.keys()), (100 - distToPlot) / 2.0)
+            cdUpperBoundKey = findNearest(list(d.keys()), (100 + distToPlot) / 2.0)
 
             xL = []
             xU = []
@@ -191,7 +191,7 @@ class CodingDensityPlots(AbstractPlot):
         for line in axesDeltaCD.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in axesDeltaCD.spines.iteritems():
+        for loc, spine in axesDeltaCD.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:
