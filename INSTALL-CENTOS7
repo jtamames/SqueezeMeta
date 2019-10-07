@@ -2,8 +2,8 @@
 sudo yum -y install epel-release
 
 
-### Install ncurses-devel and git
-sudo yum -y install ncurses-devel git
+### Install git and system libraries
+sudo yum -y install ncurses-devel git zlib-devel bzip2-devel xz-devel
 
 
 ### Install Ruby.
@@ -15,10 +15,8 @@ sudo yum -y install perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl
 
 
 ###Install Python modules.
-sudo yum -y install python-pip scipy python-matplotlib python34 python34-numpy
-sudo python -m pip install dendropy pysam
-
-sudo ln -s /usr/bin/python3.4 /usr/bin/python3 # Only if python3 is not already in your path!
+sudo yum -y install python3 python36-scipy
+sudo python3 -m pip install matplotlib dendropy pysam
 
 
 ### Install R.
