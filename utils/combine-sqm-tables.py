@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 """
 Part of the SqueezeMeta distribution. 06/08/2019 Original version,
