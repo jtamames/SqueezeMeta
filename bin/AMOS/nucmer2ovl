@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 ### Modified from AMOS version 3.1.0 
 ### by Fernando Puente-Sanchez on 2018-APR-26, for compatibility with the SqueezeMeta pipeline.
