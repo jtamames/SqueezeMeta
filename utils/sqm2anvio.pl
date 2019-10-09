@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # (c) Javier Tamames, CNB-CSIC
 

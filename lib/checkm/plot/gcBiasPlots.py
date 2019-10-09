@@ -19,7 +19,7 @@
 #                                                                             #
 ###############################################################################
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.util.seqUtils import readFasta, baseCount
 
@@ -49,7 +49,7 @@ class GcBiasPlot(AbstractPlot):
         seqs = readFasta(binFile)
 
         gcProfile = {}
-        for seqId, seq in seqs.iteritems():
+        for seqId, seq in seqs.items():
             start = 0
             end = self.options.window_size
 
@@ -68,7 +68,7 @@ class GcBiasPlot(AbstractPlot):
         # plot GC vs coverage for windows
         gc = []
         coverage = []
-        for seqId, gcInfo in gcProfile.iteritems():
+        for seqId, gcInfo in gcProfile.items():
             gc += gcInfo[1]
             coverage += coverageProfile[seqId][1]
 
@@ -101,7 +101,7 @@ class GcBiasPlot(AbstractPlot):
         for line in windowAxes.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in windowAxes.spines.iteritems():
+        for loc, spine in windowAxes.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:
@@ -111,7 +111,7 @@ class GcBiasPlot(AbstractPlot):
         gc = []
         coverage = []
         seqLen = []
-        for seqId, gcInfo in gcProfile.iteritems():
+        for seqId, gcInfo in gcProfile.items():
             gc.append(gcInfo[0])
             coverage.append(coverageProfile[seqId][0])
             seqLen.append(len(seqs[seqId]))
@@ -141,7 +141,7 @@ class GcBiasPlot(AbstractPlot):
         for line in seqAxes.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in seqAxes.spines.iteritems():
+        for loc, spine in seqAxes.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:

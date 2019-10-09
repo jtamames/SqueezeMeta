@@ -73,8 +73,8 @@ class TaxonParser():
                     numMarkers, numMarkerSets = markerSet.size()
                     pTable.add_row([rank, taxon, markerSet.numGenomes, numMarkers, numMarkerSets])
 
-        print ''
-        print pTable.get_string()
+        print('')
+        print(pTable.get_string())
 
     def markerSet(self, rank, taxon, markerFile):
         """Obtain specified taxonomic-specific marker set."""

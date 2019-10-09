@@ -89,7 +89,7 @@ class MarkerGeneFinder():
 
         # create a standard dictionary from the managed dictionary
         d = {}
-        for binId in binIdToModels.keys():
+        for binId in list(binIdToModels.keys()):
             d[binId] = binIdToModels[binId]
 
         return d

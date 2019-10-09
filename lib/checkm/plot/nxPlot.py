@@ -21,7 +21,7 @@
 
 import numpy as np
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.util.seqUtils import readFasta
 
@@ -32,7 +32,7 @@ class NxPlot(AbstractPlot):
 
     def calculateNx(self, x, seqs):
         seqLens = []
-        for _, seq in seqs.iteritems():
+        for _, seq in seqs.items():
             seqLens.append(len(seq))
 
         sumSeqLens = sum(seqLens)
@@ -97,7 +97,7 @@ class NxPlot(AbstractPlot):
         for line in axes.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in axes.spines.iteritems():
+        for loc, spine in axes.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:

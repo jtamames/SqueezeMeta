@@ -60,20 +60,20 @@ class TreeParser():
         # write bin alignments to file
         oldStdOut = reassignStdOut(outFile)
         for line in open(os.path.join(outDir, 'storage', 'tree', DefaultValues.PPLACER_CONCAT_SEQ_OUT)):
-            print(line.rstrip())
+            print((line.rstrip()))
 
         # read duplicate seqs
         duplicateNodes = self.__readDuplicateSeqs()
 
         # write reference alignments to file
         seqs = readFasta(os.path.join(DefaultValues.PPLACER_REF_PACKAGE_FULL, DefaultValues.GENOME_TREE_FASTA))
-        for seqId, seq in seqs.iteritems():
-            print('>' + seqId)
+        for seqId, seq in seqs.items():
+            print(('>' + seqId))
             print(seq)
 
             if seqId in duplicateNodes:
                 for dupSeqId in duplicateNodes[seqId]:
-                    print('>' + dupSeqId)
+                    print(('>' + dupSeqId))
                     print(seq)
 
         restoreStdOut(outFile, oldStdOut)
@@ -145,7 +145,7 @@ class TreeParser():
 
         # write out tree
         oldStdOut = reassignStdOut(outFile)
-        print(tree.as_string(schema='newick', suppress_rooting=True))
+        print((tree.as_string(schema='newick', suppress_rooting=True)))
         restoreStdOut(outFile, oldStdOut)
 
     def getInsertionBranchId(self, outDir, binIds):
@@ -653,13 +653,13 @@ class TreeParser():
         # redirect output
         oldStdOut = reassignStdOut(outFile)
 
-        arbitraryBinId = binIdToTaxonomy.keys()[0]
+        arbitraryBinId = list(binIdToTaxonomy.keys())[0]
         markerCountLabel = '# unique markers (of %d)' % len(resultsParser.models[arbitraryBinId])
         header = ['Bin Id', markerCountLabel, '# multi-copy', 'Taxonomy']
 
         if bTabTable:
             pTable = None
-            print('\t'.join(header))
+            print(('\t'.join(header)))
         else:
             pTable = prettytable.PrettyTable(header)
             pTable.float_format = '.2'
@@ -675,12 +675,12 @@ class TreeParser():
             row = [binId, uniqueHits, multiCopyHits, binIdToTaxonomy[binId]]
 
             if bTabTable:
-                print('\t'.join(map(str, row)))
+                print(('\t'.join(map(str, row))))
             else:
                 pTable.add_row(row)
 
         if not bTabTable:
-            print(pTable.get_string(sortby=markerCountLabel, reversesort=True))
+            print((pTable.get_string(sortby=markerCountLabel, reversesort=True)))
 
         # restore stdout
         restoreStdOut(outFile, oldStdOut)
@@ -689,7 +689,7 @@ class TreeParser():
         # redirect output
         oldStdOut = reassignStdOut(outFile)
 
-        arbitraryBinId = binIdToTaxonomy.keys()[0]
+        arbitraryBinId = list(binIdToTaxonomy.keys())[0]
         markerCountLabel = '# unique markers (of %d)' % len(resultsParser.models[arbitraryBinId])
         header = ['Bin Id', markerCountLabel, "# multi-copy"]
         header += ['Insertion branch UID', 'Taxonomy (contained)', 'Taxonomy (sister lineage)']
@@ -700,7 +700,7 @@ class TreeParser():
 
         if bTabTable:
             pTable = None
-            print('\t'.join(header))
+            print(('\t'.join(header)))
         else:
             pTable = prettytable.PrettyTable(header)
             pTable.float_format = '.2'
@@ -745,12 +745,12 @@ class TreeParser():
             row += [binIdToLineageStatistics[binId]['gene count std']]
 
             if bTabTable:
-                print('\t'.join(map(str, row)))
+                print(('\t'.join(map(str, row))))
             else:
                 pTable.add_row(row)
 
         if not bTabTable:
-            print(pTable.get_string(sortby=markerCountLabel, reversesort=True))
+            print((pTable.get_string(sortby=markerCountLabel, reversesort=True)))
 
         # restore stdout
         restoreStdOut(outFile, oldStdOut)

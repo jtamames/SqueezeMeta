@@ -34,7 +34,7 @@ class HmmModel(object):
         if 'acc' not in keys:
             setattr(self, 'acc', keys['name'])
 
-        for key, value in keys.items():
+        for key, value in list(keys.items()):
             setattr(self, key, value)
 
 
@@ -123,7 +123,7 @@ class HmmModelParser(object):
                         if params[1] == "MSV" or params[1] == "VITERBI" or params[1] == "FORWARD":
                             headerKeys[(fields[0] + "_" + params[0] + "_" + params[1]).lower()] = (float(params[2]), float(params[3]))
                         else:
-                            print("'" + params[1] + "'")
+                            print(("'" + params[1] + "'"))
                             raise HmmModelError
                     else:
                         headerKeys[fields[0].lower()] = fields[1]

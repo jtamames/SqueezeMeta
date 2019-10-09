@@ -47,8 +47,8 @@ __MANIFEST__ = ".dmanifest"
 # system includes
 import os
 import hashlib
-import urllib2
-import urllib
+import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.parse, urllib.error
 import shutil
 import errno
 
@@ -121,15 +121,15 @@ class ManifestManager(object):
         source = ""
         # first we assume it is remote
         try:
-            s_man = urllib2.urlopen(sourceManifestLocation + "/" + sourceManifestName, None, self.timeout)
+            s_man = urllib.request.urlopen(sourceManifestLocation + "/" + sourceManifestName, None, self.timeout)
             source = sourceManifestLocation + "/"
         except ValueError:
             # then it is probably a file
             s_man = open(os.path.join(sourceManifestLocation, sourceManifestName))
             source = os.path.join(sourceManifestLocation) + os.path.sep
-        except urllib2.URLError:
+        except urllib.error.URLError:
             # problems connecting to server, perhaps user is behind a proxy or firewall
-            print "Error: failed to connect to server."
+            print("Error: failed to connect to server.")
             return (None, None, None, None, None)
 
         first_line = True
@@ -140,11 +140,11 @@ class ManifestManager(object):
                     # get the type of the manifest
                     s_type = self.getManType(line)
                     if s_type != l_type:
-                        print "Error: type of source manifest (%s) does not match type of local manifest (%s)" % (s_type, l_type)
+                        print("Error: type of source manifest (%s) does not match type of local manifest (%s)" % (s_type, l_type))
                         return (None, None, None, None, None)
                 else:
                     # no type specified
-                    print "Error: type of source manifest is not specified. Is this a valid manifest file?"
+                    print("Error: type of source manifest is not specified. Is this a valid manifest file?")
                     return (None, None, None, None, None)
 
                 self.type = l_type
@@ -174,7 +174,7 @@ class ManifestManager(object):
                         deleted.append(fields[0])
 
         # check for new files
-        for f in source_man.keys():
+        for f in list(source_man.keys()):
             if source_man[f][2] == False:
                 if source_man[f][0] == '-':
                     addedDirs.append(f)
@@ -190,28 +190,28 @@ class ManifestManager(object):
                 modified_size += int(source_man[f][1])
 
             if len(addedFiles) > 0:
-                print "#------------------------------------------------------"
-                print "# Source contains %d new file(s) (%s)" % (len(addedFiles), self.formatData(new_size))
+                print("#------------------------------------------------------")
+                print("# Source contains %d new file(s) (%s)" % (len(addedFiles), self.formatData(new_size)))
                 for f in addedFiles:
-                    print "\t".join([self.formatData(int(source_man[f][1])), f])
+                    print("\t".join([self.formatData(int(source_man[f][1])), f]))
 
             if len(addedDirs) > 0:
-                print "#------------------------------------------------------"
-                print "# Source contains %d new folders(s)" % (len(addedDirs))
+                print("#------------------------------------------------------")
+                print("# Source contains %d new folders(s)" % (len(addedDirs)))
                 for f in addedDirs:
-                    print f
+                    print(f)
 
             if len(modified) > 0:
-                print "#------------------------------------------------------"
-                print "# Source contains %d modified file(s) (%s)" % (len(modified), self.formatData(modified_size))
+                print("#------------------------------------------------------")
+                print("# Source contains %d modified file(s) (%s)" % (len(modified), self.formatData(modified_size)))
                 for f in modified:
-                    print f
+                    print(f)
 
             if len(deleted) > 0:
-                print "#------------------------------------------------------"
-                print "# %d files have been deleted in the source:" % len(deleted)
+                print("#------------------------------------------------------")
+                print("# %d files have been deleted in the source:" % len(deleted))
                 for f in deleted:
-                    print f
+                    print(f)
         else:
             return (source,
                     [(a, source_man[a]) for a in addedFiles],
@@ -245,13 +245,13 @@ class ManifestManager(object):
             for f in modified:
                 total_size += int(f[1][1])
             if total_size != 0:
-                print "****************************************************************"
-                print "%d new file(s) to be downloaded from source" % len(added_files)
-                print "%d existing file(s) to be updated" % len(modified)
-                print "%s will need to be downloaded" % self.formatData(total_size)
+                print("****************************************************************")
+                print("%d new file(s) to be downloaded from source" % len(added_files))
+                print("%d existing file(s) to be updated" % len(modified))
+                print("%s will need to be downloaded" % self.formatData(total_size))
                 do_down = self.promptUserDownload()
                 if not do_down:
-                    print "Download aborted"
+                    print("Download aborted")
 
         update_manifest = False
         if do_down:
@@ -262,13 +262,13 @@ class ManifestManager(object):
                 self.makeSurePathExists(full_path)
             for add in added_files:
                 full_path = os.path.abspath(os.path.join(localManifestLocation, add[0]))
-                urllib.urlretrieve(source+add[0], full_path)
+                urllib.request.urlretrieve(source+add[0], full_path)
             for modify in modified:
                 full_path = os.path.abspath(os.path.join(localManifestLocation, modify[0]))
-                urllib.urlretrieve(source+modify[0], full_path)
+                urllib.request.urlretrieve(source+modify[0], full_path)
 
         if update_manifest:
-            print "(re) creating manifest file (please be patient)"
+            print("(re) creating manifest file (please be patient)")
             self.createManifest(localManifestLocation, manifestName=localManifestName)
             
         return True
@@ -303,19 +303,19 @@ class ManifestManager(object):
         input_not_ok = True
         minimal=False
         valid_responses = {'Y':True,'N':False}
-        vrs = ",".join([x.lower() for x in valid_responses.keys()])
+        vrs = ",".join([x.lower() for x in list(valid_responses.keys())])
         while(input_not_ok):
             if(minimal):
-                option = raw_input("Download? ("+vrs+") : ").upper()
+                option = input("Download? ("+vrs+") : ").upper()
             else:
-                option = raw_input("Confirm you want to download this data\n" \
+                option = input("Confirm you want to download this data\n" \
                                    "Changes *WILL* be permanent\n" \
                                    "Continue? ("+vrs+") : ").upper()
             if(option in valid_responses):
-                print "****************************************************************"
+                print("****************************************************************")
                 return valid_responses[option]
             else:
-                print "ERROR: unrecognised choice '"+option+"'"
+                print("ERROR: unrecognised choice '"+option+"'")
                 minimal = True
 
     def walk(self, parents, full_path, rel_path, dirs, files, skipFile=__MANIFEST__):

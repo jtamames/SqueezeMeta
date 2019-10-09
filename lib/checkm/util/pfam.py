@@ -51,7 +51,7 @@ class PFAM(object):
                 idNested[ID].append(nestedId)
 
         # set nested structure to use pfam accessions instead of IDs
-        for ID, nested in idNested.iteritems():
+        for ID, nested in idNested.items():
             pfamAcc = self.idToAcc[ID]
             self.nested[pfamAcc] = set([self.idToAcc[x] for x in nested])
 
@@ -93,7 +93,7 @@ class PFAM(object):
         # determine all PFAM hits to each ORF and setup initial set of filtered markers
         filteredMarkers = defaultdict(list)
         hitsToORFs = defaultdict(list)
-        for markerId, hits in markerHits.iteritems():
+        for markerId, hits in markerHits.items():
             if markerId.startswith('PF'):
                 for hit in hits:
                     hitsToORFs[hit.target_name].append(hit)
@@ -102,12 +102,12 @@ class PFAM(object):
                 filteredMarkers[markerId] = hits
 
         # for each gene, take only the best hit for each PFAM clan
-        for _, hits in hitsToORFs.iteritems():
+        for _, hits in hitsToORFs.items():
             # sort in ascending order of e-value
             hits.sort(key=lambda x: x.full_e_value)
 
             filtered = set()
-            for i in xrange(0, len(hits)):
+            for i in range(0, len(hits)):
                 if i in filtered:
                     continue
 
@@ -117,7 +117,7 @@ class PFAM(object):
                 startI = hits[i].ali_from
                 endI = hits[i].ali_to
 
-                for j in xrange(i + 1, len(hits)):
+                for j in range(i + 1, len(hits)):
                     if j in filtered:
                         continue
 
@@ -138,7 +138,7 @@ class PFAM(object):
                                 filtered.add(j)
 
             # tabulate unfiltered hits
-            for i in xrange(0, len(hits)):
+            for i in range(0, len(hits)):
                 if i in filtered:
                     continue
 

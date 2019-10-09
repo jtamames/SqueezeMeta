@@ -41,7 +41,7 @@ rankPrefixes = {-1: 'l__', 0: 'k__', 1: 'p__', 2: 'c__', 3: 'o__', 4: 'f__', 5: 
 def appendTaxonomyRanks(taxonomy, ranks=7):
     """Append taxonomy prefix to list of taxa."""
     t = []
-    for i in xrange(0, ranks):
+    for i in range(0, ranks):
         t.append(rankPrefixes[i] + taxonomy[i])
 
     return t
@@ -73,7 +73,7 @@ def __parseTaxon(taxon):
 def LCA(taxonomy1, taxonomy2):
     """Find lowest-common ancestor between two taxa lists."""
     lca = []
-    for i in xrange(0, min(len(taxonomy1), len(taxonomy2))):
+    for i in range(0, min(len(taxonomy1), len(taxonomy2))):
         t1, b1 = __parseTaxon(taxonomy1[i])
         t2, b2 = __parseTaxon(taxonomy2[i])
 
