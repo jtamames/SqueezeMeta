@@ -33,7 +33,8 @@ my $thereareresults=0;
 
 #-- Prepare the LCA database (containing the acc -> tax correspondence)
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1}) or die $DBI::errstr;
+my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1, sqlite_open_flags => SQLITE_OPEN_READONLY }) or die $DBI::errstr;
+$dbh->sqlite_busy_timeout( 120 * 1000 );
 
 #-- Reads the taxonomic tree (parsed from NCBI's taxonomy in the parents.txt file)
 
