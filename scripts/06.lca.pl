@@ -8,6 +8,7 @@ $|=1;
 
 use strict;
 use DBI;
+use DBD::SQLite::Constants qw/:file_open/;
 use Tie::IxHash;
 use Cwd;
 use lib ".";
