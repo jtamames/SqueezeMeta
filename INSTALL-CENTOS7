@@ -11,7 +11,8 @@ sudo yum -y install ruby
 
 
 ### Install Perl modules.
-sudo yum -y install perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl-XML-Parser perl-DBD-SQLite perl-Time-Piece
+sudo yum -y install cpan perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl-XML-Parser perl-DBD-SQLite perl-Time-Piece
+sudo cpan DBD::SQLite::Constants
 
 
 ###Install Python modules.
