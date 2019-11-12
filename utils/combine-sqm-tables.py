@@ -53,7 +53,7 @@ def main(args):
         if args.project_paths:
             print('Project paths were provided directly as arguments and also in a file.')
             print('Using project paths in the file: "{}"'.format(args.paths_file))
-        projPaths = [line.strip() for line in open(args.paths_file)]
+        projPaths = [line.strip() for line in open(args.paths_file) if line.strip()]
     elif args.project_paths:
         projPaths = args.project_paths
     else:
