@@ -125,7 +125,7 @@ sub query {
      while(@list=$sth->fetchrow()) {
      print "$lastorf\t@list\n" if $verbose;
       for(my $pos=1; $pos<=7; $pos++) {
-       $rank=$ranks[$pos-2];
+       $rank=$ranks[$pos-1];
        $tax=$list[$pos];
        if($list[0] eq $besthit) { $bhit{$rank}=$tax; }
  	if($giden{$list[0]}>=$idenrank{$rank}) { $accum{$rank}{$tax}++; }		#-- and add a count for that taxon in that rank
