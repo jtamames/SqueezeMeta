@@ -63,5 +63,5 @@ my $das_command="LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $
 print "Running DAS Tool for $methods\n";
  print "$das_command\n";
 my $ecode = system $das_command;
-if($ecode!=0) { die "Error running command:    $das_command"; }
+if($ecode!=0) { warn "Error running command:    $das_command"; }
 
