@@ -103,5 +103,5 @@ $minpath_soft="python3 $installpath/bin/MinPath1.4.py";
 $canu_soft="$installpath/bin/canu/canu";
 $trimmomatic_soft="java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft="$installpath/bin/DAS_Tool/DAS_Tool";
-$kmerdb_soft="/home/jtamames/software/kmerdb";
+$kmerdb_soft="$installpath/bin/kmer-db-1.6.2";
 

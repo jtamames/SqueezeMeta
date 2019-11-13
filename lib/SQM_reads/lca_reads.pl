@@ -27,7 +27,7 @@ $flex=0.2;           #-- Allows this PERCENTAGE (if less than one) or NUMBER (if
 $minhits=1;        #-- Minimum number of hits for the taxa (if there is only one valid hit, this value sets to one automatically
 $noidentical=0;  #-- Drops the first 100% identical hit (for mock)
 $miniden=30;
-$verbose=1;
+$verbose=0;
 $bhitforced=0;	#-- Forces that assignment cannot differ from best hit
 
 $infile=$ARGV[0];

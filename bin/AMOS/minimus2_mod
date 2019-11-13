@@ -13,6 +13,8 @@
 ### Modified from AMOS version 3.1.0 
 ### by Fernando Puente-Sanchez on 2018-NOV-19, for compatibility with the SqueezeMeta pipeline
 ### and in 2019-MAR-19 to allow multithreading in nucmer calls.
+### This is a modified version tailored to be used in the merge-sequential mode of SqueezeMeta.
+###     Javier Tamames 2019-NOV-13
 ### SqueezeMeta is released under the GPL-3 license.
 
 
