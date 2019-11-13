@@ -27,7 +27,7 @@ $flex=0.2;           #-- Allows this PERCENTAGE (if less than one) or NUMBER (if
 $minhits=1;        #-- Minimum number of hits for the taxa (if there is only one valid hit, this value sets to one automatically
 $noidentical=0;  #-- Drops the first 100% identical hit (for mock)
 $miniden=30;
-$verbose=0;
+$verbose=1;
 $bhitforced=0;	#-- Forces that assignment cannot differ from best hit
 
 $infile=$ARGV[0];
@@ -125,10 +125,13 @@ sub query {
      while(@list=$sth->fetchrow()) {
      print "$lastorf\t@list\n" if $verbose;
       for(my $pos=1; $pos<=7; $pos++) {
-       $rank=$ranks[$pos-2];
+       $rank=$ranks[$pos-1];
        $tax=$list[$pos];
        if($list[0] eq $besthit) { $bhit{$rank}=$tax; }
- 	if($giden{$list[0]}>=$idenrank{$rank}) { $accum{$rank}{$tax}++; }		#-- and add a count for that taxon in that rank
+ 	if($giden{$list[0]}>=$idenrank{$rank}) { 
+		$accum{$rank}{$tax}++; #-- and add a count for that taxon in that rank
+		print ">>>> $pos $rank $tax $accum{$rank}{$tax}\n" if $verbose;
+		}		
  	$accumnofilter{$rank}{$tax}++; 
      #  $accum{$rank}{$tax}++;
                                       }
@@ -144,7 +147,7 @@ sub query {
     print "   $k\n" if $verbose;
     foreach my $t(keys %{ $accum{$k} }) {
      print "      $t $accum{$k}{$t}\n" if $verbose;
-     if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits)) { 
+     if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($parents{$t}{wranks})) { 
       next if(($t ne $bhit{$k}) && ($bhitforced));
       print "$k -> $t\n" if $verbose;
       $lasttax=$t; 
@@ -159,7 +162,7 @@ sub query {
    $lasttaxnofilter="";			
    foreach my $k(@ranks) {
     foreach my $t(keys %{ $accumnofilter{$k} }) {
-     if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits)) { 
+     if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits) && ($parents{$t}{wranks})) { 
        $lasttaxnofilter=$t; 
                                                                             }
                                         }

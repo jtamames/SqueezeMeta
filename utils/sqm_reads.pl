@@ -68,6 +68,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 
 if(!$numthreads) { $numthreads=12; }
 if(!$evalue) { $evalue=0.001; }
+my $miniden=30;         #-- Minimum identity for the hit
+my $querycover=0;	#-- Minimum coverage of hit in query
 
 print "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 
@@ -214,7 +216,7 @@ foreach my $thissample(keys %allsamples) {
 		if(!$nocog) {
 			print "   [",$currtime->pretty,"]: Running Diamond for COGs\n";
 			my $outfile="$thissampledir/$thisfile.cogs.m8";
-			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
@@ -238,7 +240,7 @@ foreach my $thissample(keys %allsamples) {
 			$currtime=timediff();
 			print "   [",$currtime->pretty,"]: Running Diamond for KEGG\n";
 			my $outfile="$thissampledir/$thisfile.kegg.m8";
-			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
@@ -266,7 +268,7 @@ foreach my $thissample(keys %allsamples) {
 				$currtime=timediff();
 				print "   [",$currtime->pretty,"]: Running Diamond for $extdbname\n";
 				my $outfile="$thissampledir/$thisfile.$extdbname.m8";
-				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --id 30 --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 				#print "Running BlastX: $blastx_command\n";
 				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
 				my $outfile_opt="$thissampledir/$thisfile.$extdbname";

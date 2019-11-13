@@ -194,7 +194,7 @@ sub query {
 		print "   $k\n" if $verbose;
 		foreach my $t(keys %{ $accum{$k} }) {
 			print "      $t $accum{$k}{$t}\n" if $verbose;
-			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0)) { 	#-- REQUIREMENTS FOR VALID LCA
+			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { 	#-- REQUIREMENTS FOR VALID LCA
 				print "$k -> $t\n" if $verbose;
 				$lasttax=$t; 
 				#  if($t) { $string="$t;$string"; }
@@ -212,7 +212,7 @@ sub query {
 				print "   NOFILTER $k\n" if $verbose;
 				foreach my $t(keys %{ $accumnofilter{$k} }) {
 				print "      NOFILTER $t $accumnofilter{$k}{$t}\n" if $verbose;
-					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits)) { $lasttaxnofilter=$t; }
+					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { $lasttaxnofilter=$t; }
 					print "NOFILTER $k -> $t\n" if $verbose;
 					}
 
