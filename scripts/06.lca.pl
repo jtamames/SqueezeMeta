@@ -225,6 +225,7 @@ sub query {
 	
 	#-- Changing nomenclature to abbreviations
 	
+	$abb=~s/sub\w+\:/n_/g;
 	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
 	print outfile2 "$lastorf\t$abb\n";		
