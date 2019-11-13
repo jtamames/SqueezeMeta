@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Last Common Ancestor (LCA) taxonomic assignment from a Diamond file. 
@@ -8,6 +8,7 @@ $|=1;
 
 use strict;
 use DBI;
+use DBD::SQLite::Constants qw/:file_open/;
 use Tie::IxHash;
 use Cwd;
 use lib ".";
@@ -33,7 +34,8 @@ my $thereareresults=0;
 
 #-- Prepare the LCA database (containing the acc -> tax correspondence)
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1}) or die $DBI::errstr;
+my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1, sqlite_open_flags => SQLITE_OPEN_READONLY }) or die $DBI::errstr;
+$dbh->sqlite_busy_timeout( 120 * 1000 );
 
 #-- Reads the taxonomic tree (parsed from NCBI's taxonomy in the parents.txt file)
 

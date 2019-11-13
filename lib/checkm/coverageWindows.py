@@ -188,10 +188,10 @@ class CoverageWindows():
                     try:
                         end += windowSize
                     except:
-                        print '*****************'
-                        print end
-                        print windowSize
-                        print '******************'
+                        print('*****************')
+                        print(end)
+                        print(windowSize)
+                        print('******************')
 
                 coverage = float(sum(readLoader.coverage)) / seqLen
 
@@ -239,13 +239,13 @@ class CoverageWindows():
         if self.logger.getEffectiveLevel() <= logging.INFO:
             sys.stderr.write('\n')
 
-            print ''
-            print '    # total reads: %d' % totalReads
-            print '      # properly mapped reads: %d (%.1f%%)' % (totalMappedReads, float(totalMappedReads) * 100 / totalReads)
-            print '      # duplicate reads: %d (%.1f%%)' % (totalDuplicates, float(totalDuplicates) * 100 / totalReads)
-            print '      # secondary reads: %d (%.1f%%)' % (totalSecondary, float(totalSecondary) * 100 / totalReads)
-            print '      # reads failing QC: %d (%.1f%%)' % (totalFailedQC, float(totalFailedQC) * 100 / totalReads)
-            print '      # reads failing alignment length: %d (%.1f%%)' % (totalFailedAlignLen, float(totalFailedAlignLen) * 100 / totalReads)
-            print '      # reads failing edit distance: %d (%.1f%%)' % (totalFailedEditDist, float(totalFailedEditDist) * 100 / totalReads)
-            print '      # reads not properly paired: %d (%.1f%%)' % (totalFailedProperPair, float(totalFailedProperPair) * 100 / totalReads)
-            print ''
+            print('')
+            print('    # total reads: %d' % totalReads)
+            print('      # properly mapped reads: %d (%.1f%%)' % (totalMappedReads, float(totalMappedReads) * 100 / totalReads))
+            print('      # duplicate reads: %d (%.1f%%)' % (totalDuplicates, float(totalDuplicates) * 100 / totalReads))
+            print('      # secondary reads: %d (%.1f%%)' % (totalSecondary, float(totalSecondary) * 100 / totalReads))
+            print('      # reads failing QC: %d (%.1f%%)' % (totalFailedQC, float(totalFailedQC) * 100 / totalReads))
+            print('      # reads failing alignment length: %d (%.1f%%)' % (totalFailedAlignLen, float(totalFailedAlignLen) * 100 / totalReads))
+            print('      # reads failing edit distance: %d (%.1f%%)' % (totalFailedEditDist, float(totalFailedEditDist) * 100 / totalReads))
+            print('      # reads not properly paired: %d (%.1f%%)' % (totalFailedProperPair, float(totalFailedProperPair) * 100 / totalReads))
+            print('')

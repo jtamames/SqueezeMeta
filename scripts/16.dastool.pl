@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 01/11/2018 Version 0.3.1, (c) Javier Tamames, CNB-CSIC
 #-- Runs DasTool for combining binning results
@@ -72,9 +72,8 @@ else { 				#-- Otherwise, run DAS tool to combine results
 	
 	my $das_command="LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
  
-	print "Running DAS Tool for $methods\n";
-	print "$das_command\n";
-	my $ecode = system $das_command;
-	if($ecode!=0) { die "Error running command:    $das_command"; }
-	}
+print "Running DAS Tool for $methods\n";
+print "$das_command\n";
+my $ecode = system $das_command;
+if($ecode!=0) { warn "Error running command:    $das_command"; }
 

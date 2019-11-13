@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 """
 Part of the SqueezeMeta distribution. 25/03/2018 Original version,
@@ -9,7 +9,6 @@ Generate tabular outputs from SqueezeMeta results.
 USAGE: sqm2tables.py [-h] project_path output_dir
                      [--trusted-functions] [--ignore-unclassified]
                      [--sqm2anvio]
-                     project_path output_dir
 
 OPTIONS:
     --trusted-functions: Include only ORFs with highly trusted KEGG and
@@ -17,6 +16,8 @@ OPTIONS:
     --ignore-unclassified: Ignore ORFs without assigned functions in
         TPM calculation
     --sqm2anvio: Write the required files for sqm2anvio
+    --force-overwrite: Write results even if the output directory
+        already exists.
 """
 
 from os.path import abspath, dirname, realpath
@@ -29,7 +30,7 @@ from collections import defaultdict
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
-from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, TAXRANKS 
+from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS 
 
 
 def main(args):
@@ -43,7 +44,7 @@ def main(args):
     except OSError as e:
         if e.errno != 17:
             raise
-        elif args.sqm2anvio: # We know what we are doing.
+        elif args.sqm2anvio or args.force_overwrite: # We know what we are doing.
             pass
         else:
             print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
@@ -64,23 +65,23 @@ def main(args):
         cog['abundances']  = {k: a.round().astype(int) for k,a in  cog['abundances'].items()}
         pfam['abundances'] = {k: a.round().astype(int) for k,a in pfam['abundances'].items()}
 
-        #write_results(sampleNames, orfs['tpm'], prefix + 'orf.tpm.tsv')
+        #write_row_dict(sampleNames, orfs['tpm'], prefix + 'orf.tpm.tsv')
         if not nokegg:
-            write_results(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
-            write_results(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
+            write_row_dict(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
+            write_row_dict(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
             if 'copyNumber' in kegg:
-                write_results(sampleNames, kegg['copyNumber'], prefix + 'KO.copyNumber.tsv')
+                write_row_dict(sampleNames, kegg['copyNumber'], prefix + 'KO.copyNumber.tsv')
         if not nocog:
-            write_results(sampleNames, cog['abundances'], prefix + 'COG.abund.tsv')
-            write_results(sampleNames, cog['tpm'], prefix + 'COG.tpm.tsv')
+            write_row_dict(sampleNames, cog['abundances'], prefix + 'COG.abund.tsv')
+            write_row_dict(sampleNames, cog['tpm'], prefix + 'COG.tpm.tsv')
             if 'copyNumber' in cog:
-                write_results(sampleNames, cog['copyNumber'], prefix + 'COG.copyNumber.tsv')
-                write_results(sampleNames, {'COG0468': cog['coverages']['COG0468']}, prefix + 'RecA.tsv')
+                write_row_dict(sampleNames, cog['copyNumber'], prefix + 'COG.copyNumber.tsv')
+                write_row_dict(sampleNames, {'COG0468': cog['coverages']['COG0468']}, prefix + 'RecA.tsv')
         if not nopfam:
-            write_results(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
-            write_results(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
+            write_row_dict(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
+            write_row_dict(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
             if 'copyNumber' in pfam:
-                write_results(sampleNames, pfam['copyNumber'], prefix + 'PFAM.copyNumber.tsv')
+                write_row_dict(sampleNames, pfam['copyNumber'], prefix + 'PFAM.copyNumber.tsv')
    
     else:
         # Not super beautiful code. Just read the orf names and create a fake orf dict
@@ -119,38 +120,30 @@ def main(args):
     
     contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
 
-    write_results(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
-    write_results(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
+    write_row_dict(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
+    write_row_dict(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
 
     if not args.sqm2anvio:
         fna_blastx = perlVars['$fna_blastx'] if doublepass else None
         write_orf_seqs(orfs['abundances'].keys(), perlVars['$aafile'], fna_blastx, perlVars['$rnafile'], prefix + 'orf.sequences.tsv')
         write_contig_seqs(perlVars['$contigsfna'], prefix + 'contig.sequences.tsv')
 
-        write_results(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
-        write_results(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
+        write_row_dict(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
+        write_row_dict(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
 
         ### Bins
         if not int(perlVars['$nobins']):
             bin_tpm, bin_tax, bin_tax_wranks = parse_bin_table(perlVars['$bintable'])
-            write_results(TAXRANKS, bin_tax, prefix + 'bin.tax.tsv')
+            write_row_dict(TAXRANKS, bin_tax, prefix + 'bin.tax.tsv')
 
         for idx, rank in enumerate(TAXRANKS):
             tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter_wranks, idx)
-            write_results(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.tsv'.format(rank))
-            #write_results(sampleNames, normalize_abunds(tax_abunds_orfs, 100), prefix + '{}.prokfilter.percent.tsv'.format(rank))
+            write_row_dict(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.tsv'.format(rank))
+            #write_row_dict(sampleNames, normalize_abunds(tax_abunds_orfs, 100), prefix + '{}.prokfilter.percent.tsv'.format(rank))
 
             tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
-            write_results(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
-            #write_results(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
-
-
-
-def write_results(sampleNames, rowDict, outname):
-    with open(outname, 'w') as outfile:
-        outfile.write('\t{}\n'.format('\t'.join(sampleNames)))
-        for row in sorted(rowDict):
-            outfile.write('{}\t{}\n'.format(row, '\t'.join(map(str, rowDict[row]))))
+            write_row_dict(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
+            #write_row_dict(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 
 
 
@@ -161,9 +154,9 @@ def parse_args():
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
     parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
     parser.add_argument('--sqm2anvio', action='store_true', help='Write the required files for sqm2anvio')
+    parser.add_argument('--force-overwrite', action='store_true', help='Write results even if the output directory already exists')
 
     return parser.parse_args()
-
 
 
 

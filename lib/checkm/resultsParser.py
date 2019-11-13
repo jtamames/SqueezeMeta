@@ -19,7 +19,7 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
+
 
 import sys
 import os
@@ -181,7 +181,7 @@ class ResultsParser():
                     raise
 
                 while True:
-                    hit = HP.next()
+                    hit = next(HP)
                     if hit is None:
                         break
                     resultsManager.addHit(hit)
@@ -215,7 +215,7 @@ class ResultsParser():
             header += ['0', '1', '2', '3', '4', '5+']
 
             if coverageBinProfiles != None:
-                for bamId in coverageBinProfiles[coverageBinProfiles.keys()[0]]:
+                for bamId in coverageBinProfiles[list(coverageBinProfiles.keys())[0]]:
                     header += ['Coverage (' + bamId + ')', 'Coverage std (' + bamId + ')']
 
             if DefaultValues.MIN_SEQ_LEN_GC_STD != 1000:
@@ -254,7 +254,7 @@ class ResultsParser():
 
         prettyTableFormats = [1, 2, 3, 9]
 
-        header = self.__getHeader(outputFormat, binIdToBinMarkerSets[binIdToBinMarkerSets.keys()[0]], coverageBinProfiles, bTabTable)
+        header = self.__getHeader(outputFormat, binIdToBinMarkerSets[list(binIdToBinMarkerSets.keys())[0]], coverageBinProfiles, bTabTable)
         if bTabTable or outputFormat not in prettyTableFormats:
             bTabTable = True
             pTable = None
@@ -369,16 +369,16 @@ class ResultsManager():
         """Identify adjacent marker genes and exclude these from the contamination estimate."""
 
         # check for adjacent ORFs with hits to the same marker gene
-        for markerId, hits in self.markerHits.iteritems():
+        for markerId, hits in self.markerHits.items():
 
             bCombined = True
             while bCombined:
-                for i in xrange(0, len(hits)):
+                for i in range(0, len(hits)):
                     orfI = hits[i].target_name
                     scaffoldIdI = orfI[0:orfI.rfind('_')]
 
                     bCombined = False
-                    for j in xrange(i + 1, len(hits)):
+                    for j in range(i + 1, len(hits)):
                         orfJ = hits[j].target_name
                         scaffoldIdJ = orfJ[0:orfJ.rfind('_')]
 
@@ -444,7 +444,7 @@ class ResultsManager():
         """Determine number of unique and multiple hits."""
         uniqueHits = 0
         multiCopyHits = 0
-        for hits in self.markerHits.values():
+        for hits in list(self.markerHits.values()):
             if len(hits) == 1:
                 uniqueHits += 1
             elif len(hits) > 1:
@@ -565,7 +565,7 @@ class ResultsManager():
             # tabular of bin_id, marker, contig_id
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
 
-            for marker, hit_list in self.markerHits.items():
+            for marker, hit_list in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
@@ -576,7 +576,7 @@ class ResultsManager():
         elif outputFormat == 6:
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
 
-            for marker, hit_list in self.markerHits.items():
+            for marker, hit_list in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
@@ -591,7 +591,7 @@ class ResultsManager():
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
 
             contigs = defaultdict(dict)
-            for marker, hit_list in self.markerHits.items():
+            for marker, hit_list in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
@@ -601,8 +601,8 @@ class ResultsManager():
                     except KeyError:
                         contigs[hit.target_name][marker] = 1
 
-            for contig_name, marker_counts in contigs.items():
-                for marker_name, marker_count in marker_counts.items():
+            for contig_name, marker_counts in list(contigs.items()):
+                for marker_name, marker_count in list(marker_counts.items()):
                     if marker_count > 1:
                         if contig_name not in summary:
                             summary[contig_name] = {}
@@ -614,14 +614,14 @@ class ResultsManager():
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
 
             genesWithMarkers = {}
-            for marker, hit_list in self.markerHits.items():
+            for marker, hit_list in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
                 for hit in hit_list:
                     genesWithMarkers[hit.target_name] = genesWithMarkers.get(hit.target_name, []) + [hit]
 
-            for geneId, hits in genesWithMarkers.iteritems():
+            for geneId, hits in genesWithMarkers.items():
                 summary[geneId] = {}
                 for hit in hits:
                     summary[geneId][hit.query_accession] = summary[geneId].get(hit.query_accession, []) + [[hit.ali_from, hit.ali_to]]
@@ -672,14 +672,14 @@ class ResultsManager():
                                                                          self.binStats['Longest scaffold'], self.binStats['Longest contig'])
                 row += '\t%.1f\t%.2f' % (self.binStats['GC'] * 100, self.binStats['GC std'] * 100)
                 row += '\t%.2f\t%d\t%d' % (self.binStats['Coding density'] * 100, self.binStats['Translation table'], self.binStats['# predicted genes'])
-                row += '\t' + '\t'.join([str(data[i]) for i in xrange(6)])
+                row += '\t' + '\t'.join([str(data[i]) for i in range(6)])
 
                 if coverageBinProfiles:
                     if self.binId in coverageBinProfiles:
-                        for _, coverageStats in coverageBinProfiles[self.binId].iteritems():
+                        for _, coverageStats in coverageBinProfiles[self.binId].items():
                             row += '\t%.2f\t%.2f' % (coverageStats[0], coverageStats[1])
                     else:
-                        for bamId in coverageBinProfiles[coverageBinProfiles.keys()[0]]:
+                        for bamId in coverageBinProfiles[list(coverageBinProfiles.keys())[0]]:
                             row += '\t%.2f\t%.2f' % (0, 0)
                 print(row)
             else:
@@ -695,10 +695,10 @@ class ResultsManager():
 
                 if coverageBinProfiles:
                     if self.binId in coverageBinProfiles:
-                        for _, coverageStats in coverageBinProfiles[self.binId].iteritems():
+                        for _, coverageStats in coverageBinProfiles[self.binId].items():
                             row.extend(coverageStats)
                     else:
-                        for bamId in coverageBinProfiles[coverageBinProfiles.keys()[0]]:
+                        for bamId in coverageBinProfiles[list(coverageBinProfiles.keys())[0]]:
                             row.extend([0,0])
 
                 table.add_row(row)
@@ -726,7 +726,7 @@ class ResultsManager():
             print(row)
 
             row = self.binId
-            for count in data.values():
+            for count in list(data.values()):
                 row += '\t' + str(count)
             print(row)
 
@@ -735,7 +735,7 @@ class ResultsManager():
             # tabular of bin_id, marker, contig_id
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
 
-            for marker, hit_list in self.markerHits.items():
+            for marker, hit_list in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
@@ -746,7 +746,7 @@ class ResultsManager():
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
 
             seqsReported = 0
-            for marker, hitList in self.markerHits.items():
+            for marker, hitList in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
@@ -767,15 +767,15 @@ class ResultsManager():
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
 
             seqsReported = 0
-            for marker, hitList in self.markerHits.items():
+            for marker, hitList in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
                 if len(hitList) >= 2:
                     scaffoldsWithMultipleHits = set()
-                    for i in xrange(0, len(hitList)):
+                    for i in range(0, len(hitList)):
                         scaffoldId = hitList[i].target_name[0:hitList[i].target_name.rfind('_')]
-                        for j in xrange(i + 1, len(hitList)):
+                        for j in range(i + 1, len(hitList)):
                             if scaffoldId == hitList[j].target_name[0:hitList[j].target_name.rfind('_')]:
                                 scaffoldsWithMultipleHits.add(hitList[i].target_name)
                                 scaffoldsWithMultipleHits.add(hitList[j].target_name)
@@ -792,14 +792,14 @@ class ResultsManager():
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
 
             genesWithMarkers = {}
-            for marker, hit_list in self.markerHits.items():
+            for marker, hit_list in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
                 for hit in hit_list:
                     genesWithMarkers[hit.target_name] = genesWithMarkers.get(hit.target_name, []) + [hit]
 
-            for geneId, hits in genesWithMarkers.iteritems():
+            for geneId, hits in genesWithMarkers.items():
                 rowStr = self.binId + '\t' + geneId
                 for hit in hits:
                     rowStr += '\t' + hit.query_accession + ',' + str(hit.ali_from) + ',' + str(hit.ali_to)
@@ -816,7 +816,7 @@ class ResultsManager():
             # ## build a dict to link target_names with marker gene alignment information
             markerGenes = binMarkerSets.selectedMarkerSet().getMarkerGenes()
             hitInfo = {}
-            for marker, hit_list in self.markerHits.items():
+            for marker, hit_list in list(self.markerHits.items()):
                 if marker not in markerGenes:
                     continue
 
@@ -836,7 +836,7 @@ class ResultsManager():
 
             filt_seqs = []
             # remove seqs without markers
-            for header in seqs.keys():
+            for header in list(seqs.keys()):
                 gene_name = header.split(" # ")[0]
                 if gene_name in hitInfo:
                     filt_seqs.append(header)

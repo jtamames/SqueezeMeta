@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Looks for contigs contaiing missing markers for the specified bin, or all of them if none given
 

@@ -355,3 +355,14 @@ def write_contig_seqs(contigfile, outname):
         outfile.write('CONTIG\tNTSEQ\n')
         for contig, seq in contigseq.items():
             outfile.write('{}\t{}\n'.format(contig, seq))
+
+
+def write_row_dict(sampleNames, rowDict, outname):
+    """
+    rowDict is a dict where keys are features (rows) and values are arrays with the value for each column.
+    """
+    with open(outname, 'w') as outfile:
+        outfile.write('\t{}\n'.format('\t'.join(sampleNames)))
+        for row in sorted(rowDict):
+            outfile.write('{}\t{}\n'.format(row, '\t'.join(map(str, rowDict[row]))))
+

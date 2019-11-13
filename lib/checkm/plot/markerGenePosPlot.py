@@ -25,7 +25,7 @@ import operator
 
 import numpy as np
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.defaultValues import DefaultValues
 from checkm.util.seqUtils import readFasta
@@ -48,7 +48,7 @@ class MarkerGenePosPlot(AbstractPlot):
         for geneId in markerGeneStats:
             scaffoldId = geneId[0:geneId.rfind('_')]
 
-            for markerId, hitList in markerGeneStats[geneId].iteritems():
+            for markerId, hitList in markerGeneStats[geneId].items():
                 for hit in hitList:
                     start = hit[0]
                     end = hit[1]
@@ -73,7 +73,7 @@ class MarkerGenePosPlot(AbstractPlot):
         seqLens = {}
         longestSeq = 0
         binSize = 0
-        for seqId, seq in seqs.iteritems():
+        for seqId, seq in seqs.items():
             seqLen = len(seq)
             binSize += seqLen
 
@@ -84,7 +84,7 @@ class MarkerGenePosPlot(AbstractPlot):
             if seqLen > longestSeq:
                 longestSeq = seqLen
 
-        sortedSeqLens = sorted(seqLens.iteritems(), key=operator.itemgetter(1), reverse=True)
+        sortedSeqLens = sorted(iter(seqLens.items()), key=operator.itemgetter(1), reverse=True)
 
         MAX_BINS = 100
         plotBinSize = self.roundUpToNearest100(float(longestSeq) / MAX_BINS)
@@ -148,7 +148,7 @@ class MarkerGenePosPlot(AbstractPlot):
                 binPos = int(float(genePos[geneId][0] + geneStartPos) / plotBinSize)
                 markerCount[binPos] += 1
 
-            for i in xrange(0, len(markerCount)):
+            for i in range(0, len(markerCount)):
                 if markerCount[i] < len(colours):
                     axes.add_patch(Rectangle((i + 0.1, binPosX - 0.4 * rowBinHeight), 0.8, 0.8 * rowBinHeight, facecolor=colours[markerCount[i]], lw=0.2))
                 else:
@@ -177,7 +177,7 @@ class MarkerGenePosPlot(AbstractPlot):
             line.set_color(self.axesColour)
             line.set_ms(2)
 
-        for loc, spine in axes.spines.iteritems():
+        for loc, spine in axes.spines.items():
             if loc in ['left', 'right', 'top']:
                 spine.set_color('none')
             else:

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl -w
 
 ### Modified from MaxBin version 2.2.6 
 ### by Fernando Puente-Sanchez on 2019-MAR-28, for compatibility with the SqueezeMeta pipeline.

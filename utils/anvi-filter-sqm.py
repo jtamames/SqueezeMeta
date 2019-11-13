@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 """
 Select the anvi'o splits (which are themselves contigs, or parts of
 long contigs) that fulfill a set of conditions, and visualize them

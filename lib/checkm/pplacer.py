@@ -93,17 +93,17 @@ class PplacerRunner():
                 markerId = f[0:f.find('.masked.faa')]
                 seqs = readFasta(os.path.join(alignOutputDir, f))
 
-                for seqId, seq in seqs.iteritems():
+                for seqId, seq in seqs.items():
                     binId = seqId[0:seqId.find(DefaultValues.SEQ_CONCAT_CHAR)]
 
                     alignments[markerId][binId] = seq
                     binIds.add(binId)
 
         # get all markers and their lengths
-        markerIds = resultsParser.models[resultsParser.models.keys()[0]].keys()
+        markerIds = list(resultsParser.models[list(resultsParser.models.keys())[0]].keys())
         markerIdLens = {}
         for markerId in markerIds:
-            markerIdLens[markerId] = resultsParser.models[resultsParser.models.keys()[0]][markerId].leng
+            markerIdLens[markerId] = resultsParser.models[list(resultsParser.models.keys())[0]][markerId].leng
 
         # create concatenated alignment
         self.logger.info('  Concatenating alignments.')

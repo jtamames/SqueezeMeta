@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # (c) Javier Tamames, CNB-CSIC
 
@@ -135,6 +135,8 @@ if(!$nomaxbin) { $nomaxbin=0; }
 if(!$nometabat) { $nometabat=0; }
 if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
 if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
+
+$mode=~tr/A-Z/a-z/;
 
 #-- Override settings if running on lowmem or MinION mode.
 if($lowmem) { $blocksize=3; $canumem=15; }
@@ -915,7 +917,7 @@ sub pipeline {
 			my ($wsize,$rest);
 			if(-e $firstfile) {
 				my $wc=qx(wc -l $firstfile);
-				my($wsize,$rest)=split(/\s+/,$wc);
+				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
 			if($wsize<2) {
