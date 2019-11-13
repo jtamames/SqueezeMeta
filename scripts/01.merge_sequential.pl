@@ -19,7 +19,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
+our($scriptdir, $resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
 
 open(outtr,">$tempdir/merge.order");
 
@@ -41,7 +41,7 @@ else {
 		$mergestep++;	
 		if(-e $finalcontigs) { system("rm $finalcontigs"); }
 		$merged="$interdir/merged_$mergestep.$project.fasta";
-		my $tomerge=system("/media/mcm/jtamames/kmerdist.pl $project");
+		my $tomerge=system("$scriptdir/kmerdist.pl $project");
 		open(infile0,"$tempdir/$project.2merge") || die;
 		$_=<infile0>;
 		chomp;
