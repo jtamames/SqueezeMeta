@@ -196,7 +196,7 @@ sub query {
 		print "   $k\n" if $verbose;
 		foreach my $t(keys %{ $accum{$k} }) {
 			print "      $t $accum{$k}{$t}\n" if $verbose;
-			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0)) { 	#-- REQUIREMENTS FOR VALID LCA
+			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { 	#-- REQUIREMENTS FOR VALID LCA
 				print "$k -> $t\n" if $verbose;
 				$lasttax=$t; 
 				#  if($t) { $string="$t;$string"; }
@@ -214,7 +214,7 @@ sub query {
 				print "   NOFILTER $k\n" if $verbose;
 				foreach my $t(keys %{ $accumnofilter{$k} }) {
 				print "      NOFILTER $t $accumnofilter{$k}{$t}\n" if $verbose;
-					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits)) { $lasttaxnofilter=$t; }
+					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { $lasttaxnofilter=$t; }
 					print "NOFILTER $k -> $t\n" if $verbose;
 					}
 
@@ -227,6 +227,7 @@ sub query {
 	
 	#-- Changing nomenclature to abbreviations
 	
+	$abb=~s/sub\w+\:/n_/g;
 	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
 	print outfile2 "$lastorf\t$abb\n";		

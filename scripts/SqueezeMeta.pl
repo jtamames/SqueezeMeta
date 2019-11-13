@@ -38,7 +38,7 @@ Usage: SqueezeMeta.pl -m <mode> -p <project name> -s <samples file> -f <sequence
 Arguments:
 
  Mandatory parameters:
-   -m <mode>: Mode (sequential, coassembly, merged) (REQUIRED)
+   -m <mode>: Mode (sequential, coassembly, merged, seqmerge) (REQUIRED)
    -s|-samples <samples file>: Samples file (REQUIRED)
    -f|-seq <sequence dir>: fastq/fasta read files' directory (REQUIRED)
    -p <project name>: Project name (REQUIRED in coassembly and merged modes)
@@ -154,9 +154,9 @@ if($hel) { die "$helptext\n"; }
 if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if(!$mode) { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
-if(($mode!~/sequential/i) && (!$project)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
-if(($mode=~/sequential/i) && ($project)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
-if($mode!~/sequential|coassembly|merged/i) { $dietext.="UNRECOGNIZED run mode $mode\n"; }
+if(($mode!~/sequential$/i) && (!$project)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
+if(($mode=~/sequential$/i) && ($project)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
+if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED run mode $mode\n"; }
 if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
@@ -565,7 +565,7 @@ sub pipeline {
 
 		#-- In merged mode. Includes merging assemblies
 
-	elsif($mode=~/merged/) {
+	elsif($mode=~/merged|seqmerge/) {
 		if(!$extassembly) {
 			my $scriptname="01.run_assembly_merged.pl";
 			print outfile3 "1\t$scriptname\n";
@@ -580,7 +580,9 @@ sub pipeline {
 			#-- Merging individual assemblies 
 			#-- We still do it in $extassembly for computing contig lengths and prinseq stuff
  
-		my $scriptname="01.merge_assemblies.pl";
+		my $scriptname;
+		if($mode eq "merged") { $scriptname="01.merge_assemblies.pl"; }
+		elsif($mode eq "seqmerge") { $scriptname="01.merge_sequential.pl"; }
 		print outfile3 "1.5\t$scriptname\n";
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n";
@@ -856,7 +858,7 @@ sub pipeline {
 			print "[",$currtime->pretty,"]: STEP14 -> MAXBIN BINNING: $scriptname\n";
 			if($longtrace) { print " (This will use MaxBin for creating a set of bins)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP14 -> $scriptname\n"; }
 			my $dirbin=$bindirs{maxbin};
 			opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
@@ -881,7 +883,7 @@ sub pipeline {
 			print "[",$currtime->pretty,"]: STEP15 -> METABAT BINNING: $scriptname\n";
 			if($longtrace) { print " (This will use MetaBat for creating a set of bins)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
 			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
@@ -896,7 +898,7 @@ sub pipeline {
 			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. No Metabat2 results!\n"; }
 		}
  
-    #-------------------------------- STEP16: DAS Tool merging of binning results (only for merged or coassembly modes)		
+    #-------------------------------- STEP16: DAS Tool merging of binning results	
 	
 		if(($rpoint<=16)) {
 			my $scriptname="16.dastool.pl";
@@ -906,7 +908,7 @@ sub pipeline {
 			print "[",$currtime->pretty,"]: STEP16 -> DAS_TOOL MERGING: $scriptname\n";
 			if($longtrace) { print " (This will use DASTool for creating a consensus between the sets of bins created in previous steps)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
 			opendir(indir2,$dirbin) || warn "Can't open $dirbin directory, no DAStool results\n";
 			my @binfiles=grep(/fa/,readdir indir2);
