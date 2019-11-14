@@ -53,7 +53,7 @@ class ProdigalRunner():
         # gather statistics about query file
         seqs = readFasta(query)
         totalBases = 0
-        for seqId, seq in seqs.iteritems():
+        for seqId, seq in seqs.items():
             totalBases += len(seq)
 
         # call ORFs with different translation tables and select the one with the highest coding density
@@ -86,7 +86,7 @@ class ProdigalRunner():
             prodigalParser = ProdigalGeneFeatureParser(gffFile)
 
             codingBases = 0
-            for seqId, seq in seqs.iteritems():
+            for seqId, seq in seqs.items():
                 codingBases += prodigalParser.codingBases(seqId)
 
             if totalBases != 0:
@@ -208,7 +208,7 @@ class ProdigalGeneFeatureParser():
         # safe way to calculate coding bases as it accounts
         # for the potential of overlapping genes
         codingBaseMask = np.zeros(self.lastCodingBase[seqId])
-        for pos in self.genes[seqId].values():
+        for pos in list(self.genes[seqId].values()):
             codingBaseMask[pos[0]:pos[1] + 1] = 1
 
         return codingBaseMask

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 28/01/2019 for version 0.5.0, (c) Javier Tamames, CNB-CSIC
 #-- Runs Diamond blastx for unmapped parts of the contigs, annotates tax and functions for the hits, and merge them with prodigal ORFs

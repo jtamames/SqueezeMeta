@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Creates alltaxlist.txt, needed for mcount
 

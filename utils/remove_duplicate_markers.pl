@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Recursive curation of bins. Attempts to remove contigs with duplicated marker genes to improve statistics
 #-- (c) Javier Tamames, 2018

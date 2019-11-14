@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 ###############################################################################
 #
@@ -64,9 +64,9 @@ def version():
 
 
 def printHelp():
-    print ''
-    print '                ...::: CheckM v' + version() + ' :::...'''
-    print '''\
+    print('')
+    print('                ...::: CheckM v' + version() + ' :::...''')
+    print('''\
 
   Lineage-specific marker set:
     tree         -> Place bins in the reference genome tree
@@ -125,7 +125,7 @@ def printHelp():
   Use 'checkm data setRoot' to specify the location of CheckM database files.
 
   Usage: checkm <command> -h for command specific help
-    '''
+    ''')
 
 if __name__ == '__main__':
     # initialize the options parser
@@ -370,7 +370,7 @@ Example: checkm qa ./output/lineage.ms ./output
                                         description='Create GC histogram and delta-GC plot.',
                                         epilog='Example: checkm gc_plot ./bins ./plots 95')
 
-    plot_gc_parser.add_argument('distributions', help='reference distribution(s) to plot; integer between 0 and 100', nargs='+', type=int, choices=xrange(0, 101), default=95, metavar='dist_value')
+    plot_gc_parser.add_argument('distributions', help='reference distribution(s) to plot; integer between 0 and 100', nargs='+', type=int, choices=range(0, 101), default=95, metavar='dist_value')
     plot_gc_parser.add_argument('-w', '--gc_window_size', help="window size used to calculate GC histogram", type=int, default=5000)
     plot_gc_parser.add_argument('-b', '--gc_bin_width', help="width of GC bars in histogram", type=float, default=0.01)
     plot_gc_parser.add_argument('-q', '--quiet', dest='bQuiet', action="store_true", default=False, help="suppress console output")
@@ -382,7 +382,7 @@ Example: checkm qa ./output/lineage.ms ./output
                                         description='Create coding density (CD) histogram and delta-CD plot.',
                                         epilog='Example: checkm coding_plot ./output ./bins ./plots 95')
 
-    plot_coding_parser.add_argument('distributions', help='reference distribution(s) to plot; integer between 0 and 100', nargs='+', type=int, choices=xrange(0, 101), default=95, metavar='dist_value')
+    plot_coding_parser.add_argument('distributions', help='reference distribution(s) to plot; integer between 0 and 100', nargs='+', type=int, choices=range(0, 101), default=95, metavar='dist_value')
     plot_coding_parser.add_argument('-w', '--cd_window_size', help="window size used to calculate CD histogram", type=int, default=10000)
     plot_coding_parser.add_argument('-b', '--cd_bin_width', help="width of CD bars in histogram", type=float, default=0.01)
     plot_coding_parser.add_argument('-q', '--quiet', dest='bQuiet', action="store_true", default=False, help="suppress console output")
@@ -394,7 +394,7 @@ Example: checkm qa ./output/lineage.ms ./output
                                         description='Create tetranucleotide distance (TD) histogram and delta-TD plot.',
                                         epilog='Example: checkm tetra_plot ./output ./bins ./plots tetra.tsv 95')
     plot_tetra_parser.add_argument('tetra_profile', help='tetranucleotide profiles for each bin (see tetra command)')
-    plot_tetra_parser.add_argument('distributions', help='reference distribution(s) to plot; integer between 0 and 100', nargs='+', type=int, choices=xrange(0, 101), default=95, metavar='dist_value')
+    plot_tetra_parser.add_argument('distributions', help='reference distribution(s) to plot; integer between 0 and 100', nargs='+', type=int, choices=range(0, 101), default=95, metavar='dist_value')
     plot_tetra_parser.add_argument('-w', '--td_window_size', help="window size used to calculate TD histogram", type=int, default=5000)
     plot_tetra_parser.add_argument('-b', '--td_bin_width', help="width of TD bars in histogram", type=float, default=0.01)
     plot_tetra_parser.add_argument('-q', '--quiet', dest='bQuiet', action="store_true", default=False, help="suppress console output")
@@ -408,7 +408,7 @@ Example: checkm qa ./output/lineage.ms ./output
     plot_dist_parser.add_argument('bin_folder', help="folder containing bins to plot (fasta format)")
     plot_dist_parser.add_argument('plot_folder', help="folder to hold plots")
     plot_dist_parser.add_argument('tetra_profile', help='tetranucleotide profiles for each sequence (see tetra command)')
-    plot_dist_parser.add_argument('distributions', help='reference distribution(s) to plot; integer between 0 and 100', nargs='+', type=int, choices=xrange(0, 101), default=95, metavar='dist_value')
+    plot_dist_parser.add_argument('distributions', help='reference distribution(s) to plot; integer between 0 and 100', nargs='+', type=int, choices=range(0, 101), default=95, metavar='dist_value')
 
     plot_dist_parser.add_argument('--image_type', default='png', choices=['eps', 'pdf', 'png', 'ps', 'svg'], help='desired image type')
     plot_dist_parser.add_argument('--dpi', type=int, default=600, help='desired DPI of output image')
@@ -652,7 +652,7 @@ i.e. checkm unique will now fail''')
     outlier_parser.add_argument('bin_folder', help="folder containing bins (fasta format)")
     outlier_parser.add_argument('tetra_profile', help='tetranucleotide profiles for each sequence (see tetra command)')
     outlier_parser.add_argument('output_file', help="print results to file")
-    outlier_parser.add_argument('-d', '--distributions', help='reference distribution used to identify outliers; integer between 0 and 100', type=int, choices=xrange(0, 101), default=95, metavar='dist_value')
+    outlier_parser.add_argument('-d', '--distributions', help='reference distribution used to identify outliers; integer between 0 and 100', type=int, choices=range(0, 101), default=95, metavar='dist_value')
     outlier_parser.add_argument('-r', '--report_type', help="report sequences that are outliers in 'all' or 'any' reference distribution", choices=['any', 'all'], default='any')
     outlier_parser.add_argument('-x', '--extension', default='fna', help="extension of bins (other files in folder are ignored)")
     outlier_parser.add_argument('-q', '--quiet', dest='bQuiet', action="store_true", default=False, help="suppress console output")
@@ -717,7 +717,7 @@ i.e. checkm unique will now fail''')
         else:
             checkmParser.parseOptions(args)
     except SystemExit:
-        print "\n  Controlled exit resulting from an unrecoverable error or warning."
+        print("\n  Controlled exit resulting from an unrecoverable error or warning.")
     except:
-        print "\nUnexpected error:", sys.exc_info()[0]
+        print("\nUnexpected error:", sys.exc_info()[0])
         raise

@@ -21,7 +21,7 @@
 
 import numpy as np
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.binTools import BinTools
 from checkm.util.seqUtils import readFasta, baseCount
@@ -54,7 +54,7 @@ class GcPlots(AbstractPlot):
 
         data = []
         seqLens = []
-        for _, seq in seqs.iteritems():
+        for _, seq in seqs.items():
             start = 0
             end = self.options.gc_window_size
 
@@ -105,7 +105,7 @@ class GcPlots(AbstractPlot):
         for line in axesHist.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in axesHist.spines.iteritems():
+        for loc, spine in axesHist.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:
@@ -125,13 +125,13 @@ class GcPlots(AbstractPlot):
 
         # plot reference distributions
         for distToPlot in distributionsToPlot:
-            closestGC = findNearest(np.array(dist.keys()), meanGC)
+            closestGC = findNearest(np.array(list(dist.keys())), meanGC)
 
             # find closest distribution values
-            sampleSeqLen = dist[closestGC].keys()[0]
+            sampleSeqLen = list(dist[closestGC].keys())[0]
             d = dist[closestGC][sampleSeqLen]
-            gcLowerBoundKey = findNearest(d.keys(), (100 - distToPlot) / 2.0)
-            gcUpperBoundKey = findNearest(d.keys(), (100 + distToPlot) / 2.0)
+            gcLowerBoundKey = findNearest(list(d.keys()), (100 - distToPlot) / 2.0)
+            gcUpperBoundKey = findNearest(list(d.keys()), (100 + distToPlot) / 2.0)
 
             xL = []
             xU = []
@@ -182,7 +182,7 @@ class GcPlots(AbstractPlot):
         for line in axesDeltaGC.xaxis.get_ticklines():
             line.set_color(self.axesColour)
 
-        for loc, spine in axesDeltaGC.spines.iteritems():
+        for loc, spine in axesDeltaGC.spines.items():
             if loc in ['right', 'top']:
                 spine.set_color('none')
             else:

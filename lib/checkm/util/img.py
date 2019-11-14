@@ -195,7 +195,7 @@ class IMG(object):
         genomeIdsOfInterest = set()
         for genomeId in metadata:
             bKeep = True
-            for r in xrange(0, len(searchTaxa)):
+            for r in range(0, len(searchTaxa)):
                 if taxonStr == 'universal':
                     bKeep = True
                 elif taxonStr == 'prokaryotes' and (metadata[genomeId]['taxonomy'][0] == 'Bacteria' or metadata[genomeId]['taxonomy'][0] == 'Archaea'):
@@ -222,8 +222,8 @@ class IMG(object):
 
     def lineageStats(self, metadata, mostSpecificRank):
         stats = {}
-        for r in xrange(0, mostSpecificRank + 1):
-            for _, data in metadata.iteritems():
+        for r in range(0, mostSpecificRank + 1):
+            for _, data in metadata.items():
                 taxaStr = ';'.join(data['taxonomy'][0:r + 1])
                 stats[taxaStr] = stats.get(taxaStr, 0) + 1
 
@@ -231,9 +231,9 @@ class IMG(object):
 
     def lineagesSorted(self, metadata, mostSpecificRank=6):
         lineages = []
-        for r in xrange(0, mostSpecificRank + 1):
+        for r in range(0, mostSpecificRank + 1):
             taxa = set()
-            for _, data in metadata.iteritems():
+            for _, data in metadata.items():
                 if 'unclassified' not in data['taxonomy'][0:r + 1]:
                     taxa.add(';'.join(data['taxonomy'][0:r + 1]))
 
@@ -274,7 +274,7 @@ class IMG(object):
                     geneIdToFamilyIds[geneId].add(clusterId)
                     count[clusterId] = count.get(clusterId, 0) + 1
 
-            for clusterId, c in count.iteritems():
+            for clusterId, c in count.items():
                 if clusterId not in table:
                     table[clusterId] = {}
                 table[clusterId][genomeId] = c
@@ -288,7 +288,7 @@ class IMG(object):
 
     def filterGeneCountTable(self, genomeIds, table, ubiquityThreshold=0.9, singleCopyThreshold=0.9):
         idsToFilter = []
-        for pfamId, genomeCounts in table.iteritems():
+        for pfamId, genomeCounts in table.items():
             ubiquity = 0
             singleCopy = 0
             for genomeId in genomeIds:
@@ -342,7 +342,7 @@ class IMG(object):
             # are a few cases where this isn't tree (?) so only PFAMs/TIGRFAMs
             # with GFF entries are considered.
             familyIdToScaffoldIds = {}
-            for pfamId, geneIds in pfamIdToGeneIds.iteritems():
+            for pfamId, geneIds in pfamIdToGeneIds.items():
                 scaffolds = []
                 for geneId in geneIds:
                     scaffold = genePosition.get(geneId, None)
@@ -352,7 +352,7 @@ class IMG(object):
                 if scaffolds:
                     familyIdToScaffoldIds[pfamId] = scaffolds
 
-            for tigrId, geneIds in tigrIdToGeneIds.iteritems():
+            for tigrId, geneIds in tigrIdToGeneIds.items():
                 scaffolds = []
                 for geneId in geneIds:
                     scaffold = genePosition.get(geneId, None)
@@ -362,9 +362,9 @@ class IMG(object):
                 if scaffold:
                     familyIdToScaffoldIds[tigrId] = scaffolds
         except:
-            print '[BUG]: __genomeIdToClusterScaffold'
-            print sys.exc_info()[0]
-            print genomeId, geneId, tigrId, pfamId
+            print('[BUG]: __genomeIdToClusterScaffold')
+            print(sys.exc_info()[0])
+            print(genomeId, geneId, tigrId, pfamId)
             sys.exit()
 
         return familyIdToScaffoldIds
@@ -400,7 +400,7 @@ class IMG(object):
         seqs = readFasta(genomeFile)
 
         seqLens = {}
-        for seqId, seq in seqs.iteritems():
+        for seqId, seq in seqs.items():
             seqLens[seqId] = len(seq)
 
         return seqLens
@@ -462,7 +462,7 @@ class IMG(object):
             # are a few cases where this isn't tree (?) so only PFAMs/TIGRFAMs
             # with GFF entries are considered.
             familyIdToGenomePositions = {}
-            for pfamId, geneIds in pfamIdToGeneIds.iteritems():
+            for pfamId, geneIds in pfamIdToGeneIds.items():
                 positions = []
                 for geneId in geneIds:
                     position = genePosition.get(geneId, None)
@@ -472,7 +472,7 @@ class IMG(object):
                 if positions:
                     familyIdToGenomePositions[pfamId] = positions
 
-            for tigrId, geneIds in tigrIdToGeneIds.iteritems():
+            for tigrId, geneIds in tigrIdToGeneIds.items():
                 positions = []
                 for geneId in geneIds:
                     position = genePosition.get(geneId, None)
@@ -482,9 +482,9 @@ class IMG(object):
                 if positions:
                     familyIdToGenomePositions[tigrId] = positions
         except:
-            print '[BUG]: __genomeFamilyPositions'
-            print sys.exc_info()[0]
-            print genomeId, geneId, tigrId, pfamId
+            print('[BUG]: __genomeFamilyPositions')
+            print(sys.exc_info()[0])
+            print(genomeId, geneId, tigrId, pfamId)
             sys.exit()
 
         return familyIdToGenomePositions

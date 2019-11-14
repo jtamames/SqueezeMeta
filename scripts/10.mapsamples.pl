@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 28/01/2019 for version 0.4.3, (c) Javier Tamames, CNB-CSIC
 #-- Calculates coverage/RPKM for genes/contigs by mapping back reads to the contigs and count how many fall in each gene/contig
@@ -270,7 +270,7 @@ sub sqm_counter {
 	foreach my $print(sort keys %accum) { 
 		my $longt=$long_gen{$print};
 		my $coverage=$accum{$print}{bases}/$longt;
-		my $rpkm=($accum{$print}{reads}*1000000)/($longt*$totalreadcount);
+		my $rpkm=($accum{$print}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
 		my $tpm=$rpk{$print}/$accumrpk;
 		printf outfile3 "$print\t$longt\t$accum{$print}{reads}\t$accum{$print}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm; 
 		}
@@ -336,7 +336,7 @@ sub contigcov {
 		my $longt=$lencontig{$rc};
 		next if(!$longt);
 		my $coverage=$readcount{$rc}{lon}/$longt;
-		my $rpkm=($readcount{$rc}{reads}*1000000000)/($longt*$totalreadcount);
+		my $rpkm=($readcount{$rc}{reads}*1000000000)/(($longt/1000)*$totalreadcount); #-- Length of contig in Kbs
 		my $tpm=$rp{$rc}/$accumrpk;
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
 		else { printf outfile4 "$rc\t%.2f\t%.1f\t%.1f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }

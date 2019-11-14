@@ -361,9 +361,9 @@ class OptionsParser():
             # report marker gene data
             fout = open(os.path.join(alignmentOutputFolder, 'alignment_info.tsv'), 'w')
             fout.write('Marker Id\tLength (bp)\n')
-            markerIds = resultsParser.models[resultsParser.models.keys()[0]].keys()
+            markerIds = list(resultsParser.models[list(resultsParser.models.keys())[0]].keys())
             for markerId in markerIds:
-                fout.write('%s\t%d\n' % (markerId, resultsParser.models[resultsParser.models.keys()[0]][markerId].leng))
+                fout.write('%s\t%d\n' % (markerId, resultsParser.models[list(resultsParser.models.keys())[0]][markerId].leng))
             fout.close()
 
             self.logger.info('')
@@ -598,12 +598,12 @@ class OptionsParser():
 
         seqIds = []
         coverageProfiles = []
-        for binId, seqDict in coverageStats.iteritems():
-            for seqId, bamDict in seqDict.iteritems():
+        for binId, seqDict in coverageStats.items():
+            for seqId, bamDict in seqDict.items():
                 seqIds.append(seqId)
 
                 coverages = []
-                for _, coverage in bamDict.iteritems():
+                for _, coverage in bamDict.items():
                     coverages.append(coverage)
 
                 coverageProfiles.append(coverages)

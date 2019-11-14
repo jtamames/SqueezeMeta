@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #===============================================================================
 #   Author: Robert SCHMIEDER, Computational Science Research Center @ SDSU, CA

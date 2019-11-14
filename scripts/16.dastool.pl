@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 01/11/2018 Version 0.3.1, (c) Javier Tamames, CNB-CSIC
 #-- Runs DasTool for combining binning results
@@ -26,15 +26,17 @@ system("mkdir $daspath");
 #-- Creating contigs in bins tables
 
 print "Creating tables of contigs in bins... ";
-my($tables,$methods,$thiseq);
+my($tables,$methods,$thiseq,$numbinmethods);
 my @files;
 foreach my $binmethod(sort keys %bindirs) {
 	my $bindir=$bindirs{$binmethod};
-	$tables.="$daspath/$binmethod.table,";
-	$methods.="$binmethod,";
 	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 	my @fastafiles=grep(/fasta$|fa$/,readdir indir1);
 	closedir indir1;
+	if($#fastafiles<0) { print "No results for $binmethod, skipping\n"; next; }	#-- This indicates that for some reason the binning for that method failed
+	$numbinmethods++;
+	$tables.="$daspath/$binmethod.table,";
+	$methods.="$binmethod,";
 	open(outfile1,">$daspath/$binmethod.table") || die "Can't open $daspath/$binmethod.table for writing\n";
 	foreach my $tfil(@fastafiles) {
 		my $bin=$tfil;
@@ -55,13 +57,23 @@ chop $tables;
 chop $methods;
 print "done\n";
 
-#-- Run DAS tool
+if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta files from it
+	my $gmet=$methods;
+	print "Copying $gmet results and skipping DAS Tool\n";
+	my $bindir=$bindirs{$gmet};
+	system("mkdir $resultpath/DAS/$project\_DASTool\_bins");
+	my $command="cp $bindir/*fasta $resultpath/DAS/$project\_DASTool\_bins";
+	system $command;
+	my $command="cp $bindir/*fa $resultpath/DAS/$project\_DASTool\_bins";
+	system $command;
+	}
 
-#my $das_command="PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --proteins $aafile --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath"; 
-my $das_command="LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
+else { 				#-- Otherwise, run DAS tool to combine results
+	
+	my $das_command="LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
  
-print "Running DAS Tool for $methods\n";
- print "$das_command\n";
-my $ecode = system $das_command;
-if($ecode!=0) { die "Error running command:    $das_command"; }
-
+	print "Running DAS Tool for $methods\n";
+	print "$das_command\n";
+	my $ecode = system $das_command;
+	if($ecode!=0) { warn "Error running command:    $das_command"; }
+	}

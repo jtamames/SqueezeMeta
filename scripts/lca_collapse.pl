@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 29/01/2019 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Last Common Ancestor (LCA) taxonomic assignment from a Diamond file. For blastx collapsed format 

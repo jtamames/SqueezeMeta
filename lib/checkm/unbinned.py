@@ -41,7 +41,7 @@ class Unbinned():
         for binFile in binFiles:
             seqs = readFasta(binFile)
             binnedSeqs.update(seqs)
-            for seq in seqs.values():
+            for seq in list(seqs.values()):
                 totalBinnedBases += len(seq)
 
         self.logger.info('    Read %d (%.2f Mbp) binned sequences.' % (len(binnedSeqs), float(totalBinnedBases) / 1e6))
@@ -50,7 +50,7 @@ class Unbinned():
         self.logger.info('  Reading all sequences.')
         allSeqs = readFasta(seqFile)
         totalBases = 0
-        for seq in allSeqs.values():
+        for seq in list(allSeqs.values()):
             totalBases += len(seq)
         self.logger.info('    Read %d (%.2f Mbp) sequences.' % (len(allSeqs), float(totalBases) / 1e6))
 
@@ -63,7 +63,7 @@ class Unbinned():
 
         unbinnedCount = 0
         unbinnedBases = 0
-        for seqId, seq in allSeqs.iteritems():
+        for seqId, seq in allSeqs.items():
             if seqId not in binnedSeqs:
                 if len(seq) >= minSeqLen:
                     unbinnedCount += 1

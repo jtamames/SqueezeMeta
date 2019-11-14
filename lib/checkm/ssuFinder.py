@@ -215,7 +215,7 @@ class SSU_Finder(object):
 
             seqInfo = self.__readHits(os.path.join(outputDir, 'ssu' + '.' + domain + '.txt'), domain, evalueThreshold)
             if len(seqInfo) > 0:
-                for seqId, seqHits in seqInfo.iteritems():
+                for seqId, seqHits in seqInfo.items():
                     for hit in seqHits:
                         self.__addHit(hits, seqId, hit, concatenateThreshold)
 
@@ -223,8 +223,8 @@ class SSU_Finder(object):
 
         # find best domain hit for each sequence
         bestHits = {}
-        for _, hits in hitsPerDomain.iteritems():
-            for seqId, info in hits.iteritems():
+        for _, hits in hitsPerDomain.items():
+            for seqId, info in hits.items():
                 if '-#' in seqId:
                     seqId = seqId[0:seqId.rfind('-#')]
 

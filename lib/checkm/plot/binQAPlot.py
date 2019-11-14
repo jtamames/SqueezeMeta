@@ -27,7 +27,7 @@ from operator import itemgetter
 import numpy as np
 import matplotlib as mpl
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 from checkm.common import binIdFromFilename
 

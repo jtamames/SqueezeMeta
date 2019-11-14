@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Restarts interrupted SqueezeMeta processes
 
@@ -368,7 +368,7 @@ my $DAS_Tool_empty=0;
 			
     #-------------------------------- STEP14: Running Maxbin (only for merged or coassembly modes)		
 	
-	if(($mode!~/sequential/i) && ($numsamples>1) && (!$nobins)) {	       
+	if(!$nobins) {	       
 		if(($rpoint<=14) && (!$nomaxbin)) {
 			my $scriptname="14.bin_maxbin.pl";
 			print outfile1 "14\t$scriptname\n";
@@ -376,7 +376,7 @@ my $DAS_Tool_empty=0;
 			print outfile2 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP14 -> MAXBIN BINNING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP14 -> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP14 -> $scriptname\n"; }
 			my $dirbin=$bindirs{maxbin};
 			opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/maxbin.*fasta/,readdir indir1);
@@ -396,7 +396,7 @@ my $DAS_Tool_empty=0;
 			print outfile2 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP15 -> METABAT BINNING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP15 -> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
 			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
@@ -416,7 +416,7 @@ my $DAS_Tool_empty=0;
 			print outfile2 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
 			print "[",$currtime->pretty,"]: STEP16 -> DAS_TOOL MERGING: $scriptname\n";
 			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
-			if($ecode!=0){ die "Stopping in STEP16-> $scriptname\n"; }
+			if($ecode!=0){ warn "ERROR in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
 			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);

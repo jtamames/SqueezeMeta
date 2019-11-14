@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 
@@ -31,6 +31,7 @@ system("wget -U '' -P $download_dir http://wwwuser.cnb.csic.es/~squeezem/test.ta
 ### Download rdp classifier.
 print("Downloading and unpacking RDP classifier...\n");
 system("wget -U '' -P $libpath http://wwwuser.cnb.csic.es/~squeezem/classifier.tar.gz; tar -xvzf $libpath/classifier.tar.gz -C $libpath; rm $libpath/classifier.tar.gz");
+system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar ."); # Add symlink
 
 
 ### Download general db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)

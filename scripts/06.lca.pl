@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Last Common Ancestor (LCA) taxonomic assignment from a Diamond file. 
@@ -8,6 +8,7 @@ $|=1;
 
 use strict;
 use DBI;
+use DBD::SQLite::Constants qw/:file_open/;
 use Tie::IxHash;
 use Cwd;
 use lib ".";
@@ -33,7 +34,8 @@ my $thereareresults=0;
 
 #-- Prepare the LCA database (containing the acc -> tax correspondence)
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1}) or die $DBI::errstr;
+my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1, sqlite_open_flags => SQLITE_OPEN_READONLY }) or die $DBI::errstr;
+$dbh->sqlite_busy_timeout( 120 * 1000 );
 
 #-- Reads the taxonomic tree (parsed from NCBI's taxonomy in the parents.txt file)
 
@@ -194,7 +196,7 @@ sub query {
 		print "   $k\n" if $verbose;
 		foreach my $t(keys %{ $accum{$k} }) {
 			print "      $t $accum{$k}{$t}\n" if $verbose;
-			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0)) { 	#-- REQUIREMENTS FOR VALID LCA
+			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { 	#-- REQUIREMENTS FOR VALID LCA
 				print "$k -> $t\n" if $verbose;
 				$lasttax=$t; 
 				#  if($t) { $string="$t;$string"; }
@@ -212,7 +214,7 @@ sub query {
 				print "   NOFILTER $k\n" if $verbose;
 				foreach my $t(keys %{ $accumnofilter{$k} }) {
 				print "      NOFILTER $t $accumnofilter{$k}{$t}\n" if $verbose;
-					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits)) { $lasttaxnofilter=$t; }
+					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { $lasttaxnofilter=$t; }
 					print "NOFILTER $k -> $t\n" if $verbose;
 					}
 
@@ -225,6 +227,7 @@ sub query {
 	
 	#-- Changing nomenclature to abbreviations
 	
+	$abb=~s/sub\w+\:/n_/g;
 	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
 	print outfile2 "$lastorf\t$abb\n";		

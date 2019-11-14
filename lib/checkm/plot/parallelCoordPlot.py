@@ -23,7 +23,7 @@ from matplotlib.collections import LineCollection
 import matplotlib.ticker as ticker
 from matplotlib.cm import get_cmap
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 
 
 class ParallelCoordPlot(AbstractPlot):
@@ -44,7 +44,7 @@ class ParallelCoordPlot(AbstractPlot):
         bHighlight = []
         for binId in seqStats:
             for seqId in seqStats[binId]:
-                data.append([seqStats[binId][seqId]['GC']] + coverageStats[binId][seqId].values())
+                data.append([seqStats[binId][seqId]['GC']] + list(coverageStats[binId][seqId].values()))
 
                 if binId == binIdToHighlight:
                     bHighlight.append(True)
@@ -56,9 +56,9 @@ class ParallelCoordPlot(AbstractPlot):
                         xlabels.append(bamId)
 
         dims = len(data[0])
-        x = range(dims)
+        x = list(range(dims))
         axes = []
-        for i in xrange(1, dims):
+        for i in range(1, dims):
             a = self.fig.add_subplot(1, dims - 1, i)
             axes.append(a)
 
@@ -113,7 +113,7 @@ class ParallelCoordPlot(AbstractPlot):
             labels = list()
             step = min_max_range[dimension][2] / (ticks - 1)
             mn = min_max_range[dimension][0]
-            for i in xrange(ticks):
+            for i in range(ticks):
                 v = mn + i * step
                 labels.append('%4.2f' % v)
 
@@ -122,7 +122,7 @@ class ParallelCoordPlot(AbstractPlot):
             for label in axx.get_xticklabels():
                 label.set_rotation(90)
 
-            for loc, spine in axx.spines.iteritems():
+            for loc, spine in axx.spines.items():
                 if loc in ['bottom', 'top']:
                     spine.set_color('none')
                 else:
@@ -135,7 +135,7 @@ class ParallelCoordPlot(AbstractPlot):
         ticks = len(axx.get_yticklabels())
         step = min_max_range[dimension][2] / (ticks - 1)
         mn = min_max_range[dimension][0]
-        labels = ['%4.2f' % (mn + i * step) for i in xrange(ticks)]
+        labels = ['%4.2f' % (mn + i * step) for i in range(ticks)]
 
         axx.set_yticklabels(labels)
         for tick in axx.yaxis.get_major_ticks():

@@ -99,7 +99,9 @@ $cdhit_soft="$installpath/bin/cd-hit-est";
 $toamos_soft="$installpath/bin/AMOS/toAmos";
 $minimus2_soft="$installpath/bin/AMOS/minimus2";
 $checkm_soft="$installpath/bin/checkm";
-$minpath_soft="python $installpath/bin/MinPath1.4.py";
+$minpath_soft="python3 $installpath/bin/MinPath1.4.py";
 $canu_soft="$installpath/bin/canu/canu";
 $trimmomatic_soft="java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft="$installpath/bin/DAS_Tool/DAS_Tool";
+$kmerdb_soft="$installpath/bin/kmer-db-1.6.2";
+
