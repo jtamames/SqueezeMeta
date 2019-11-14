@@ -149,7 +149,7 @@ if($opt_db) {
 		$optdb{$dbname}=1;
 		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
 		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
-		open(infile10,$fun3opt) || warn "Can't open fun3 $dbname annotation file $fun3opt\n";;
+		open(infile10,$fun3opt) || warn "Can't open fun3 $dbname annotation file $fun3opt\n";
 		while(<infile10>) { 
 			chomp;
 			next if(!$_ || ($_=~/\#/));
@@ -283,7 +283,9 @@ foreach my $classfun(sort keys %funstat) {
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
 	# print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tTPM\tDistribution\tName\tFunction\n";
-	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tTPM\tDistribution\tName\tFunction\n";
+	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tTPM\tDistribution";
+	if($classfun ne "cog") { print outfile1 "\tName"; }
+	print outfile1 "\tFunction\n";
 	
 	#-- Calculation of coverage, norm coverage, and RPKM
 
@@ -316,8 +318,10 @@ foreach my $classfun(sort keys %funstat) {
 				$stringtax.="$krank:$countt;";
 				}
 			chop $stringtax;
-			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t$stringtax\t$funs{$classfun}{$kid}{name}\t$funs{$classfun}{$kid}{fun}\n",$cover,$tpm; 
- 			}
+			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t$stringtax",$cover,$tpm; 
+ 			if($classfun ne "cog") { print outfile1 "\t$funs{$classfun}{$kid}{name}"; }
+			print outfile1 "\t$funs{$classfun}{$kid}{fun}\n";
+			}
 		}
 close outfile1;
 	}
