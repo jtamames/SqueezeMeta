@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Merges individual assemblies using minimus2, for merged mode. It also uses cd-hit for excluding identical contigs
@@ -21,7 +21,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 our($scriptdir, $resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
 
-open(outtr,">$tempdir/merge.order");
+open(out_tr,">$tempdir/merge.order");
 
 #-- Merges the assemblies in a single dataset
 
@@ -45,12 +45,12 @@ else {
 		open(infile0,"$tempdir/$project.2merge") || die;
 		$_=<infile0>;
 		chomp;
-		my($sample1,$sample2,$twosamples,$mdist)=split(/\t/,$_);
+		my($sample1,$sample2,$mdist)=split(/\t/,$_);
 		$sample1.=".fasta";
 		$sample2.=".fasta";
 		close infile0;
 		print "MERGE $mergestep, $sample1 and $sample2\n";
-		print outtr "MERGE $mergestep, $sample1 and $sample2 ($mdist)\n";
+		print out_tr "MERGE $mergestep, $sample1 and $sample2 ($mdist)\n";
 		$command="cat $interdir/$sample1  $interdir/$sample2 > $merged";
 		system $command;
 		if(-z $merged) { die "$merged is empty\n"; }
@@ -115,6 +115,7 @@ else {
 
 		 system("rm -r $tempdir/mergedassemblies*");
 	}
+
 system("mv $merged $finalcontigs");
 
 #-- Run prinseq_lite for statistics
@@ -147,7 +148,7 @@ while(<infile1>) {
 }
 close infile1;
 close outfile1;
-close outtr;
+close out_tr;
 
 sub parseafg {
 	my $inafg=shift;
