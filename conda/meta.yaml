@@ -1,0 +1,28 @@
+package:
+  name: squeezemeta
+  version: "1.0.0"
+
+source:
+        #  url: https://github.com/jtamames/SqueezeMeta/archive/v1.0.0.zip
+  git_url: https://github.com/jtamames/squeezemeta.git
+
+requirements:
+  build:
+    - r=3.6
+    - r-ggplot2
+    - r-reshape2
+    - r-doMC
+    - r-data.table
+  run:
+    - python=3.7
+    - perl=5.26
+    - ruby=2.5
+    - r=3.6
+    - r-ggplot2
+    - r-reshape2
+    - r-doMC
+    - r-data.table
+
+
+about:
+  home:  https://github.com/jtamames/SqueezeMeta
