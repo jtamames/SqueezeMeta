@@ -25,7 +25,7 @@ while(<infile0>) {
 	chomp;
 	next if !$_;
 	my @t=split(/\t/,$_);
-	if($t[3] eq "noassembly") { $skip{$t[0]}=1; }
+	if($_=~/nobinning/) { $skip{$t[0]}=1; }
 	}
 close infile0;
 
