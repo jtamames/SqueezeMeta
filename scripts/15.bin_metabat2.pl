@@ -16,7 +16,18 @@ do "$project/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs);
+our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$mappingfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs);
+my %skip;
+
+print "Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
+open(infile0,$mappingfile) || die "Can't open $alllog\n";
+while(<infile0>) {
+	chomp;
+	next if !$_;
+	my @t=split(/\t/,$_);
+	if($t[3] eq "noassembly") { $skip{$t[0]}=1; }
+	}
+close infile0;
 
 	#-- Reading contigs
 
@@ -65,6 +76,7 @@ while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my @k=split(/\t/,$_);
+	next if($skip{$k[$#k]});
 	$abun{$k[0]}{$k[$#k]}=$k[1];
 	$allsets{$k[$#k]}++;
 	$contiglen{$k[0]}=$k[3];

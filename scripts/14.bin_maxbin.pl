@@ -17,13 +17,13 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads);
+our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile);
 
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
 my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
 my $smallnoannot=1;	#-- For excluding contigs with just one gene an no annotation
 
-my %allcontigs;
+my(%allcontigs,%skip);
 
 	#-- Reading contigs
 
@@ -33,6 +33,16 @@ my %allcontigs;
 #	if($_=~/^\>([^ ]+)/) { $allcontigs{$1}=1; }
 #	}
 #close infile1;
+
+print "Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
+open(infile0,$mappingfile) || die "Can't open $alllog\n";
+while(<infile0>) {
+	chomp;
+	next if !$_;
+	my @t=split(/\t/,$_);
+	if($t[3] eq "noassembly") { $skip{$t[0]}=1; }
+	}
+close infile0;
 
 print "Reading from $alllog\n";
 open(infile1,$alllog) || die "Can't open $alllog\n";
@@ -80,6 +90,7 @@ while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my @k=split(/\t/,$_);
+	next if($skip{$k[$#k]});
 	if(!$currsample || ($k[$#k] ne $currsample)) {	#-- If we finished reading one sample, write the data
 		foreach my $k(sort keys %tcontigs) { print outfile2 "$k\t0\n"; }
 		close outfile2;
