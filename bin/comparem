@@ -1,0 +1,396 @@
+#!/usr/bin/env python3
+
+###############################################################################
+#                                                                             #
+#    This program is free software: you can redistribute it and/or modify     #
+#    it under the terms of the GNU General Public License as published by     #
+#    the Free Software Foundation, either version 3 of the License, or        #
+#    (at your option) any later version.                                      #
+#                                                                             #
+#    This program is distributed in the hope that it will be useful,          #
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of           #
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            #
+#    GNU General Public License for more details.                             #
+#                                                                             #
+#    You should have received a copy of the GNU General Public License        #
+#    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
+#                                                                             #
+###############################################################################
+
+###############################################################################
+#                                                                             #
+#   Modified from comparem v0.0.23 by Fernando Puente-Sánchez, NOV 15, 2019   #
+#   in order to ensure python3 compatibility and integration into the         #
+#   SqueezeMeta                                                               #
+#                                                                             #
+###############################################################################
+
+
+__author__ = "Donovan Parks"
+__copyright__ = "Copyright 2014"
+__credits__ = ["Donovan Parks"]
+__license__ = "GPL3"
+__maintainer__ = "Donovan Parks"
+__email__ = "donovan.parks@gmail.com"
+__status__ = "Development"
+
+import os
+import sys
+import ntpath
+import logging
+import tempfile
+import argparse
+
+#### FPS -> find comparem module within SqueezeMeta
+from os.path import abspath, dirname, realpath
+from sys import path
+utils_home = abspath(dirname(realpath(__file__)))
+path.insert(0, '{}/../lib/'.format(utils_home))
+####
+
+from comparem.main import OptionsParser
+
+from biolib.common import make_sure_path_exists
+from biolib.logger import logger_setup
+from biolib.misc.custom_help_formatter import ChangeTempAction, CustomHelpFormatter
+
+"""
+*****************************************************************************
+To do:
+
+Scheduled functionality:
+    ani           -> [Not implemented] Calculate the ANI between genome pairs
+    
+    gene_wf -> Run core, dispensable, and unique
+     core         -> [Not implemented] Identify genes contained in all genomes
+     dispensable  -> [Not implemented] Identify genes contained in more than one, but not all genomes
+     unique       -> [Not implemented] Identify genes present in a single genome
+
+    General statistics:
+     genome_stats -> [Not implemented] Calculate statistics for each genome (e.g., GC, coding density)
+     
+     pcoa_plot -> [Not implemented] Generate PCoA plot indicating relative similarity of genomes
+     heatmap   -> Generate a heatmap of the similarities between genomes
+
+*****************************************************************************
+"""
+
+
+def version():
+    import comparem
+    version_file = open(os.path.join(comparem.__path__[0], 'VERSION'))
+    return version_file.read().strip()
+
+
+def print_help():
+    print('')
+    print('                ...::: CompareM v' + version() + ' :::...''')
+    print('''\
+
+    Common workflows:
+     aai_wf      -> Calculate AAI between all pairs of genomes
+                    (runs call_genes => similarity => aai)
+     classify_wf -> Identify similar genomes based on AAI values
+                    (runs call_genes => similarity => classify)
+                    
+    Gene prediction:
+     call_genes -> Identify genes within genomes
+                     
+    Gene homology and genome similarity:
+     similarity -> Perform reciprocal sequence similarity search between proteins
+     aai        -> Calculate AAI between all pairs of genomes
+     classify   -> Identify similar genomes based on AAI value
+
+    Usage profiles:
+     aa_usage    -> Calculate amino acid usage within each genome
+     codon_usage -> Calculate codon usage within each genome
+     kmer_usage  -> Calculate kmer usage within each genome
+     stop_usage  -> Calculate stop codon usage within each genome
+
+    Lateral gene transfer:
+     lgt_di    -> Calculate dinuceotide (3rd,1st) usage of genes to identify putative LGT events
+     lgt_codon -> Calculate codon usage of genes to identify putative LGT events
+
+    Visualization and exploration:
+     diss      -> Calculate the dissimilarity between usage profiles
+     hclust    -> Perform hierarchical clustering
+
+  Use: comparem <command> -h for command specific help.
+
+  Feature requests or bug reports can be sent to Donovan Parks (donovan.parks@gmail.com)
+    or posted on GitHub (https://github.com/dparks1134/comparem).
+    ''')
+
+if __name__ == '__main__':
+
+    # initialize the options parser
+    parser = argparse.ArgumentParser(add_help=False)
+    subparsers = parser.add_subparsers(help="--", dest='subparser_name')
+
+    # identify genes within genomes
+    call_genes_parser = subparsers.add_parser('call_genes',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Identify genes within genomes.')
+    call_genes_parser.add_argument('input_genomes', help="genome files to process")
+    call_genes_parser.add_argument('output_dir', help="output directory")
+    call_genes_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    call_genes_parser.add_argument('--force_table', type=int, default=None, help="force use of specific translation table")
+    call_genes_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    call_genes_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # sequence similarity search between genes
+    similarity_parser = subparsers.add_parser('similarity',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Perform sequence similarity search between genes.')
+    similarity_parser.add_argument('query_proteins', help="query protein files to process")
+    similarity_parser.add_argument('target_proteins', help="target protein files to process")
+    similarity_parser.add_argument('output_dir', help="output directory")
+    similarity_parser.add_argument('-e', '--evalue', type=float, default=1e-3, help="maximum e-value for reporting an alignments")
+    similarity_parser.add_argument('-p', '--per_identity', type=float, default=30.0, help="minimum percent identity for reporting an alignment")
+    similarity_parser.add_argument('-a', '--per_aln_len', type=float, default=70.0, help="minimum percent coverage of query sequence for reporting an alignment")
+    similarity_parser.add_argument('-x', '--file_ext', default='faa', help="extension of files to process")
+    similarity_parser.add_argument('--blastp', action="store_true", default=False, help="use Blastp-fast instead of DIAMOND")
+    similarity_parser.add_argument('--sensitive', action="store_true", default=False, help="use sensitive mode of DIAMOND")
+    similarity_parser.add_argument('--keep_headers', action="store_true", default=False, help="indicates FASTA headers already have the format <genome_id>~<gene_id>")
+    similarity_parser.add_argument('--tmp_dir', action=ChangeTempAction, default=tempfile.gettempdir(), help="specify alternative directory for temporary files")
+    similarity_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    similarity_parser.add_argument('--silent', help="suppress output", action='store_true')
+    
+    # reciprocal best hits between genome pairs
+    aai_parser = subparsers.add_parser('aai',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate the AAI between all genome pairs.')
+    aai_parser.add_argument('query_gene_file', help="file with all query genes")
+    aai_parser.add_argument('sorted_hit_table', help="sorted file indicating genes passing sequence similarity criteria")
+    aai_parser.add_argument('output_dir', help="output directory")
+    aai_parser.add_argument('-e', '--evalue', type=float, default=1e-3, help="maximum e-value for reporting an alignments")
+    aai_parser.add_argument('-p', '--per_identity', type=float, default=30.0, help="minimum percent identity for reporting an alignment")
+    aai_parser.add_argument('-a', '--per_aln_len', type=float, default=70.0, help="minimum percent coverage of query sequence for reporting an alignment")
+    aai_parser.add_argument('--keep_rbhs', help="create file with reciprocal best hits", action='store_true')
+    aai_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    aai_parser.add_argument('--silent', help="suppress output", action='store_true')
+    
+    # runs workflow for classifying genomes based on AAI values
+    classify_parser = subparsers.add_parser('classify',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Identify similar genomes based on AAI value.')
+    classify_parser.add_argument('query_gene_file', help="file with all query genes")
+    classify_parser.add_argument('target_gene_file', help="file with all target genes")
+    classify_parser.add_argument('sorted_hit_table', help="sorted file indicating genes passing sequence similarity criteria")
+    classify_parser.add_argument('output_dir', help="output directory")
+    classify_parser.add_argument('-k', '--num_top_targets', type=int, default=1, help="number of top scoring target genomes to report per query genome")
+    classify_parser.add_argument('-t', '--taxonomy_file', help="file indicating taxonomic identification of all target genomes")
+    classify_parser.add_argument('-e', '--evalue', type=float, default=1e-3, help="e-value cutoff for identifying initial blast hits")
+    classify_parser.add_argument('-p', '--per_identity', type=float, default=30.0, help="percent identity for defining homology")
+    classify_parser.add_argument('-a', '--per_aln_len', type=float, default=70.0, help="percent alignment length of query sequence for defining homology")
+    classify_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    classify_parser.add_argument('--keep_rbhs', help="create file with reciprocal best hits", action='store_true')
+    classify_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    classify_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # runs workflow for calculating AAI between all genomes
+    aai_wf_parser = subparsers.add_parser('aai_wf',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate AAI between all pairs of genomes')
+    aai_wf_parser.add_argument('input_files', help="genome files")
+    aai_wf_parser.add_argument('output_dir', help="output directory")
+    aai_wf_parser.add_argument('-e', '--evalue', type=float, default=1e-3, help="e-value cutoff for identifying initial blast hits")
+    aai_wf_parser.add_argument('-p', '--per_identity', type=float, default=30.0, help="percent identity for defining homology")
+    aai_wf_parser.add_argument('-a', '--per_aln_len', type=float, default=70.0, help="percent alignment length of query sequence for defining homology")
+    aai_wf_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    aai_wf_parser.add_argument('--proteins', action="store_true", default=False, help="indicates the input files contain protein sequences")
+    aai_wf_parser.add_argument('--force_table', type=int, default=None, help="force use of specific translation table")
+    aai_wf_parser.add_argument('--blastp', action="store_true", default=False, help="use blastp instead of diamond")
+    aai_wf_parser.add_argument('--sensitive', action="store_true", default=False, help="use sensitive mode of DIAMOND")
+    aai_wf_parser.add_argument('--keep_headers', action="store_true", default=False, help="indicates FASTA headers already have the format <genome_id>~<gene_id>")
+    aai_wf_parser.add_argument('--keep_rbhs', help="create file with reciprocal best hits", action='store_true')
+    aai_wf_parser.add_argument('--tmp_dir', action=ChangeTempAction, default=tempfile.gettempdir(), help="specify alternative directory for temporary files")
+    aai_wf_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    aai_wf_parser.add_argument('--silent', help="suppress output", action='store_true')
+    
+    # runs workflow for classifying genomes based on AAI values
+    classify_wf_parser = subparsers.add_parser('classify_wf',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Identify similar genomes based on AAI value.')
+    classify_wf_parser.add_argument('query_files', help="query genome files")
+    classify_wf_parser.add_argument('target_files', help="target genome files")
+    classify_wf_parser.add_argument('output_dir', help="output directory")
+    classify_wf_parser.add_argument('-k', '--num_top_targets', type=int, default=1, help="number of top scoring target genomes to report per query genome")
+    classify_wf_parser.add_argument('-t', '--taxonomy_file', help="file indicating taxonomic identification of all target genomes")
+    classify_wf_parser.add_argument('-e', '--evalue', type=float, default=1e-3, help="e-value cutoff for identifying initial blast hits")
+    classify_wf_parser.add_argument('-p', '--per_identity', type=float, default=30.0, help="percent identity for defining homology")
+    classify_wf_parser.add_argument('-a', '--per_aln_len', type=float, default=70.0, help="percent alignment length of query sequence for defining homology")
+    classify_wf_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    classify_wf_parser.add_argument('--proteins', action="store_true", default=False, help="indicates the input files contain protein sequences")
+    classify_wf_parser.add_argument('--force_table', type=int, default=None, help="force use of specific translation table")
+    classify_wf_parser.add_argument('--blastp', action="store_true", default=False, help="use blastp instead of diamond")
+    classify_wf_parser.add_argument('--sensitive', action="store_true", default=False, help="use sensitive mode of DIAMOND")
+    classify_wf_parser.add_argument('--keep_headers', action="store_true", default=False, help="indicates FASTA headers already have the format <genome_id>~<gene_id>")
+    classify_wf_parser.add_argument('--keep_rbhs', help="create file with reciprocal best hits", action='store_true')
+    classify_wf_parser.add_argument('--tmp_dir', action=ChangeTempAction, default=tempfile.gettempdir(), help="specify alternative directory for temporary files")
+    classify_wf_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    classify_wf_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # calculate amino acid usage
+    aa_usage_parser = subparsers.add_parser('aa_usage',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate amino acid usage within each genome.')
+    aa_usage_parser.add_argument('protein_gene_files', help="input files with genes in amino acid space")
+    aa_usage_parser.add_argument('output_file', help="output file indicating amino acid usage for each genome")
+    aa_usage_parser.add_argument('--counts', help='output raw counts instead of frequencies', action='store_true')
+    aa_usage_parser.add_argument('-x', '--file_ext', default='faa', help="extension of files to process")
+    aa_usage_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    aa_usage_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # calculate codon usage
+    codon_parser = subparsers.add_parser('codon_usage',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate codon usage within each genome.')
+    codon_parser.add_argument('nucleotide_gene_files', help="input files with genes in nucleotide space")
+    codon_parser.add_argument('output_file', help="output file indicating codon usage of each genome")
+    codon_parser.add_argument('--counts', help='output raw counts instead of frequencies', action='store_true')
+    codon_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    codon_parser.add_argument('--keep_ambiguous', action='store_true', help="keep codons with ambiguous bases")
+    codon_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    codon_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # calculate kmer usage
+    kmer_parser = subparsers.add_parser('kmer_usage',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate kmer usage within each genome.')
+    kmer_parser.add_argument('genome_files', help="input files with genomes in nucleotide space")
+    kmer_parser.add_argument('output_file', help="output file indicating kmer usage of each genome")
+    kmer_parser.add_argument('--counts', help='output raw counts instead of frequencies', action='store_true')
+    kmer_parser.add_argument('-k', type=int, default=4, help="length of kmers, e.g., 4 -> tetranucleotides")
+    kmer_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    kmer_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    kmer_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # calculate stop codon usage
+    stop_codon_parser = subparsers.add_parser('stop_usage',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate stop codon usage within each genome.')
+    stop_codon_parser.add_argument('nucleotide_gene_files', help="input files with genes in nucleotide space")
+    stop_codon_parser.add_argument('output_file', help="output file indicating stop codon usage of each genome")
+    stop_codon_parser.add_argument('--counts', help='output raw counts instead of frequencies', action='store_true')
+    stop_codon_parser.add_argument('--mean_gene_length', help='report mean gene length for genes with each stop codon', action='store_true')
+    stop_codon_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    stop_codon_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    stop_codon_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # identify LGT using dinucleotide (3rd, 1st) usage
+    lgt_di_parser = subparsers.add_parser('lgt_di',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate dinuceotide (3rd,1st) usage of genes  to identify putative LGT events.')
+    lgt_di_parser.add_argument('nucleotide_gene_files', help="input files with genes in nucleotide space")
+    lgt_di_parser.add_argument('output_dir', help="output directory to write dinucleotide usage for each gene in each genome")
+    lgt_di_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    lgt_di_parser.add_argument('--crit_value', type=float, default=0.001, help="critical value for defining deviant genes")
+    lgt_di_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    lgt_di_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # identify LGT using codon usage
+    lgt_codon_parser = subparsers.add_parser('lgt_codon',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate codon usage of genes to identify putative LGT events.')
+    lgt_codon_parser.add_argument('nucleotide_gene_files', help="input files with genes in nucleotide space")
+    lgt_codon_parser.add_argument('output_dir', help="output directory to write dinucleotide usage for each gene in each genome")
+    lgt_codon_parser.add_argument('-x', '--file_ext', default='fna', help="extension of files to process")
+    lgt_codon_parser.add_argument('-c', '--cpus', help='number of CPUs to use', type=int, default=1)
+    lgt_codon_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # unique
+    if False:
+        unique_parser = subparsers.add_parser('unique',
+                                            formatter_class=CustomHelpFormatter,
+                                            description='Identify genes present in a single genome.')
+        unique_parser.add_argument('gene_dir', help="output directory specific with 'ortholog'")
+        unique_parser.add_argument('output_file', help="file indicating genes identified as unique to a single genome")
+        unique_parser.add_argument('-e', '--evalue', type=float, default=1e-3, help="e-value cutoff for identifying initial blast hits")
+        unique_parser.add_argument('-p', '--per_identity', type=float, default=30.0, help="percent identity for defining orthology")
+        unique_parser.add_argument('-a', '--per_aln_len', type=float, default=70.0, help="percent alignment length of query sequence for defining othology")
+        unique_parser.add_argument('--silent', help="suppress output", action='store_true')
+    
+    # calculate the dissimilarity between usage profiles
+    diss_parser = subparsers.add_parser('diss',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Calculate the dissimilarity between usage profiles.')
+    diss_parser.add_argument('profile_file', help="file with usage profile for each genome")
+    diss_parser.add_argument('output_file', help="output file with pairwise dissimilarity between genomes")
+    diss_parser.add_argument('--metric', choices=['euclidean', 'minkowski', 'cityblock', 'seuclidean', 'sqeuclidean', 'cosine', 'correlation', 'hamming', 'jaccard', 'chebyshev', 'canberra', 'braycurtis', 'mahalanobis', 'yule', 'matching', 'dice', 'kulsinski', 'rogerstanimoto', 'russellrao', 'sokalmichener', 'sokalsneath', 'wminkowski'], default='euclidean', help='distance metric to use')
+    diss_parser.add_argument('--full_matrix', help="output full dissimilarity matrix", action='store_true')
+    diss_parser.add_argument('--silent', help="suppress output", action='store_true')
+    
+    # perform hierarchical clustering
+    hclust_parser = subparsers.add_parser('hclust',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Perform hierarchical clustering.')
+    hclust_parser.add_argument('pairwise_value_file', help="file with pairwise similarity or dissimilarity values between genomes")
+    hclust_parser.add_argument('output_tree', help="name for output hierarchical cluster tree")
+    hclust_parser.add_argument('--method', choices=['single', 'complete', 'average', 'weighted', 'centroid', 'median', 'ward'], default='average', help='clustering method to use.')
+    hclust_parser.add_argument('--similarity', action='store_true', help="indicates file contain similarity values")
+    hclust_parser.add_argument('--max_sim_value', help="maximum similarity value", type=float, default=100)
+    hclust_parser.add_argument('--name_col1', type=int, default=0, help="index of first column with genome names")
+    hclust_parser.add_argument('--name_col2', type=int, default=1, help="index of second column with genome names")
+    hclust_parser.add_argument('--value_col', type=int, default=2, help="index of column with similarity or dissimilarity values")
+    hclust_parser.add_argument('--silent', help="suppress output", action='store_true')
+     
+    # produce PCoA plot
+    pcoa_plot_parser = subparsers.add_parser('pcoa_plot',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Generate PCoA plot indicating relative similarity of genomes.')
+    pcoa_plot_parser.add_argument('aai_summary_file', help="file indicating pairwise AAI between genomes")
+    pcoa_plot_parser.add_argument('output_file', help="output PCA plot")
+    pcoa_plot_parser.add_argument('--width', type=float, default=6.5, help='width of output image')
+    pcoa_plot_parser.add_argument('--height', type=float, default=6.5, help='height of output image')
+    pcoa_plot_parser.add_argument('--image_type', default='png', choices=['eps', 'pdf', 'png', 'ps', 'svg'], help='desired image type')
+    pcoa_plot_parser.add_argument('--dpi', type=int, default=600, help='desired DPI of output image')
+    pcoa_plot_parser.add_argument('--font_size', type=int, default=8, help='Desired font size')
+    pcoa_plot_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # produce a heatmap
+    heatmap_parser = subparsers.add_parser('heatmap',
+                                        formatter_class=CustomHelpFormatter,
+                                        description='Generate heatmap indicating relative similarity of genomes.')
+    heatmap_parser.add_argument('aai_summary_file', help="File indicating pairwise AAI between genomes")
+    heatmap_parser.add_argument('output_file', help="Output name for the heatmap. File extension is used to determine image type (e.g. png, pdf, svg)")
+    heatmap_parser.add_argument('--method', choices=['single', 'complete', 'average', 'weighted', 'centroid', 'median', 'ward'], default='average', help='select the method of clustering. See http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.linkage.html for more information')
+    heatmap_parser.add_argument('--metric', choices=['euclidean', 'minkowski', 'cityblock', 'seuclidean', 'sqeuclidean', 'cosine', 'correlation', 'hamming', 'jaccard', 'chebyshev', 'canberra', 'braycurtis', 'mahalanobis', 'yule', 'matching', 'dice', 'kulsinski', 'rogerstanimoto', 'russellrao', 'sokalmichener', 'sokalsneath', 'wminkowski'], default='euclidean', help='the distance metric to use for clustering. See http://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html#scipy.spatial.distance.pdist for more information')
+    # heatmap_parser.add_argument('--image_type', default='png', choices=['eps', 'pdf', 'png', 'ps', 'svg'], help='desired image type')
+    # heatmap_parser.add_argument('--dpi', type=int, default=600, help='desired DPI of output image')
+    heatmap_parser.add_argument('--hierarchical_cluster', action='store_true', default=False, dest='cluster', help='perform hierarchical clustering on the values')
+    heatmap_parser.add_argument('--silent', help="suppress output", action='store_true')
+
+    # get and check options
+    args = None
+    if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv == '--help'):
+        print_help()
+        sys.exit(0)
+    else:
+        args = parser.parse_args()
+       
+    if hasattr(args, 'output_dir'):
+        logger_setup(args.output_dir, "comparem.log", "CompareM", version(), args.silent)
+    else:
+        logger_setup(None, "comparem.log", "CompareM", version(), args.silent)
+
+    # do what we came here to do
+    try:
+        parser = OptionsParser()
+        if(False):
+            # import pstats
+            # p = pstats.Stats('prof')
+            # p.sort_stats('cumulative').print_stats(10)
+            # p.sort_stats('time').print_stats(10)
+            import cProfile
+            cProfile.run('parser.parse_options(args)', 'prof')
+        elif False:
+            import pdb
+            pdb.run(parser.parse_options(args))
+        else:
+            parser.parse_options(args)
+    except SystemExit:
+        print("\n  Controlled exit resulting from an unrecoverable error or warning.")
+    except:
+        print("\nUnexpected error:", sys.exc_info()[0])
+        raise
