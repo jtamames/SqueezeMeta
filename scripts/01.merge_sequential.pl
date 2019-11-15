@@ -28,7 +28,7 @@ open(out_tr,">$tempdir/merge.order");
 my $finalcontigs="$resultpath/01.$project.fasta";
 my($ecode,$command,$mergestep,$merged);
 opendir(indir0,$interdir);
-my @indassemblies=grep(/fasta$/,readdir indir0);
+my @indassemblies=grep(/01.*fasta$/,readdir indir0);
 my $numassem=$#indassemblies+1;
 closedir indir0;
 
@@ -37,6 +37,7 @@ if($extassembly) {
 	system("cp $extassembly $finalcontigs");
 	}
 else {
+	if(-e "$tempdir/mergelog") { system("rm $tempdir/mergelog"); }
 	while($numassem>1) {
 		$mergestep++;	
 		if(-e $finalcontigs) { system("rm $finalcontigs"); }
@@ -103,11 +104,15 @@ else {
 			close infile0;
 			close outfile0;
 			
-			system("mv $interdir/$sample1 $interdir/$sample1.orig");
-			system("mv $interdir/$sample2 $interdir/$sample2.orig");
-			opendir(indir0,$interdir);
-			@indassemblies=grep(/fasta$/,readdir indir0);
-			$numassem=$#indassemblies+1;
+			$numassem--;
+			open(mlog,">>$tempdir/mergelog") || die;
+			print mlog "$sample1\n$sample2\n";
+			close mlog;
+			#system("mv $interdir/$sample1 $interdir/$sample1.orig");
+			#system("mv $interdir/$sample2 $interdir/$sample2.orig");
+			#opendir(indir0,$interdir);
+			#@indassemblies=grep(/fasta$/,readdir indir0);
+			#$numassem=$#indassemblies+1;
 			}
 				
 

@@ -103,7 +103,7 @@ print "Output created in $outfile\n";
 
 my %yseen;
 open(outfile2,">$parentfile") || die;
-open(infile3,"$outfile") || die;
+open(infile3,"$outfile") || die "Cannot open file $outfile";
 while(<infile3>) {
 	chomp;
 	next if !$_;
@@ -113,6 +113,7 @@ while(<infile3>) {
 		my($root,$string,$idroot)="";
 		for(my $pos2=$pos1; $pos2<=$#k; $pos2++) { 
 			my @n=split(/\:/,$k[$pos2]);
+			if(!$n[0]) { $n[0]="no rank"; }
 			$string="$n[0]:$n[2];".$string; 
 			if(!$root) { $root="$n[2]"; $idroot=$n[1]; }
 			}
