@@ -14,8 +14,20 @@ requirements:
     - r-doMC
     - r-data.table
   run:
-    - python=3.7
+    - python=3.6
+    - numpy
+    - scipy
+    - matplotlib
+    - dendropy
+    - pysam
     - perl=5.26
+    - perl-tie-ixhash
+    - perl-dbd-mysql
+    - perl-dbd-sqlite
+    - perl-lwp-simple
+    - perl-xml-libxml
+    - perl-xml-parser
+    - java-jdk 
     - ruby=2.5
     - r=3.6
     - r-ggplot2

@@ -18,10 +18,22 @@ my $start_run = time();
 
 my $longtrace=0;    #-- Reports an explanation msg for each of the steps
 
-###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
+###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
 use File::Basename;
-our $scriptdir = dirname(__FILE__);
-our $installpath = "$scriptdir/..";
+use Cwd 'abs_path';
+
+our $scriptdir;
+if(-l __FILE__)
+	{
+	my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+	{
+	$scriptdir = abs_path(dirname(__FILE__));
+	}
+our $installpath = abs_path("$scriptdir/..");
 ###
 
 our $pwd=cwd();
@@ -234,8 +246,9 @@ if($mode=~/sequential/i) {
 		print outfile4 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
 		print "Run started ",scalar localtime," in SEQUENTIAL mode\n";
 		my $params = join(" ", @ARGV);
-		print outfile2 "$0 $params\n";
-		print outfile2 "Run started for $thissample, ",scalar localtime,"\n";
+		# print outfile2 "$0 $params\n";
+		print outfile4 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+		print outfile4 "Run started for $thissample, ",scalar localtime,"\n";
 		print outfile4 "Project: $project\n";
 		print outfile4 "Map file: $equivfile\n";
 		print outfile4 "Fastq directory: $rawfastq\n";
@@ -340,6 +353,7 @@ if($mode=~/sequential/i) {
 			if($gzfiles=~/gz$/) { $par1name="$datapath/raw_fastq/par1.fastq.gz"; $par2name="$datapath/raw_fastq/par2.fastq.gz"; }  # Fixed bug 30/10/2018 JT
 			else { $par1name="$datapath/raw_fastq/par1.fastq"; $par2name="$datapath/raw_fastq/par2.fastq"; }
 		}
+		if(!$par1files) { die "There must be at least one 'pair1' sequence file in your samples file $mappingfile, and there is none!\n"; }
 		if($par1files>1) { 
 			my $command="cat $ca1 > $par1name"; 
 			print "$command\n"; 
@@ -354,6 +368,7 @@ if($mode=~/sequential/i) {
 		}
  		if($par2files>1) { system("cat $ca2 > $par2name"); } 
 		elsif ($par2files==1) { system("ln -s $ca2 $par2name"); }    #-- Support for single reads
+	
 		#else { system("cp $ca2 $par2name"); }
 		#-- CALL TO THE STANDARD PIPELINE
 		
@@ -374,14 +389,14 @@ if($mode=~/sequential/i) {
 else {
 
 	my $projectdir="$pwd/$project";
-	if (-d $projectdir) { die "Project name $projectdir already exists. pLease remove it or change project name\n"; } else { system("mkdir $projectdir"); }
+	if (-d $projectdir) { die "Project name $projectdir already exists. Please remove it or change project name\n"; } else { system("mkdir $projectdir"); }
 		
 	#-- We start creating directories, progress and log files
 
 	open(outfile3,">$pwd/$project/progress") || die "Can't write in $pwd/$project. Wrong permissions, or out of space?\n";  #-- Un indice que indica en que punto estamos (que procedimientos han terminado)
 	open(outfile4,">$pwd/$project/syslog")   || die "Can't write in $pwd/$project. Wrong permissions, or out of space?\n";
 	my $params = join(" ", @ARGV);
-	print outfile4 "$0 $params\n";
+	print outfile4 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 	print outfile4 "Run started ",scalar localtime," in $mode mode\n";
 	print outfile4 "Command: $commandline\n"; 
 	print outfile4 "Project: $project\n";
@@ -521,6 +536,7 @@ sub moving {
 			if($ident{$afiles} eq "pair1") { $ca1.="$datapath/raw_fastq/$gzfiles "; $par1files++; } else { $ca2.="$datapath/raw_fastq/$gzfiles "; $par2files++; } 
 		}
   
+		if(!$par1files) { die "There must be at least one 'pair1' sequence file in your samples file $mappingfile, and there is none!\n"; }
 		if($par1files>1) { system("cat $ca1 > $par1name"); } else { system("ln -s $ca1 $par1name"); }
 		if($par2files>1) { system("cat $ca2 > $par2name"); } elsif($par2files==1) { system("ln -s $ca2 $par2name"); }  #-- Support for single reads
 	}
