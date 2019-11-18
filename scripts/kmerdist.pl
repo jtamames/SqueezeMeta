@@ -51,18 +51,21 @@ my $kmerdb="$tempdir/kmerdb.$project.txt";
 $command="$kmerdb_soft build -t $numthreads $samples $kmerdb";
 print "$command\n";
 print "k-mer db: Building database\n";
-system($command); 
+my $ecode=system($command); 
+if($ecode!=0) { die "Error running command:    $command"; }
 my $kmertable="$tempdir/kmertable.$project.txt";
 $command="$kmerdb_soft all2all -t $numthreads $kmerdb $kmertable";
 print "$command\n";
 print "k-mer db: Comparing metagenomes\n";
-system($command);
+my $ecode=system($command);
+if($ecode!=0) { die "Error running command:    $command"; }
 my $disttable="$kmertable.jaccard";
  if(-e $disttable) { system("rm $disttable"); }
 $command="$kmerdb_soft distance -t $numthreads $kmertable";
 print "$command\n";
 print "k-mer db: Calculating distances\n";
-system($command);
+my $ecode=system($command);
+if($ecode!=0) { die "Error running command:    $command"; }
 
   #-- Reading the distance file
   

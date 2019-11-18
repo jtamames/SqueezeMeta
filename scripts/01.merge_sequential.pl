@@ -42,7 +42,9 @@ else {
 		$mergestep++;	
 		if(-e $finalcontigs) { system("rm $finalcontigs"); }
 		$merged="$interdir/merged_$mergestep.$project.fasta";
-		my $tomerge=system("$scriptdir/kmerdist.pl $project");
+                my $command="$scriptdir/kmerdist.pl $project";
+		my $ecode=system($command);
+		if($ecode!=0) { die "Error running command:    $command"; }
 		open(infile0,"$tempdir/$project.2merge") || die;
 		$_=<infile0>;
 		chomp;
@@ -105,9 +107,9 @@ else {
 			close outfile0;
 			
 			$numassem--;
-			open(mlog,">>$tempdir/mergelog") || die;
-			print mlog "$sample1\n$sample2\n";
-			close mlog;
+			open(mlog0,">>$tempdir/mergelog") || die;
+			print mlog0 "$sample1\n$sample2\n";
+			close mlog0;
 			#system("mv $interdir/$sample1 $interdir/$sample1.orig");
 			#system("mv $interdir/$sample2 $interdir/$sample2.orig");
 			#opendir(indir0,$interdir);
