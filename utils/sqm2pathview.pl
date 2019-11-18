@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 $project=$ARGV[0];
 $path=$ARGV[1];
