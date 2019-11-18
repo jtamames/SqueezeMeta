@@ -43,7 +43,7 @@ my $pwd=cwd();
 $project=~s/\/$//;
 if(!$project) { die "Please provide project name\nUsage: sqm2itol.pl <options> -p project\n"; }
 
-do "$project/SqueezeMeta_conf.pl";
+do "./$project/SqueezeMeta_conf.pl";
 
 our($extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,%bindirs,%dasdir);
 
