@@ -240,6 +240,7 @@ In addition to the main SqueezeMeta pipeline, we provide two extra modes that en
 ## 14. License and third-party software
 SqueezeMeta is distributed under a GPL-3 license.
 Additionally, SqueezeMeta redistributes the following third-party software:
+* [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
 * [Megahit](https://github.com/voutcn/megahit)
 * [Spades](http://cab.spbu.ru/software/spades)
 * [canu](https://github.com/marbl/canu)
@@ -258,11 +259,13 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [MetaBAT](https://bitbucket.org/berkeleylab/metabat)
 * [DAS tool](https://github.com/cmks/DAS_Tool)
 * [checkm](http://ecogenomics.github.io/CheckM)
+* [comparem](https://github.com/dparks1134/CompareM)
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)
 * [RDP classifier](https://github.com/rdpstaff/classifier)
 * [pullseq](https://github.com/bcthomas/pullseq)
 * [Short-Pair](https://sourceforge.net/projects/short-pair/)
 * [SAMtools](http://samtools.sourceforge.net/)
+
 
 ## 15. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
