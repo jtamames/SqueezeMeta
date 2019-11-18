@@ -13,9 +13,24 @@ use Tie::IxHash;
 use lib ".";
 use strict;
 
+
+###
 use File::Basename;
-my $utilsdir = dirname(__FILE__);
-my $shortpair_soft = "$utilsdir/../bin/Short-Pair/Short-Pair.py";
+
+my $utilsdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $utilsdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $utilsdir = abs_path(dirname(__FILE__));
+        }
+my $shortpair_soft = abs_path("$utilsdir/../bin/Short-Pair/Short-Pair.py");
+###
+
 
 my($numthreads,$pair1,$pair2,$pfam,$outfile,$dietext,$tempfile1,$tempfile2,$hel);
 
