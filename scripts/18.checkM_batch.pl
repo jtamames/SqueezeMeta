@@ -3,7 +3,6 @@
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Runs checkM for evaluating bins
 #
-#-- FPS (30-V-2018). Override $PATH for external dependencies of checkm.
 
 use strict;
 use Cwd;
@@ -131,7 +130,7 @@ foreach my $m(@files) {
 		#-- Use already existing tax profile or create it
 	
 		if(-e $marker) {} else { 
-			my $command="export PATH=\"$installpath/bin/pplacer\":\$PATH; $checkm_soft taxon_set $rank $tax $marker > /dev/null 2>&1"; #Override $PATH for external dependencies of checkm. (FPS).
+			my $command="$checkm_soft taxon_set $rank $tax $marker > /dev/null 2>&1";
                         my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
 			}
@@ -145,11 +144,11 @@ foreach my $m(@files) {
 		$fastafile=~s/.*\///;
 		# print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
 		# system("$checkm_soft analyze -t $numthreads -x $bins{$thisfile} $marker $bindir $checktemp > /dev/null");
-		my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null 2>&1";
+		my $command = "$checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null 2>&1";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 
-		my $command = "export PATH=\"$installpath/bin\":\"$installpath/bin/hmmer\":\$PATH; $checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > /dev/null 2>&1"; #Override $PATH for external dependencies of checkm. (FPS).
+		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > /dev/null 2>&1";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 	#	system("rm -r $checktemp");

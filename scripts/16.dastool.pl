@@ -70,7 +70,7 @@ if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta 
 
 else { 				#-- Otherwise, run DAS tool to combine results
 	
-	my $das_command="LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
+	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
  
 	print "Running DAS Tool for $methods\n";
 	print "$das_command\n";
