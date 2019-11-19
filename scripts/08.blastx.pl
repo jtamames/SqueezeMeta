@@ -165,7 +165,7 @@ sub run_blastx {
 	print "  Running Diamond BlastX (This can take a while, please be patient)\n";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
 	# print "$blastx_command\n";
-	 system $blastx_command;
+	system $blastx_command;
 	}
 
 sub collapse {
@@ -243,7 +243,7 @@ sub lca {
 
 	#-- Assign with lca_collapsed
 
-	my $command="perl $scriptdir/lca_collapse.pl $project $collapsedmerged";
+	my $command="perl $scriptdir/lca_collapse.pl $projectpath $collapsedmerged";
 	print "  Now running lca_collapse.pl: $command\n";
 	system($command);
 	}
@@ -289,7 +289,7 @@ sub functions {
 			}
 		}
 	print "  Assigning with fun3\n";
-	system("perl $scriptdir/07.fun3assign.pl $project blastx");
+	system("perl $scriptdir/07.fun3assign.pl $projectpath blastx");
 	}
 
 sub remaketaxtables {

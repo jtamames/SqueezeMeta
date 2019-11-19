@@ -4,7 +4,6 @@
 #-- Merges individual assemblies using minimus2, for merged mode. It also uses cd-hit for excluding identical contigs
 
 use strict;
-use warnings;
 use Cwd;
 use lib "."; 
 
@@ -44,6 +43,7 @@ if($extassembly) {
 	}
 else {
 	if(-e "$tempdir/mergelog") { system("rm $tempdir/mergelog"); }
+	system("rm $interdir/merged*");
 	while($numassem>1) {
 		$mergestep++;	
 		if(-e $finalcontigs) { system("rm $finalcontigs"); }

@@ -19,11 +19,11 @@ do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $projectpath=$projectname;
 
-do "$project/parameters.pl";
+do "$projectpath/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
+our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
     $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$methodsfile,$keepsam10);
 
 my $verbose=0;

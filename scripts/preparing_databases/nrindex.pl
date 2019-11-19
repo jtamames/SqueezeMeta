@@ -28,7 +28,7 @@ while(<infile1>) {
 		$k=~s/\[|\]//g;
 		my @wd=split(/\s+/,$k);
 		next if(!$wd[1]);
-		if($k=~/virus|phage|symbiont/) { 
+		if($k=~/virus|phage|symbiont/i) { 
 			$specname=$k;
 			$specname=~s/\(.*//g;
 			$specname=~s/ strain //g;

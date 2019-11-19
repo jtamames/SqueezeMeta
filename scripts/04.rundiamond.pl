@@ -35,7 +35,7 @@ if(!$nocog) {
 	print "Running Diamond for COGS (This can take a while, please be patient)\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
-	print outmet "eggNOG (Huerta-Cepas et al 2016, Nuc Acids Res 44, D286-93), ";
+	print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
 }
 
 #-- KEGG database
@@ -45,7 +45,7 @@ if(!$nokegg) {
 	print "Running Diamond for KEGG (This can take a while, please be patient)\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
-	print outmet "KEGG (Kanehisa and Goto 2000, Nuc Acids Res 28, 27-30), ";
+	print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
 }
 
 #-- Optional databases
@@ -70,7 +70,7 @@ $command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evaluetax
 print "Running Diamond for taxa (This can take a long while, please be even more patient)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
-print outmet "GenBank (Clark et al 2016, Nuc Acids Res 44, D67-D72), ";
+print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
 print outmet "were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 close outmet;
 
