@@ -271,34 +271,38 @@ if($mode=~/sequential/i) {
 	
 		open(outfile5,">$projectdir/SqueezeMeta_conf.pl") || die "Can't write in directory $projectdir. Out of space?\n";
 
-		print outfile5 "\$mode=\"$mode\";\n\n";
-		print outfile5 "\$installpath=\"$installpath\";\n";
+		print outfile5 "\$mode = \"$mode\";\n\n";
+		print outfile5 "\$installpath = \"$installpath\";\n";
 
 		while(<infile2>) {
 			chomp;
 			next if !$_;
-			if($_=~/^\$basedir/) { print outfile5 "\$basedir=\"$pwd\";\n"; }
-			elsif($_=~/^\$projectname/) { print outfile5 "\$projectname=\"$project\";\n"; }
-			elsif($_=~/^\$blocksize/) { print outfile5 "\$blocksize=$blocksize;\n"; }
-			elsif($_=~/^\$nocog/) { print outfile5 "\$nocog=$nocog;\n"; }
-			elsif($_=~/^\$nokegg/) { print outfile5 "\$nokegg=$nokegg;\n"; }
-			elsif($_=~/^\$nopfam/) { print outfile5 "\$nopfam=$nopfam;\n"; }
-			elsif($_=~/^\$euknofilter/) { print outfile5 "\$euknofilter=$euknofilter;\n"; }
-			elsif($_=~/^\$doublepass/) { print outfile5 "\$doublepass=$doublepass;\n"; }
-			elsif($_=~/^\$nobins/) { print outfile5 "\$nobins=$nobins;\n"; }
-			elsif($_=~/^\$nomaxbin/) { print outfile5 "\$nomaxbin=$nomaxbin;\n"; }
-			elsif($_=~/^\$nometabat/) { print outfile5 "\$nometabat=$nometabat;\n"; }
-			elsif($_=~/^\$mapper/) { print outfile5 "\$mapper=\"$mapper\";\n"; }
-			elsif($_=~/^\$cleaning\b/) { print outfile5 "\$cleaning=$cleaning;\n"; }
-			elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
+			if($_=~/^\$basedir/)            { print outfile5 "\$basedir     = \"$pwd\";\n";                 }
+			elsif($_=~/^\$projectname/)     { print outfile5 "\$projectname = \"$project\";\n";             }
+			elsif($_=~/^\$blocksize/)       { print outfile5 "\$blocksize       = $blocksize;\n";           }
+			elsif($_=~/^\$nocog/)           { print outfile5 "\$nocog           = $nocog;\n";               }
+			elsif($_=~/^\$nokegg/)          { print outfile5 "\$nokegg          = $nokegg;\n";              }
+			elsif($_=~/^\$nopfam/)          { print outfile5 "\$nopfam          = $nopfam;\n";              }
+			elsif($_=~/^\$euknofilter/)     { print outfile5 "\$euknofilter     = $euknofilter;\n";         }
+			elsif($_=~/^\$doublepass/)      { print outfile5 "\$doublepass      = $doublepass;\n";          }
+			elsif($_=~/^\$nobins/)          { print outfile5 "\$nobins          = $nobins;\n";              }
+			elsif($_=~/^\$nomaxbin/)        { print outfile5 "\$nomaxbin        = $nomaxbin;\n";            }
+			elsif($_=~/^\$nometabat/)       { print outfile5 "\$nometabat       = $nometabat;\n";           }
+			elsif($_=~/^\$mapper/)          { print outfile5 "\$mapper          = \"$mapper\";\n";          }
+			elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $cleaning;\n";            }
+			elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$cleaningoptions\";\n"; }
 			else { print outfile5 "$_\n"; }
 		}
 	 	close infile2; 
 
-		print outfile5 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
-		if($assembler_options) { print outfile5 "\$assembler_options=\"$assembler_options\";\n"; }
-		if($extassembly) { print outfile5 "\$extassembly=\"$extassembly\";\n"; }
-		if($opt_db) { print outfile5 "\$opt_db=\"$opt_db\";\n"; }
+		print outfile5 "\n#-- Options\n\n";
+		print outfile5 "\$numthreads         = $numthreads;\n";
+		print outfile5 "\$mincontiglen       = $mincontiglen;\n";
+		print outfile5 "\$assembler          = \"$assembler\";\n";
+		print outfile5 "\$canumem            = $canumem;\n";
+		if($assembler_options) { print outfile5 "\$assembler_options  = \"$assembler_options\";\n"; }
+		if($extassembly)       { print outfile5 "\$extassembly        = \"$extassembly\";\n";       }
+		if($opt_db)            { print outfile5 "\$opt_db             = \"$opt_db\";\n";            }
 		close outfile5;
 
 		#-- Creation of directories
@@ -419,33 +423,37 @@ else {
 	open(infile3,"$scriptdir/SqueezeMeta_conf.pl")    || die "Can't open $scriptdir/SqueezeMeta_conf.pl\n";
 	open(outfile6,">$projectdir/SqueezeMeta_conf.pl") || die "Can't write in directory $projectdir. Wrong permissions, or out of space?\n";
 
-	print outfile6 "\$mode=\"$mode\";\n\n";
-	print outfile6 "\$installpath=\"$installpath\";\n";
+	print outfile6 "\$mode = \"$mode\";\n\n";
+	print outfile6 "\$installpath = \"$installpath\";\n";
 	while(<infile3>) {
-		if($_=~/^\$basedir/) { print outfile6 "\$basedir=\"$pwd\";\n"; }
-		elsif($_=~/^\$projectname/) { print outfile6 "\$projectname=\"$project\";\n"; }
-		elsif($_=~/^\$blocksize/) { print outfile6 "\$blocksize=$blocksize;\n"; }
-		elsif($_=~/^\$nocog/) { print outfile6 "\$nocog=$nocog;\n"; }
-		elsif($_=~/^\$nokegg/) { print outfile6 "\$nokegg=$nokegg;\n"; }
-		elsif($_=~/^\$nopfam/) { print outfile6 "\$nopfam=$nopfam;\n"; }
-		elsif($_=~/^\$euknofilter/) { print outfile6 "\$euknofilter=$euknofilter;\n"; }
-		elsif($_=~/^\$nobins/) { print outfile6 "\$nobins=$nobins;\n"; }
-		elsif($_=~/^\$nomaxbin/) { print outfile6 "\$nomaxbin=$nomaxbin;\n"; }
-		elsif($_=~/^\$nometabat/) { print outfile6 "\$nometabat=$nometabat;\n"; }
-		elsif($_=~/^\$doublepass/) { print outfile6 "\$doublepass=$doublepass;\n"; }
-		elsif($_=~/^\$mapper/) { print outfile6 "\$mapper=\"$mapper\";\n"; }
-		elsif($_=~/^\$cleaning\b/) { print outfile6 "\$cleaning=$cleaning;\n"; }
-		elsif($_=~/^\$cleaningoptions/) { print outfile6 "\$cleaningoptions=\"$cleaningoptions\";\n"; }
-		elsif(($_=~/^\%bindirs/) && ($nomaxbin)) { print outfile6 "\%bindirs=(\"metabat2\",\"\$resultpath/metabat2\");\n"; }
-		elsif(($_=~/^\%bindirs/) && ($nometabat)) { print outfile6 "\%bindirs=(\"maxbin\",\"\$resultpath/maxbin\");\n"; }
+		if($_=~/^\$basedir/)                      { print outfile6 "\$basedir     = \"$pwd\";\n";                             }
+		elsif($_=~/^\$projectname/)               { print outfile6 "\$projectname = \"$project\";\n";                         }
+		elsif($_=~/^\$blocksize/)                 { print outfile6 "\$blocksize       = $blocksize;\n";                       }
+		elsif($_=~/^\$nocog/)                     { print outfile6 "\$nocog           = $nocog;\n";                           }
+		elsif($_=~/^\$nokegg/)                    { print outfile6 "\$nokegg          = $nokegg;\n";                          }
+		elsif($_=~/^\$nopfam/)                    { print outfile6 "\$nopfam          = $nopfam;\n";                          }
+		elsif($_=~/^\$euknofilter/)               { print outfile6 "\$euknofilter     = $euknofilter;\n";                     }
+		elsif($_=~/^\$nobins/)                    { print outfile6 "\$nobins          = $nobins;\n";                          }
+		elsif($_=~/^\$nomaxbin/)                  { print outfile6 "\$nomaxbin        = $nomaxbin;\n";                        }
+		elsif($_=~/^\$nometabat/)                 { print outfile6 "\$nometabat       = $nometabat;\n";                       }
+		elsif($_=~/^\$doublepass/)                { print outfile6 "\$doublepass      = $doublepass;\n";                      }
+		elsif($_=~/^\$mapper/)                    { print outfile6 "\$mapper          = \"$mapper\";\n";                      }
+		elsif($_=~/^\$cleaning\b/)                { print outfile6 "\$cleaning        = $cleaning;\n";                        }
+		elsif($_=~/^\$cleaningoptions/)           { print outfile6 "\$cleaningoptions = \"$cleaningoptions\";\n";             }
+		elsif(($_=~/^\%bindirs/) && ($nomaxbin))  { print outfile6 "\%bindirs = (\"metabat2\",\"\$resultpath/metabat2\");\n"; }
+		elsif(($_=~/^\%bindirs/) && ($nometabat)) { print outfile6 "\%bindirs = (\"maxbin\",\"\$resultpath/maxbin\");\n";     }
 		else { print outfile6 $_; }
 	 }
 	close infile3;
 
- 	print outfile6 "\n#-- Options\n\n\$numthreads=$numthreads;\n\$mincontiglen=$mincontiglen;\n\$assembler=\"$assembler\";\n\$canumem=$canumem;\n";
-	if($assembler_options) { print outfile6 "\$assembler_options=\"$assembler_options\";"; }
-	if($extassembly) { print outfile6 "\$extassembly=\"$extassembly\";\n"; }
-	if($opt_db) { print outfile6 "\$opt_db=\"$opt_db\";\n"; }
+	print outfile6 "\n#-- Options\n\n";
+	print outfile6 "\$numthreads         = $numthreads;\n";
+	print outfile6 "\$mincontiglen       = $mincontiglen;\n";
+	print outfile6 "\$assembler          = \"$assembler\";\n";
+	print outfile6 "\$canumem            = $canumem;\n";
+	if($assembler_options) { print outfile6 "\$assembler_options  = \"$assembler_options\";\n"; }
+	if($extassembly)       { print outfile6 "\$extassembly        = \"$extassembly\";\n";       }
+	if($opt_db)            { print outfile6 "\$opt_db             = \"$opt_db\";\n";            }
 	close outfile6;
 
 	print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";

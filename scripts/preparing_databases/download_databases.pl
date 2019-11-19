@@ -60,7 +60,7 @@ close outfile1;
 open(outfile2,">$installpath/scripts/SqueezeMeta_conf.pl") || die;
 open(infile1, "$installpath/scripts/SqueezeMeta_conf_original.pl") || die;
 while(<infile1>) {
-	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath=\"$database_dir\";\n"; }
+	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath = \"$database_dir\";\n"; }
 	else { print outfile2 $_; }
 	}
 close infile1;
