@@ -45,10 +45,7 @@ if(!$project) { die "Please provide project name\nUsage: sqm2itol.pl <options> -
 
 do "./$project/SqueezeMeta_conf.pl";
 
-our($extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,%bindirs,%dasdir);
-
-our $scriptdir = abs_path(dirname(__FILE__));
-our $installpath = "$scriptdir/..";
+our($installpath, $extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,%bindirs,%dasdir);
 
 if(!$complete_cutoff) { $complete_cutoff=30; }		#-- Do not consider bins below this level of completion
 if(!$contamination_cutoff) { $contamination_cutoff=100; }		#-- Do not consider bins above this level of contamination

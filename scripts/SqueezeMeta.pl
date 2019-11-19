@@ -18,10 +18,22 @@ my $start_run = time();
 
 my $longtrace=0;    #-- Reports an explanation msg for each of the steps
 
-###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
+###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
 use File::Basename;
-our $scriptdir = dirname(__FILE__);
-our $installpath = "$scriptdir/..";
+use Cwd 'abs_path';
+
+our $scriptdir;
+if(-l __FILE__)
+	{
+	my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+	{
+	$scriptdir = abs_path(dirname(__FILE__));
+	}
+our $installpath = abs_path("$scriptdir/..");
 ###
 
 our $pwd=cwd();
@@ -377,7 +389,7 @@ if($mode=~/sequential/i) {
 else {
 
 	my $projectdir="$pwd/$project";
-	if (-d $projectdir) { die "Project name $projectdir already exists. pLease remove it or change project name\n"; } else { system("mkdir $projectdir"); }
+	if (-d $projectdir) { die "Project name $projectdir already exists. Please remove it or change project name\n"; } else { system("mkdir $projectdir"); }
 		
 	#-- We start creating directories, progress and log files
 
