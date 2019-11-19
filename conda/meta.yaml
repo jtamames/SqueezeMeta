@@ -34,7 +34,7 @@ requirements:
     - r-reshape2
     - r-doMC
     - r-data.table
-
+    - bioconductor-pathview 
 
 about:
   home:  https://github.com/jtamames/SqueezeMeta
