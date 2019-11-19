@@ -27,7 +27,7 @@ do "$project/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($installpath,$datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir);
+our($installpath,$datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
