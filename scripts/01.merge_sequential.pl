@@ -19,7 +19,7 @@ do "$project/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 
-our($scriptdir, $resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
+our($installpath,$scriptdir,$resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
 
 open(out_tr,">$tempdir/merge.order");
 
@@ -42,7 +42,7 @@ else {
 		$mergestep++;	
 		if(-e $finalcontigs) { system("rm $finalcontigs"); }
 		$merged="$interdir/merged_$mergestep.$project.fasta";
-                my $command="$scriptdir/kmerdist.pl $project";
+                my $command="$installpath/lib/SqueezeMeta/kmerdist.pl $project";
 		my $ecode=system($command);
 		if($ecode!=0) { die "Error running command:    $command"; }
 		open(infile0,"$tempdir/$project.2merge") || die;

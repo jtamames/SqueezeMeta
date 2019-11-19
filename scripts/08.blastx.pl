@@ -27,7 +27,7 @@ do "$project/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir);
+our($installpath,$datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$installpath,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
@@ -175,7 +175,7 @@ sub collapse {
 	#-- Collapse hits using blastxcollapse.pl
 
 	print "  Collapsing hits with blastxcollapse.pl\n";
-	my $collapse_command="$scriptdir/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
+	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
 	system $collapse_command;
 	}
 	
@@ -183,7 +183,7 @@ sub merge {
 
 	#-- Merge frameshifts
 
-	my $merge_command="$scriptdir/mergehits.pl $collapsed > $collapsedmerged";
+	my $merge_command="$installpath/lib/SqueezeMeta/mergehits.pl $collapsed > $collapsedmerged";
 	print "  Merging splitted hits with mergehits.pl\n";
 	system $merge_command;
 	}
@@ -245,7 +245,7 @@ sub lca {
 
 	#-- Assign with lca_collapsed
 
-	my $command="perl $scriptdir/lca_collapse.pl $project $collapsedmerged";
+	my $command="perl $installpath/lib/SqueezeMeta/lca_collapse.pl $project $collapsedmerged";
 	print "  Now running lca_collapse.pl: $command\n";
 	system($command);
 	}
