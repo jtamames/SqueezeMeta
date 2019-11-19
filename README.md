@@ -246,6 +246,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [canu](https://github.com/marbl/canu)
 * [prinseq](http://prinseq.sourceforge.net)
 * [prodigal](https://github.com/hyattpd/Prodigal)
+* [kmer-db](https://github.com/refresh-bio/kmer-db)
 * [cd-hit](https://github.com/weizhongli/cdhit)
 * [amos](http://www.cs.jhu.edu/~genomics/AMOS)
 * [mummer](https://github.com/mummer4/mummer)
