@@ -22,6 +22,7 @@ $interdir="$basedir/$projectname/intermediate";			#-- Temp directory
 #-- Result files
 
 $mappingfile="$datapath/00.$projectname.samples";       #-- Mapping file (samples -> fastq)
+$methodsfile="$basedir/$projectname/methods.txt";			#-- File compiling methods
 $contigsfna="$resultpath/01.$projectname.fasta";        #-- Contig file from assembly
 $contigslen="$interdir/01.$projectname.lon";
 $rnafile="$resultpath/02.$projectname.rnas";            #-- RNAs from barrnap

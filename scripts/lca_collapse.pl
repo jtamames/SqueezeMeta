@@ -9,14 +9,16 @@ use DBI;
 use Tie::IxHash;
 use Cwd;
 use lib ".";
-$pwd=cwd();
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//; 
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Please check that $project is the correct path to the project"; }
-do "$project/SqueezeMeta_conf.pl";
-do "$project/parameters.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 our($datapath,$resultpath,$databasepath,$taxdiamond,$lca_db,$fun3tax,$evalue,$scoreratio6,$diffiden6,$flex6,$minhits6,$noidfilter6);
 
@@ -129,7 +131,7 @@ sub query {
 	if($refcc) {
 		my $sth = $dbh->prepare($query);  
 		$sth->execute();
-		while(@list=$sth->fetchrow()) {
+		while(my @list=$sth->fetchrow()) {
 			print "$lastorf\t@list\n" if $verbose;
 			for(my $pos=2; $pos<=8; $pos++) {
 				my $rank=$ranks[$pos-2];

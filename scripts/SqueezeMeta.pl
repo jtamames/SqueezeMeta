@@ -18,15 +18,27 @@ my $start_run = time();
 
 my $longtrace=0;    #-- Reports an explanation msg for each of the steps
 
-###scriptdir patch, Fernando Puente-Sánchez, 29-V-2018
+###scriptdir patch v2, Fernando Puente-S�nchez, 18-XI-2019
 use File::Basename;
-our $scriptdir = dirname(__FILE__);
-our $installpath = "$scriptdir/..";
+use Cwd 'abs_path';
+
+our $scriptdir;
+if(-l __FILE__)
+	{
+	my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+	{
+	$scriptdir = abs_path(dirname(__FILE__));
+	}
+our $installpath = abs_path("$scriptdir/..");
 ###
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
@@ -146,9 +158,7 @@ if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
 #-- Check if we have all the needed options
 
 
-print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
-
-my $dietext;
+my($dietext,$finaltrace);
 if($ver) { exit; }
 if($hel) { die "$helptext\n"; } 
 if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
@@ -299,6 +309,12 @@ if($mode=~/sequential/i) {
  		system ("mkdir $datapath/raw_fastq"); 
  		system ("mkdir $extpath"); 
 		system ("mkdir $interdir");
+		open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+		print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+		print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
+		close outmet;
+
+
 	
 		#-- Linkage of files to put them into our data directories
 	
@@ -439,7 +455,11 @@ else {
 	print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";
 	do "$projectdir/SqueezeMeta_conf.pl" || die "Can't write in directory $projectdir. Wrong permissions, or out of space?\n";
 
-	
+	open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+	print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+	print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
+	close outmet;
+
 	#-- Creation of directories
 	
 	system ("mkdir $datapath");
@@ -874,7 +894,7 @@ sub pipeline {
 				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
-			if($wsize<2) { warn "WARNING in STEP14 -> $scriptname. No MaxBin results!\n"; }
+			if($wsize<2) { warn "WARNING in STEP14 -> $scriptname. No MaxBin results!\n"; $finaltrace.="WARNING in STEP15: No Maxbin results!\n"; }
 		}
 			
     #-------------------------------- STEP15: Running Metabat (only for merged or coassembly modes)		
@@ -899,7 +919,7 @@ sub pipeline {
 				($wsize,$rest)=split(/\s+/,$wc);
 				}
 			else { $wsize==0; }
-			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. No Metabat2 results!\n"; }
+			if($wsize<2) { warn "WARNING in STEP15 -> $scriptname. No Metabat2 results!\n"; $finaltrace.="WARNING in STEP15: No Metabat2 results!\n";  }
 		}
  
     #-------------------------------- STEP16: DAS Tool merging of binning results	
@@ -926,6 +946,7 @@ sub pipeline {
 			else { $wsize==0; }
 			if($wsize<2) {
 				print("WARNING: File $firstfile is empty!. DAStool did not generate results\n");
+				$finaltrace.="DAS Tool abnormal termination: file $firstfile is empty. There are NO BINS!\n";
 				$DAS_Tool_empty = 1;
 				if($longtrace) { print " (This will use DASTool for creating a consensus between the sets of bins created in previous steps)\n"; 	}
 				}
@@ -1059,6 +1080,8 @@ sub pipeline {
 	$currtime=timediff();
 	print outfile4 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
 	print "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
+	if($finaltrace) { print "\nWARNINGS:\n$finaltrace\n"; }
+	print "For citation purposes, you can find a summary of methods in the file $methodsfile\n";
 }
 
 

@@ -7,16 +7,18 @@ use lib ".";
 $|=1;
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//;
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
 
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
-do "$project/SqueezeMeta_conf.pl";
-do "$project/parameters.pl";
+do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$bintable,$minfraction21,%bindirs,%dasdir);
+our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$methodsfile,$bintable,$minfraction21,%bindirs,%dasdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
 open(infile1,"$extdatapath/metacyc_pathways_onto.txt") || die "Can't open $extdatapath/metacyc_pathways_onto.txt\n";
@@ -88,6 +90,10 @@ outres("kegg");
 my(%pathways,%allpaths,%totalpathways,%pathgenes);
 metacyc();
 outres("metacyc");
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+print outmet "Pathway prediction for KEGG (Kanehisa and Goto 2000, Nuc Acids Res 28, 27-30) and MetaCyc (Caspi et al 2018, Nucleic Acid Res 46(D1), D633-D639) databases was done using MinPath (Ye and Doak 2009, PLoS Comput Biol 5(8), e1000465)\n";
+close outmet;
 
 sub outres {
 	my $clas=shift;

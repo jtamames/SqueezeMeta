@@ -10,10 +10,15 @@ my $pwd=cwd();
 
 $|=1;
 
-my $project=$ARGV[0];
-$project=~s/\/$//;
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
-do "$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
+
 
 our($numthreads,$interdir,$tempdir,$resultpath,$kmerdb_soft);
 

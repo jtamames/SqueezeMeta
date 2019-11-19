@@ -16,14 +16,15 @@ use Cwd;
 use lib ".";
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//; 
-if(!$project) { die "Please specify a project name\n"; }
-if(!(-e $project)) { die "Project $project does not exist. Please get sure that you are in the correct directory (the one containing your project)\n"; }
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
 
-do "$project/SqueezeMeta_conf.pl";
-do "$project/parameters.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 	#-- Configuration variables from conf file
 
@@ -39,9 +40,6 @@ my $blastxout="$tempdir/08.$project.nr.blastx";
 my $collapsed="$tempdir/08.$project.nr.blastx.collapsed.m8";
 my $collapsedmerged=$collapsed;
 $collapsedmerged=~s/\.m8/\.merged\.m8/;
-
-
-
 
 moving();
 masking();

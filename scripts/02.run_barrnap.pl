@@ -10,14 +10,20 @@ use lib ".";
 
 my $pwd=cwd();
 
-my $project=$ARGV[0];
-$project=~s/\/$//;
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
-do "$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath);
+our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$methodsfile);
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 
 my %king;
 tie %king,"Tie::IxHash";
@@ -104,6 +110,7 @@ foreach my $kingdom(keys %king) {
 	system("mv contigs.prov $targetfile");
 }
 close outfile4;
+print outmet "RNAs were predicted using Barrnap (Seeman 2014, Bioinformatics 30, 2068-9)\n";
 		
 #-- Creating the RNAs gff file
 
@@ -118,6 +125,7 @@ $command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f
 print "Running RDP classifier: $command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
+print outmet "16S rRNA sequences were taxonomically classified using the RDP classifier (Wang et al 2007, Appl Environ Microbiol 73, 5261-7)\n";
 
 my %parents=('Bacteria','superkingdom:Bacteria','Archea','superkingdom:Archaea','Eukaryota','superkingdom:Eukaryota');
 open(infile3,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
@@ -153,3 +161,4 @@ while(<infile4>) {
 	}
 close infile4;
 close outfile5;
+close outmet;

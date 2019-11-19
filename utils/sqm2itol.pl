@@ -40,10 +40,12 @@ my $result = GetOptions ("completion=i" => \$complete_cutoff,
 if($hel) { die "$helptext\n"; } 
 
 my $pwd=cwd();
-$project=~s/\/$//;
-if(!$project) { die "Please provide project name\nUsage: sqm2itol.pl <options> -p project\n"; }
-
-do "./$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
 
 our($extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,%bindirs,%dasdir);
 

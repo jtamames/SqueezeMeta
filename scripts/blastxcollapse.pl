@@ -7,9 +7,8 @@ use Getopt::Long qw(:config gnu_getopt gnu_compat);
 use Data::Dumper;
 
 ## Globals
-our $VERSION = "1.07";
-#our $VERSION = sprintf "%d.%03d", q$Revision: 1.3 $ =~ /(\d+)/g;
-our $AUTHOR = "";
+our $VERSION = "1.00";
+our $AUTHOR = "SQM";
 our $PROGRAM = $0;
 
 ## Defaults:

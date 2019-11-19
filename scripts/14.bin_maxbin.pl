@@ -10,20 +10,26 @@ use lib ".";
 $|=1;
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//; 
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
-do "$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile);
+our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile,$methodsfile);
 
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
 my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
 my $smallnoannot=1;	#-- For excluding contigs with just one gene an no annotation
 
 my(%allcontigs,%skip);
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 
 	#-- Reading contigs
 
@@ -113,3 +119,5 @@ print "Now running Maxbin: $command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 
+print outmet "Binning was done using MaxBin2 (Wu et al 2016, Bioinformatics 32(4), 605-7)\n";
+close outmet;

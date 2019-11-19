@@ -12,15 +12,21 @@ my $pwd=cwd();
 
 $|=1;
 
-my $project=$ARGV[0];
-$project=~s/\/$//;
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
-do "$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
+
 
 #-- Configuration variables from conf file
 
-our($scriptdir, $resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
+our($scriptdir, $resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile);
 
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(out_tr,">$tempdir/merge.order");
 
 #-- Merges the assemblies in a single dataset
@@ -122,12 +128,16 @@ else {
 	}
 
 system("mv $merged $finalcontigs");
+print outmet "Totally overlapping contigs were removed using cd-hit(Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
+print outmet "Contigs were merged using Minimus2(Treangen et al 2011, Curr Protoc Bioinfomatics 11)\n";
+
 
 #-- Run prinseq_lite for statistics
 
 $command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
 $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
+print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 	
 
 #-- Count length of contigs (needed later)
@@ -154,6 +164,7 @@ while(<infile1>) {
 close infile1;
 close outfile1;
 close out_tr;
+close outmet;
 
 sub parseafg {
 	my $inafg=shift;
