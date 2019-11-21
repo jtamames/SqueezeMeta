@@ -38,11 +38,14 @@ if($extassembly) {
 	}
 else {
 	if(-e "$tempdir/mergelog") { system("rm $tempdir/mergelog"); }
+	my $command="rm $interdir/merged*fasta";
+	#print "$command\n";
+	system($command);
 	while($numassem>1) {
 		$mergestep++;	
 		if(-e $finalcontigs) { system("rm $finalcontigs"); }
 		$merged="$interdir/merged_$mergestep.$project.fasta";
-                my $command="$scriptdir/kmerdist.pl $project";
+                my $command="$scriptdir/kmerdist.pl $project $mergestep";
 		my $ecode=system($command);
 		if($ecode!=0) { die "Error running command:    $command"; }
 		open(infile0,"$tempdir/$project.2merge") || die;
@@ -105,6 +108,7 @@ else {
 				}
 			close infile0;
 			close outfile0;
+			system("rm $merged.prov");
 			
 			$numassem--;
 			open(mlog0,">>$tempdir/mergelog") || die;
@@ -157,7 +161,7 @@ close infile1;
 close outfile1;
 close out_tr;
 
-sub parseafg {
+sub parseafg {				
 	my $inafg=shift;
 	my($inred,$inpos,$accum);
 	my(%order,%samples);
