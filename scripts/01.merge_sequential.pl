@@ -23,7 +23,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($scriptdir, $resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile);
+our($installpath,$scriptdir,$resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(out_tr,">$tempdir/merge.order");
@@ -48,7 +48,7 @@ else {
 		$mergestep++;	
 		if(-e $finalcontigs) { system("rm $finalcontigs"); }
 		$merged="$interdir/merged_$mergestep.$project.fasta";
-                my $command="$scriptdir/kmerdist.pl $project $mergestep";
+                my $command="$installpath/lib/SqueezeMeta/kmerdist.pl $project $mergestep";
 		my $ecode=system($command);
 		if($ecode!=0) { die "Error running command:    $command"; }
 		open(infile0,"$tempdir/$project.2merge") || die;
@@ -219,6 +219,3 @@ sub parseafg {
 		}
 	close inp2;
 	}
-		
-
-
