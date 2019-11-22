@@ -105,4 +105,4 @@ $canu_soft          = "$installpath/bin/canu/canu";
 $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "LD_LIBRARY_PATH=$installpath/lib $installpath/bin/kmer-db";
-$aragorn_soft       = "aragorn";
+$aragorn_soft       = "$installpath/bin/aragorn";
