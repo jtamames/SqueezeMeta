@@ -47,6 +47,7 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
     coverage                   = as.matrix(coverage[,-1,drop=F])
 
     lengths                    = replicate(ncol(SQM$orfs$abund), SQM$orfs$table[,'Length NT'])
+    if(is.null(dim(lengths)))  { lengths = matrix(lengths, nrow=1) } # The replicate function generates a vector if there is only one ORF. Avoid that.
     dimnames(lengths)          = dimnames(SQM$orfs$abund)
     lengths[SQM$orfs$abund==0] = 0 #Don't count its length if it's missing fron that sample.
     lengths                    = aggregate(lengths       , by=list(funs), FUN=sum)
