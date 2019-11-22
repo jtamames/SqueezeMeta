@@ -62,13 +62,9 @@ close infile1;
 
 #-- Preparing the output files
 
-#open(outfile1,">$fun3tax") || die;
-#print outfile1 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
 open(outfile2,">$fun3tax.wranks") || die "Can't open $fun3tax.wranks for writing\n";
 print outfile2 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
 if($noidfilter6) {
-	#open(outfile3,">$fun3tax.noidfilter") || die;
-	#print outfile3 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
 	open(outfile4,">$fun3tax.noidfilter.wranks") || die "Can't open $fun3tax.noidfilter.wranks for writing\n";
 	print outfile4 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
 	}

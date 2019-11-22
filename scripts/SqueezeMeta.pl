@@ -189,6 +189,7 @@ close infile1;
 
 
 my $currtime=timediff();
+print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 print "Run started ",scalar localtime," in $mode mode\n";
 
 #--------------------------------------------------------------------------------------------------
@@ -202,7 +203,7 @@ if($mode=~/sequential/i) {
 
 	#-- Reading the sample file given by the -s option, to locate the sample files
 
-	print "Now reading samples\n";
+	# print "Now reading samples\n";
 	open(infile1,$equivfile) || die "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n";
 	while(<infile1>) {
 		chomp;
@@ -216,8 +217,8 @@ if($mode=~/sequential/i) {
 
 	my @nmg=keys %allsamples;
 	$numsamples=$#nmg+1;
-	print "$numsamples metagenomes found";
-	print "\n";
+	print "$numsamples metagenomes found: @nmg";
+	print "\n\n";
 
 	open(outfile1,">$pwd/global_progress") || die "Can't write in directory $pwd\n";  	#-- An index indicating where are we and which parts of the method finished already. For the global process
 	open(outfile2,">$pwd/global_syslog") || die "Can't write in directory $pwd\n"; 		 #-- A log file for the global proccess
@@ -251,7 +252,6 @@ if($mode=~/sequential/i) {
 		print outfile4 "Map file: $equivfile\n";
 		print outfile4 "Fastq directory: $rawfastq\n";
 		print outfile4 "Command: $commandline\n"; 
-		print outfile4 "Options: threads=$numthreads; contiglen=$mincontiglen; assembler=$assembler; mapper=$mapper; evalue=$evalue; miniden=$miniden;";
 		print outfile4 "[",$currtime->pretty,"]: STEP0 -> SqueezeMeta.pl\n";
 		if(!$nocog) { print outfile4 " COGS;"; }
 		if(!$nokegg) { print outfile4 " KEGG;"; }
@@ -314,7 +314,6 @@ if($mode=~/sequential/i) {
  		system ("mkdir $extpath"); 
 		system ("mkdir $interdir");
 		open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
-		print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 		print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
 		close outmet;
 
@@ -464,7 +463,6 @@ else {
 	do "$projectdir/SqueezeMeta_conf.pl" || die "Can't write in directory $projectdir. Wrong permissions, or out of space?\n";
 
 	open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
-	print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 	print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
 	close outmet;
 
@@ -496,7 +494,7 @@ else {
 sub moving {
 
 	my $projectdir="$pwd/$project";
-	print "Now moving read files\n";
+	#print "Now moving read files\n";
 	
 	#-- Reading samples from the file specified with -s option
 	
@@ -525,7 +523,7 @@ sub moving {
 	$numsamples=$#nmg+1;
 	print outfile3 "Samples:$numsamples\nMode:$mode\n0\n";
 	if($numsamples==1) { print "$numsamples sample found: Skipping all binning methods\n"; }
-	else { print "$numsamples samples found\n"; }
+	else { print "$numsamples samples found: @nmg\n\n"; }
 
 	open(infile0,$equivfile) || die;	#-- Deleting \r in samples file for windows compatibility
 	open(outfile0,">$mappingfile") || die;
@@ -647,12 +645,12 @@ sub pipeline {
 
 	if($rpoint<=2) {
 		if($longtrace) { print " At this point, we already have contigs\n"; }
-		my $scriptname="02.run_barrnap.pl";
+		my $scriptname="02.rnas.pl";
 		print outfile3 "2\t$scriptname\n";
 		$currtime=timediff();
 		print outfile4 "[",$currtime->pretty,"]: STEP2 -> $scriptname\n";
 		print "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n";
-		if($longtrace) { print " (This will run barrnap for predicting putative RNAs in the contigs. This is done before predicting protein-coding genes for avoiding predicting these where there is a RNA)\n"; }
+		if($longtrace) { print " (This will run barrnap and Aragorn for predicting putative RNAs in the contigs. This is done before predicting protein-coding genes for avoiding predicting these where there is a RNA)\n"; }
 		my $ecode = system("perl $scriptdir/$scriptname $project");
 		my $masked="$interdir/02.$project.maskedrna.fasta";
 		if($ecode!=0)        { die "Stopping in STEP2 -> $scriptname\n"; }

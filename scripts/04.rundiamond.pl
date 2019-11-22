@@ -28,11 +28,12 @@ my $command;
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Similarity searches for ";
 
+print "Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for";
 #-- COG database
 
 if(!$nocog) {
 	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
-	print "Running Diamond for COGS (This can take a while, please be patient)\n";
+	print " COGS";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
@@ -42,7 +43,7 @@ if(!$nocog) {
 
 if(!$nokegg) {
 	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
-	print "Running Diamond for KEGG (This can take a while, please be patient)\n";
+	print " KEGG";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
@@ -58,7 +59,7 @@ if($opt_db) {
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
 		my $outdb="$interdir/04.$project.$dbname.diamond";
 		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
-		print "Running Diamond for optional database $dbname\n";
+		print " $dbname";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		}
@@ -67,7 +68,7 @@ if($opt_db) {
 #-- nr database
 
 $command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
-print "Running Diamond for taxa (This can take a long while, please be even more patient)\n";
+print " taxa\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";

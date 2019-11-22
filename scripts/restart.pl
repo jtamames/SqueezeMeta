@@ -155,7 +155,7 @@ my $DAS_Tool_empty=0;
     #-------------------------------- STEP2: Run RNA prediction
 
 	if($rpoint<=2) {
-		my $scriptname="02.run_barrnap.pl";
+		my $scriptname="02.rnas.pl";
 		print outfile1 "2\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP2 -> $scriptname\n";

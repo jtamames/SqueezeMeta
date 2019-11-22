@@ -200,6 +200,7 @@ while(<infile4>) {
 		if($rnaseq) { 
 			$orfdata{$thisrna}{ntseq}=$rnaseq;
 			$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
+			$orfdata{$thisorf}{length}="NA";
 			$orfdata{$thisrna}{molecule}="rRNA";
 			$orfdata{$thisrna}{method}="barrnap";
 			}
@@ -230,6 +231,7 @@ while(<infile4>) {
 	my @fl=split(/\_/,$genm);
 	my($posn1,$posn2)=split(/\-/,$fl[$#fl]);
 	$orfdata{$genm}{lengthnt}=($posn2-$posn1)+1;
+	$orfdata{$thisorf}{length}="NA";
 	if($trna=~/tmRNA/) { $orfdata{$genm}{molecule}="tmRNA"; } else { $orfdata{$genm}{molecule}="tRNA"; }
 	$orfdata{$genm}{method}="Aragorn"; 
 	$orfdata{$genm}{name}=$trna;  

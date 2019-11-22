@@ -54,7 +54,7 @@ my($command,$trimmomatic_command);
 foreach my $thissample(sort keys %samplefiles) {
 	my($par1name,$par2name);
 	print "Working for sample $thissample\n";
-	system("rm $tempdir/par*fast*");
+	system("rm $tempdir/par*fast* > /dev/null 2>&1");
 	my($seqformat,$gzformat,$numfiles,$cat1,$cat2);
 	foreach my $thisfile(sort keys %{ $samplefiles{$thissample} }) {
 		if($thisfile=~/gz$/) { $gzformat=".gz";  }	
@@ -63,13 +63,13 @@ foreach my $thissample(sort keys %samplefiles) {
 		if($ident{$thisfile} eq "pair1") { $par1name="$tempdir/par1.$seqformat$gzformat"; $cat1.="$datapath/raw_fastq/$thisfile "; $numfiles++; }
 		elsif($ident{$thisfile} eq "pair2") { $par2name="$tempdir/par2.$seqformat$gzformat"; $cat2.="$datapath/raw_fastq/$thisfile "; }
 		}
-	print "Now merging files\n";
+	# print "Now merging files\n";
 	$command="cat $cat1 > $par1name";
-	print "$command\n";
+	# print "$command\n";
 	system $command;		
 	if($cat2) {		#-- Support for single reads
 		$command="cat $cat2 > $par2name";
-		print "$command\n";
+		# print "$command\n";
 		system $command;		
 		}
 		
@@ -85,11 +85,11 @@ foreach my $thissample(sort keys %samplefiles) {
 		$orig2=~s/\.fasta/\.original.fasta/;
 		my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
 		system $tcommand; 
-		if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions"; }
-		else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name $cleaningoptions"; }
+		if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions > /dev/null 2>&1"; }
+		else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name $cleaningoptions > /dev/null 2>&1"; }
 
 		if($cleaning) {
-			print "Running trimmomatic: $trimmomatic_command\n";
+			print "Running Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for filtering reads\n";
 			my $ecode = system $trimmomatic_command;
 			if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
 			print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
@@ -103,11 +103,11 @@ foreach my $thissample(sort keys %samplefiles) {
         my $assemblyname;
         my $ecode;
 	if($assembler=~/megahit/i) { 
-		system("rm -r $datapath/megahit"); 
+		system("rm -r $datapath/megahit > /dev/null 2>&1"); 
 		$assemblyname="$datapath/megahit/$thissample.final.contigs.fa";
-		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; }
-		else { $command="$megahit_soft $assembler_options -r $par1name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit"; }	#-- Support for single reads
-		print "Running Megahit for $thissample: $command\n";
+		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit > /dev/null 2>&1"; }
+		else { $command="$megahit_soft $assembler_options -r $par1name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit > /dev/null 2>&1"; }	#-- Support for single reads
+		print "Running Megahit (Li et al 2015, Bioinformatics 31(10):1674-6) for $thissample\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		system("mv $datapath/megahit/final.contigs.fa $assemblyname");
@@ -116,11 +116,11 @@ foreach my $thissample(sort keys %samplefiles) {
 	#-- For spades
 
 	if($assembler=~/spades/i) { 
-		system("rm -r $datapath/spades"); 
+		system("rm -r $datapath/spades > /dev/null 2>&1"); 
 		$assemblyname="$datapath/spades/$thissample.contigs.fasta";
-		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades"; }
-		else { $command="$spades_soft $assembler_options --meta --s1 $par1name -m 400 -t $numthreads -o $datapath/spades"; } #-- Support for single reads
-		print "Running Spades for $thissample: $command\n";
+		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades > /dev/null 2>&1"; }
+		else { $command="$spades_soft $assembler_options --meta --s1 $par1name -m 400 -t $numthreads -o $datapath/spades > /dev/null 2>&1"; } #-- Support for single reads
+		print "Running Spades (Li et al 2015, Bioinformatics 31(10):1674-6) for $thissample\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		system("mv $datapath/spades/contigs.fasta $assemblyname");
@@ -129,10 +129,10 @@ foreach my $thissample(sort keys %samplefiles) {
        #-- For canu
 
         if($assembler=~/canu/i) {
-                system("rm -r $datapath/canu");
+                system("rm -r $datapath/canu > /dev/null 2>&1");
                 $assemblyname="$datapath/canu/$thissample.contigs.fasta";
-		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw $par1name";
-                print "Running canu for $thissample: $command\n";
+		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw $par1name > /dev/null 2>&1";
+                print "Running canu (Koren et al 2017, Genome Res 27(5):722-36) for $thissample\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
                 system("mv $datapath/canu/$project.contigs.fasta $assemblyname");
@@ -146,9 +146,11 @@ foreach my $thissample(sort keys %samplefiles) {
 	$contigsfna="$interdir/01.$project.$thissample.fasta";	#-- Contig file from assembly
 	$contigslen="$interdir/01.$project.$thissample.lon";
 	$command="$prinseq_soft -fasta $assemblyname -min_len $mincontiglen -out_good $tempdir/prinseq; mv $tempdir/prinseq.fasta $contigsfna.prov";
-	print "Running prinseq: $command\n";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
+	if($mincontiglen>200) {
+		print "Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen\n";
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
+		}
 
 	#-- Now we need to rename the contigs for minimus2, otherwise there will be contigs with same names in different assemblies
 
