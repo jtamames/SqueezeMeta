@@ -24,6 +24,7 @@ $mappingfile     = "$datapath/00.$projectname.samples";         #-- Mapping file
 $contigsfna      = "$resultpath/01.$projectname.fasta";         #-- Contig file from assembly
 $contigslen      = "$interdir/01.$projectname.lon";             #-- Length of each contig
 $rnafile         = "$resultpath/02.$projectname.rnas";          #-- RNAs from barrnap
+$trnafile        = "$resultpath/02.$projectname.trnas";         #-- tRNAs from aragorn
 $gff_file        = "$resultpath/03.$projectname.gff";           #-- gff file from prodigal
 $aafile          = "$resultpath/03.$projectname.faa";           #-- Aminoacid sequences for genes
 $ntfile          = "$resultpath/03.$projectname.fna";           #-- Nucleotide sequences for genes
@@ -103,4 +104,4 @@ $canu_soft          = "$installpath/bin/canu/canu";
 $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "LD_LIBRARY_PATH=$installpath/lib $installpath/bin/kmer-db";
-
+$aragorn_soft       = "aragorn";
