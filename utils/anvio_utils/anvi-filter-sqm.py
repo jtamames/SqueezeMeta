@@ -103,7 +103,7 @@ from os.path import abspath, dirname, realpath, exists
 from sys import path, stderr
 import glob
 utils_home = abspath(dirname(realpath(__file__)))
-path.append('{}/../lib/'.format(utils_home))
+path.append('{}/../../lib/'.format(utils_home))
 import dendropy
 import sqlite3
 from collections import defaultdict
