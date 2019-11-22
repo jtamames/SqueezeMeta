@@ -68,7 +68,9 @@ foreach my $print(sort keys %ranks) {
 	next if($ranks{$print} ne "species");
 	my @k=split(/\s+/,$names{$print});
 	if($virus{$print}) { $specname=$names{$print}; }
-	elsif($k[0] eq "Candidatus") { $specname="$k[0] $k[1] $k[2]"; } 
+	elsif($k[0] eq "Candidatus") { $specname="$k[0] $k[1] $k[2]"; }
+	elsif( ($k[1] eq "symbiotica") or ($k[1] eq "symbioticus") or ($k[1] eq "asymbiotica") or ($k[1] eq "asymbioticus") ) { $specname="$k[0] $k[1]"; }
+	elsif( $names{$print}=~/symbio/i )  { $specname=$names{$print}; }
 	else { $specname="$k[0] $k[1]"; }
 	next if($seen{$specname});
 	$seen{$specname}=1;
