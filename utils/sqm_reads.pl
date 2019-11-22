@@ -12,11 +12,27 @@ use Getopt::Long;
 use Tie::IxHash;
 use lib ".";
 use strict;
+
+###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
 use File::Basename;
-our $utilsdir = dirname(__FILE__);
-our $installpath = "$utilsdir/..";
-our $scriptdir = "$installpath/scripts";
-our $auxdir = "$installpath/lib/SQM_reads";
+use Cwd 'abs_path';
+
+my $utilsdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $utilsdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $utilsdir = abs_path(dirname(__FILE__));
+        }
+my $installpath = abs_path("$utilsdir/..");
+my $scriptdir = "$installpath/scripts";
+my $auxdir = "$installpath/lib/SQM_reads";
+###
+
 
 my $version="0.1.0, Sept 2019";
 my $start_run = time();

@@ -40,19 +40,16 @@ sudo -H python3 -m pip install dendropy pysam
 #     git clone http://github.com/jtamames/SqueezeMeta
 
 
-### Install R packages for DAS tool.
+### Install R packages.
 sudo R
 install.packages("doMC")
 install.packages("ggplot2")
 install.packages("data.table")
-quit(save='no')
-sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
-
-
-### Install the SQMtools R package for downstream analysis of SqueezeMeta results.
-sudo R
 install.packages("reshape2")
-quit(save='no')
+install.packages("BiocManager")
+BiocManager::install("pathview")
+quit(save="no")
+sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
 sudo R CMD INSTALL <installpath>/SqueezeMeta/lib/SQMtools
 
 

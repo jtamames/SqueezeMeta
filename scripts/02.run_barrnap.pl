@@ -2,6 +2,7 @@
 
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
 #-- Runs barrnap for RNA prediction. Sequentially runs model for bacteria, archaea, eukaryote and mitochondria
+#-- Runs aragorn for tRNA/tmRNA prediction (21/11/2019)
 
 use strict;
 use Cwd;
@@ -21,11 +22,12 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$methodsfile);
+our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$aragorn_soft,$trnafile,$methodsfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 
 my %king;
+my $command;
 tie %king,"Tie::IxHash";
 
 %king=('bac','Bacteria','arc','Archaea','euk','Eukaryote','mito','Mitochondrial');
@@ -35,6 +37,7 @@ if(-e $rnafile) { system("rm $rnafile"); }
 
 #-- Loop for all kingdoms (Bac, Arch, Euk) plus mitochondria, looking for the respective RNAs
 
+print "Running barrnap (Seeman 2014, Bioinformatics 30, 2068-9) for predicting RNAs: ";
 my %rname;
 open(outfile4,">$tempdir/16S.fasta") || die "Can't open $tempdir/16S.fasta for writing\n";
 foreach my $kingdom(keys %king) {
@@ -45,7 +48,7 @@ foreach my $kingdom(keys %king) {
 
 	my $command="$barrnap_soft --quiet --threads $numthreads --kingdom $kingdom --reject 0.1 $targetfile --dbdir $databasepath > $output";
 	# print "Running barrnap for $king{$kingdom}: $command\n";
-	print "Running barrnap for $king{$kingdom}\n";
+	print " $king{$kingdom}";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 
@@ -109,20 +112,16 @@ foreach my $kingdom(keys %king) {
 	close outfile3;
 	system("mv contigs.prov $targetfile");
 }
+print "\n";
 close outfile4;
 print outmet "RNAs were predicted using Barrnap (Seeman 2014, Bioinformatics 30, 2068-9)\n";
 		
-#-- Creating the RNAs gff file
-
-my $gffout="$tempdir/02.$project.rna.gff";			     		
-if(-e $gffout) { system("rm $gffout"); }
-my $command="cat $tempdir/*gff.mod > $gffout";
-system($command);
 
 #-- Running RDP classifier for 16S sequences
 
 $command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f filterbyconf";
-print "Running RDP classifier: $command\n";
+#print "Running RDP classifier: $command\n";
+print "Running RDP classifier (Wang et al 2007, Appl Environ Mictrobiol 73, 5261-7)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "16S rRNA sequences were taxonomically classified using the RDP classifier (Wang et al 2007, Appl Environ Microbiol 73, 5261-7)\n";
@@ -162,3 +161,77 @@ while(<infile4>) {
 close infile4;
 close outfile5;
 close outmet;
+
+#-- Running Aragorn
+
+print "Running Aragorn (Laslett & Canback 2004, Nucleic Acids Res 31, 11-16) for tRNA/tmRNA prediction\n";
+my $temparagorn="$tempdir/trnas.aragorn";
+$command="$aragorn_soft -w $targetfile -o $temparagorn";
+system($command);
+open(infile5,$temparagorn) || die "Cannot open Aragorn result file $temparagorn\n";
+open(outfile6,">$trnafile") || die;
+open(outfile7,">$tempdir/trna.gff.mod") || die;
+my($incontig);
+my %trnas;
+while(<infile5>) {
+	chomp;
+	next if !$_;
+	if($_=~/^\>([^ ]+)/) { $incontig=$1; next; }
+	if($_=~/tRNA|tmRNA/) {
+		my @fields=split(/\s+/,$_);
+		my($pos,$rest)=split(/\t/,$fields[2]);
+		$pos=~s/\[//;
+		$pos=~s/\]//;
+		$pos=~s/\,/-/;
+		$pos=~s/c//;
+		my($pos1,$pos2)=split(/\-/,$pos);
+		if($pos1>$pos2) { $pos="$pos2-$pos1"; }
+		my $genname="$incontig\_$pos";
+		print outfile6 "$genname\t$fields[1]\n";
+		$trnas{$incontig}{$pos}=1;
+		print outfile7 "$incontig\taragorn\ttRNA\t$pos1\t$pos2\t-\t+\t.\tID=$genname;Name=$fields[1]\n";
+		}
+	}
+close infile5;
+close outfile6;
+close outfile7;
+		
+		
+	#-- Masking with 'N's
+	
+open(outfile7,">contigs.prov") || die "Can't open contigs.prov for writing\n";
+
+open(infile6,$targetfile) || die "Can't open $targetfile\n";
+my($seq,$current)="";
+while(<infile6>) {
+	chomp;
+	if($_=~/^\>([^ ]+)/) { 
+		my $contigname=$1; 
+		if($current) {
+
+			#-- Masking with 'N's
+
+			foreach my $rns(sort keys %{ $trnas{$current} }) {
+			my($init,$end)=split(/\-/,$rns);
+			my $longr=($end-$init)+1;
+			my $replace=('N' x $longr);
+			my $rnaseq=substr($seq,$init-1,$longr,$replace);
+			}
+		}
+		if($current) { print outfile7 ">$current\n$seq\n"; }	
+		$seq="";
+		$current=$contigname;     
+	}
+	else { $seq.=$_; }
+}
+close infile6;
+close outfile7;
+
+system("mv contigs.prov $targetfile");
+		
+#-- Creating the RNAs gff file
+
+my $gffout="$tempdir/02.$project.rna.gff";			     		
+if(-e $gffout) { system("rm $gffout"); }
+$command="cat $tempdir/*gff.mod > $gffout";
+system($command);

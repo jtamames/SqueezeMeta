@@ -11,6 +11,7 @@ my $pwd=cwd();
 $|=1;
 
 my $projectpath=$ARGV[0];
+my $mergestep=$ARGV[1];
 if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
 do "$projectpath/SqueezeMeta_conf.pl";
@@ -19,30 +20,34 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
-
 our($numthreads,$interdir,$tempdir,$resultpath,$kmerdb_soft);
 
   #-- Reading sequences
 
 opendir(indir1,$interdir);
-my @fastafiles=grep(/01.*?\.fasta$|merged.*?\.fasta/,readdir indir1);
+my @fastafiles=grep(/01.*?\.fasta$|merged.*?\.fasta$/,readdir indir1);
 closedir indir1;
 
   #-- Writing samples file
   
 my %toremove;
-open(infile0,"$tempdir/mergelog");
-while(<infile0>) {
-	chomp;
-	next if !$_;
-	$toremove{$_}=1;
+if($mergestep>1) {
+	open(infile0,"$tempdir/mergelog") || die "Cannot open merge log file $tempdir/mergelog!\n";
+	while(<infile0>) {
+		chomp;
+		next if !$_;
+		$toremove{$_}=1;
+		# print "*$_*\n";
+		}
+	close infile0;
 	}
-close infile0;
 
 my $samples="$tempdir/samples.$project.txt";
 open(out1,">$samples") || die;
 foreach my $file(@fastafiles) { 
+	# print "--$file--\n";
 	next if($toremove{$file});
+	# print "  ok\n";
 	$file=~s/\.fasta.*//; 
 	print out1 "$interdir/$file\n"; 
 	}
@@ -53,21 +58,24 @@ close out1;
 print "Calculating similarities between metagenomes using k-mer db\n";
 my $command;
 my $kmerdb="$tempdir/kmerdb.$project.txt";
-$command="$kmerdb_soft build -t $numthreads $samples $kmerdb";
-print "$command\n";
+$command="$kmerdb_soft build -t $numthreads $samples $kmerdb > /dev/null 2>&1";
+#print "$command\n";
 print "k-mer db: Building database\n";
-system($command); 
+my $ecode=system($command); 
+if($ecode!=0) { die "Error running command:    $command"; }
 my $kmertable="$tempdir/kmertable.$project.txt";
-$command="$kmerdb_soft all2all -t $numthreads $kmerdb $kmertable";
-print "$command\n";
+$command="$kmerdb_soft all2all -t $numthreads $kmerdb $kmertable > /dev/null 2>&1";
+#print "$command\n";
 print "k-mer db: Comparing metagenomes\n";
-system($command);
+my $ecode=system($command);
+if($ecode!=0) { die "Error running command:    $command"; }
 my $disttable="$kmertable.jaccard";
  if(-e $disttable) { system("rm $disttable"); }
-$command="$kmerdb_soft distance -t $numthreads $kmertable";
-print "$command\n";
+$command="$kmerdb_soft distance -t $numthreads $kmertable > /dev/null 2>&1";
+#print "$command\n";
 print "k-mer db: Calculating distances\n";
-system($command);
+my $ecode=system($command);
+if($ecode!=0) { die "Error running command:    $command"; }
 
   #-- Reading the distance file
   

@@ -106,7 +106,9 @@ def main(args):
    
 
     ### Add unclassified and write results.
-    for filt in TAXFILTERS: 
+    for filt in TAXFILTERS:
+        if filt == 'nofilter':
+            continue
         for i, rank in enumerate(TAXRANKS):
             dict_to_write = tax_dict[filt][rank]
             for sample, taxa in dict_to_write.items():

@@ -12,13 +12,23 @@ my $database_dir = "$download_dir/db";
 
 if(!$download_dir) { die "Usage: perl download_databases.pl <download dir>\n"; }
 
-### scriptdir patch, Fernando Puente-Sánchez, 07-V-2018
+###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
 use File::Basename;
-our $dbscriptdir = dirname(__FILE__);
-our $installpath = abs_path("$dbscriptdir/../..");
-our $libpath = "$installpath/lib";
-###
 
+my $dbscriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $dbscriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $dbscriptdir = abs_path(dirname(__FILE__));
+        }
+my $installpath = abs_path("$dbscriptdir/../..");
+my $libpath = "$installpath/lib";
+###
 
 system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/SqueezeMetaDB.tar.gz");
 
@@ -50,7 +60,7 @@ close outfile1;
 open(outfile2,">$installpath/scripts/SqueezeMeta_conf.pl") || die;
 open(infile1, "$installpath/scripts/SqueezeMeta_conf_original.pl") || die;
 while(<infile1>) {
-	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath=\"$database_dir\";\n"; }
+	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath = \"$database_dir\";\n"; }
 	else { print outfile2 $_; }
 	}
 close infile1;

@@ -8,7 +8,7 @@ Generate tabular outputs from SqueezeMeta results.
 
 USAGE: sqm2tables.py [-h] project_path output_dir
                      [--trusted-functions] [--ignore-unclassified]
-                     [--sqm2anvio]
+                     [--sqm2anvio] [--force-overwrite]
 
 OPTIONS:
     --trusted-functions: Include only ORFs with highly trusted KEGG and
@@ -17,7 +17,7 @@ OPTIONS:
         TPM calculation
     --sqm2anvio: Write the required files for sqm2anvio
     --force-overwrite: Write results even if the output directory
-        already exists.
+        already exists
 """
 
 from os.path import abspath, dirname, realpath

@@ -23,7 +23,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$interdir,$tempdir,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$euknofilter,$doublepass,$taxdiamond,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
+our($datapath,$resultpath,$interdir,$tempdir,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$trnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$euknofilter,$doublepass,$taxdiamond,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
 
 my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist,%blasthits);
 tie %orfdata,"Tie::IxHash";
@@ -187,10 +187,10 @@ if($ntseq) {
 	}
 
 
-	#-- Reading RNAs
+	#-- Reading rRNAs
 
 open(infile4,$rnafile) || warn "I need the RNA sequences from the prediction\n";
-print "Reading RNA sequences\n";
+print "Reading rRNA sequences\n";
 my($thisrna,$rnaseq);
 while(<infile4>) {
 	chomp;
@@ -200,7 +200,7 @@ while(<infile4>) {
 		if($rnaseq) { 
 			$orfdata{$thisrna}{ntseq}=$rnaseq;
 			$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
-			$orfdata{$thisrna}{molecule}="RNA";
+			$orfdata{$thisrna}{molecule}="rRNA";
 			$orfdata{$thisrna}{method}="barrnap";
 			}
 		$thisrna=$mt[0];
@@ -216,9 +216,25 @@ close infile4;
 if($rnaseq) { 
 	$orfdata{$thisrna}{ntseq}=$rnaseq; 
 	$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
-	$orfdata{$thisrna}{molecule}="RNA";
+	$orfdata{$thisrna}{molecule}="rRNA";
 	$orfdata{$thisrna}{method}="barrnap";
 	}
+
+	#-- Reading tRNAs
+
+open(infile4,$trnafile) || warn "I need the tRNA sequences from the prediction\n";
+print "Reading tRNA sequences\n";
+while(<infile4>) {
+	chomp;
+	my($genm,$trna)=split(/\t/,$_);
+	my @fl=split(/\_/,$genm);
+	my($posn1,$posn2)=split(/\-/,$fl[$#fl]);
+	$orfdata{$genm}{lengthnt}=($posn2-$posn1)+1;
+	if($trna=~/tmRNA/) { $orfdata{$genm}{molecule}="tmRNA"; } else { $orfdata{$genm}{molecule}="tRNA"; }
+	$orfdata{$genm}{method}="Aragorn"; 
+	$orfdata{$genm}{name}=$trna;  
+	}
+close infile4;
 
 	#-- Reading taxonomic assignments
 
@@ -468,13 +484,14 @@ foreach my $orf(keys %orfdata) {
 	next if(!$ingff{$orf});		#-- Excluding ORFs not in gff table (removed in doublepass by overlapping hits in blastx)
 	my @sf=split(/\_/,$orf);
 	my $ipos=pop @sf;
-	my $contname=join("_",@sf);
+	#my $contname=join("_",@sf);
+	my $contname=pop @sf;
 	my($poinit,$poend)=split(/\-/,$ipos);
 
 	push(@listorfs,{'orf',=>$orf,'contig'=>$contname,'posinit'=>$poinit});
 	}
 @sortedorfs=sort {
-	$a->{'contig'} cmp $b->{'contig'} ||
+	$a->{'contig'} <=> $b->{'contig'} ||
 	$a->{'posinit'} <=> $b->{'posinit'}
 	} @listorfs;
 

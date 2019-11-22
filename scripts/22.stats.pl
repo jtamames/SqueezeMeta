@@ -123,7 +123,8 @@ while(<infile4>) {
 		if(($f eq "KEGG ID") && $k[$pos]) { $genes{kegg}++; }
 		if(($f eq "COG ID") && $k[$pos]) { $genes{cog}++; }
 		if(($f eq "PFAM") && $k[$pos]) { $genes{pfam}++; }
-		if(($f eq "Molecule") && ($k[$pos] eq "RNA")) { $genes{rnas}++; }
+		if(($f eq "Molecule") && ($k[$pos] eq "rRNA")) { $genes{rnas}++; }
+		if(($f eq "Molecule") && (($k[$pos] eq "tRNA") || ($k[$pos] eq "tmRNA"))) { $genes{trnas}++; }
 		if($f eq "Method") { $genes{method}{$k[$pos]}++; }
 		if(($f eq "Hits") && !$k[$pos]) { $genes{orphans}++; }
 		if(($f eq "Hits") && $k[$pos] && (!$taxorf)) { $genes{notassignedwhits}++; }
@@ -142,7 +143,8 @@ while(<infile4>) {
 					if(($f2 eq "COG ID") && $k[$pos2]) { $genes{$tsam}{cog}++; }
 					if(($f2 eq "PFAM") && $k[$pos2]) { $genes{$tsam}{pfam}++; }
 					if($f2 eq "Method") { $genes{$tsam}{method}{$k[$pos2]}++; }
-					if(($f2 eq "Molecule") && ($k[$pos2] eq "RNA")) { $genes{$tsam}{rnas}++; }
+					if(($f2 eq "Molecule") && ($k[$pos2] eq "rRNA")) { $genes{$tsam}{rnas}++; }
+					if(($f2 eq "Molecule") && (($k[$pos2] eq "tRNA") || ($k[$pos2] eq "tmRNA"))) { $genes{$tsam}{trnas}++; }
 					if(($f2 eq "Hits") && !$k[$pos2]) { $genes{$tsam}{orphans}++; }
 					if(($f2 eq "Hits") && $k[$pos2] && (!$taxorf)) { $genes{$tsam}{notassignedwhits}++; }
 					if($opt{$f2} && $k[$pos2]) { $genes{$tsam}{$f2}++; }
@@ -286,8 +288,11 @@ print outfile1 "\n";
 print outfile1 "Number of ORFs\t$genes{totgenes}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{totgenes}"; }
 print outfile1 "\n";
-print outfile1 "Number of RNAs\t$genes{rnas}";
+print outfile1 "Number of rRNAs\t$genes{rnas}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{rnas}"; }
+print outfile1 "\n";
+print outfile1 "Number of tRNAs/tmRNAs\t$genes{trnas}";
+foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{trnas}"; }
 print outfile1 "\n";
 foreach my $tmet(sort keys %{ $genes{method} }) {
 	print outfile1 "ORFs by $tmet\t$genes{method}{$tmet}";
@@ -297,7 +302,7 @@ foreach my $tmet(sort keys %{ $genes{method} }) {
 print outfile1 "Orphans (no hits)\t$genes{orphans}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{orphans}"; }
 print outfile1 "\n";
-print outfile1 "Not assigned (with hits)\t$genes{notassignedwhits}";
+print outfile1 "No tax assigned (with hits)\t$genes{notassignedwhits}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{notassignedwhits}"; }
 print outfile1 "\n";
 
