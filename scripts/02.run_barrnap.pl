@@ -160,7 +160,6 @@ while(<infile4>) {
 	}
 close infile4;
 close outfile5;
-close outmet;
 
 #-- Running Aragorn
 
@@ -193,6 +192,7 @@ while(<infile5>) {
 		}
 	}
 close infile5;
+print outmet "tRNA/tmRNA sequences were predicted using Aragorn (Laslett & Canback 2004, Nucleic Acids Res 31, 11-16)\n";
 close outfile6;
 close outfile7;
 		
@@ -226,6 +226,7 @@ while(<infile6>) {
 }
 close infile6;
 close outfile7;
+close outmet;
 
 system("mv contigs.prov $targetfile");
 		
