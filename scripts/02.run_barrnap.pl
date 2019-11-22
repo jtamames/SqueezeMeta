@@ -11,14 +11,20 @@ use lib ".";
 
 my $pwd=cwd();
 
-my $project=$ARGV[0];
-$project=~s/\/$//;
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
-do "$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$aragorn_soft,$numthreads,$rnafile,$trnafile,$databasepath);
+our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$aragorn_soft,$trnafile,$methodsfile);
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 
 my %king;
 my $command;
@@ -108,6 +114,7 @@ foreach my $kingdom(keys %king) {
 }
 print "\n";
 close outfile4;
+print outmet "RNAs were predicted using Barrnap (Seeman 2014, Bioinformatics 30, 2068-9)\n";
 		
 
 #-- Running RDP classifier for 16S sequences
@@ -117,6 +124,7 @@ $command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f
 print "Running RDP classifier (Wang et al 2007, Appl Environ Mictrobiol 73, 5261-7)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
+print outmet "16S rRNA sequences were taxonomically classified using the RDP classifier (Wang et al 2007, Appl Environ Microbiol 73, 5261-7)\n";
 
 my %parents=('Bacteria','superkingdom:Bacteria','Archea','superkingdom:Archaea','Eukaryota','superkingdom:Eukaryota');
 open(infile3,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
@@ -152,6 +160,7 @@ while(<infile4>) {
 	}
 close infile4;
 close outfile5;
+close outmet;
 
 #-- Running Aragorn
 
@@ -226,6 +235,3 @@ my $gffout="$tempdir/02.$project.rna.gff";
 if(-e $gffout) { system("rm $gffout"); }
 $command="cat $tempdir/*gff.mod > $gffout";
 system($command);
-			
-	
-

@@ -12,17 +12,20 @@ my $pwd=cwd();
 
 $|=1;
 
-my $project=$ARGV[0];
-$project=~s/\/$//;
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
-do "$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads);
+our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile);
 
 #-- Merges the assemblies in a single dataset
 
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 my $finalcontigs="$resultpath/01.$project.fasta";
 my($ecode,$command);
 if($extassembly) { 
@@ -44,6 +47,7 @@ else {
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
+	print outmet "Totally overlapping contigs were removed using cd-hit(Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 
 	#-- Uses Amos to chage format to afg (for minimus2)
 
@@ -61,6 +65,7 @@ else {
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	if(-z $afg_format) { die "$afg_format is empty\n"; }
+	print outmet "Contigs were merged using Minimus2(Treangen et al 2011, Curr Protoc Bioinfomatics 11)\n";
 
 	#-- Create the final result (overlapping contigs plus singletons)
 
@@ -90,6 +95,7 @@ else {
 $command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
 $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
+print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 	
 
 #-- Count length of contigs (needed later)

@@ -12,16 +12,19 @@ use Tie::IxHash;
 use lib ".";
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//; 
 
-do "$project/SqueezeMeta_conf.pl";
-do "$project/parameters.pl";
+my $projectpath=$ARGV[0];
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $projectpath=$projectname;
+
+do "$projectpath/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
-    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$keepsam10);
+our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
+    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$methodsfile,$keepsam10);
 
 my $verbose=0;
 
@@ -33,6 +36,9 @@ my $outfile=$mapcountfile;
 if(-d $samdir) {} else { system("mkdir $samdir"); }
 
 if($doublepass) { $gff_file=$gff_file_blastx; }
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+
 
 	#-- Read the sample's file names
 
@@ -59,6 +65,7 @@ print "Metagenomes found: $numsamples\n";
         #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
 
 if($mapper eq "bowtie") {
+	print outmet "Read mapping against contigs was performed using Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n"; 
         if(-e "$bowtieref.1.bt2") {}
         else {
         	print("Creating reference.\n");
@@ -67,6 +74,7 @@ if($mapper eq "bowtie") {
                 }
         }
 elsif($mapper eq "bwa") {
+	print outmet "Read mapping against contigs was performed using BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
         if(-e "$bowtieref.bwt") {}
         else {
         	print("Creating reference.\n");
@@ -74,7 +82,7 @@ elsif($mapper eq "bwa") {
                 system($bwa_command);
                 }
         }
-
+elsif($mapper=~/minimap/i) { print outmet "Read mapping against contigs was performed using Minimap2 (Li 2018, Bioinformatics 34(18), 3094-3100)\n"; }
 
 	#-- Prepare output files
 

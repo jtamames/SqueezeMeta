@@ -1,8 +1,22 @@
 #!/usr/bin/env perl
+use strict;
+use Cwd;
+use Tie::IxHash;
+use lib ".";
 
-$project=$ARGV[0];
-$path=$ARGV[1];
-$mode="single";
+my $pwd=cwd();
+
+my $projectpath=$ARGV[0];
+my $path=$ARGV[1];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
+
+my $mode="single";
 
 open(in,"temp/12.$project.kegg.funcover") || die;
 while(<in>) {

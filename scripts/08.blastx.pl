@@ -16,14 +16,15 @@ use Cwd;
 use lib ".";
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//; 
-if(!$project) { die "Please specify a project name\n"; }
-if(!(-e $project)) { die "Project $project does not exist. Please get sure that you are in the correct directory (the one containing your project)\n"; }
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
 
-do "$project/SqueezeMeta_conf.pl";
-do "$project/parameters.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 	#-- Configuration variables from conf file
 
@@ -39,9 +40,6 @@ my $blastxout="$tempdir/08.$project.nr.blastx";
 my $collapsed="$tempdir/08.$project.nr.blastx.collapsed.m8";
 my $collapsedmerged=$collapsed;
 $collapsedmerged=~s/\.m8/\.merged\.m8/;
-
-
-
 
 moving();
 masking();
@@ -167,7 +165,7 @@ sub run_blastx {
 	print "  Running Diamond BlastX (This can take a while, please be patient)\n";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
 	# print "$blastx_command\n";
-	 system $blastx_command;
+	system $blastx_command;
 	}
 
 sub collapse {
@@ -245,7 +243,7 @@ sub lca {
 
 	#-- Assign with lca_collapsed
 
-	my $command="perl $scriptdir/lca_collapse.pl $project $collapsedmerged";
+	my $command="perl $scriptdir/lca_collapse.pl $projectpath $collapsedmerged";
 	print "  Now running lca_collapse.pl: $command\n";
 	system($command);
 	}
@@ -291,7 +289,7 @@ sub functions {
 			}
 		}
 	print "  Assigning with fun3\n";
-	system("perl $scriptdir/07.fun3assign.pl $project blastx");
+	system("perl $scriptdir/07.fun3assign.pl $projectpath blastx");
 	}
 
 sub remaketaxtables {

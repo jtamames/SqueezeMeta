@@ -11,15 +11,19 @@ use lib ".";
 $|=1;
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//; 
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
-do "$project/SqueezeMeta_conf.pl";
-do "$project/parameters.pl";
+
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$minsize18,$numthreads,$interdir);
+our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$minsize18,$numthreads,$interdir,$methodsfile);
 
 my $markerdir="$datapath/checkm_markers";
 my $checktemp="$tempdir/checkm_batch";
@@ -161,4 +165,6 @@ print "\nStoring results for $binmethod in $checkmfile\n";
 
 }
 
-
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+print outmet "Bin statistics were computed using CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n";
+close outmet;

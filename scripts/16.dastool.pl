@@ -10,15 +10,18 @@ use lib ".";
 $|=1;
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//; 
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
-do "$project/SqueezeMeta_conf.pl";
-do "$project/parameters.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$databasepath,$resultpath,$aafile,$contigsfna,%bindirs,$contigcov,$dastool_soft,$alllog,$tempdir,$score_tres16,$numthreads);
+our($installpath,$datapath,$databasepath,$resultpath,$aafile,$contigsfna,%bindirs,$contigcov,$dastool_soft,$alllog,$tempdir,$methodsfile,$score_tres16,$numthreads);
 
 my $daspath="$resultpath/DAS";
 system("mkdir $daspath");
@@ -76,4 +79,9 @@ else { 				#-- Otherwise, run DAS tool to combine results
 	print "$das_command\n";
 	my $ecode = system $das_command;
 	if($ecode!=0) { warn "Error running command:    $das_command"; }
+	else {
+		open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+		print outmet "Combination of binning results was done using DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43)\n";
+		close outmet;
+		}
 	}

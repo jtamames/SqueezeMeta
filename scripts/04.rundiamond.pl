@@ -4,23 +4,29 @@
 #-- Runs Diamond for homology searches, against nr, COGs and KEGG databases
 
 use strict;
-use warnings;
 use Cwd;
 use lib ".";
 
 $|=1;
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//; 
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
-do "$project/SqueezeMeta_conf.pl";
-do "$project/parameters.pl";
+
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath);
+our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile);
 my $command;
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+print outmet "Similarity searches for ";
 
 #-- COG database
 
@@ -29,6 +35,7 @@ if(!$nocog) {
 	print "Running Diamond for COGS (This can take a while, please be patient)\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
+	print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
 }
 
 #-- KEGG database
@@ -38,6 +45,7 @@ if(!$nokegg) {
 	print "Running Diamond for KEGG (This can take a while, please be patient)\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
+	print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
 }
 
 #-- Optional databases
@@ -62,3 +70,7 @@ $command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evaluetax
 print "Running Diamond for taxa (This can take a long while, please be even more patient)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
+print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+print outmet "were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
+close outmet;
+

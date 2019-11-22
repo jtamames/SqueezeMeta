@@ -5,18 +5,24 @@
 #-- 30/01/19 Includes changing of naming schema to accomodate blastx predictions
 
 use strict;
-use warnings;
 use Cwd;
 use lib ".";
 
 my $pwd=cwd();
 
-my $project=$ARGV[0];
-$project=~s/\/$//; 
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; }
-do "$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
 
-our($resultpath,$tempdir,$interdir,$aafile,$ntfile,$gff_file,$prodigal_soft);
+do "$projectpath/parameters.pl";
+
+
+our($resultpath,$tempdir,$interdir,$aafile,$ntfile,$gff_file,$prodigal_soft,$methodsfile);
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 
 #-- Runs prodigal and cat the gff file with the RNA's one coming from barrnap (previous step)
 
@@ -30,6 +36,7 @@ my $command="$prodigal_soft -q -m -p meta -i $maskedcontigs -a $aafile -d $ntfil
 print "Running prodigal\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
+print outmet "ORFs were predicted using Prodigal (Hyatt et al 2010, BMC Bioinformatics 11: 119)\n";
 
 #-- Reanaming genes for accomodating better upcoming blastx predictions
 
@@ -84,4 +91,4 @@ close infile3;
 close outfile3;	
 	
 system("cat $tempgff2 $tempdir/02.$project.rna.gff > $gff_file");
-
+close outmet;

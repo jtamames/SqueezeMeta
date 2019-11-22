@@ -11,14 +11,19 @@ use lib ".";
 $|=1;
 
 my $pwd=cwd();
-my $project=$ARGV[0];
-$project=~s/\/$//;
-if(-s "$project/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $project. Is the project path ok?"; } 
-do "$project/SqueezeMeta_conf.pl";
+my $projectpath=$ARGV[0];
+if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+do "$projectpath/SqueezeMeta_conf.pl";
+our($projectname);
+my $project=$projectname;
+
+do "$projectpath/parameters.pl";
+
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions);
+our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile);
 
 #-- Read all the samples and store file names
 
@@ -26,6 +31,8 @@ exit if $extassembly;
 
 my %ident;
 my %samplefiles;
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 
 open(infile1,$mappingfile) || die "Can't open samples file $mappingfile\n";
 while(<infile1>) {
@@ -43,6 +50,7 @@ close infile1;
 	#-- Prepare files for the assembly
 
 my($command,$trimmomatic_command);
+
 foreach my $thissample(sort keys %samplefiles) {
 	my($par1name,$par2name);
 	print "Working for sample $thissample\n";
@@ -84,6 +92,7 @@ foreach my $thissample(sort keys %samplefiles) {
 			print "Running trimmomatic: $trimmomatic_command\n";
 			my $ecode = system $trimmomatic_command;
 			if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
+			print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
 			}
 		}
 
@@ -195,3 +204,9 @@ print "Contigs for sample $thissample stored in $contigsfna\n";
 }                              #-- End of current sample
 
 # system("rm $tempdir/par1.fastq.gz; rm $tempdir/par2.fastq.gz");
+if($assembler=~/megahit/i) { print outmet "Assembly was done using Megahit (Li et al 2015, Bioinformatics 31(10):1674-6)\n"; }
+elsif($assembler=~/spades/i) { print outmet "Assembly was done using SPAdes (Bankevich et al 2012, J Comp Biol 19(5):455-77)\n"; }
+elsif($assembler=~/canu/i) { print outmet "Assembly was done using Canu (Koren et al 2017, Genome Res 27(5):722-36)\n"; }
+if($mincontiglen>200) { print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n"; }
+print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
+close outmet; 
