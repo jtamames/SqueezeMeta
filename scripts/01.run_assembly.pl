@@ -110,7 +110,7 @@ else { system("mv $outassembly $contigsfna"); }
 
 #-- Run prinseq_lite for statistics
 
-$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats > /dev/null 2>&1";
+$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
 print outsyslog "Running prinseq for contig statistics: $command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
