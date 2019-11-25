@@ -154,7 +154,7 @@ sub masking {
 		}
 	close infile3;
 	close outfile;
-	print "  Output in $maskedfile\n";
+	# print "  Output in $maskedfile\n";
 	}
 
 
@@ -244,7 +244,8 @@ sub lca {
 	#-- Assign with lca_collapsed
 
 	my $command="perl $installpath/lib/SqueezeMeta/lca_collapse.pl $projectpath $collapsedmerged";
-	print "  Now running lca_collapse.pl: $command\n";
+	# print "  Now running lca_collapse.pl: $command\n";
+	print "  Running LCA\n";
 	system($command);
 	}
 

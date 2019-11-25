@@ -150,7 +150,9 @@ foreach my $thissample(sort keys %samplefiles) {
 		print "Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
+		if($mincontiglen>200) { print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n"; }
 		}
+	else { system("mv $assemblyname $contigsfna.prov"); }
 
 	#-- Now we need to rename the contigs for minimus2, otherwise there will be contigs with same names in different assemblies
 

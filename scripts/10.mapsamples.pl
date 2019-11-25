@@ -89,7 +89,7 @@ elsif($mapper=~/minimap/i) { print outmet "Read mapping against contigs was perf
 #if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
 #if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
-open(outfile1,">$resultpath/10.$project.mappingstat") || die "Can't open $resultpath/10.$project.mappingstat for writing\n";	#-- File containing mapping statistics
+open(outfile1,">$resultpath/10.$projectname.mappingstat") || die "Can't open $resultpath/10.$project.mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
 open(outfile3,">$mapcountfile") || die "Can't open $mapcountfile for writing\n";
