@@ -18,7 +18,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
@@ -29,6 +29,7 @@ elsif(-e "$datapath/raw_fastq/par1.fasta") { $seqformat="fasta"; $par1name="$dat
 else { die "Can't find read files in $datapath/raw_fastq\n"; }
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 #-- trimmomatic commands
 
@@ -46,6 +47,7 @@ if($cleaning) {
 
 	if($cleaning) {
 		print "Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n";
+		print outsyslog "Running trimmomatic: $trimmomatic_command";
 		my $ecode = system $trimmomatic_command;
 		if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
 		print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
@@ -62,19 +64,22 @@ else {
 	#-- Checks the assembler
 
 	if($assembler=~/megahit/i) { 
+		system("rm -r $datapath/megahit > /dev/null 2>&1"); 
 		$outassembly="$datapath/megahit/final.contigs.fa";
-		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name -t $numthreads -o $datapath/megahit > /dev/null 2>&1"; }
-		else {  $command="$megahit_soft $assembler_options -r $par1name -t $numthreads -o $datapath/megahit > /dev/null 2>&1"; }  #-- Support for single reads
+		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name -t $numthreads -o $datapath/megahit >> $syslogfile 2>&1"; }
+		else {  $command="$megahit_soft $assembler_options -r $par1name -t $numthreads -o $datapath/megahit >> $syslogfile 2>&1"; }  #-- Support for single reads
 		print outmet "Assembly was done using Megahit (Li et al 2015, Bioinformatics 31(10):1674-6)\n";
 		}
 	elsif($assembler=~/spades/i) { 
+		system("rm -r $datapath/spades > /dev/null 2>&1"); 
 		$outassembly="$datapath/spades/contigs.fasta";
-		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades > /dev/null 2>&1"; }
-		else { $command="$spades_soft $assembler_options --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades > /dev/null 2>&1"; } #-- Support for single reads
+		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades >> $syslogfile"; }
+		else { $command="$spades_soft $assembler_options --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades >> $syslogfile"; } #-- Support for single reads
 		print outmet "Assembly was done using SPAdes (Bankevich et al 2012, J Comp Biol 19(5):455-77)\n";
 		}
 	elsif($assembler=~/canu/i) {
- 		$outassembly="$datapath/canu/contigs.fasta";
+                system("rm -r $datapath/canu > /dev/null 2>&1");
+		$outassembly="$datapath/canu/contigs.fasta";
       	   	$command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name > /dev/null 2>&1"; 
 	   	$command.="mv $datapath/canu/$project.contigs.fasta $outassembly"; 
  		print outmet "Assembly was done using Canu (Koren et al 2017, Genome Res 27(5):722-36)\n";
@@ -85,7 +90,8 @@ else {
 	
 	#-- Run assembly
 
-	print "Running assembly with $assembler: $command\n";
+	print "Running assembly with $assembler\n";
+	print outsyslog "Running assembly with $assembler: $command\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	}
@@ -95,15 +101,17 @@ else {
 if($mincontiglen>200) {
 	$command="$prinseq_soft -fasta $outassembly -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
 	print "Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
+	print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
-	if($mincontiglen>200) { print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n"; }
+	print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 	}
 else { system("mv $outassembly $contigsfna"); }
 
 #-- Run prinseq_lite for statistics
 
 $command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats > /dev/null 2>&1";
+print outsyslog "Running prinseq for contig statistics: $command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
@@ -132,7 +140,7 @@ close infile1;
 if($contigname) { $len=length $seq; print outfile1 "$contigname\t$len\n"; }
 close outfile1;
 close outmet;
+close outsyslog;
 
 print "Contigs stored in $contigsfna\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");
-

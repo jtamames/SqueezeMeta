@@ -4,7 +4,6 @@
 #-- Merges individual assemblies using minimus2, for merged mode. It also uses cd-hit for excluding identical contigs
 
 use strict;
-use warnings;
 use Cwd;
 use lib "."; 
 
@@ -21,11 +20,13 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile);
+our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile);
 
 #-- Merges the assemblies in a single dataset
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+
 my $finalcontigs="$resultpath/01.$project.fasta";
 my($ecode,$command);
 if($extassembly) { 
@@ -36,32 +37,36 @@ else {
 	if(-e $finalcontigs) { system("rm $finalcontigs"); }
 	my $merged="$tempdir/mergedassemblies.$project.fasta";
 	$command="cat $interdir/01*fasta > $merged";
+	print outsyslog "Merging assemblies: $command\n";
 	system $command;
 	if(-z $merged) { die "$merged is empty\n"; }
 
 	#-- Uses cd-hit to identify and remove contigs contained in others
 
 	my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
-	$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9";
-	print "Running cd-hit-est: $command\n";
+	$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9 > /dev/null 2>&1";
+	print "Running cd-hit-est for removing redundant contigs\n";
+	print outsyslog "Running cd-hit-est for removing redundant contigs: $command\n";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
-	print outmet "Totally overlapping contigs were removed using cd-hit(Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
+	print outmet "Redundant contigs were removed using cd-hit(Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 
 	#-- Uses Amos to chage format to afg (for minimus2)
 
 	my $afg_format="$tempdir/mergedassemblies.$project.99.afg";
-	$command="$toamos_soft -s $merged_clustered -o $afg_format";
-	print "Transforming to afg format: $command\n";
+	$command="$toamos_soft -s $merged_clustered -o $afg_format > /dev/null 2>&1 ";
+	print "Transforming to afg format\n";
+	print outsyslog "Transforming to afg format: $command\n";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	if(-z $afg_format) { die "$afg_format is empty\n"; }
 
 	#-- Uses minimus2 to assemble overlapping contigs
 
-	$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads";
-	print "Merging with minimus2: $command\n";
+	$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads >> $syslogfile 2>&1";
+	print "Merging with minimus2\n";
+	print outsyslog "Merging with minimus2: $command";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	if(-z $afg_format) { die "$afg_format is empty\n"; }
@@ -69,7 +74,9 @@ else {
 
 	#-- Create the final result (overlapping contigs plus singletons)
 
-	system("cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $finalcontigs.prov");
+	$command="cat $tempdir/mergedassemblies.$project.99.fasta $tempdir/mergedassemblies.$project.99.singletons.seq > $finalcontigs.prov";
+	print outsyslog "Joining contigs and singletons: $command\n";
+	system($command);
 
 	open(outfile0,">$finalcontigs") || die;
 	open(infile0,"$finalcontigs.prov") || die;
@@ -92,7 +99,8 @@ else {
 
 #-- Run prinseq_lite for statistics
 
-$command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
+$command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats ";
+print outsyslog "Using prinseq for statistics: $command\n";
 $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
@@ -121,3 +129,6 @@ while(<infile1>) {
 }
 close infile1;
 close outfile1;
+close outsyslog;
+close outmet;
+

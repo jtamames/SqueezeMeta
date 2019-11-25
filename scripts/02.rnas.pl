@@ -22,9 +22,10 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$aragorn_soft,$trnafile,$methodsfile);
+our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$aragorn_soft,$trnafile,$methodsfile,$syslogfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 my %king;
 my $command;
@@ -47,7 +48,7 @@ foreach my $kingdom(keys %king) {
 	#-- Run barrnap
 
 	my $command="$barrnap_soft --quiet --threads $numthreads --kingdom $kingdom --reject 0.1 $targetfile --dbdir $databasepath > $output";
-	# print "Running barrnap for $king{$kingdom}: $command\n";
+	print outsyslog "Running barrnap for $king{$kingdom}: $command\n";
 	print " $king{$kingdom}";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
@@ -120,7 +121,7 @@ print outmet "RNAs were predicted using Barrnap (Seeman 2014, Bioinformatics 30,
 #-- Running RDP classifier for 16S sequences
 
 $command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f filterbyconf";
-#print "Running RDP classifier: $command\n";
+print outsyslog "Running RDP classifier: $command\n";
 print "Running RDP classifier (Wang et al 2007, Appl Environ Mictrobiol 73, 5261-7)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
@@ -166,6 +167,7 @@ close outfile5;
 print "Running Aragorn (Laslett & Canback 2004, Nucleic Acids Res 31, 11-16) for tRNA/tmRNA prediction\n";
 my $temparagorn="$tempdir/trnas.aragorn";
 $command="$aragorn_soft -w $targetfile -o $temparagorn";
+print outsyslog "Running Aragorn: $command\n";
 system($command);
 open(infile5,$temparagorn) || die "Cannot open Aragorn result file $temparagorn\n";
 open(outfile6,">$trnafile") || die;
@@ -235,4 +237,5 @@ system("mv contigs.prov $targetfile");
 my $gffout="$tempdir/02.$project.rna.gff";			     		
 if(-e $gffout) { system("rm $gffout"); }
 $command="cat $tempdir/*gff.mod > $gffout";
+print "Creating new gff file: $command\n";
 system($command);

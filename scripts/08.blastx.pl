@@ -28,7 +28,7 @@ do "$projectpath/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($installpath,$datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir);
+our($installpath,$datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir,$methodsfile,$syslogfile);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
@@ -41,6 +41,9 @@ my $collapsed="$tempdir/08.$project.nr.blastx.collapsed.m8";
 my $collapsedmerged=$collapsed;
 $collapsedmerged=~s/\.m8/\.merged\.m8/;
 
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+
 moving();
 masking();
 run_blastx();
@@ -52,6 +55,10 @@ functions();
 remaketaxtables();
 remakefuntables();
 remakegff();
+
+close outmet;
+close outsyslog;
+
 
 sub moving {		#-- Places files in rigth location for restart purposes		
 	my $restarting;
@@ -162,9 +169,10 @@ sub run_blastx {
 
 	#-- Run Diamond search
 
-	print "  Running Diamond BlastX (This can take a while, please be patient)\n";
+	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
-	# print "$blastx_command\n";
+	print outsyslog "Running Diamond BlastX: $blastx_command\n";
+	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	system $blastx_command;
 	}
 
@@ -174,6 +182,7 @@ sub collapse {
 
 	print "  Collapsing hits with blastxcollapse.pl\n";
 	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
+	print outsyslog "Collapsing hits with blastxcollapse.pl: $collapse_command\n";
 	system $collapse_command;
 	}
 	
@@ -183,6 +192,7 @@ sub merge {
 
 	my $merge_command="$installpath/lib/SqueezeMeta/mergehits.pl $collapsed > $collapsedmerged";
 	print "  Merging splitted hits with mergehits.pl\n";
+	print outsyslog "Merging splitted hits with mergehits.pl: $merge_command\n";
 	system $merge_command;
 	}
 
@@ -244,7 +254,7 @@ sub lca {
 	#-- Assign with lca_collapsed
 
 	my $command="perl $installpath/lib/SqueezeMeta/lca_collapse.pl $projectpath $collapsedmerged";
-	# print "  Now running lca_collapse.pl: $command\n";
+	print outsyslog "Running lca_collapse.pl: $command\n";
 	print "  Running LCA\n";
 	system($command);
 	}
@@ -257,6 +267,7 @@ sub functions {
 		$cogfun="$tempdir/08.$project.fun3.blastx.cog.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
 		print "  Running Diamond blastx for COGS\n";
+		print outsyslog "Running Diamond blastx for COGS: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{cog}=$fun3cog_blastx;
@@ -268,6 +279,7 @@ sub functions {
 		$keggfun="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
 		print "  Running Diamond blastx for KEGG\n";
+		print outsyslog "Running Diamond blastx for KEGG: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 		$olist{kegg}=$fun3kegg_blastx;
@@ -284,13 +296,16 @@ sub functions {
 			$optdbfun="$tempdir/08.$project.fun3.blastx.$dbname.m8";
 			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
 			print "  Running Diamond blastx for OPTDB $dbname\n";
+			print outsyslog "Running Diamond blastx for $dbname: $command\n";
 			my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
 			$olist{$dbname}="$resultpath/08.$project.fun3.$dbname";
 			}
 		}
 	print "  Assigning with fun3\n";
-	system("perl $scriptdir/07.fun3assign.pl $projectpath blastx");
+	my $command="perl $scriptdir/07.fun3assign.pl $projectpath blastx";
+	print outsyslog  "Assigning with fun3: $command\n"; 
+	system($command);
 	}
 
 sub remaketaxtables {
@@ -509,5 +524,9 @@ sub remakegff {
 	my $wc=qx(wc -l $newtable);	#-- Avoid moving files if the script failed (to be able to restart with all files in place)
 	my($wsize,$rest)=split(/\s+/,$wc);
 	# print "$movecommands\n";
-	if($wsize>=2)         { print "  Moving old files to dir intermediate\n"; system($movecommands); } 
+	if($wsize>=2)         { 
+		print "  Moving old files to dir intermediate\n"; 
+		print outsyslog "Moving old files to dir intermediate: $movecommands\n";
+		system($movecommands); 
+		} 
 	}

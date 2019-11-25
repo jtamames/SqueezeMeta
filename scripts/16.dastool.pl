@@ -21,7 +21,9 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$databasepath,$resultpath,$aafile,$contigsfna,%bindirs,$contigcov,$dastool_soft,$alllog,$tempdir,$methodsfile,$score_tres16,$numthreads);
+our($installpath,$datapath,$databasepath,$resultpath,$aafile,$contigsfna,%bindirs,$contigcov,$dastool_soft,$alllog,$tempdir,$methodsfile,$score_tres16,$numthreads,$syslogfile);
+
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 my $daspath="$resultpath/DAS";
 system("mkdir $daspath");
@@ -40,6 +42,7 @@ foreach my $binmethod(sort keys %bindirs) {
 	$numbinmethods++;
 	$tables.="$daspath/$binmethod.table,";
 	$methods.="$binmethod,";
+	print outsyslog "Creating abundance file in $daspath/$binmethod.table\n";
 	open(outfile1,">$daspath/$binmethod.table") || die "Can't open $daspath/$binmethod.table for writing\n";
 	foreach my $tfil(@fastafiles) {
 		my $bin=$tfil;
@@ -62,7 +65,8 @@ print "done\n";
 
 if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta files from it
 	my $gmet=$methods;
-	print "Copying $gmet results and skipping DAS Tool\n";
+	print "Only one binning result: Copying $gmet results and skipping DAS Tool\n";
+	print outsyslog "Only one binning result: Copying $gmet results and skipping DAS Tool\n";
 	my $bindir=$bindirs{$gmet};
 	system("mkdir $resultpath/DAS/$project\_DASTool\_bins");
 	my $command="cp $bindir/*fasta $resultpath/DAS/$project\_DASTool\_bins";
@@ -76,7 +80,7 @@ else { 				#-- Otherwise, run DAS tool to combine results
 	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
  
 	print "Running DAS Tool for $methods\n";
-	print "$das_command\n";
+	print outsyslog "Running DAS Tool for $methods: das_command\n";
 	my $ecode = system $das_command;
 	if($ecode!=0) { warn "Error running command:    $das_command"; }
 	else {
@@ -85,3 +89,4 @@ else { 				#-- Otherwise, run DAS tool to combine results
 		close outmet;
 		}
 	}
+close outsyslog;

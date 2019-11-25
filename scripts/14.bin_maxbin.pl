@@ -21,7 +21,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile,$methodsfile);
+our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
 my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
@@ -30,6 +30,7 @@ my $smallnoannot=1;	#-- For excluding contigs with just one gene an no annotatio
 my(%allcontigs,%skip);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 	#-- Reading contigs
 
@@ -88,6 +89,7 @@ if(-d $dirbin) {} else { system "mkdir $dirbin"; }
 	#-- Creating abundance file
 
 my $abundlist="$dirbin/abund.list";
+print outsyslog "Creating abundance file in $abundlist\n";
 open(outfile1,">$abundlist") || die "Can't open $abundlist for writing\n";	#-- Stores the list of files for the abundance of contigs (one per sample)
 open(infile2,$contigcov) || die "Can't open contig coverage file $contigcov\n";
 my $currsample;
@@ -115,9 +117,11 @@ close outfile2;
 close outfile1;
 
 my $command="perl $maxbin_soft -thread $numthreads -contig $tempfasta -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
-print "Now running Maxbin: $command\n";
+print outsyslog "Running Maxbin: $command\n";
+print "Running Maxbin\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 
 print outmet "Binning was done using MaxBin2 (Wu et al 2016, Bioinformatics 32(4), 605-7)\n";
 close outmet;
+close outsyslog;

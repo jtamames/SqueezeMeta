@@ -23,7 +23,10 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$minsize18,$numthreads,$interdir,$methodsfile);
+our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$minsize18,$numthreads,$interdir,$methodsfile,$syslogfile);
+
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+
 
 my $markerdir="$datapath/checkm_markers";
 my $checktemp="$tempdir/checkm_batch";
@@ -135,6 +138,7 @@ foreach my $m(@files) {
 	
 		if(-e $marker) {} else { 
 			my $command="$checkm_soft taxon_set $rank $tax $marker > /dev/null 2>&1";
+			print outsyslog "$command\n";
                         my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
 			}
@@ -149,10 +153,12 @@ foreach my $m(@files) {
 		# print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
 		# system("$checkm_soft analyze -t $numthreads -x $bins{$thisfile} $marker $bindir $checktemp > /dev/null");
 		my $command = "$checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null 2>&1";
+		print outsyslog "$command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 
 		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > /dev/null 2>&1";
+		print outsyslog "$command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 	#	system("rm -r $checktemp");
@@ -168,3 +174,4 @@ print "\nStoring results for $binmethod in $checkmfile\n";
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Bin statistics were computed using CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n";
 close outmet;
+close outsyslog;

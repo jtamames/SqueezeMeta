@@ -24,7 +24,7 @@ do "$projectpath/parameters.pl";
 	#-- Configuration variables from conf file
 
 our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
-    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$methodsfile,$keepsam10);
+    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
 
@@ -38,6 +38,7 @@ if(-d $samdir) {} else { system("mkdir $samdir"); }
 if($doublepass) { $gff_file=$gff_file_blastx; }
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 
 	#-- Read the sample's file names
@@ -70,6 +71,7 @@ if($mapper eq "bowtie") {
         else {
         	print("Creating reference.\n");
                 my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
+		print outsyslog "Creating Bowtie reference: $bowtie_command\n";
                 system($bowtie_command);
                 }
         }
@@ -79,6 +81,7 @@ elsif($mapper eq "bwa") {
         else {
         	print("Creating reference.\n");
                 my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
+		print outsyslog "Creating BWA reference: $bwa_command\n";
                 system($bwa_command);
                 }
         }
@@ -126,6 +129,7 @@ foreach my $thissample(keys %allsamples) {
 		}
 	print "  Getting raw reads\n";
 	# print "$command\n";
+	print outsyslog "Getting raw reads for $thissample: $command\n";
 	system $command; 
 	
 	#-- Now we start mapping reads against contigs
@@ -157,6 +161,7 @@ foreach my $thissample(keys %allsamples) {
 
                                   
 	# print "$command\n";
+	print outsyslog "Aligning with $mapper: $command\n";
 	system($command);
         my $ecode = 0;
 	#if(-e $outsam) {} else { $ecode = system $command; }
@@ -169,6 +174,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- And then we call the counting
 	
 	 system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
+	 print outsyslog "Calling sqm_counter\n";
 	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
 }
 close outfile1;

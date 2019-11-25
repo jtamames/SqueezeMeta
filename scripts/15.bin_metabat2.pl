@@ -19,8 +19,10 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs);
+our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile);
 my %skip;
+
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 print "Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
 open(infile0,$mappingfile) || die "Can't open $alllog\n";
@@ -90,6 +92,7 @@ close infile2;
 	#-- Creating abundance file
 
 my $depthfile="$dirbin/contigs.depth.txt";
+print outsyslog "Creating abundance file in $depthfile\n";
 open(outfile1,">$depthfile") || die "Can't open $depthfile for writing\n";
 print outfile1 "contigName\tcontigLen\ttotalAvgDepth";
 foreach my $dataset(sort keys %allsets) { print outfile1 "\t$dataset.bam\t$dataset.bam-var"; }
@@ -108,7 +111,8 @@ close outfile1;
 	#-- Running metabat
 
 my $command="$metabat_soft -t 8 -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
-print "Now running metabat2: $command\n";
+print outsyslog "Running metabat2: $command\n";
+print "Running metabat\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";

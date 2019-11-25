@@ -20,9 +20,10 @@ my $project=$projectname;
 do "$projectpath/parameters.pl";
 
 
-our($resultpath,$tempdir,$interdir,$aafile,$ntfile,$gff_file,$prodigal_soft,$methodsfile);
+our($resultpath,$tempdir,$interdir,$aafile,$ntfile,$gff_file,$prodigal_soft,$methodsfile,$syslogfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 #-- Runs prodigal and cat the gff file with the RNA's one coming from barrnap (previous step)
 
@@ -34,6 +35,7 @@ my $tempnt="$tempdir/02.$project.nt.temp";
 my $maskedcontigs="$interdir/02.$project.maskedrna.fasta";
 my $command="$prodigal_soft -q -m -p meta -i $maskedcontigs -a $aafile -d $ntfile -f gff -o $tempgff";
 print "Running prodigal (Hyatt et al 2010, BMC Bioinformatics 11: 119) for predicting ORFs\n";
+print outsyslog "Running prodigal for predicting ORFs: $command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "ORFs were predicted using Prodigal (Hyatt et al 2010, BMC Bioinformatics 11: 119)\n";
@@ -92,3 +94,4 @@ close outfile3;
 	
 system("cat $tempgff2 $tempdir/02.$project.rna.gff > $gff_file");
 close outmet;
+close outsyslog;

@@ -18,7 +18,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$methodsfile,$bintable,$minfraction21,%bindirs,%dasdir);
+our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction21,%bindirs,%dasdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
 open(infile1,"$extdatapath/metacyc_pathways_onto.txt") || die "Can't open $extdatapath/metacyc_pathways_onto.txt\n";
@@ -94,6 +94,7 @@ outres("metacyc");
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Pathway prediction for KEGG (Kanehisa and Goto 2000, Nuc Acids Res 28, 27-30) and MetaCyc (Caspi et al 2018, Nucleic Acid Res 46(D1), D633-D639) databases was done using MinPath (Ye and Doak 2009, PLoS Comput Biol 5(8), e1000465)\n";
 close outmet;
+close outsyslog;
 
 sub outres {
 	my $clas=shift;
@@ -133,6 +134,7 @@ sub metacyc {
 		close outfile1; 
 		print "Running MinPath for metacyc: $kbin         \r";
 		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
+		print outsyslog "Running MinPath for metacyc ($kbin): $command \n";
 		my $ecode = system $command;
  		if($ecode!=0) {
 			print "WARNING: Error running command:    $command\n";
@@ -191,6 +193,7 @@ sub kegg {
 		close outfile3;	
 		print "Running MinPath for kegg: $kbin         \r";
 		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $outdir/$kbin.kegg.details > /dev/null";
+		print outsyslog "Running MinPath for kegg ($kbin): $command \n";
 		my $ecode = system $command;
  		if($ecode!=0) {
 			print "WARNING: Error running command:    $command\n";
