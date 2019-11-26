@@ -203,6 +203,7 @@ close outfile7;
 	
 open(outfile7,">contigs.prov") || die "Can't open contigs.prov for writing\n";
 
+open(outfile8,">$resultpath/02.$project.trnas.fasta") || die "Can't open trna file for writing\n";
 open(infile6,$targetfile) || die "Can't open $targetfile\n";
 my($seq,$current)="";
 while(<infile6>) {
@@ -218,6 +219,7 @@ while(<infile6>) {
 			my $longr=($end-$init)+1;
 			my $replace=('N' x $longr);
 			my $rnaseq=substr($seq,$init-1,$longr,$replace);
+			print outfile8 ">$current\_$rns\n$rnaseq\n";
 			}
 		}
 		if($current) { print outfile7 ">$current\n$seq\n"; }	
@@ -228,6 +230,7 @@ while(<infile6>) {
 }
 close infile6;
 close outfile7;
+close outfile8;
 close outmet;
 
 system("mv contigs.prov $targetfile");
@@ -237,5 +240,6 @@ system("mv contigs.prov $targetfile");
 my $gffout="$tempdir/02.$project.rna.gff";			     		
 if(-e $gffout) { system("rm $gffout"); }
 $command="cat $tempdir/*gff.mod > $gffout";
-print "Creating new gff file: $command\n";
+print outsyslog "Creating new gff file: $command\n";
 system($command);
+close outsyslog;
