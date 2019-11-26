@@ -125,7 +125,7 @@ def main(args):
 
     if not args.sqm2anvio:
         fna_blastx = perlVars['$fna_blastx'] if doublepass else None
-        write_orf_seqs(orfs['abundances'].keys(), perlVars['$aafile'], fna_blastx, perlVars['$rnafile'], prefix + 'orf.sequences.tsv')
+        write_orf_seqs(orfs['abundances'].keys(), perlVars['$aafile'], fna_blastx, perlVars['$rnafile'], perlVars['$trnafile'] + '.fasta', prefix + 'orf.sequences.tsv')
         write_contig_seqs(perlVars['$contigsfna'], prefix + 'contig.sequences.tsv')
 
         write_row_dict(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
