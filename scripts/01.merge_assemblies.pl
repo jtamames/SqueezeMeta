@@ -24,7 +24,7 @@ our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toam
 
 #-- Merges the assemblies in a single dataset
 
-open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+open(out_met,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 my $finalcontigs="$resultpath/01.$project.fasta";
@@ -50,7 +50,7 @@ else {
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	if(-z $merged_clustered) { die "$merged_clustered is empty\n"; }
-	print outmet "Redundant contigs were removed using cd-hit(Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
+	print out_met "Redundant contigs were removed using cd-hit(Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 
 	#-- Uses Amos to chage format to afg (for minimus2)
 
@@ -70,7 +70,7 @@ else {
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	if(-z $afg_format) { die "$afg_format is empty\n"; }
-	print outmet "Contigs were merged using Minimus2(Treangen et al 2011, Curr Protoc Bioinfomatics 11)\n";
+	print out_met "Contigs were merged using Minimus2(Treangen et al 2011, Curr Protoc Bioinfomatics 11)\n";
 
 	#-- Create the final result (overlapping contigs plus singletons)
 
@@ -103,7 +103,7 @@ $command="$prinseq_soft -fasta $finalcontigs -stats_len -stats_info -stats_assem
 print outsyslog "Using prinseq for statistics: $command\n";
 $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
-print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
+print out_met "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 	
 
 #-- Count length of contigs (needed later)
@@ -130,5 +130,5 @@ while(<infile1>) {
 close infile1;
 close outfile1;
 close outsyslog;
-close outmet;
+close out_met;
 
