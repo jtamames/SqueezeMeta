@@ -1,10 +1,9 @@
-### Install Java8 (alternatively install openjdk8).
-sudo add-apt-repository ppa:linuxuprising/java -y
+### Install openjdk.
+# If you are using Ubuntu 14 first add the openjdk repository.
+sudo add-apt-repository ppa:openjdk-r/ppa
 sudo apt-get update
-sudo apt-get install oracle-java12-installer
-sudo apt-get install oracle-java12-set-default
-
-
+# If you are using Ubuntu 16 or above, just start from here.
+sudo apt-get install openjdk-8-jdk
 ### Install Ruby.
 sudo apt-get install ruby
 
@@ -15,12 +14,12 @@ sudo gedit /etc/apt/sources.list
 # add "deb https://cloud.r-project.org/bin/linux/ubuntu trusty-cran35/"
 #  (without the quotes) to the last line of the file.
 sudo apt-get update
-# Install R. This is the only command you'll need in ubuntu 16 or higher.
+# If you are using Ubuntu 16 or above, just start from here.
 sudo apt-get install r-base-core
 
 
 ### System libraries.
-sudo apt-get install git sqlite3 
+sudo apt-get install git sqlite3
 
 
 ### Perl modules.
