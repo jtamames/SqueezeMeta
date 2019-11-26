@@ -10,6 +10,7 @@ use Time::Seconds;
 use Cwd;
 use Getopt::Long;
 use Tie::IxHash;
+use Linux::MemInfo;
 use lib ".";
 use strict;
 
@@ -136,7 +137,6 @@ if(!$canumem) { $canumem=32; }
 if(!$mincontiglen) { $mincontiglen=200; }
 if(!$assembler) { $assembler="megahit"; }
 if(!$mapper) { $mapper="bowtie"; }
-if(!$blocksize) { $blocksize=8; }
 if(!$nocog) { $nocog=0; }
 if(!$nokegg) { $nokegg=0; }
 if(!$nopfam) { $nopfam=0; }
@@ -191,6 +191,18 @@ close infile1;
 my $currtime=timediff();
 print "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 print "Run started ",scalar localtime," in $mode mode\n";
+
+	#-- Setting block size for Diamond
+
+if(!$blocksize) {
+	my %mem=get_mem_info;
+	my $ram=$mem{"mem_free"};
+	my $block_size_set=int($ram/5000000);
+	if($block_size_set>8) { $block_size_set=8; }	
+	if($block_size_set<1) { $block_size_set=8; }
+	print "AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option\n";
+	$blocksize=$block_size_set;
+	}
 
 #--------------------------------------------------------------------------------------------------
 #----------------------------------- SEQUENTIAL MODE ----------------------------------------------

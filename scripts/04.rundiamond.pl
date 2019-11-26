@@ -33,7 +33,7 @@ print "Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for";
 #-- COG database
 
 if(!$nocog) {
-	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
+	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
 	print " COGS";
 	print outsyslog "Running Diamond for COGs: $command\n";
 	my $ecode = system $command;
@@ -44,7 +44,7 @@ if(!$nocog) {
 #-- KEGG database
 
 if(!$nokegg) {
-	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
+	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
 	print " KEGG";
 	print outsyslog "Running Diamond for KEGG: $command\n";
 	my $ecode = system $command;
@@ -61,7 +61,7 @@ if($opt_db) {
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
 		my $outdb="$interdir/04.$project.$dbname.diamond";
-		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
+		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
 		print " $dbname";
 		print outsyslog "Running Diamond for $dbname: $command\n";
 		my $ecode = system $command;

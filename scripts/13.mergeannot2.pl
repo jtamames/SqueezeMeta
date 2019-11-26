@@ -218,13 +218,14 @@ if($rnaseq) {
 	$orfdata{$thisrna}{ntseq}=$rnaseq; 
 	$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
 	$orfdata{$thisrna}{molecule}="rRNA";
+	$orfdata{$thisrna}{length}="NA";
 	$orfdata{$thisrna}{method}="barrnap";
 	}
 
 	#-- Reading tRNAs
 
 open(infile4,$trnafile) || warn "I need the tRNA sequences from the prediction\n";
-print "Reading tRNA sequences\n";
+print "Reading tRNA/tmRNA sequences\n";
 while(<infile4>) {
 	chomp;
 	my($genm,$trna)=split(/\t/,$_);
