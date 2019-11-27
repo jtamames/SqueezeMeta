@@ -333,15 +333,17 @@ def parse_fasta(fasta):
     return res
 
 
-def write_orf_seqs(orfs, aafile, fna_blastx, rnafile, outname):
+def write_orf_seqs(orfs, aafile, fna_blastx, rrnafile, trnafile, outname):
     ### Create sequences file.
     # Load prodigal results.
     ORFseq = parse_fasta(aafile)
     # Load blastx results if required.
     if fna_blastx:
         ORFseq.update(parse_fasta(fna_blastx))
-    if rnafile:
-        ORFseq.update(parse_fasta(rnafile))
+    if rrnafile:
+        ORFseq.update(parse_fasta(rrnafile))
+    if trnafile:
+        ORFseq.update(parse_fasta(trnafile))
     # Write results.
     with open(outname, 'w') as outfile:
         outfile.write('ORF\tAASEQ\n')
