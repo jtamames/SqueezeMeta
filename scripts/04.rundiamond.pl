@@ -37,7 +37,7 @@ if($blocksize eq "NF") {
 	my $ram=$mem{"MemFree"};
 	my $block_size_set=int($ram/5000000);
 	if($block_size_set>8) { $block_size_set=8; }	
-	if($block_size_set<1) { $block_size_set=8; }
+	if($block_size_set<1) { $block_size_set=1; }
 	print "AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/6, Max 8). You can override this setting using the -b option\n";
 	print outsyslog "Diamond block size set to $block_size_set (Free Mem $ram bytes)\n";
 	$blocksize=$block_size_set;
