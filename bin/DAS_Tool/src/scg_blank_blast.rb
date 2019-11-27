@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -w
+#!/usr/bin/env ruby
 
 # The MIT License (MIT)
 # Copyright (c) 2016 Alexander J Probst
