@@ -38,7 +38,7 @@ if(-e $rnafile) { system("rm $rnafile"); }
 
 #-- Loop for all kingdoms (Bac, Arch, Euk) plus mitochondria, looking for the respective RNAs
 
-print "Running barrnap (Seeman 2014, Bioinformatics 30, 2068-9) for predicting RNAs: ";
+print "  Running barrnap (Seeman 2014, Bioinformatics 30, 2068-9) for predicting RNAs: ";
 my %rname;
 open(outfile4,">$tempdir/16S.fasta") || die "Can't open $tempdir/16S.fasta for writing\n";
 foreach my $kingdom(keys %king) {
@@ -122,7 +122,7 @@ print outmet "RNAs were predicted using Barrnap (Seeman 2014, Bioinformatics 30,
 
 $command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f filterbyconf";
 print outsyslog "Running RDP classifier: $command\n";
-print "Running RDP classifier (Wang et al 2007, Appl Environ Mictrobiol 73, 5261-7)\n";
+print "  Running RDP classifier (Wang et al 2007, Appl Environ Mictrobiol 73, 5261-7)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "16S rRNA sequences were taxonomically classified using the RDP classifier (Wang et al 2007, Appl Environ Microbiol 73, 5261-7)\n";
@@ -164,7 +164,7 @@ close outfile5;
 
 #-- Running Aragorn
 
-print "Running Aragorn (Laslett & Canback 2004, Nucleic Acids Res 31, 11-16) for tRNA/tmRNA prediction\n";
+print "  Running Aragorn (Laslett & Canback 2004, Nucleic Acids Res 31, 11-16) for tRNA/tmRNA prediction\n";
 my $temparagorn="$tempdir/trnas.aragorn";
 $command="$aragorn_soft -w $targetfile -o $temparagorn";
 print outsyslog "Running Aragorn: $command\n";

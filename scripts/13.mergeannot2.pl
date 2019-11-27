@@ -35,7 +35,7 @@ my $gff;
 my %ingff;
 if($doublepass) { $gff=$gff_file_blastx; } else { $gff=$gff_file; }
 open(infile1,$gff) || die "Can't open gff file $gff\n";
-print "Reading GFF in $gff\n";
+print "  Reading GFF in $gff\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/));
@@ -45,7 +45,7 @@ close infile1;
 
 	#-- Reading hits from Diamond
 	
-print "Reading Diamond hits\n";
+print "  Reading Diamond hits\n";
 my(%provi,$lasto);
 open(infile1,$taxdiamond) || die "Can't open diamond result in $taxdiamond\n";
 while(<infile1>) {
@@ -76,7 +76,7 @@ close infile1;
 	#-- Reading data for COGs (names, pathways)
 
 open(infile1,$coglist) || warn "Missing COG equivalence file\n";
-print "Reading COG list\n";
+print "  Reading COG list\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/));
@@ -89,7 +89,7 @@ close infile1;
 	#-- Reading data for KEGGs (names, pathways)
 
 open(infile2,$kegglist) || warn "Missing KEGG equivalence file\n";
-print "Reading KEGG list\n";
+print "  Reading KEGG list\n";
 while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/));
@@ -110,7 +110,7 @@ if($opt_db) {
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$listf)=split(/\t/,$_);
 		if(-e $listf) {
-			print "Reading $dbname list: $listf\n";
+			print "  Reading $dbname list: $listf\n";
 			open(infile3,$listf) || warn "Can't open names file for $opt_db\n";
 			while(<infile3>) {
 				chomp;
@@ -129,7 +129,7 @@ if($opt_db) {
 	#-- Reading aa sequences 
 
 open(infile3,$aafile) || die "I need the protein sequences from the prediction\n";
-print "Reading aa sequences\n";
+print "  Reading aa sequences\n";
 my($thisorf,$aaseq);
 while(<infile3>) {
 	chomp;
@@ -160,7 +160,7 @@ if($aaseq) {
 my @ntfiles=("$ntfile");
 if($doublepass) { push(@ntfiles,$fna_blastx); }
 
-print "Reading nt sequences\n";
+print "  Reading nt sequences\n";
 my($thisorf,$ntseq);
 foreach my $thisntfile(@ntfiles) {
 	open(infile3,$thisntfile) || die "I need the nucleotide sequences in file $thisntfile\n";
@@ -190,7 +190,7 @@ if($ntseq) {
 	#-- Reading rRNAs
 
 open(infile4,$rnafile) || warn "I need the RNA sequences from the prediction\n";
-print "Reading rRNA sequences\n";
+print "  Reading rRNA sequences\n";
 my($thisrna,$rnaseq);
 while(<infile4>) {
 	chomp;
@@ -225,7 +225,7 @@ if($rnaseq) {
 	#-- Reading tRNAs
 
 open(infile4,$trnafile) || warn "I need the tRNA sequences from the prediction\n";
-print "Reading tRNA/tmRNA sequences\n";
+print "  Reading tRNA/tmRNA sequences\n";
 while(<infile4>) {
 	chomp;
 	my($genm,$trna)=split(/\t/,$_);
@@ -244,7 +244,7 @@ close infile4;
 my $taxfile;
 if($doublepass) { $taxfile="$fun3tax_blastx.wranks"; } else { $taxfile="$fun3tax.wranks"; }
 open(infile5,$taxfile) || warn "Can't open allorfs file $fun3tax.wranks\n";
-print "Reading ORF information\n";
+print "  Reading ORF information\n";
 while(<infile5>) { 
 	chomp;
 	next if(!$_ || ($_=~/\#/));
@@ -277,7 +277,7 @@ if($euknofilter) {	#-- Remove filters for Eukaryotes
 
 my($ntorf,$ntseq,$gc);
 open(infile6,$ntfile) || warn "Can't open nt file $ntfile\n";
-print "Calculating GC content for genes\n";
+print "  Calculating GC content for genes\n";
 while(<infile6>) { 
 	chomp;
 	if($_=~/^\>([^ ]+)/) {			#-- If we are reading a new ORF, store the data for the last one
@@ -300,7 +300,7 @@ $datafiles{'gc'}=1;
 if($doublepass) {
 	my($ntorf,$ntseq,$gc);
 	open(infile6,$fna_blastx) || warn "Can't open nt file $ntfile\n";
-	print "Calculating GC content for blastx genes\n";
+	print "  Calculating GC content for blastx genes\n";
 	while(<infile6>) { 
 		chomp;
 		if($_=~/^\>([^ ]+)/) {			#-- If we are reading a new ORF, store the data for the last one
@@ -330,7 +330,7 @@ if($doublepass) {
 
 ($ntorf,$ntseq,$gc)="";
 open(infile7,$rnafile) || warn "Can't open RNA file $rnafile\n";
-print "Calculating GC content for RNAs\n";
+print "  Calculating GC content for RNAs\n";
 while(<infile7>) { 
 	chomp;
 	if($_=~/^\>/) {			#-- If we are reading a new ORF, store the data for the last one
@@ -352,7 +352,7 @@ $orfdata{$ntorf}{gc}=$gc;
 	#-- Reading taxonomic assignment and disparity for the contigs
 
 open(infile8,$alllog) || warn "Can't open contiglog file $alllog\n";
-print "Reading contig information\n";
+print "  Reading contig information\n";
 while(<infile8>) { 
 	chomp;
 	next if(!$_ || ($_=~/\#/));
@@ -368,7 +368,7 @@ close infile8;
 if(!$nokegg) {
 	if($doublepass) { $fun3kegg=$fun3kegg_blastx; }
 	open(infile9,$fun3kegg) || warn "Can't open fun3 KEGG annotation file $fun3kegg\n";
-	print "Reading KEGG annotations\n";
+	print "  Reading KEGG annotations\n";
 	while(<infile9>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -388,7 +388,7 @@ if(!$nokegg) {
 if(!$nocog) {
 	if($doublepass) { $fun3cog=$fun3cog_blastx; }
 	open(infile10,$fun3cog) || warn "Can't open fun3 COG annotation file $fun3cog\n";;
-	print "Reading COGs annotations\n";
+	print "  Reading COGs annotations\n";
 	while(<infile10>) { 
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -412,7 +412,7 @@ if($opt_db) {
 		my $fun3opt="$resultpath/07.$project.fun3.$dbname";
 		if($doublepass) { $fun3opt="$resultpath/08.$project.fun3.$dbname"; }
 		open(infile10,$fun3opt) || warn "Can't open fun3 $dbname annotation file $fun3opt\n";;
-		print "Reading $dbname annotations\n";
+		print "  Reading $dbname annotations\n";
 		while(<infile10>) { 
 			chomp;
 			next if(!$_ || ($_=~/\#/));
@@ -430,7 +430,7 @@ if($opt_db) {
 
 if(!$nopfam) {
 	open(infile11,$fun3pfam) || warn "Can't open fun3 Pfam annotation file $fun3pfam\n";;
-	print "Reading Pfam annotations\n";
+	print "  Reading Pfam annotations\n";
 	while(<infile11>) { 
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -444,7 +444,7 @@ if(!$nopfam) {
 	#-- Reading RPKM, TPM coverage values for the ORFs in the different samples
 
 open(infile12,$mapcountfile) || warn "Can't open mapping file $mapcountfile\n";
-print "Reading RPKMs and Coverages\n";
+print "  Reading RPKMs and Coverages\n";
 while(<infile12>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/) || ($_=~/^Gen/));
@@ -460,7 +460,7 @@ close infile12;
   
 	#-- CREATING GENE TABLE
 
-print "Creating table\n";
+print "  Creating table\n";
 open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
 
 	#-- Headers
@@ -544,7 +544,7 @@ sub gc_count {
  my $corf=shift;
  my @m=($seq=~/G|C/gi);
  my $lseq=length $seq;
- if(!$lseq) { print "Zero length sequence found for $corf\n"; next; }
+ if(!$lseq) { print "  Zero length sequence found for $corf\n"; next; }
  my $gc=(($#m+1)/length $seq)*100;
  return $gc;
               }

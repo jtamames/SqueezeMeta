@@ -34,7 +34,7 @@ my $tempnt="$tempdir/02.$project.nt.temp";
 
 my $maskedcontigs="$interdir/02.$project.maskedrna.fasta";
 my $command="$prodigal_soft -q -m -p meta -i $maskedcontigs -a $aafile -d $ntfile -f gff -o $tempgff";
-print "Running prodigal (Hyatt et al 2010, BMC Bioinformatics 11: 119) for predicting ORFs\n";
+print "  Running prodigal (Hyatt et al 2010, BMC Bioinformatics 11: 119) for predicting ORFs\n";
 print outsyslog "Running prodigal for predicting ORFs: $command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }

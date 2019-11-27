@@ -32,20 +32,20 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 	#-- Setting block size for Diamond
 
 if($blocksize eq "NF") {
-	print "Setting block size for Diamond\n";
+	print "  Setting block size for Diamond\n";
 	my %mem=get_mem_info;
 	my $ram=$mem{"MemAvailable"};
 	my $block_size_set=sprintf('%.1f',$ram/5000000);
 	if($block_size_set>8) { $block_size_set=8; }	
 	if($block_size_set<1) { $block_size_set=1; }
-	print "AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option\n";
+	print "  AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option\n";
 	print outsyslog "Diamond block size set to $block_size_set (Free Mem $ram bytes)\n";
 	$blocksize=$block_size_set;
 	}
 
 print outmet "Similarity searches for ";
 
-print "Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for";
+print "  Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for";
 
 #-- nr database
 

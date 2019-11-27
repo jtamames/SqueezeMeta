@@ -34,14 +34,14 @@ my $tempc="$tempdir/checkm_prov.txt";
 my %branks=('k','domain','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 
 if(-d $markerdir) {} else { system "mkdir $markerdir"; }
-if(-d $checktemp) {} else { system "mkdir $checktemp"; print "Creating $checktemp\n";  }
+if(-d $checktemp) {} else { system "mkdir $checktemp"; print "  Creating $checktemp\n";  }
 
 my(%tax,%bins,%consensus,%alltaxa);
 
 #-- Read NCBI's taxonomy 
 
 open(infile1,$taxlist) || die "Can't find taxonomy list $taxlist\n";
-print "Reading $taxlist\n";
+print "  Reading $taxlist\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -54,7 +54,7 @@ close infile1;
 
 foreach my $binmethod(sort keys %dasdir) {
 	my $bindir=$dasdir{$binmethod};
-	print "Looking for $binmethod bins in $bindir\n";
+	print "  Looking for $binmethod bins in $bindir\n";
 	
 	#-- Read contigs in bins
 	
@@ -72,7 +72,7 @@ foreach my $binmethod(sort keys %dasdir) {
 opendir(indir,$bindir) || die "Can't open $bindir directory\n";
 my @files=grep(/tax$/,readdir indir);
 my $numbins=$#files+1;
-print "$numbins bins found\n\n";
+print "  $numbins bins found\n\n";
 closedir indir;
 
 
@@ -89,7 +89,7 @@ foreach my $m(@files) {
 	my $binname=~s/\.tax//g;
 	my $thisfile="$bindir/$m";
 	$bins{$thisfile}=$binname;
-	print "Bin $currentbin/$numbins: $m\n";
+	print "  Bin $currentbin/$numbins: $m\n";
  
 	#-- Reading the consensus taxa for the bin
  
@@ -100,7 +100,7 @@ foreach my $m(@files) {
 			my($cons,$size,$chim,$chimlev)=split(/\t/,$_);
 			$cons=~s/Consensus\: //;
 			$size=~s/Total size\: //g;
-			if($size<$minsize18) { print " Skipping bin because of low size ($size<$minsize18)\n"; next; }
+			if($size<$minsize18) { print "  Skipping bin because of low size ($size<$minsize18)\n"; next; }
 			$consensus{$thisfile}=$cons;
 			my @k=split(/\;/,$cons);
 		
@@ -131,7 +131,7 @@ foreach my $m(@files) {
                 $tax=~s/\s+/\_/g;
 		# my $rank=$equival{$grank};
 		if($rank eq "superkingdom") { $rank="domain"; }
-		print " Using profile for $rank rank : $tax\n";   
+		print "  Using profile for $rank rank : $tax\n";   
 		my $marker="$markerdir/$tax.ms"; 
 	
 		#-- Use already existing tax profile or create it
@@ -167,7 +167,7 @@ foreach my $m(@files) {
 		else { system("mv $tempc $checkmfile"); }
 		}
  	} 
-print "\nStoring results for $binmethod in $checkmfile\n";
+print "\n  Storing results for $binmethod in $checkmfile\n";
 
 }
 

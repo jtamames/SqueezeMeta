@@ -129,7 +129,7 @@ close infile0;
 #-- Reading taxonomic information for the genes (wrank file)
 
 my %taxlist;
-print "Reading $input\n";
+print "  Reading $input\n";
 open(infile3,$input) || die "Can't open $input\n";
 while(<infile3>) {		#-- Looping on the ORFs
 	my $contigid;
@@ -192,7 +192,7 @@ if($euknofilter) {	#-- Remove filters for Eukaryotes
 
 #-- Preparing output files
 
-print "Writing output to $outputshort\n";
+print "  Writing output to $outputshort\n";
 open(outfile1,">$outputlong") || die "Can't open $outputlong for writing\n";
 open(outfile2,">$outputshort") || die "Can't open $outputshort for writing\n";
 print outfile1 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, euknofilter=$euknofilter, ",scalar localtime,"\n";
@@ -234,7 +234,7 @@ foreach my $contig(keys %allcontigs) {
 			$mtax2=$listtax[1];	
 			$times2=$accumtax{$mtax2};	
 			}
-		if(!$totalcount) { print "Warning: Contig $contig has zero genes\n"; }
+		if(!$totalcount) { print "  Warning: Contig $contig has zero genes\n"; }
 		my $percas=$accumtax{$mtax}/$totalas;
 		my $perctotal=$accumtax{$mtax}/$totalcount;
 		if(!$times2) { $times2=0; }

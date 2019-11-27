@@ -93,7 +93,7 @@ close infile2;
 close outc;
 #close outnof;
 close outcnof;
-print "Tax assignment done! Result stored in file $outname.wranks\n";
+print "  Tax assignment done! Result stored in file $outname.wranks\n";
 
 
 sub query {

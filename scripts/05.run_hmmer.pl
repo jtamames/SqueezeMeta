@@ -24,7 +24,7 @@ our($hmmer_soft,$pfamhmmer,$numthreads,$pfam_db,$aafile,$evaluehmmer5,$methodsfi
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
-print "Running HMMER3 (Eddy 2009, Genome Inform 23, 205-11) for Pfam\n";
+print "  Running HMMER3 (Eddy 2009, Genome Inform 23, 205-11) for Pfam\n";
 my $command="$hmmer_soft --domtblout $pfamhmmer -E $evaluehmmer5 --cpu $numthreads $pfam_db $aafile > /dev/null 2>&1";
 print outsyslog "Running HMMER3 for Pfam: $command\n";
 my $ecode = system $command;

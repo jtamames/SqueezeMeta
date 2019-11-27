@@ -30,7 +30,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 my $finalcontigs="$resultpath/01.$project.fasta";
 my($ecode,$command);
 if($extassembly) { 
-	print "External assembly provided: $extassembly. Overriding assembly\n";
+	print "  External assembly provided: $extassembly. Overriding assembly\n";
 	system("cp $extassembly $finalcontigs");
 	}
 else {
@@ -45,7 +45,7 @@ else {
 
 	my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
 	$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9 > /dev/null 2>&1";
-	print "Running cd-hit-est for removing redundant contigs\n";
+	print "  Running cd-hit-est for removing redundant contigs\n";
 	print outsyslog "Running cd-hit-est for removing redundant contigs: $command\n";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
@@ -56,7 +56,7 @@ else {
 
 	my $afg_format="$tempdir/mergedassemblies.$project.99.afg";
 	$command="$toamos_soft -s $merged_clustered -o $afg_format > /dev/null 2>&1 ";
-	print "Transforming to afg format\n";
+	print "  Transforming to afg format\n";
 	print outsyslog "Transforming to afg format: $command\n";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
@@ -65,7 +65,7 @@ else {
 	#-- Uses minimus2 to assemble overlapping contigs
 
 	$command="$minimus2_soft $tempdir/mergedassemblies.$project.99 -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads >> $syslogfile 2>&1";
-	print "Merging with minimus2\n";
+	print "  Merging with minimus2\n";
 	print outsyslog "Merging with minimus2: $command";
 	$ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
@@ -109,7 +109,7 @@ print out_met "Contig statistics were done using prinseq (Schmieder et al 2011, 
 #-- Count length of contigs (needed later)
 
 my $contigslen="$interdir/01.$project.lon";
-print "Counting lengths\n";
+print "  Counting contig lengths\n";
 open(outfile1,">$contigslen") || die "Can't open $contigslen for writing\n";
 open(infile1,$finalcontigs) || die "Can't open $finalcontigs\n";
 my($thisname,$contigname,$seq);

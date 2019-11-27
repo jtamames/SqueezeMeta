@@ -47,7 +47,7 @@ if($cleaning) {
 	else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name $cleaningoptions > /dev/null 2>&1"; }
 
 	if($cleaning) {
-		print "Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n";
+		print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n";
 		print outsyslog "Running trimmomatic: $trimmomatic_command";
 		my $ecode = system $trimmomatic_command;
 		if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
@@ -56,7 +56,7 @@ if($cleaning) {
 	}
 
 if($extassembly) {
-	print "External assembly provided: $extassembly. Overriding assembly\n";
+	print "  External assembly provided: $extassembly. Overriding assembly\n";
 	if(-e $extassembly) {} else { die "Can't find assembly file $extassembly\n"; }
 	$outassembly=$extassembly; 
 	}
@@ -82,11 +82,11 @@ else {
                 system("rm -r $datapath/canu > /dev/null 2>&1");
 		$outassembly="$datapath/canu/contigs.fasta";
 		if($canumem eq "NF") {
-			print "Setting available memory for Canu\n";
+			print "  Setting available memory for Canu\n";
 			my %mem=get_mem_info;
 			my $ram=$mem{"MemAvailable"};
 			$canumem=sprintf('%.1f',$ram/1000000);
-			print "AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem. You can override this setting using the -canumem option\n";
+			print "  AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem. You can override this setting using the -canumem option\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ram bytes)\n";
 			}
      	   	$command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name > /dev/null 2>&1"; 
@@ -99,7 +99,7 @@ else {
 	
 	#-- Run assembly
 
-	print "Running assembly with $assembler\n";
+	print "  Running assembly with $assembler\n";
 	print outsyslog "Running assembly with $assembler: $command\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
@@ -109,7 +109,7 @@ else {
 
 if($mincontiglen>200) {
 	$command="$prinseq_soft -fasta $outassembly -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
-	print "Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
+	print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
 	print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
@@ -128,7 +128,7 @@ print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, B
 
 #-- Counts length of the contigs (we will need it later)
 
-print "Counting length of contigs\n";
+print "  Counting length of contigs\n";
 open(outfile1,">$contigslen") || die "Can't open $contigslen for writing\n";
 open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
 while(<infile1>) {
@@ -151,5 +151,5 @@ close outfile1;
 close outmet;
 close outsyslog;
 
-print "Contigs stored in $contigsfna\n";
+print "  Contigs stored in $contigsfna\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");

@@ -46,7 +46,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 my(%allsamples,%rpk);
 tie %allsamples,"Tie::IxHash";
 open(infile1,$mappingfile) || die "Can't open mappingfile $mappingfile\n";
-print "Reading mapping file from $mappingfile\n";
+print "  Reading mapping file from $mappingfile\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -60,7 +60,7 @@ close infile1;
 my @f=keys %allsamples;
 my $numsamples=$#f+1;
 my $nums;
-print "Metagenomes found: $numsamples\n";
+print "  Metagenomes found: $numsamples\n";
 
 
         #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
@@ -105,7 +105,7 @@ foreach my $thissample(keys %allsamples) {
 	my($formatseq,$command,$outsam,$formatoption);
 	$nums++;
 	my (@pair1,@pair2)=();
-	print "Working with $nums: $thissample\n";
+	print "  Working with $nums: $thissample\n";
 	foreach my $ifile(sort keys %{ $allsamples{$thissample} }) {
 		if(!$formatseq) {
 			if($ifile=~/fasta/) { $formatseq="fasta"; }
@@ -179,7 +179,7 @@ foreach my $thissample(keys %allsamples) {
 }
 close outfile1;
 
-print "Output in $mapcountfile\n";
+print "  Output in $mapcountfile\n";
 close outfile3;
 
 
@@ -222,7 +222,7 @@ sub sqm_counter {
 		my $incontig=$k[2];
 		my $endread=$initread;
 		$countreads++;
-		if($countreads%1000000==0) { print "    $countreads reads counted\r"; }
+		if($countreads%1000000==0) { print "  $countreads reads counted\r"; }
 		#-- Calculation of the length match end using CIGAR string
 
 		while($cigar=~/^(\d+)([IDM])/) {

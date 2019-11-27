@@ -31,7 +31,7 @@ tie %allsamples,"Tie::IxHash";
 	#-- Reading taxonomic assignment and disparity for the contigs
 
 open(infile1,$alllog) || warn "Can't open contiglog file $alllog\n";
-print "Reading taxa for contigs information...";
+print "  Reading taxa for contigs information...";
 while(<infile1>) { 
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -43,7 +43,7 @@ close infile1;
 
 	#-- Reading GC content and length of the contigs
 	
-print "done!\nReading GC & length... ";
+print "done!\n  Reading GC & length... ";
 open(infile2,$contigsfna) || warn "Can't open fasta file $contigsfna\n";
 my($thisname,$contigname,$seq);
 while(<infile2>) {
@@ -70,7 +70,7 @@ if($contigname) {
 
 	#-- Reading number of genes for the contigs
 
-print "done!\nReading number of genes... ";
+print "done!\n  Reading number of genes... ";
 open(infile3,$aafile) || warn "Can't open aa file $aafile\n";
 while(<infile3>) {
 	chomp;
@@ -85,7 +85,7 @@ close infile3;
 
   #-- Reading contig coverages 
   
-print "done!\nReading coverages... ";
+print "done!\n  Reading coverages... ";
 open(infile4,$contigcov) || die "Can't open $contigcov\n";
 while(<infile4>) {
 	chomp;
@@ -102,7 +102,7 @@ close infile4;
   #-- Reading bins (if any)
 
 if(!$nobins) {				#-- Skip this step if no bins were requested  
-	print "done!\nReading bins... ";
+	print "done!\n  Reading bins... ";
 	open(infile5,$contigsinbins); # File will be missing if running in sequential mode
 	while(<infile5>) {
 		chomp;
@@ -115,7 +115,7 @@ if(!$nobins) {				#-- Skip this step if no bins were requested
 
 	#-- CREATING CONTIG TABLE
 	
-print "done!\nCreating contig table...";
+print "done!\n  Creating contig table...";
 open(outfile1,">$contigtable") || die "Can't open $contigtable for writing\n";
 
 	#-- Headers

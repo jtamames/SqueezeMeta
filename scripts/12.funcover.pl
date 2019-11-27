@@ -29,7 +29,7 @@ do "$projectpath/parameters.pl";
 our($datapath,$resultpath,$extpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass,$minraw12,$syslogfile);
 
 
-print "Calculating coverage for functions\n";
+print "  Calculating coverage for functions\n";
 my(%funs,%taxf,%validid,%tfun,%totalbases,%totalreads,%allsamples,%funstat,%longorfs,%taxcount,%optdb);
 
 	#-- Reading KEGG functions and pathways
@@ -169,7 +169,7 @@ if($opt_db) {
 	
 	#-- Reading coverages for all genes
 
-print "Reading coverage in $mapcountfile\n";
+print "  Reading coverage in $mapcountfile\n";
 open(infile6,$mapcountfile) || warn "Can't open coverages in $mapcountfile\n";
 while(<infile6>) {
 	chomp;
@@ -246,7 +246,7 @@ close infile6;
 
 	#-- Reading RPKMs for all genes
 
-print "Reading rpkm in $mapcountfile\n";
+print "  Reading rpkm in $mapcountfile\n";
 open(infile7,$mapcountfile) || die "Can't open $mapcountfile\n";
 while(<infile7>) {
 	chomp;
@@ -282,7 +282,7 @@ my $rawf;
 my %rpk;
 foreach my $classfun(sort keys %funstat) {
 	$rawf="$resultpath/12.$project.$classfun.funcover";
-	print "Now creating $classfun coverage output in $rawf\n";
+	print "  Now creating $classfun coverage output in $rawf\n";
 	print outsyslog "Creating $classfun coverage output in $rawf\n";
 	open(outfile1,">$rawf") || die "Can't open $rawf for writing\n";
 	print outfile1 "#-- Created by $0 from $mapcountfile, ",scalar localtime;
@@ -335,7 +335,7 @@ close outfile1;
 foreach my $classfun(sort keys %funstat) {
 	$rawf="$extpath/12.$project.$classfun.stamp";        #-- Creating STAMP files
 	print outsyslog "Creating $classfun raw reads output in $rawf\n";
-	print "Now creating $classfun raw reads output in $rawf\n";
+	print "  Now creating $classfun raw reads output in $rawf\n";
 	open(outfile2,">$rawf") || die "Can't open $rawf for writing\n";
 	if($classfun eq "cog") { print outfile2 "$classfun class\t$classfun ID"; }
         else { print outfile2 "$classfun ID"; }

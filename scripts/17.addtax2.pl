@@ -72,7 +72,7 @@ close infile1;
 open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 	my $bindir=$dasdir{$binmethod};
-	print "Looking for $binmethod bins in $bindir\n";
+	print "  Looking for $binmethod bins in $bindir\n";
 
 	#-- Reading bin directories
 

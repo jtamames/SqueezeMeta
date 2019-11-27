@@ -72,7 +72,7 @@ if($noidfilter6) {
 #-- Parsing of the diamond file
 
 my(%provhits,%accum,%accumnofilter,%providen);
-my($thisorf,$lastorf,$validhits,$validhitsnofilter,$tothits,$refscore,$refiden,%giden);
+my($thisorf,$lastorf,$validhits,$validhitsnofilter,$tothits,$refscore,$refiden,$assigned,%giden);
 tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 tie %accumnofilter,"Tie::IxHash";
@@ -100,6 +100,8 @@ while(<infile2>) {
 		$string="";
 		$lastorf=$thisorf;	
 		($refscore,$refiden)=0;	
+		$assigned++;
+		if(!($assigned%1000)) { print "  $assigned ORFs processed     \r"; }
 		}
 
 	#-- If we are reading a hit, we store its bitscore and identity value
@@ -125,10 +127,11 @@ query();
 close outfile2;
 #close outfile3;
 close outfile4;
+print "  Total: $assigned ORFs processed\n";
 
 if(!$thereareresults) { die "Tax assignment done in $fun3tax.wranks but no results found. Aborting\n"; }
 
-print "Tax assignment done! Result stored in file $fun3tax.wranks\n";
+print "  Tax assignment done! Result stored in file $fun3tax.wranks\n";
 
 
 sub query {

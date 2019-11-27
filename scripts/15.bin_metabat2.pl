@@ -24,7 +24,7 @@ my %skip;
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
-print "Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
+print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
 open(infile0,$mappingfile) || die "Can't open $alllog\n";
 while(<infile0>) {
 	chomp;
@@ -112,7 +112,7 @@ close outfile1;
 
 my $command="$metabat_soft -t 8 -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
 print outsyslog "Running metabat2: $command\n";
-print "Running metabat\n";
+print "  Running metabat\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";

@@ -372,4 +372,4 @@ if(!$nobins) {
 	}
 print outfile1 "\n";
 close outfile1;
-print "Output in $resultfile\n";
+print "  Output in $resultfile\n";

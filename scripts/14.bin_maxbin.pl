@@ -41,7 +41,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 #	}
 #close infile1;
 
-print "Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
+print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
 open(infile0,$mappingfile) || die "Can't open $alllog\n";
 while(<infile0>) {
 	chomp;
@@ -51,7 +51,7 @@ while(<infile0>) {
 	}
 close infile0;
 
-print "Reading from $alllog\n";
+print "  Reading from $alllog\n";
 open(infile1,$alllog) || die "Can't open $alllog\n";
 while(<infile1>) { 
 	chomp;
@@ -118,7 +118,7 @@ close outfile1;
 
 my $command="perl $maxbin_soft -thread $numthreads -contig $tempfasta -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
 print outsyslog "Running Maxbin: $command\n";
-print "Running Maxbin\n";
+print "  Running Maxbin\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 

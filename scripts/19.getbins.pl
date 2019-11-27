@@ -60,10 +60,10 @@ foreach my $binmethod(sort keys %dasdir) {
 
 	#-- For all the binning methods
 
-	print "Method:$binmethod\n";
+	print "  Method:$binmethod\n";
 	my $bindir=$dasdir{$binmethod};
 	my $checkmfile="$interdir/18.$project.$binmethod.checkM";
-	print "Reading checkM results in $checkmfile\n";
+	print "  Reading checkM results in $checkmfile\n";
 	
 		#-- Read checkM results for each bin
 	
@@ -94,7 +94,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	foreach my $tfil(@files) {
 	my $bin=$tfil;
 	$bin=~s/\.fa.tax|\.fasta.tax//g;
-	print "Reading data for bin $bin           \r";
+	print "  Reading data for bin $bin           \r";
 	open(infile3,"$bindir/$tfil") || die "Can't open $bindir/$tfil\n";
 	while(<infile3>) {
  		chomp;
@@ -139,7 +139,7 @@ foreach my $binmethod(sort keys %dasdir) {
 
 	#-- Count coverages for the bins
 
-	print "\nCalculating coverages\n";
+	print "\n  Calculating coverages\n";
 	open(infile5,$contigcov) || die "Can't open contig coverage file $contigcov\n";
 	while(<infile5>) { 
 		chomp;
@@ -185,7 +185,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	#-- Create table of results	
 					   
 	my $outputfile=$bintable;
-	print "Creating table in $outputfile\n";
+	print "  Creating table in $outputfile\n";
 	open(outfile3,">$outputfile") || die "Can't open $outputfile for writing\n";
 	
 	#-- Headers
@@ -213,7 +213,7 @@ close outfile3;
 close outfile1;
 close outfile2;
 
-print "Done!\n";
+print "  Done!\n";
 print "=============\nBIN TABLE CREATED: $outputfile\n=============\n\n";
 
  

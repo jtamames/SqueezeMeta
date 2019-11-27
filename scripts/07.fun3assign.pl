@@ -24,11 +24,10 @@ do "$projectpath/parameters.pl";
 our($datapath,$nocog,$nokegg,$nopfam,$opt_db,$cogdiamond,$fun3cog,$evalue,$miniden,$keggdiamond,$fun3kegg,$pfamlist,$fun3pfam,$pfamhmmer,$resultpath,$tempdir,$interdir,$mindif7,$maxhits7,$minolap7);
 
 
-print "Functional assignment for";
+print "  Functional assignment for";
 if(!$nocog) { print " COGS"; }
 if(!$nokegg) { print " KEGG"; }
 if(!$nopfam) { print " PFAM"; }
-if($opt_db) { print " OPT_DB"; }
 print "\n";
 
 #----------------------------------- COG assignment -------------------------------------
@@ -206,6 +205,7 @@ if($opt_db) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
+		print " $dbname";
 		my $optdbdiamond="$interdir/04.$project.$dbname.diamond";
 		my $optdbresult="$resultpath/07.$project.fun3.$dbname";
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
