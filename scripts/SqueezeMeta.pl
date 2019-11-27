@@ -132,7 +132,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 #-- Set some default values
 
 if(!$numthreads) { $numthreads=12; }
-if(!$canumem) { $canumem=32; }
+if(!$canumem) { $canumem="NF"; }
 if(!$mincontiglen) { $mincontiglen=200; }
 if(!$assembler) { $assembler="megahit"; }
 if(!$mapper) { $mapper="bowtie"; }

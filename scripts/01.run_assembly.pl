@@ -5,6 +5,7 @@
 
 use strict;
 use Cwd;
+use Linux::MemInfo;
 use lib "."; 
 
 $|=1;
@@ -80,7 +81,15 @@ else {
 	elsif($assembler=~/canu/i) {
                 system("rm -r $datapath/canu > /dev/null 2>&1");
 		$outassembly="$datapath/canu/contigs.fasta";
-      	   	$command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name > /dev/null 2>&1"; 
+		if($canumem eq "NF") {
+			print "Setting available memory for Canu\n";
+			my %mem=get_mem_info;
+			my $ram=$mem{"MemAvailable"};
+			$canumem=sprintf('%.1f',$ram/1000000);
+			print "AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem. You can override this setting using the -canumem option\n";
+			print outsyslog "canumem set to $canumem (Free Mem $ram bytes)\n";
+			}
+     	   	$command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name > /dev/null 2>&1"; 
 	   	$command.="mv $datapath/canu/$project.contigs.fasta $outassembly"; 
  		print outmet "Assembly was done using Canu (Koren et al 2017, Genome Res 27(5):722-36)\n";
      	  }
