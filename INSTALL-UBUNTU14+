@@ -24,9 +24,9 @@ sudo apt-get install git sqlite3
 
 ### Perl modules.
 sudo apt-get install libtie-ixhash-perl libclass-dbi-mysql-perl libxml-parser-perl libdbd-sqlite3-perl
+sudo cpan Linux::MemInfo
 # If using Ubuntu 14, install DBD::SQLite::Constants with cpan. Not needed for Ubuntu 16+
 sudo cpan DBD::SQLite::Constants
-sudo cpan Linux::MemInfo
 
 
 ### Python modules.
