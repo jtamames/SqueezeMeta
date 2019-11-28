@@ -21,8 +21,8 @@ $interdir    = "$basedir/$projectname/intermediate";                            
 #-- Result files
 
 $mappingfile     = "$datapath/00.$projectname.samples";         #-- Mapping file (samples -> fastq)
-$methodsfile     = "$basedir/$projectname/methods.txt";			    #-- File compiling methods
-$syslogfile      = "$basedir/$projectname/syslog";
+$methodsfile     = "$basedir/$projectname/methods.txt";		#-- File listing the  methods used and their citation info
+$syslogfile      = "$basedir/$projectname/syslog";              #-- Logging file
 $contigsfna      = "$resultpath/01.$projectname.fasta";         #-- Contig file from assembly
 $contigslen      = "$interdir/01.$projectname.lon";             #-- Length of each contig
 $rnafile         = "$resultpath/02.$projectname.rnas";          #-- RNAs from barrnap

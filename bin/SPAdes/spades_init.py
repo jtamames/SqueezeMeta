@@ -11,7 +11,7 @@
 ### by Fernando Puente-Sanchez on 2018-MAY-21, for compatibility with the SqueezeMeta pipeline.
 ### SqueezeMeta is released under the GPL-3 license.
 
-#Change spades_home to match squeezeM directory hierarchy. Fernando Puente-Sanchez, 21-V-2018.
+# Change spades_home to match squeezeM directory hierarchy. Fernando Puente-Sanchez, 21-V-2018.
 
 import os
 import sys
