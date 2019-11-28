@@ -35,7 +35,7 @@ if($blocksize eq "NF") {
 	print "  Setting block size for Diamond\n";
 	my %mem=get_mem_info;
 	my $ram=$mem{"MemAvailable"};
-	my $block_size_set=sprintf('%.1f',$ram/5000000);
+	my $block_size_set=sprintf('%.1f',$ram/6000000);
 	if($block_size_set>8) { $block_size_set=8; }	
 	if($block_size_set<1) { $block_size_set=1; }
 	print "  AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option\n";
