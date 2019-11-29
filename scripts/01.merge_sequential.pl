@@ -39,17 +39,17 @@ my $numassem=$#indassemblies+1;
 closedir indir0;
 
 if($extassembly) { 
-	print "External assembly provided: $extassembly. Overriding assembly\n";
+	print "  External assembly provided: $extassembly. Overriding assembly\n";
 	system("cp $extassembly $finalcontigs");
 	}
 else {
-	if(-e "$tempdir/mergelog") { system("rm $tempdir/mergelog"); }
-	system("rm $interdir/merged*");
+	if(-e "$tempdir/mergelog") { system("rm $tempdir/mergelog > /dev/null 2>&1"); }
+	system("rm $interdir/merged* > /dev/null 2>&1");
 	while($numassem>1) {
 		$mergestep++;	
-		if(-e $finalcontigs) { system("rm $finalcontigs"); }
+		if(-e $finalcontigs) { system("rm $finalcontigs > /dev/null 2>&1"); }
 		$merged="$interdir/merged_$mergestep.$project.fasta";
-                my $command="$installpath/lib/SqueezeMeta/kmerdist.pl $project $mergestep";
+                my $command="$installpath/lib/SqueezeMeta/kmerdist.pl $project $mergestep >> $syslogfile 2>&1";
 		print outsyslog "Calculating distances between metagenomes: $command\n";
 		my $ecode=system($command);
 		if($ecode!=0) { die "Error running command:    $command"; }
@@ -60,7 +60,7 @@ else {
 		$sample1.=".fasta";
 		$sample2.=".fasta";
 		close infile0;
-		print "MERGE $mergestep, $sample1 and $sample2\n";
+		print "  MERGE $mergestep, $sample1 and $sample2\n";
 		print out_tr "MERGE $mergestep, $sample1 and $sample2 ($mdist)\n";
 		$command="cat $interdir/$sample1  $interdir/$sample2 > $merged";
 		print outsyslog "Merging $sample1 and $sample2 ($mdist): $command\n";
@@ -72,7 +72,7 @@ else {
 
 			my $merged_clustered="$tempdir/mergedassemblies.$project.99.fasta";
 			$command="$cdhit_soft -i $merged -o $merged_clustered -T $numthreads -M 0 -c 0.99 -d 100 -aS 0.9 > /dev/null 2>&1";
-			print "Running cd-hit-est\n";
+			print "  Running cd-hit-est\n";
 			print outsyslog "Running cd-hit-est: $command\n";
 			$ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
@@ -82,7 +82,7 @@ else {
 
 			my $afg_format="$tempdir/mergedassemblies.$project.afg";
 			$command="$toamos_soft -s $merged_clustered -o $afg_format";
-			print "Transforming to afg format\n";
+			print "  Transforming to afg format\n";
 			print outsyslog "Transforming to afg format: $command\n";
 			$ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
@@ -96,7 +96,7 @@ else {
 
 			$command="$minimus2_soft\_mod $tempdir/mergedassemblies.$project -D OVERLAP=100 -D MINID=95 -D THREADS=$numthreads > /dev/null 2>&1";
 			print outsyslog "Merging with minimus2: $command\n";
-			print "Merging with minimus2\n";
+			print "  Merging with minimus2\n";
 			$ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
 			if(-z $afg_format) { die "$afg_format is empty\n"; }
@@ -119,7 +119,7 @@ else {
 				}
 			close infile0;
 			close outfile0;
-			system("rm $merged.prov");
+			system("rm $merged.prov > /dev/null 2>&1");
 			
 			$numassem--;
 			open(mlog0,">>$tempdir/mergelog") || die;
@@ -135,7 +135,7 @@ else {
 
 		#-- Remove files from temp
 
-		 system("rm -r $tempdir/mergedassemblies*");
+		 system("rm -r $tempdir/mergedassemblies* > /dev/null 2>&1");
 	}
 
 system("mv $merged $finalcontigs");
@@ -155,7 +155,7 @@ print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, B
 #-- Count length of contigs (needed later)
 
 my $contigslen="$interdir/01.$project.lon";
-print "Counting lengths\n";
+print "  Counting lengths of contigs\n";
 open(outfile1,">$contigslen") || die "Can't open $contigslen for writing\n";
 open(infile1,$finalcontigs) || die "Can't open $finalcontigs\n";
 my($thisname,$contigname,$seq);

@@ -74,7 +74,7 @@ else {
 	elsif($assembler=~/spades/i) { 
 		system("rm -r $datapath/spades > /dev/null 2>&1"); 
 		$outassembly="$datapath/spades/contigs.fasta";
-		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades >> $syslogfile"; }
+		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades >> $syslogfile 2>&1"; }
 		else { $command="$spades_soft $assembler_options --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades >> $syslogfile"; } #-- Support for single reads
 		print outmet "Assembly was done using SPAdes (Bankevich et al 2012, J Comp Biol 19(5):455-77)\n";
 		}

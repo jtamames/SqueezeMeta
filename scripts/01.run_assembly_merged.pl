@@ -110,7 +110,7 @@ foreach my $thissample(sort keys %samplefiles) {
 	if($assembler=~/megahit/i) { 
 		system("rm -r $datapath/megahit > /dev/null 2>&1"); 
 		$assemblyname="$datapath/megahit/$thissample.final.contigs.fa";
-		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit > /dev/null 2>&1"; }
+		if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit >> $syslogfile 2>&1"; }
 		else { $command="$megahit_soft $assembler_options -r $par1name --k-list 29,39,59,79,99,119,141 -t $numthreads -o $datapath/megahit > /dev/null 2>&1"; }	#-- Support for single reads
 		print "  Running Megahit (Li et al 2015, Bioinformatics 31(10):1674-6) for $thissample\n";
 		print outsyslog "Running Megahit for $thissample: $command\n";
@@ -124,7 +124,7 @@ foreach my $thissample(sort keys %samplefiles) {
 	if($assembler=~/spades/i) { 
 		system("rm -r $datapath/spades > /dev/null 2>&1"); 
 		$assemblyname="$datapath/spades/$thissample.contigs.fasta";
-		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades > /dev/null 2>&1"; }
+		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades >> $syslogfile  2>&1"; }
 		else { $command="$spades_soft $assembler_options --meta --s1 $par1name -m 400 -t $numthreads -o $datapath/spades > /dev/null 2>&1"; } #-- Support for single reads
 		print "  Running Spades (Li et al 2015, Bioinformatics 31(10):1674-6) for $thissample\n";
 		print outsyslog "Running Spades for $thissample: $command\n";
@@ -146,7 +146,7 @@ foreach my $thissample(sort keys %samplefiles) {
 			print "AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem. You can override this setting using the -canumem option\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ram bytes)\n";
 			}
- 		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw $par1name > /dev/null 2>&1";
+ 		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw $par1name >> $syslogfile 2>&1";
                 print "  Running canu (Koren et al 2017, Genome Res 27(5):722-36) for $thissample\n";
 		print outsyslog "Running canu for $thissample: $command\n";
 		my $ecode = system $command;

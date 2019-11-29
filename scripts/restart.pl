@@ -9,6 +9,7 @@ use strict;
 use Time::Seconds;
 use Getopt::Long;
 use Cwd;
+use Term::ANSIColor qw(:constants);
 use lib ".";
 
 #-- Restarts an interrupted pipeline
@@ -35,8 +36,8 @@ END_MESSAGE
 if($hel) { die "$helptext\n"; } 
 
 my $projectpath=pop @ARGV;
-if(!$projectpath) { die "Please indicate the project to restart\nUsage: restart.pl  [options] project\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
+if(!$projectpath) { print RED; print "Please indicate the project to restart\nUsage: restart.pl  [options] project\n"; print RESET;  die; }
+if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { print RED; print "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; print RESET;  die; }
 do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname,$basedir);
 my $project=$projectname;
@@ -59,7 +60,7 @@ my($finaltrace);
 
 my $sflag=$rpoint;
 my($numsamples,$mode);
-open(infile1,$progress) || die "Can't open progress file file $progress\n"; 
+open(infile1,$progress) or do { print RED; print "Can't open progress file file $progress\n"; print RESET;  die; }; 
 while(<infile1>) {
 	chomp $_;
 	next if(!$_);
@@ -73,8 +74,8 @@ close infile1;
 	#-- Create new progress, append to existing syslog
 
 my $currtime;
-open(outfile1,">$pwd/$project/progress") || die "Can't open $pwd/$project/progress for writing\n";  
-open(outfile2,">>$pwd/$project/syslog")  || die "Can't open $pwd/$project/syslog for writing\n";
+open(outfile1,">$pwd/$project/progress") or do { print RED; print "Can't open $pwd/$project/progress for writing\n"; print RESET;  die; }; 
+open(outfile2,">>$pwd/$project/syslog")  or do { print RED; print "Can't open $pwd/$project/syslog for writing\n"; print RESET;  die; };
 $currtime=timediff();
 print outfile2 "Restarting project $project, ",scalar localtime,"\n";
 print outfile1 "Samples:$numsamples\nMode:$mode\n";
@@ -100,7 +101,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "1\t$scriptname ($assembler)\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
-		print "[",$currtime->pretty,"]: STEP1 -> RUNNING CO-ASSEMBLY: $scriptname ($assembler)\n";
+		print BLUE "[",$currtime->pretty,"]: STEP1 -> RUNNING CO-ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath ");
 		if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
 		my $wc=qx(wc -l $contigsfna);
@@ -115,7 +116,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "1\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
-		print "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n";
+		print BLUE "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
 		}
@@ -127,7 +128,7 @@ my $DAS_Tool_empty=0;
  		print outfile1 "1\t$scriptname\n";
  		$currtime=timediff();
  		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
- 		print "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n";
+ 		print BLUE "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
 		my $wc=qx(wc -l $contigsfna);
@@ -143,7 +144,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "1.5\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP1.5 -> MERGING ASSEMBLIES: $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP1.5 -> $scriptname\n"; }
 		my $wc=qx(wc -l $contigsfna);
@@ -159,7 +160,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "2\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP2 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		my $masked="$interdir/02.$project.maskedrna.fasta";
 		if($ecode!=0)        { die "Stopping in STEP2 -> $scriptname\n"; }
@@ -175,7 +176,7 @@ my $DAS_Tool_empty=0;
  		print outfile1 "3\t$scriptname\n";
  		$currtime=timediff();
  		print outfile2 "[",$currtime->pretty,"]: STEP3 -> $scriptname\n";
- 		print "[",$currtime->pretty,"]: STEP3 -> ORF PREDICTION: $scriptname\n";
+ 		print BLUE "[",$currtime->pretty,"]: STEP3 -> ORF PREDICTION: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP3 -> $scriptname\n"; }
 		my $wc=qx(wc -l $aafile);
@@ -190,7 +191,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "4\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP4 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP4 -> HOMOLOGY SEARCHES: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP4 -> HOMOLOGY SEARCHES: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP4 -> $scriptname\n"; }
 		my $wc=qx(wc -l $taxdiamond);
@@ -206,7 +207,7 @@ my $DAS_Tool_empty=0;
 			print outfile1 "5\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP5 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP5 -> HMMER/PFAM: $scriptname\n";
+			print BLUE "[",$currtime->pretty,"]: STEP5 -> HMMER/PFAM: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 			if($ecode!=0){ die "Stopping in STEP5 -> $scriptname\n"; }
 			my $wc=qx(wc -l $pfamhmmer);
@@ -222,7 +223,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "6\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP6 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP6 -> TAXONOMIC ASSIGNMENT: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP6 -> TAXONOMIC ASSIGNMENT: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP6 -> $scriptname\n"; }
 		my $wc=qx(wc -l "$fun3tax.wranks");
@@ -238,7 +239,7 @@ my $DAS_Tool_empty=0;
 			print outfile1 "7\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP7 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n";
+			print BLUE "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 			if($ecode!=0)   { die "Stopping in STEP7 -> $scriptname\n"; }
 			my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB,$rest);
@@ -278,7 +279,7 @@ my $DAS_Tool_empty=0;
 			print outfile1 "8\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP8 -> DOUBLEPASS, Blastx analysis: $scriptname\n";
+			print BLUE "[",$currtime->pretty,"]: STEP8 -> DOUBLEPASS, Blastx analysis: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 			if($ecode!=0)  { die "Stopping in STEP8 -> $scriptname\n"; }
 			my $wc=qx(wc -l $gff_file_blastx);
@@ -295,7 +296,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "9\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP9 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP9 -> CONTIG TAX ASSIGNMENT: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP9 -> CONTIG TAX ASSIGNMENT: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP9 -> $scriptname\n"; }
 		my $wc=qx(wc -l $alllog);
@@ -310,7 +311,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "10\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP10 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP10 -> MAPPING READS: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP10 -> MAPPING READS: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP10 -> $scriptname\n"; }
 		my $wc=qx(wc -l $mapcountfile);
@@ -325,7 +326,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "11\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP11 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP11 -> COUNTING TAX ABUNDANCES: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP11 -> COUNTING TAX ABUNDANCES: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP11 -> $scriptname\n"; }
 		my $wc=qx(wc -l $mcountfile);
@@ -341,7 +342,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "12\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP12 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP12 -> COUNTING FUNCTION ABUNDANCES: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP12 -> COUNTING FUNCTION ABUNDANCES: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)     { die "Stopping in STEP12 -> $scriptname\n"; }
 		my $cogfuncover="$resultpath/12.$project.cog.funcover";
@@ -362,7 +363,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "13\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP13 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP13 -> CREATING GENE TABLE: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP13 -> CREATING GENE TABLE: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP13 -> $scriptname\n"; }
 		my $wc=qx(wc -l $mergedfile);
@@ -378,7 +379,7 @@ my $DAS_Tool_empty=0;
 			print outfile1 "14\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP14 -> MAXBIN BINNING: $scriptname\n";
+			print BLUE "[",$currtime->pretty,"]: STEP14 -> MAXBIN BINNING: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath >> $tempdir/$project.log");
 			if($ecode!=0){ warn "ERROR in STEP14 -> $scriptname\n"; }
 			my $dirbin=$bindirs{maxbin};
@@ -398,7 +399,7 @@ my $DAS_Tool_empty=0;
 			print outfile1 "15\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP15 -> METABAT BINNING: $scriptname\n";
+			print BLUE "[",$currtime->pretty,"]: STEP15 -> METABAT BINNING: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath >> $tempdir/$project.log");
 			if($ecode!=0){ warn "ERROR in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
@@ -418,7 +419,7 @@ my $DAS_Tool_empty=0;
 			print outfile1 "16\t$scriptname\n";
 			$currtime=timediff();
 			print outfile2 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
-			print "[",$currtime->pretty,"]: STEP16 -> DAS_TOOL MERGING: $scriptname\n";
+			print BLUE "[",$currtime->pretty,"]: STEP16 -> DAS_TOOL MERGING: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath >> $tempdir/$project.log");
 			if($ecode!=0){ warn "ERROR in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
@@ -443,7 +444,7 @@ my $DAS_Tool_empty=0;
 				print outfile1 "17\t$scriptname\n";
 				$currtime=timediff();
 				print outfile2 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
-				print "[",$currtime->pretty,"]: STEP17 -> BIN TAX ASSIGNMENT: $scriptname\n";
+				print BLUE "[",$currtime->pretty,"]: STEP17 -> BIN TAX ASSIGNMENT: $scriptname\n"; print RESET;
 				my $ecode = system("perl $scriptdir/$scriptname $projectpath >> $tempdir/$project.log");
 				if($ecode!=0){ die "Stopping in STEP17 -> $scriptname\n"; }
 				my $wc=qx(wc -l $bintax);
@@ -461,7 +462,7 @@ my $DAS_Tool_empty=0;
 				print outfile1 "18\t$scriptname\n";
 				$currtime=timediff();
 				print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
-				print "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n";
+				print BLUE "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n"; print RESET;
 				my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 				if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
 				foreach my $binmethod(keys %dasdir) {
@@ -484,7 +485,7 @@ my $DAS_Tool_empty=0;
 				print outfile1 "19\t$scriptname\n";
 				$currtime=timediff();
 				print outfile2 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
-				print "[",$currtime->pretty,"]: STEP19 -> CREATING BIN TABLE: $scriptname\n";
+				print BLUE "[",$currtime->pretty,"]: STEP19 -> CREATING BIN TABLE: $scriptname\n"; print RESET;
 				my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 				if($ecode!=0){ die "Stopping in STEP19 -> $scriptname\n"; }
 				my $wc=qx(wc -l $bintable);
@@ -503,7 +504,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "20\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP20 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP20 -> CREATING CONTIG TABLE: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP20 -> CREATING CONTIG TABLE: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP20 -> $scriptname\n"; }
 		my $wc=qx(wc -l $contigtable);
@@ -520,7 +521,7 @@ my $DAS_Tool_empty=0;
 				print outfile1 "21\t$scriptname\n";
 				$currtime=timediff();
 				print outfile2 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
-	   	 		print "[",$currtime->pretty,"]: STEP21 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n";
+	   	 		print BLUE "[",$currtime->pretty,"]: STEP21 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n"; print RESET;
 				my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 				if($ecode!=0){ die "Stopping in STEP21 -> $scriptname\n"; }
 				my $minpathfile="$resultpath/21.$project.kegg.pathways";
@@ -539,7 +540,7 @@ my $DAS_Tool_empty=0;
 		print outfile1 "22\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP22 -> $scriptname\n";
-		print "[",$currtime->pretty,"]: STEP22 -> MAKING FINAL STATISTICS: $scriptname\n";
+		print BLUE "[",$currtime->pretty,"]: STEP22 -> MAKING FINAL STATISTICS: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		if($ecode!=0)        { die "Stopping in STEP22 -> $scriptname\n"; }
 		my $statfile="$resultpath/22.$project.stats";
@@ -553,7 +554,7 @@ my $DAS_Tool_empty=0;
 	print outfile1 "END\n";
 	$currtime=timediff();
 	print outfile2 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
-	print "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
+	print BLUE "[",$currtime->pretty,"]: FINISHED -> Have fun!\n"; print RESET;
 	if($finaltrace) { print "\nWARNINGS:\n$finaltrace\n"; }
 
 
