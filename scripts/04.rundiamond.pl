@@ -38,7 +38,7 @@ if($blocksize eq "NF") {
 	my $block_size_set=sprintf('%.1f',$ram/6000000);
 	if($block_size_set>8) { $block_size_set=8; }	
 	if($block_size_set<1) { $block_size_set=1; }
-	print "  AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option\n";
+	print "  AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option when starting the project, or changing the \$blocksize variable in SqueezeMeta_conf.pl\n";
 	print outsyslog "Diamond block size set to $block_size_set (Free Mem $ram bytes)\n";
 	$blocksize=$block_size_set;
 	}
@@ -55,7 +55,6 @@ print outsyslog "Running Diamond for taxa: $command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
-print outmet "were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 
 #-- COG database
 
@@ -96,6 +95,7 @@ if($opt_db) {
 		}
 }
 
+print outmet " were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 print "\n";
 close outmet;
 close outsyslog;

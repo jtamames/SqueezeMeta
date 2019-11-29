@@ -69,7 +69,7 @@ if($mapper eq "bowtie") {
 	print outmet "Read mapping against contigs was performed using Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n"; 
         if(-e "$bowtieref.1.bt2") {}
         else {
-        	print("Creating reference.\n");
+        	print("  Creating reference from contigs\n");
                 my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
 		print outsyslog "Creating Bowtie reference: $bowtie_command\n";
                 system($bowtie_command);
@@ -105,7 +105,7 @@ foreach my $thissample(keys %allsamples) {
 	my($formatseq,$command,$outsam,$formatoption);
 	$nums++;
 	my (@pair1,@pair2)=();
-	print "  Working with $nums: $thissample\n";
+	print "  Working with sample $nums: $thissample\n";
 	foreach my $ifile(sort keys %{ $allsamples{$thissample} }) {
 		if(!$formatseq) {
 			if($ifile=~/fasta/) { $formatseq="fasta"; }
