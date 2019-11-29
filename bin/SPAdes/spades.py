@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ############################################################################
 # Copyright (c) 2015 Saint Petersburg State University
@@ -6,6 +6,9 @@
 # All Rights Reserved
 # See file LICENSE for details.
 ############################################################################
+
+# Modified by Fernando Puente-Sánchez NOV 28, 2019, so that the shebang points to the python3 interpreter. No further changes were required.
+# The spades_init.py module carries further modifications to make SPAdes work withing the SQM directory structure.
 
 import os
 import shutil
