@@ -13,6 +13,7 @@ $|=1;
 
 use strict;
 use Cwd;
+use Linux::MemInfo;
 use lib ".";
 
 my $pwd=cwd();
@@ -46,6 +47,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 moving();
 masking();
+blocksize();
 run_blastx();
 collapse();
 merge();
@@ -164,7 +166,23 @@ sub masking {
 	# print "  Output in $maskedfile\n";
 	}
 
+sub blocksize {
 
+	#-- Setting block size for Diamond
+
+	if($blocksize eq "NF") {
+		print "  Setting block size for Diamond\n";
+		my %mem=get_mem_info;
+		my $ram=$mem{"MemAvailable"};
+		my $block_size_set=sprintf('%.1f',$ram/6000000);
+		if($block_size_set>8) { $block_size_set=8; }	
+		if($block_size_set<1) { $block_size_set=1; }
+		print "  AVAILABLE (free) RAM memory: $ram\n  We will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option when starting the project, or changing the \$blocksize variable in SqueezeMeta_conf.pl\n";
+		print outsyslog "Diamond block size set to $block_size_set (Free Mem $ram bytes)\n";
+		$blocksize=$block_size_set;
+		}
+	}
+	
 sub run_blastx {
 
 	#-- Run Diamond search
