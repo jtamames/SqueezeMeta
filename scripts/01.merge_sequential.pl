@@ -108,13 +108,14 @@ else {
 			$command="cat $tempdir/mergedassemblies.$project.fasta $tempdir/mergedassemblies.$project.singletons.seq > $merged.prov";
 			print outsyslog "Joining with singletons: $command\n";
 			system($command);
-
+			my $contignm;
 			open(outfile0,">$merged") || die;
 			open(infile0,"$merged.prov") || die;
 			while(<infile0>) {
 				chomp;
-				if($_=~/^\>(\d+)/) {
-					my $newname="Merged$mergestep\_$1";
+				if($_=~/^\>/) {
+					$contignm++;
+					my $newname="Merged$mergestep\_$contignm";
 					print outfile0 ">$newname\n"; 
 					}
 				else { print outfile0 "$_\n"; }
