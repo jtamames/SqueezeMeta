@@ -114,7 +114,7 @@ else {
 			while(<infile0>) {
 				chomp;
 				if($_=~/^\>(\d+)/) {
-					my $newname="Merged\_$1\_$mergestep";
+					my $newname="Merged$mergestep\_$1";
 					print outfile0 ">$newname\n"; 
 					}
 				else { print outfile0 "$_\n"; }
