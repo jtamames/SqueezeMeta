@@ -236,10 +236,10 @@ write_log $logfile true false $debug "Rscript path: " $(which Rscript)
 write_log $logfile true false $debug "Rscript version: " $(Rscript --version 2>&1)
 write_log $logfile true false $debug "diamond path: " $(which diamond)
 write_log $logfile true false $debug "diamond version: " $(diamond --version)
-#write_log $logfile true false $debug "blastp path: " $(which blastp)
-#write_log $logfile true false $debug "blastp version: " $(blastp -version)
-#write_log $logfile true false $debug "usearch path: " $(which usearch)
-#write_log $logfile true false $debug "usearch version: " $(usearch --version)
+#write_log $logfile true false $debug "blastp path: " $(which blastp)          # FPS modification: supress error messages
+#write_log $logfile true false $debug "blastp version: " $(blastp -version)    # FPS modification: supress error messages
+#write_log $logfile true false $debug "usearch path: " $(which usearch)        # FPS modification: supress error messages
+#write_log $logfile true false $debug "usearch version: " $(usearch --version) # FPS modification: supress error messages
 write_log $logfile true false $debug "pullseq path: " $(which pullseq)
 write_log $logfile true false $debug "pullseq version: " $(pullseq --version 2>&1 | grep Version)
 write_log $logfile true false $debug "prodigal path: " $(which prodigal)
@@ -379,10 +379,10 @@ if [ ! -f $bscg ] || [ ! -f $ascg ] || [ $(wc -l < $bscg) -eq 0 ] || [ $(wc -l <
 	fi
 
 	#predict bacterial SCGs
-	ruby $DIR\/src/scg_blank_$search_engine\.rb $search_engine $proteins $db_dir\/bac.all.faa $db_dir\/bac.scg.faa $db_dir\/bac.scg.lookup $threads >> $scglogfile 2>&1
+	ruby $DIR\/src/scg_blank_$search_engine\.rb $search_engine $proteins $db_dir\/bac.all.faa $db_dir\/bac.scg.faa $db_dir\/bac.scg.lookup $threads >> $scglogfile 2>&1 # FPS modification, add extra logging
 	mv $proteins\.scg $bscg
 	#predict archaeal SCGs
-	ruby $DIR\/src/scg_blank_$search_engine\.rb $search_engine $proteins $db_dir\/arc.all.faa $db_dir\/arc.scg.faa $db_dir\/arc.scg.lookup $threads >> $scglogfile 2>&1
+	ruby $DIR\/src/scg_blank_$search_engine\.rb $search_engine $proteins $db_dir\/arc.all.faa $db_dir\/arc.scg.faa $db_dir\/arc.scg.lookup $threads >> $scglogfile 2>&1 # FPS modification, add extra logging
 	mv $proteins\.scg $ascg
 	rm $proteins\.findSCG.b6 $proteins\.scg.candidates.faa $proteins\.all.b6
 else
