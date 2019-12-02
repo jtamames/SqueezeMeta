@@ -176,7 +176,7 @@ if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mo
 if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
-if($dietext) { print BLUE "$helpshort"; print RED; print "$dietext";  print RESET;  die; }
+if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }
 
 	#-- Check that everything is correct in the samples file
 
@@ -195,7 +195,7 @@ close infile1;
 
 
 my $currtime=timediff();
-print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 print "Run started ",scalar localtime," in $mode mode\n";
 
 
@@ -211,7 +211,7 @@ if($mode=~/sequential/i) {
 	#-- Reading the sample file given by the -s option, to locate the sample files
 
 	# print "Now reading samples\n";
-	open(infile1,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET;  die; };
+	open(infile1,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present in that location, and you have reading permissions\n"; print RESET;  die; };
 	while(<infile1>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));

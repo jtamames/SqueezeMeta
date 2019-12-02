@@ -42,11 +42,13 @@ print outmet "ORFs were predicted using Prodigal (Hyatt et al 2010, BMC Bioinfor
 
 #-- Reanaming genes for accomodating better upcoming blastx predictions
 
+my $numgenes;
 open(outfile1,">$tempaa") || die "Can't open $tempaa for writing\n";
 open(infile1,$aafile) || die "Can't open $aafile\n";
 while(<infile1>) {
 	if($_=~/^\>/) { 
 		$_=~s/^\>//;
+		$numgenes++;
 		my @w=split(/\s\#\s/,$_);
 		my $nwname=$w[0];
 		$nwname=~s/\_\d+$/\_$w[1]-$w[2]/;
@@ -95,3 +97,5 @@ close outfile3;
 system("cat $tempgff2 $tempdir/02.$project.rna.gff > $gff_file");
 close outmet;
 close outsyslog;
+
+print "  ORFs predicted: $numgenes\n";

@@ -103,10 +103,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
 		print BLUE "[",$currtime->pretty,"]: STEP1 -> RUNNING CO-ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath ");
-		if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n"; print RESET; die; }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)         { die "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!"; }
+		if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!"; print RESET; die;  }
 		}
 
 		#-- In merged mode. Includes merging assemblies
@@ -118,7 +118,7 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
 		print BLUE "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n";  print RESET; die; }
 		}
 	
 		#-- In sequential mode. 
@@ -130,10 +130,10 @@ my $DAS_Tool_empty=0;
  		print outfile2 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
  		print BLUE "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP1 -> $scriptname ($assembler)\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n";  print RESET; die; }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)         { die "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; }
+		if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n";  print RESET; die; }
 		}		
 	}   	
 		
@@ -146,10 +146,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP1.5 -> MERGING ASSEMBLIES: $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP1.5 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP1.5 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)         { die "Stopping in STEP1.5 -> $scriptname. File $contigsfna is empty!"; }
+		if($wsize<2)         { print RED; print "Stopping in STEP1.5 -> $scriptname. File $contigsfna is empty!"; print RESET; die; }
 	}
 	   	
 		
@@ -163,10 +163,10 @@ my $DAS_Tool_empty=0;
 		print BLUE "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
 		my $masked="$interdir/02.$project.maskedrna.fasta";
-		if($ecode!=0)        { die "Stopping in STEP2 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP2 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $masked);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)         { die "Stopping in STEP2 -> $scriptname. File $masked is empty!"; }
+		if($wsize<2)         { print RED; print "Stopping in STEP2 -> $scriptname. File $masked is empty!"; print RESET; die; }
 	}
 			
     #-------------------------------- STEP3: Run gene prediction
@@ -178,10 +178,10 @@ my $DAS_Tool_empty=0;
  		print outfile2 "[",$currtime->pretty,"]: STEP3 -> $scriptname\n";
  		print BLUE "[",$currtime->pretty,"]: STEP3 -> ORF PREDICTION: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP3 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP3 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $aafile);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)         { die "Stopping in STEP3 -> $scriptname. File $aafile is empty!\n"; }
+		if($wsize<2)         { print RED; print "Stopping in STEP3 -> $scriptname. File $aafile is empty!\n"; print RESET; die; }
 	}
 			
     #-------------------------------- STEP4: Run Diamond for taxa and functions
@@ -193,10 +193,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP4 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP4 -> HOMOLOGY SEARCHES: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP4 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP4 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $taxdiamond);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<1)         { die "Stopping in STEP4 -> $scriptname. File $taxdiamond is empty!\n"; }
+		if($wsize<1)         { print RED; print "Stopping in STEP4 -> $scriptname. File $taxdiamond is empty!\n"; print RESET; die; }
 	}
 			
     #-------------------------------- STEP5: Run hmmer for PFAM annotation
@@ -209,10 +209,10 @@ my $DAS_Tool_empty=0;
 			print outfile2 "[",$currtime->pretty,"]: STEP5 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP5 -> HMMER/PFAM: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-			if($ecode!=0){ die "Stopping in STEP5 -> $scriptname\n"; }
+			if($ecode!=0){ print RED; print "Stopping in STEP5 -> $scriptname\n"; print RESET; die; }
 			my $wc=qx(wc -l $pfamhmmer);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<4) { die "Stopping in STEP5 -> $scriptname. File $pfamhmmer is empty!\n"; }
+			if($wsize<4) { print RED; print "Stopping in STEP5 -> $scriptname. File $pfamhmmer is empty!\n"; print RESET; die; }
 		}
 	}
 			
@@ -225,10 +225,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP6 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP6 -> TAXONOMIC ASSIGNMENT: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP6 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP6 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l "$fun3tax.wranks");
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)         { die "Stopping in STEP6 -> $scriptname. File $fun3tax is empty!\n"; }
+		if($wsize<2)         { print RED; print "Stopping in STEP6 -> $scriptname. File $fun3tax is empty!\n"; print RESET; die; }
 	}
 			
     #-------------------------------- STEP7: fun3 for COGs, KEGG and PFAM annotation
@@ -241,7 +241,7 @@ my $DAS_Tool_empty=0;
 			print outfile2 "[",$currtime->pretty,"]: STEP7 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-			if($ecode!=0)   { die "Stopping in STEP7 -> $scriptname\n"; }
+			if($ecode!=0)   { print RED; print "Stopping in STEP7 -> $scriptname\n"; print RESET; die; }
 			my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB,$rest);
 			if(!$nocog) {
 				my $wc=qx(wc -l $fun3cog);
@@ -267,7 +267,7 @@ my $DAS_Tool_empty=0;
 				close infile0;
 				}
 			if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($optdbsw<2)) {
-				die "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; }
+				print RED; print "Stopping in STEP7 -> $scriptname. Files $fun3cog, $fun3kegg and $fun3pfam are empty!\n"; print RESET; die; }
 		}
 	}
 			
@@ -281,10 +281,10 @@ my $DAS_Tool_empty=0;
 			print outfile2 "[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP8 -> DOUBLEPASS, Blastx analysis: $scriptname\n"; print RESET;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-			if($ecode!=0)  { die "Stopping in STEP8 -> $scriptname\n"; }
+			if($ecode!=0)  { print RED; print "Stopping in STEP8 -> $scriptname\n"; print RESET; die; }
 			my $wc=qx(wc -l $gff_file_blastx);
 			my($wsize,$rest)=split(/\s+/,$wc);
-			if($wsize<2)         { die "Stopping in STEP8 -> $scriptname. File $gff_file_blastx is empty!\n"; }
+			if($wsize<2)         { print RED; print "Stopping in STEP8 -> $scriptname. File $gff_file_blastx is empty!\n"; print RESET; die; }
 			}
 	}
 		
@@ -298,10 +298,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP9 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP9 -> CONTIG TAX ASSIGNMENT: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP9 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP9 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $alllog);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)         { die "Stopping in STEP9 -> $scriptname. File $alllog is empty!\n"; }
+		if($wsize<2)         { print RED; print "Stopping in STEP9 -> $scriptname. File $alllog is empty!\n"; print RESET; die; }
 	}
 			
     #-------------------------------- STEP10: Mapping of reads onto contigs for abundance calculations
@@ -313,10 +313,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP10 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP10 -> MAPPING READS: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP10 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP10 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $mapcountfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<3)         { die "Stopping in STEP10 -> $scriptname. File $mapcountfile is empty!\n"; }
+		if($wsize<3)         { print RED; print "Stopping in STEP10 -> $scriptname. File $mapcountfile is empty!\n"; print RESET; die; }
 	}
 			
     #-------------------------------- STEP11: Count of taxa abundances
@@ -328,10 +328,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP11 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP11 -> COUNTING TAX ABUNDANCES: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP11 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP11 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $mcountfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)         { die "Stopping in STEP11 -> $scriptname. File $mcountfile is empty!\n"; }
+		if($wsize<2)         { print RED; print "Stopping in STEP11 -> $scriptname. File $mcountfile is empty!\n"; print RESET; die; }
 	}
 			
     #-------------------------------- STEP12: Count of function abundances
@@ -344,7 +344,7 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP12 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP12 -> COUNTING FUNCTION ABUNDANCES: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)     { die "Stopping in STEP12 -> $scriptname\n"; }
+		if($ecode!=0)     { print RED; print "Stopping in STEP12 -> $scriptname\n"; print RESET; die; }
 		my $cogfuncover="$resultpath/12.$project.cog.funcover";
 		my $keggfuncover="$resultpath/12.$project.kegg.funcover";
 		my $wc=qx(wc -l $cogfuncover);
@@ -352,7 +352,7 @@ my $DAS_Tool_empty=0;
 		my $wc=qx(wc -l $keggfuncover);
 		my($wsizeKEGG,$rest)=split(/\s+/,$wc);
 		if(($wsizeCOG<3) && ($wsizeKEGG<3)) {
-			die "Stopping in STEP12 -> $scriptname. Files $cogfuncover and/or $keggfuncover are empty!\n"; }
+			print RED; print "Stopping in STEP12 -> $scriptname. Files $cogfuncover and/or $keggfuncover are empty!\n"; print RESET; die; }
 			}
 	}
 			
@@ -365,10 +365,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP13 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP13 -> CREATING GENE TABLE: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP13 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP13 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $mergedfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<3)         { die "Stopping in STEP13 -> $scriptname. File $mergedfile is empty!\n"; }
+		if($wsize<3)         { print RED; print "Stopping in STEP13 -> $scriptname. File $mergedfile is empty!\n"; print RESET; die; }
 	}
 			
     #-------------------------------- STEP14: Running Maxbin (only for merged or coassembly modes)		
@@ -403,7 +403,7 @@ my $DAS_Tool_empty=0;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath >> $tempdir/$project.log");
 			if($ecode!=0){ warn "ERROR in STEP15 -> $scriptname\n"; }
 			my $dirbin=$bindirs{metabat2};
-			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
+			opendir(indir2,$dirbin) || print "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
@@ -423,7 +423,7 @@ my $DAS_Tool_empty=0;
 			my $ecode = system("perl $scriptdir/$scriptname $projectpath >> $tempdir/$project.log");
 			if($ecode!=0){ warn "ERROR in STEP16-> $scriptname\n"; }
 			my $dirbin=$dasdir{DASTool};
-			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
+			opendir(indir2,$dirbin)|| die "Can't open $dirbin directory\n";
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
@@ -446,7 +446,7 @@ my $DAS_Tool_empty=0;
 				print outfile2 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP17 -> BIN TAX ASSIGNMENT: $scriptname\n"; print RESET;
 				my $ecode = system("perl $scriptdir/$scriptname $projectpath >> $tempdir/$project.log");
-				if($ecode!=0){ die "Stopping in STEP17 -> $scriptname\n"; }
+				if($ecode!=0) { print RED; print "Stopping in STEP17 -> $scriptname\n"; print RESET; die; }
 				my $wc=qx(wc -l $bintax);
 				my($wsize,$rest)=split(/\s+/,$wc);
 				if($wsize<1) { die "Stopping in STEP17 -> $scriptname. File $bintax is empty!\n"; }
@@ -464,13 +464,13 @@ my $DAS_Tool_empty=0;
 				print outfile2 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n"; print RESET;
 				my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-				if($ecode!=0) { die "Stopping in STEP18 -> $scriptname\n"; }
+				if($ecode!=0) { print RED; print "Stopping in STEP18 -> $scriptname\n"; print RESET; die; }
 				foreach my $binmethod(keys %dasdir) {
 					$checkmfile="$interdir/18.$project.$binmethod.checkM";
 					my $wc=qx(wc -l $checkmfile);
 					my($wsize,$rest)=split(/\s+/,$wc);
 					if($wsize<4) {
-						die "Can't find $checkmfile\nStopping in STEP18 -> $scriptname\n"; }
+						print RED; print "Can't find $checkmfile\nStopping in STEP18 -> $scriptname\n"; print RESET; die; }
 				}
 			}
 			else{ print("Skipping CHECKM: DAS_Tool did not predict bins.\n"); }
@@ -487,10 +487,10 @@ my $DAS_Tool_empty=0;
 				print outfile2 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP19 -> CREATING BIN TABLE: $scriptname\n"; print RESET;
 				my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-				if($ecode!=0){ die "Stopping in STEP19 -> $scriptname\n"; }
+				if($ecode!=0){ print RED; print "Stopping in STEP19 -> $scriptname\n"; print RESET; die; }
 				my $wc=qx(wc -l $bintable);
 				my($wsize,$rest)=split(/\s+/,$wc);
-				if($wsize<3) { die "Stopping in STEP19 -> $scriptname. File $bintable is empty!\n"; }
+				if($wsize<3) { print RED; print "Stopping in STEP19 -> $scriptname. File $bintable is empty!\n"; print RESET; die; }
 			}
 			else{ print("Skipping BIN TABLE CREATION: DAS_Tool did not predict bins.\n") ; }
 		}
@@ -506,10 +506,10 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP20 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP20 -> CREATING CONTIG TABLE: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP20 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP20 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $contigtable);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<3)         { die "Stopping in STEP20 -> $scriptname. File $contigtable is empty!\n"; }
+		if($wsize<3)         { print RED; print "Stopping in STEP20 -> $scriptname. File $contigtable is empty!\n"; print RESET; die; }
 	}
 
     #-------------------------------- STEP21: Pathways in bins          
@@ -523,11 +523,11 @@ my $DAS_Tool_empty=0;
 				print outfile2 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
 	   	 		print BLUE "[",$currtime->pretty,"]: STEP21 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n"; print RESET;
 				my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-				if($ecode!=0){ die "Stopping in STEP21 -> $scriptname\n"; }
+				if($ecode!=0){ print RED; print "Stopping in STEP21 -> $scriptname\n"; print RESET; die; }
 				my $minpathfile="$resultpath/21.$project.kegg.pathways";
 				my $wc=qx(wc -l $minpathfile);
 				my($wsize,$rest)=split(/\s+/,$wc);
-				if($wsize<3) { die "Stopping in STEP21 -> $scriptname. File $minpathfile is empty!\n"; }
+				if($wsize<3) { print RED; print "Stopping in STEP21 -> $scriptname. File $minpathfile is empty!\n"; print RESET; die; }
 	 		}
 		else{ print("Skipping MINPATH: DAS_Tool did not predict bins.\n") ; }
 		}
@@ -542,11 +542,11 @@ my $DAS_Tool_empty=0;
 		print outfile2 "[",$currtime->pretty,"]: STEP22 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP22 -> MAKING FINAL STATISTICS: $scriptname\n"; print RESET;
 		my $ecode = system("perl $scriptdir/$scriptname $projectpath");
-		if($ecode!=0)        { die "Stopping in STEP22 -> $scriptname\n"; }
+		if($ecode!=0)        { print RED; print "Stopping in STEP22 -> $scriptname\n"; print RESET; die; }
 		my $statfile="$resultpath/22.$project.stats";
 		my $wc=qx(wc -l $statfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<10)        { die "Stopping in STEP22 -> $scriptname. File $statfile is empty!\n"; }
+		if($wsize<10)        { print RED; print "Stopping in STEP22 -> $scriptname. File $statfile is empty!\n"; print RESET; die; }
 	}
 
     #-------------------------------- END OF PIPELINE		

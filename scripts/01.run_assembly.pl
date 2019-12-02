@@ -19,7 +19,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
@@ -110,7 +110,7 @@ else {
 if($mincontiglen>200) {
 	$command="$prinseq_soft -fasta $outassembly -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
 	print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
-	print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n";
+	print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n  ";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
 	print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
@@ -120,34 +120,62 @@ else { system("mv $outassembly $contigsfna"); }
 #-- Run prinseq_lite for statistics
 
 $command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
-print outsyslog "Running prinseq for contig statistics: $command\n";
+print outsyslog "Running prinseq for contig statistics: $command\n  ";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 
+#-- Print standardization of contig names
+
+print "  Renaming contigs\n";
+open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
+my $provcontigs="$tempdir/contigs.prov";
+open(outfile1,">$provcontigs") || die "Can't open $provcontigs for writing\n";
+my($conumber,$cocount);
+while(<infile1>) {
+	chomp;
+	next if !$_;
+	if($_=~/^\>([^ ]+)/) {
+		$cocount++;
+		$thisname=$1;
+		my @cfield=split(/\_/,$thisname);
+		if($assembler=~/spades/i) {
+			$conumber=$cfield[0];
+			$conumber=~s/NODE//;
+			}
+		elsif($assembler=~/megahit/i) { $conumber=$cfield[1]; }
+		else{ $conumber=$cocount; }
+		my $newcontigname="$assembler\_$conumber";
+		print outfile1 ">$newcontigname\n";
+		}
+	else { print outfile1 "$_\n"; }
+	}
+close infile1;
+close outfile1;
+system("mv $provcontigs $contigsfna");
 
 #-- Counts length of the contigs (we will need it later)
 
 print "  Counting length of contigs\n";
-open(outfile1,">$contigslen") || die "Can't open $contigslen for writing\n";
-open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
-while(<infile1>) {
+open(outfile2,">$contigslen") || die "Can't open $contigslen for writing\n";
+open(infile2,$contigsfna) || die "Can't open $contigsfna\n";
+while(<infile2>) {
 	chomp;
 	next if !$_;
 	if($_=~/^\>([^ ]+)/) {
 		$thisname=$1;
 		if($contigname) {
 			$len=length $seq;
-			print outfile1 "$contigname\t$len\n"; 
+			print outfile2 "$contigname\t$len\n"; 
 			}
 		$seq="";
 		$contigname=$thisname;
 		}
 	else { $seq.=$_;}
 	}
-close infile1;
-if($contigname) { $len=length $seq; print outfile1 "$contigname\t$len\n"; }
-close outfile1;
+close infile2;
+if($contigname) { $len=length $seq; print outfile2 "$contigname\t$len\n"; }
+close outfile2;
 close outmet;
 close outsyslog;
 
