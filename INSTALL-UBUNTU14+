@@ -25,6 +25,7 @@ sudo apt-get install git sqlite3 libxml2-dev libcurl4-openssl-dev
 ### Perl modules.
 sudo apt-get install libtie-ixhash-perl libclass-dbi-mysql-perl libxml-parser-perl libdbd-sqlite3-perl
 sudo cpan Linux::MemInfo
+sudo cpan Term::ANSIColor
 # If using Ubuntu 14, install DBD::SQLite::Constants with cpan. Not needed for Ubuntu 16+
 sudo cpan DBD::SQLite::Constants
 
