@@ -148,6 +148,7 @@ system("mv $provcontigs $contigsfna");
 
 #-- Counts length of the contigs (we will need it later)
 
+my $numc;
 print "  Counting length of contigs\n";
 open(outfile2,">$contigslen") || die "Can't open $contigslen for writing\n";
 open(infile2,$contigsfna) || die "Can't open $contigsfna\n";
@@ -155,6 +156,7 @@ while(<infile2>) {
 	chomp;
 	next if !$_;
 	if($_=~/^\>([^ ]+)/) {
+		$numc++;
 		$thisname=$1;
 		if($contigname) {
 			$len=length $seq;
@@ -171,5 +173,5 @@ close outfile2;
 close outmet;
 close outsyslog;
 
-print "  Contigs stored in $contigsfna\n";
+print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");

@@ -172,8 +172,8 @@ if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if(!$mode) { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
 if(($mode!~/sequential$/i) && (!$project)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
 if(($mode=~/sequential$/i) && ($project)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
-if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode\n"; }
-if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper\n"; }
+if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
+if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
 
 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }

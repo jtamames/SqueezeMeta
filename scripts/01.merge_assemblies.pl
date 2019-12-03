@@ -116,11 +116,12 @@ my $contigslen="$interdir/01.$project.lon";
 print "  Counting contig lengths\n";
 open(outfile1,">$contigslen") || die "Can't open $contigslen for writing\n";
 open(infile1,$finalcontigs) || die "Can't open $finalcontigs\n";
-my($thisname,$contigname,$seq);
+my($thisname,$contigname,$numc,$seq);
 while(<infile1>) {
 	chomp;
 	next if !$_;
 	if($_=~/^\>([^ ]+)/) {
+	$numc++;
 	$thisname=$1;
 	if($contigname) {
 		my $len=length $seq;
@@ -135,4 +136,5 @@ close infile1;
 close outfile1;
 close outsyslog;
 close out_met;
+print "  Number of contigs: $numc\n";
 
