@@ -51,7 +51,7 @@ while(<infile1>) {
 	chomp;
 	next if !$_;
 	my @t=split(/\t/,$_);
-	next if(($mode eq "sequential") && ($t[0] ne $project));
+	next if(($mode eq "sequential") && ($t[0] ne $projectname));
 	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } 
 	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
 	}
