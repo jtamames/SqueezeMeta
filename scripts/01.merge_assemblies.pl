@@ -78,12 +78,16 @@ else {
 	print outsyslog "Joining contigs and singletons: $command\n";
 	system($command);
 
+	#-- Renaming contigs
+
+	my $cocount;
 	open(outfile0,">$finalcontigs") || die;
 	open(infile0,"$finalcontigs.prov") || die;
 	while(<infile0>) {
 		chomp;
-		if($_=~/^\>(\d+)/) {
-			my $newname="Merged\_$1";
+		if($_=~/^\>/) {
+			$cocount++;
+			my $newname="Merged\_$cocount";
 			print outfile0 ">$newname\n"; 
 			}
 		else { print outfile0 "$_\n"; }

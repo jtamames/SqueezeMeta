@@ -111,7 +111,7 @@ my $DAS_Tool_empty=0;
 
 		#-- In merged mode. Includes merging assemblies
 
-	elsif(($mode=~/merged/) && (!$extassembly)) {
+	elsif(($mode=~/merged|seqmerge/) && (!$extassembly)) {
 		my $scriptname="01.run_assembly_merged.pl";
 		print outfile1 "1\t$scriptname\n";
 		$currtime=timediff();
@@ -139,8 +139,10 @@ my $DAS_Tool_empty=0;
 		
    #-------------------------------- STEP1.5: Merge assemblies
 
-	if(($mode=~/merged/) && ($rpoint<=1.5)) {
-		my $scriptname="01.merge_assemblies.pl";
+	if(($mode=~/merged|seqmerge/) && ($rpoint<=1.5)) {
+		my $scriptname;
+		if($mode=~/merged/) { $scriptname="01.merge_assemblies.pl"; }
+		elsif($mode=~/seqmerge/) { $scriptname="01.merge_sequential.pl"; }
 		print outfile1 "1.5\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "[",$currtime->pretty,"]: STEP1.5 -> MERGING ASSEMBLIES: $scriptname\n";

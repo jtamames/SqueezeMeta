@@ -125,27 +125,19 @@ my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 
-#-- Print standardization of contig names
+#-- Standardization of contig names
 
 print "  Renaming contigs\n";
 open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
 my $provcontigs="$tempdir/contigs.prov";
 open(outfile1,">$provcontigs") || die "Can't open $provcontigs for writing\n";
-my($conumber,$cocount);
+my $cocount;
 while(<infile1>) {
 	chomp;
 	next if !$_;
-	if($_=~/^\>([^ ]+)/) {
+	if($_=~/^\>/) {
 		$cocount++;
-		$thisname=$1;
-		my @cfield=split(/\_/,$thisname);
-		if($assembler=~/spades/i) {
-			$conumber=$cfield[0];
-			$conumber=~s/NODE//;
-			}
-		elsif($assembler=~/megahit/i) { $conumber=$cfield[1]; }
-		else{ $conumber=$cocount; }
-		my $newcontigname="$assembler\_$conumber";
+		my $newcontigname="$assembler\_$cocount";
 		print outfile1 ">$newcontigname\n";
 		}
 	else { print outfile1 "$_\n"; }
