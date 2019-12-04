@@ -185,7 +185,7 @@ print "  Number of contigs: $numc\n";
 
 sub parseafg {				
 	my $inafg=shift;
-	my($inred,$inpos,$accum);
+	my($inred,$inpos,$accum,$ts);
 	my(%order,%samples);
 	open(inp1,$inafg) || die;
 	while(<inp1>) {
@@ -197,13 +197,17 @@ sub parseafg {
 	if($_=~/eid\:(.*)/) {
 		$inpos++;
 		my @m=split(/\_/,$1);
-		shift @m; shift @m;
-		# my $ts=$m[$#m];
-		my $ts=join("_",@m);
+		if($m[0]=~/^Merged/) { $ts=$m[0]; }
+		else {
+			shift @m; shift @m;
+			# my $ts=$m[$#m];
+			 $ts=join("_",@m);
+			}
 		$order{$inpos}=$ts;
 		$samples{$ts}=1;
 		}
 	}
+
 	close inp1;
 	foreach my $p(sort keys %samples) { $accum++; $samples{$p}=$accum; }
 

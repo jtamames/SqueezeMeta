@@ -11,6 +11,7 @@ use Cwd;
 use Getopt::Long;
 use Tie::IxHash;
 use Linux::MemInfo;
+use Term::ANSIColor qw(:constants);
 use lib ".";
 use strict;
 
@@ -43,7 +44,9 @@ do "$scriptdir/SqueezeMeta_conf.pl";
 our($databasepath);
 
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile);
+
+my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
 my $helptext = <<END_MESSAGE;
 Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]
@@ -95,17 +98,20 @@ if($blocksize eq "NF") {
 	my $block_size_set=sprintf('%.1f',$ram/6000000);
 	if($block_size_set>8) { $block_size_set=8; }	
 	if($block_size_set<1) { $block_size_set=1; }
-	print "  AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option when starting the project, or changing the \$blocksize variable in SqueezeMeta_conf.pl\n";
+	print "  AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/6, Max 8). You can override this setting using the -b option when starting the project, or changing the \$blocksize variable in SqueezeMeta_conf.pl\n";
 	$blocksize=$block_size_set;
 	}
 	
-print "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+print BOLD "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
+open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
+if(!$nodiamond) { print outmet "Similarity searches for"; }
 
 if($hel) { die "$helptext\n"; } 
 if(!$project) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
 if(!$rawseqs) { $dietext.="MISSING ARGUMENT: -f|-seq:Read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
-if($dietext) { die "$dietext\n$helptext\n"; }
+if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }
 
 my(%allsamples,%ident,%noassembly,%accum,%totalseqs,%optaccum,%allext);
 my($sample,$file,$iden,$mapreq);
@@ -120,7 +126,7 @@ my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGi
 my %ranks=('k',1,'phylum',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
 
 my $resultsdir=$project;
-if (-d $resultsdir) { warn "Project name $project already exists\n"; } else { system("mkdir $resultsdir"); }
+if (-d $resultsdir) { print RED "WARNING: Project name $project already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
 
 my $output_all="$project.out.allreads";
 open(outall,">$resultsdir/$output_all") || die;
@@ -131,15 +137,15 @@ open(outcount,">$resultsdir/$output_counts") || die;
 #-- Reading the sample file 
 
 print "Now reading samples from $equivfile\n";
-open(infile1,$equivfile) || die "Cannot open samples file $equivfile\n";
+open(infile1,$equivfile) or do { print RED "Cannot open samples file $equivfile\n"; print RESET; die; };
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-	if($_=~/ /) { die "Please do not use blank spaces in the samples file\n"; }
-	if(($iden ne "pair1") && ($iden ne "pair2")) { die "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; }
-	if((!$sample) || (!$file) || (!$iden)) { die "Bad format in samples file $equivfile. Missing fields\n"; }
-	if(-e "$rawseqs/$file") {} else { die "Cannot find sample file $rawseqs/$file for sample $sample in the samples file. Please check\n"; }
+	if($_=~/ /) { print RED "Please do not use blank spaces in the samples file\n"; print RESET; die; }
+	if(($iden ne "pair1") && ($iden ne "pair2")) { print RED "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n";  print RESET; die; }
+	if((!$sample) || (!$file) || (!$iden)) { print RED "Bad format in samples file $equivfile. Missing fields\n"; print RESET; die; }
+	if(-e "$rawseqs/$file") {} else { print RED "Cannot find sample file $rawseqs/$file for sample $sample in the samples file. Please check\n"; print RESET; die; }
 	$allsamples{$sample}{$file}=$iden;
 	$ident{$sample}{$file}=$iden;
 }
@@ -147,7 +153,7 @@ close infile1;
 
 my($extdbname,$extdb,$dblist,$optdbsw);
 if($opt_db) {
-	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
+	open(infile0,$opt_db) or do { print RED "WARNING: Can't open EXTDB file $opt_db\n"; }; 
 	while(<infile0>) {
 	($extdbname,$extdb,$dblist)=split(/\t/,$_);
 	$allext{$extdbname}=$dblist;
@@ -174,7 +180,7 @@ my(%cogaccum,%keggaccum);
 foreach my $thissample(keys %allsamples) {
 	my %store;
 	$sampnum++;
-	print "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; 
+	print BOLD "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; print RESET;
 	my $thissampledir="$resultsdir/$thissample";
 	if(-d $thissampledir) {} else { system("mkdir $thissampledir"); }
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
@@ -195,14 +201,18 @@ foreach my $thissample(keys %allsamples) {
 		system("rm rc.txt");
 		$totalseqs{$thisfile}++;
 		$currtime=timediff();
-		print "   [",$currtime->pretty,"]: Running Diamond for taxa\n";
 		my $outfile="$thissampledir/$thisfile.tax.m8";
 		my $outfile_tax="$thissampledir/$thisfile.tax.wranks";
 		my $outfile_tax_nofilter="$thissampledir/$thisfile.tax_nofilter.wranks";
 		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b $blocksize -o $outfile";
 		# print "Running BlastX: $blastx_command\n";
 		my %iblast;
-		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
+		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
+		else { 
+			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
+			system($blastx_command);
+			print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+			}
 		open(inf,$outfile);
 		while(<inf>) {
 			chomp;
@@ -217,7 +227,7 @@ foreach my $thissample(keys %allsamples) {
 			
 		my $lca_command="perl $auxdir/lca_reads.pl $outfile";
 		$currtime=timediff();
-		print "   [",$currtime->pretty,"]: Running LCA\n";
+		print CYAN "[",$currtime->pretty,"]: Running LCA\n";
 		system($lca_command);
 		open(infiletax,$outfile_tax) || die;
 		while(<infiletax>) {
@@ -242,15 +252,19 @@ foreach my $thissample(keys %allsamples) {
 		
 		$currtime=timediff();
 		if(!$nocog) {
-			print "   [",$currtime->pretty,"]: Running Diamond for COGs\n";
 			my $outfile="$thissampledir/$thisfile.cogs.m8";
 			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
+			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
+			else { 
+				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n";
+				system($blastx_command); 
+				print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
+			}
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
 			$currtime=timediff();
-			print "   [",$currtime->pretty,"]: Running fun3\n";
+			print CYAN "[",$currtime->pretty,"]: Running fun3\n";
 			system($func_command);
 			open(infilecog,$outfile_cog) || die;
 			while(<infilecog>) {
@@ -266,15 +280,19 @@ foreach my $thissample(keys %allsamples) {
 			
 		if(!$nokegg) {
 			$currtime=timediff();
-			print "   [",$currtime->pretty,"]: Running Diamond for KEGG\n";
 			my $outfile="$thissampledir/$thisfile.kegg.m8";
 			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
+			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
+			else { 
+				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n";
+				system($blastx_command); 
+				print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
+			}
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 			$currtime=timediff();
-			print "   [",$currtime->pretty,"]: Running fun3\n";
+			print CYAN "[",$currtime->pretty,"]: Running fun3\n";
 			system($func_command);
 			open(infilekegg,$outfile_kegg) || die;
 			while(<infilekegg>) {
@@ -294,15 +312,19 @@ foreach my $thissample(keys %allsamples) {
 				next if(!$_ || ($_=~/\#/));
 				my($extdbname,$extdb,$dblist)=split(/\t/,$_);
 				$currtime=timediff();
-				print "   [",$currtime->pretty,"]: Running Diamond for $extdbname\n";
 				my $outfile="$thissampledir/$thisfile.$extdbname.m8";
 				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 				#print "Running BlastX: $blastx_command\n";
-				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } else { system($blastx_command); }
+				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
+				else { 
+					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n";
+					system($blastx_command); 
+					print outmet "$extdbname, ";
+				}
 				my $outfile_opt="$thissampledir/$thisfile.$extdbname";
 				my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
 				$currtime=timediff();
-				print "   [",$currtime->pretty,"]: Running fun3\n";
+				print CYAN "[",$currtime->pretty,"]: Running fun3\n";
 				system($func_command);
 				open(infileopt,$outfile_opt) || die;
 				while(<infileopt>) {
@@ -318,7 +340,7 @@ foreach my $thissample(keys %allsamples) {
 			}
 		}
 		
-		
+	if(!$nodiamond) { print outmet " were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n"; }		
 	foreach my $k(sort keys %store) {
 		my @tfields=split(/\;/,$store{$k}{tax});	#-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
 		my $lasttax=$tfields[$#tfields];
@@ -363,7 +385,7 @@ my(%cog,%kegg,%opt);
 
 	#-- Reading data for KEGGs (names, pathways)
 
-open(infile2,$kegglist) || warn "Missing KEGG equivalence file\n";
+open(infile2,$kegglist) or do { print RED "WARNING: Missing KEGG equivalence file\n"; print RESET; };
 while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/));
@@ -375,7 +397,7 @@ while(<infile2>) {
 close infile2;
 
 foreach my $idb(keys %allext) {
-	open(infile2,$allext{$idb}) || warn "Missing $idb equivalence file\n";
+	open(infile2,$allext{$idb}) or do { print RED "WARNING: Missing $idb equivalence file\n"; print RESET; };
 	while(<infile2>) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -389,8 +411,8 @@ foreach my $idb(keys %allext) {
 
 
 $currtime=timediff();
-print "\n[",$currtime->pretty,"]: Creating global tables\n";
-print "Tax table: $resultsdir/$output_all.mcount\n";		
+print CYAN "\n[",$currtime->pretty,"]: Creating global tables\n";
+print "   Tax table: $resultsdir/$output_all.mcount\n";		
 open(outtax,">$resultsdir/$output_all.mcount");
 print outtax "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 print outtax "Rank\tTax\tTotal";
@@ -434,7 +456,7 @@ if(!$nocog) {
            	 }
 	close infile1;
 
-	print "COG table: $resultsdir/$output_all.funcog\n";		
+	print "   COG table: $resultsdir/$output_all.funcog\n";		
 	open(outcog,">$resultsdir/$output_all.funcog");
 	print outcog "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 	print outcog "COG\tTotal";
@@ -453,7 +475,7 @@ if(!$nocog) {
 	}	 
 
 if(!$nokegg) {
-	print "KEGG table: $resultsdir/$output_all.funkegg\n";		
+	print "   KEGG table: $resultsdir/$output_all.funkegg\n";		
 	open(outkegg,">$resultsdir/$output_all.funkegg");
 	print outkegg "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 	print outkegg "KEGG\tTotal";
@@ -473,7 +495,7 @@ if(!$nokegg) {
 
 if($opt_db) {
 	foreach my $extdbname(keys %allext) {
-		print "$extdbname table: $resultsdir/$output_all.fun$extdbname\n";		
+		print "   $extdbname table: $resultsdir/$output_all.fun$extdbname\n";		
 		open(outopt,">$resultsdir/$output_all.fun$extdbname");
 		print outopt "# Created by $0 from data in $opt_db", scalar localtime,"\n";
 		print outopt "$extdbname\tTotal";
@@ -491,11 +513,12 @@ if($opt_db) {
 		}
 	}	 
 
-print "Mapping statistics: $resultsdir/$output_counts\n";
-print "Condensed annotations for mapped reads: $resultsdir/$output_all\n";
+print "   Mapping statistics: $resultsdir/$output_counts\n";
+print "   Condensed annotations for mapped reads: $resultsdir/$output_all\n";
 
 $currtime=timediff();
-print "\n[",$currtime->pretty,"]: DONE! Have fun!\n";
+print CYAN "\n[",$currtime->pretty,"]: DONE! Have fun!\n";
+print "For citation purposes, you can find a summary of methods in the file $methodsfile\n";
 
 #---------------------------------------- TIME CALCULATIONS --------------------------------
 

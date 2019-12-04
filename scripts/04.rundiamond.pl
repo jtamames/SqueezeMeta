@@ -92,6 +92,7 @@ if($opt_db) {
 		print outsyslog "Running Diamond for $dbname: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
+		print outmet "$dbname, ";
 		}
 }
 

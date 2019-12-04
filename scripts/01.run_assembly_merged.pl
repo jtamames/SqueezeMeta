@@ -8,6 +8,7 @@ use strict;
 use Cwd;
 use Linux::MemInfo;
 use lib "."; 
+use Term::ANSIColor qw(:constants);
 
 $|=1;
 
@@ -55,7 +56,7 @@ my($command,$trimmomatic_command);
 
 foreach my $thissample(sort keys %samplefiles) {
 	my($par1name,$par2name);
-	print "  Working for sample $thissample\n";
+	print BOLD "\n  Sample $thissample\n"; print RESET;
 	system("rm $tempdir/par*fast* > /dev/null 2>&1");
 	my($seqformat,$gzformat,$numfiles,$cat1,$cat2);
 	foreach my $thisfile(sort keys %{ $samplefiles{$thissample} }) {
