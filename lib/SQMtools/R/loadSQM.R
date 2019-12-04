@@ -291,48 +291,102 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
 
     cat('Loading functions\n')
     SQM$functions                  = list()
+    ### KEGG
     SQM$functions$KEGG             = list()
-    SQM$functions$KEGG$abund       = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-    SQM$functions$KEGG$tpm         = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.tpm.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-                                                             
-    SQM$functions$COG              = list()
-    SQM$functions$COG$abund        = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-    SQM$functions$COG$tpm          = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.tpm.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-
-
-    SQM$functions$PFAM             = list()
-    SQM$functions$PFAM$abund       = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-    SQM$functions$PFAM$tpm         = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.tpm.tsv', project_path, project_name),
-                                                          header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-
+    if(file.exists(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name)))
+        {
+        has_KEGG                               = TRUE
+        SQM$functions$KEGG$abund               = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$KEGG$tpm                 = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.tpm.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+    }else
+        {
+        warning('    There are no KEGG results in your project. Skipping...')
+        has_KEGG                               = FALSE
+        SQM$functions$KEGG$abund               = NULL # Just being explicit here
+        SQM$functions$KEGG$tpm                 = NULL # Just being explicit here
+        }
+    ### COG              
+    if(file.exists(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name)))
+        {
+        has_COG = TRUE
+        SQM$functions$COG                      = list()
+        SQM$functions$COG$abund                = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$COG$tpm                  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.tpm.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+    }else
+        {
+        warning('    There are no COG results in your project. Skipping...')
+        has_COG                            = FALSE
+        SQM$functions$COG$abund            = NULL # Just being explicit here
+        SQM$functions$COG$tpm              = NULL # Just being explicit here
+        }
+    ### PFAM
+    SQM$functions$PFAM                     = list()
+    if(file.exists(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name)))
+        {
+        has_PFAM = TRUE
+        SQM$functions$PFAM$abund           = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$PFAM$tpm             = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.tpm.tsv', project_path, project_name),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+    }else
+        {
+        warning('    There are no PFAM results in your project. Skipping...')
+        has_PFAM                           = FALSE
+        SQM$functions$PFAM$abund           = NULL # Just being explicit here
+        SQM$functions$PFAM$tpm             = NULL # Just being explicit here
+        }
+        
+    ### COPY NUMBERS
     if(file.exists(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name)))
         {
-        SQM$functions$KEGG$copy_number = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.copyNumber.tsv', project_path, project_name),
-                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-        SQM$functions$COG$copy_number  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.copyNumber.tsv', project_path, project_name),
-                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-        SQM$functions$PFAM$copy_number = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.copyNumber.tsv', project_path, project_name),
-                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
-        SQM$misc$RecA_cov              = unlist   (read.table(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name),
-                                                              header=T, row.names=1) ['COG0468',] )
+        ### KEGG
+        if(has_KEGG)
+            {
+            SQM$functions$KEGG$copy_number = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.copyNumber.tsv', project_path, project_name),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        }else
+            {
+            SQM$functions$KEGG$copy_number = NULL # Just being explicit here
+            }
+        ### COG
+        if(has_COG)
+            {
+            SQM$functions$COG$copy_number  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.copyNumber.tsv', project_path, project_name),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        }else
+            {
+            SQM$functions$COG$copy_number  = NULL # Just being explicit here
+            }
+        ### PFAM
+        if(has_PFAM)
+            {
+            SQM$functions$PFAM$copy_number = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.copyNumber.tsv', project_path, project_name),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        }else
+            {
+            SQM$functions$PFAM$copy_number = NULL # Just being explicit here
+            }
+        ### RecA coverage
+        SQM$misc$RecA_cov                  = unlist   (read.table(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name),
+                                                                  header=T, row.names=1) ['COG0468',] )
     }else
         {
         warning('    There are no copy number tables in your project, possibly because COG annotation was not performed or RecA was not present in the metagenome')
-        SQM$misc$RecA_cov              = NULL # Just being explicit here.
+        SQM$misc$RecA_cov                  = NULL # Just being explicit here
         }
 
-    cat('Loading total reads\n')
-    SQM$total_reads                = as.matrix(
-                                               read.table(sprintf('%s/results/10.%s.mappingstat', project_path, project_name), 
-                                                          header=T, sep='\t', row.names=1, skip=1, comment.char='')
-                                              )[,'Total.reads']
 
-    class(SQM)                     = 'SQM'
+    cat('Loading total reads\n')
+    SQM$total_reads = as.matrix(
+                                read.table(sprintf('%s/results/10.%s.mappingstat', project_path, project_name), 
+                                           header=T, sep='\t', row.names=1, skip=1, comment.char='')
+                               )[,'Total.reads']
+
+    class(SQM)      = 'SQM'
 
     return(SQM)
 

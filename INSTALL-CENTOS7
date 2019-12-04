@@ -14,6 +14,7 @@ sudo yum -y install ruby
 sudo yum -y install cpan perl-Tie-IxHash perl-DBI perl-DBD-mysql perl-XML-LibXML perl-XML-Parser perl-DBD-SQLite perl-Time-Piece
 sudo cpan DBD::SQLite::Constants
 sudo cpan Linux::MemInfo
+sudo cpan Term::ANSIColor
 
 
 ###Install Python modules.
