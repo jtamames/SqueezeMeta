@@ -144,17 +144,21 @@ foreach my $ctg(@sortedcontigs) {
 	#-- bins
 
 	if(!$nobins) {
+		my $bname;
 		my $ld=0;
 		$binfield="{\"Bins\": [";
 		foreach my $binmet(sort keys %dasdir) { 
 			if($contig{$p}{bin}{$binmet}) { 
+				$bname=$contig{$p}{bin}{$binmet};
+				$bname=~s/\.fasta\.contigs|\.fa\.contigs//;
 				if($ld) { $binfield.=","; }
 				$binfield.="{ \"$binmet\":\"$contig{$p}{bin}{$binmet}\" }"; 
 				$ld=1;
 				}
 			}
 		$binfield.="] }";					 
-	 if(!$ld) { $binfield=""; }
+	 if(!$ld) { $binfield=""; }	#-- JSON format
+	 $binfield=$bname;		#- Simpler nomenclature, not in JSON format
 	}	 					 
 
 	#-- Output

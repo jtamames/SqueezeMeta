@@ -186,7 +186,7 @@ while(<infile5>) {
 		$pos=~s/\,/-/;
 		$pos=~s/c//;
 		my($pos1,$pos2)=split(/\-/,$pos);
-		if($pos1>$pos2) { $pos="$pos2-$pos1"; }
+		if($pos1>$pos2) { $pos="$pos2-$pos1"; my $tpo=$pos1; $pos1=$pos2; $pos2=$tpo; }
 		my $genname="$incontig\_$pos";
 		print outfile6 "$genname\t$fields[1]\n";
 		$trnas{$incontig}{$pos}=1;

@@ -197,6 +197,7 @@ sub sqm_counter {
 		my @k=split(/\t/,$_);
 		my $posinit=$k[3];
 		my $posend=$k[4];
+		if($posend<$posinit) { my $tpos=$posinit; $posinit=$posend; $posend=$posinit; }  
 		my $genid;
   		my @e=split(/\;/,$k[8]);
  		my @n=split(/\_/,$e[0]);
@@ -276,6 +277,7 @@ sub sqm_counter {
 	my $accumrpk;
 	foreach my $print(sort keys %accum) { 
 		my $longt=$long_gen{$print};
+		next if(!$longt);
 		$rpk{$print}=$accum{$print}{reads}/$longt;
 		$accumrpk+=$rpk{$print};
 		}
@@ -283,6 +285,7 @@ sub sqm_counter {
 
 	foreach my $print(sort keys %accum) { 
 		my $longt=$long_gen{$print};
+		next if(!$longt);
 		my $coverage=$accum{$print}{bases}/$longt;
 		my $rpkm=($accum{$print}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
 		my $tpm=$rpk{$print}/$accumrpk;
