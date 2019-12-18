@@ -23,7 +23,8 @@ SqueezeMeta redistributes the following third-party software:
   - Work within the SQM directory structure
 * [prinseq](http://prinseq.sourceforge.net)
 * [kmer-db](https://github.com/refresh-bio/kmer-db)
-* [cd-hit](https://github.com/weizhongli/cdhit)
+* [CD-HIT](https://github.com/weizhongli/cdhit)
+  - Recompile with MAX_SEQ=20000000
 * [amos](http://www.cs.jhu.edu/~genomics/AMOS)
   - Work within the SQM directory structure
   - Add multithreading in nucmer calls (minimus2)

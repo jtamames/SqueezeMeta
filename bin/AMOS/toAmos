@@ -629,11 +629,11 @@ if (-f $tmpscf){
 }
 close(OUT);
 
-if ($minSeqId > $minCtgId){
-    print "Max ID: $minSeqId\n";
-} else {
-    print "Max ID: $minCtgId\n";
-}
+#if ($minSeqId > $minCtgId){                 ### Commented out by FPS Dec 10,2019
+#    print "Max ID: $minSeqId\n";
+#} else {
+#    print "Max ID: $minCtgId\n";
+#}
 
 exit(0);
 

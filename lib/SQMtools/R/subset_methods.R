@@ -276,6 +276,10 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA)
         subSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA)
         subSQM$misc$RecA_cov              = RecA
+	# For consistency with load, just return an empty list if a given functional hierarchy is missing from the parent object.
+	if(is.null(SQM$functions$KEGG$abund)) { subSQM$functions$KEGG = list() }
+	if(is.null(SQM$functions$COG$abund) ) { subSQM$functions$COG  = list() }
+	if(is.null(SQM$functions$PFAM$abund)) { subSQM$functions$PFAM = list() }
         }
 
 
