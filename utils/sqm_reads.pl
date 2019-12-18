@@ -123,7 +123,7 @@ my $kegg_db="$databasepath/keggdb";
 my $diamond_soft="$installpath/bin/diamond";
 my $coglist="$installpath/data/coglist.txt";    #-- COG equivalence file (COGid -> Function -> Functional class)
 my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
-my %ranks=('k',1,'phylum',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
+my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
 
 my $resultsdir=$project;
 if (-d $resultsdir) { print RED "WARNING: Project name $project already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
