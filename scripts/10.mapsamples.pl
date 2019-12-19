@@ -17,7 +17,7 @@ my $projectpath=$ARGV[0];
 if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
 do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
-my $projectpath=$projectname;
+my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
