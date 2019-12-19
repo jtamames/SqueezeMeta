@@ -186,11 +186,12 @@ while(<infile5>) {
 		$pos=~s/\,/-/;
 		$pos=~s/c//;
 		my($pos1,$pos2)=split(/\-/,$pos);
-		if($pos1>$pos2) { $pos="$pos2-$pos1"; my $tpo=$pos1; $pos1=$pos2; $pos2=$tpo; }
+		my $dire="+";
+		if($pos1>$pos2) { $pos="$pos2-$pos1"; my $tpo=$pos1; $pos1=$pos2; $pos2=$tpo; $dire="-"; }
 		my $genname="$incontig\_$pos";
 		print outfile6 "$genname\t$fields[1]\n";
 		$trnas{$incontig}{$pos}=1;
-		print outfile7 "$incontig\taragorn\ttRNA\t$pos1\t$pos2\t-\t+\t.\tID=$genname;Name=$fields[1]\n";
+		print outfile7 "$incontig\taragorn\ttRNA\t$pos1\t$pos2\t-\t$dire\t.\tID=$genname;Name=$fields[1]\n";
 		}
 	}
 close infile5;

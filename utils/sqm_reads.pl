@@ -519,6 +519,7 @@ print "   Condensed annotations for mapped reads: $resultsdir/$output_all\n";
 $currtime=timediff();
 print CYAN "\n[",$currtime->pretty,"]: DONE! Have fun!\n";
 print "For citation purposes, you can find a summary of methods in the file $methodsfile\n";
+print RESET;
 
 #---------------------------------------- TIME CALCULATIONS --------------------------------
 
