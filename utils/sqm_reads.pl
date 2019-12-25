@@ -91,7 +91,7 @@ if(!$evalue) { $evalue=0.001; }
 my $miniden=30;         #-- Minimum identity for the hit
 my $querycover=0;	#-- Minimum coverage of hit in query
 
-if($blocksize eq "NF") {
+if(!$blocksize) {
 	print "  Setting block size for Diamond\n";
 	my %mem=get_mem_info;
 	my $ram=$mem{"MemAvailable"};
