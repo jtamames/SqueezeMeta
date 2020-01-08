@@ -120,6 +120,12 @@ def main(args):
 
 
     ### Parse functions.
+
+    # Is there any custom annotation method apart from kegg and COG?
+    custom_methods = [f.split('.')[-1].replace('fun', '') for f in listdir(args.project_path) if 'fun' in f.split('.')[-1] and not f.endswith('funcog') and not f.endswith('funkegg')]
+    for method in custom_methods:
+        FUNMETHODS[method] = method
+
     fun_dict = {method: {sample: defaultdict(float) for sample in samples} for method in FUNMETHODS}
     for sample in samples:
         for method in FUNMETHODS:

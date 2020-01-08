@@ -43,7 +43,7 @@ EXAMPLES:
 """
 
 from os.path import abspath, dirname, realpath
-from os import mkdir
+from os import mkdir, listdir
 from os.path import isfile, isdir
 from sys import exit
 import argparse
@@ -113,6 +113,8 @@ def main(args):
     PFAMcopy = {}
     PFAMtpm = {}
 
+    customFunMethods = {}
+
     for projPath in projPaths:
         projName = projPath.strip('/').split('/')[-1]
         ### Validate projects.
@@ -141,7 +143,22 @@ def main(args):
         else:
             print('The "{}/results/tables" directory is already present. Skipping...'.format(projPath))
 
-        
+        ### Is there any custom annotation method?
+        custom_thissample = {}
+        for f in listdir('{}/results/tables/'.format(projPath)):
+            fields = f.split('.')
+            method = fields[-3]
+            counts = fields[-2]
+            if method not in ('KO', 'COG', 'PFAM', 'allfilter', 'prokfilter', 'nofilter'):
+                if method not in custom_thissample:
+                    custom_thissample[method] = {}
+                custom_thissample[method][counts] = f
+                if method not in customFunMethods:
+                    customFunMethods[method] = {}
+                if counts not in customFunMethods[method]:
+                    customFunMethods[method][counts] = {}
+
+        ### Parse tables.
         samples = parse_table('{}/results/tables/{}.superkingdom.allfilter.abund.tsv'.format(projPath, projName), all_superkingdom)
         sampleNames.extend(samples)
 
@@ -175,7 +192,13 @@ def main(args):
             parse_table('{}/results/tables/{}.PFAM.copyNumber.tsv'.format(projPath, projName), PFAMcopy)
             parse_table('{}/results/tables/{}.PFAM.tpm.tsv'.format(projPath, projName), PFAMtpm)
 
+        for method in custom_thissample: # Add custom annotation methods!
+            for counts, f in custom_thissample[method].items():
+                parse_table('{}/results/tables/{}'.format(projPath, f), customFunMethods[method][counts])
 
+
+
+    ### Write combined tables.
     prefix = '{}/{}.'.format(args.output_dir, args.output_prefix)
 
     write_feature_dict(sampleNames, all_superkingdom, prefix + 'superkingdom.allfilter.abund.tsv')
@@ -208,6 +231,12 @@ def main(args):
         write_feature_dict(sampleNames, PFAMabund, prefix + 'PFAM.abund.tsv')
         write_feature_dict(sampleNames, PFAMcopy, prefix + 'PFAM.copyNumber.tsv')
         write_feature_dict(sampleNames, PFAMtpm, prefix + 'PFAM.tpm.tsv')
+
+    for method in customFunMethods: # Write custom annotation methods!
+        for counts, d in customFunMethods[method].items():
+            custom_sampleNames = [s for s in sampleNames if s in d] # Define dinamically since we're not fully sure that all projects used the same methods.
+            write_feature_dict(custom_sampleNames, d, prefix + '{}.{}.tsv'.format(method, counts))
+
 
 
 
