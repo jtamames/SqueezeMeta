@@ -28,6 +28,13 @@ subsetFun = function(SQM, fun, ignore_case=T, fixed=F, trusted_functions_only = 
                         SQM$orfs$table[,'COGFUN'],
                         SQM$orfs$table[,'COGPATH'],
                         SQM$orfs$table[,'PFAM'])
+
+    for(method in SQM$misc$ext_annot_sources)
+        {
+        name = sprintf('%s NAME', method)
+        searchSpace = paste(searchSpace, SQM$orfs$table[,method], SQM$orfs$table[,name])
+        }
+
     goodORFs = grepl(fun, searchSpace, ignore.case = ignore_case, fixed=fixed)
 
 
@@ -237,16 +244,31 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$functions$COG$abund        = COG$abund
     subSQM$functions$PFAM$abund       = PFAM$abund
 
+    ext_annots = list()
+    for(method in subSQM$misc$ext_annot_sources)
+        {
+        ext_annots[[method]]          = aggregate.fun(subSQM, method, trusted_functions_only, ignore_unclassified_functions)
+        subSQM$functions[[method]]$abund = ext_annots[[method]]$abund
+        }
+
     if(rescale_tpm)
         {
         subSQM$functions$KEGG$tpm     = KEGG$tpm_rescaled
         subSQM$functions$COG$tpm      = COG$tpm_rescaled
         subSQM$functions$PFAM$tpm     = PFAM$tpm_rescaled
+        for(method in subSQM$misc$ext_annot_sources)
+            {
+            subSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm_rescaled
+            }
     }else
         {
         subSQM$functions$KEGG$tpm     = KEGG$tpm
         subSQM$functions$COG$tpm      = COG$tpm
         subSQM$functions$PFAM$tpm     = PFAM$tpm
+        for(method in subSQM$misc$ext_annot_sources)
+            {
+            subSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm
+            }
     }
 
     if(!is.null(subSQM$misc$RecA_cov))
@@ -275,6 +297,10 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA)
         subSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA)
         subSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA)
+        for(method in subSQM$misc$ext_annot_sources)
+            {
+            subSQM$functions[[method]]$copy_number = t(t(ext_annots[[method]]$cov) / RecA)
+            }
         subSQM$misc$RecA_cov              = RecA
 	# For consistency with load, just return an empty list if a given functional hierarchy is missing from the parent object.
 	if(is.null(SQM$functions$KEGG$abund)) { subSQM$functions$KEGG = list() }

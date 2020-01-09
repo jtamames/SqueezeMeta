@@ -21,57 +21,60 @@ require(reshape2)
 #' {
 #' The SQM object is a nested list which contains the following information:
 #' \tabular{lllllll}{
-#' \bold{lvl1}         \tab \bold{lvl2}             \tab \bold{lvl3}          \tab \bold{type}             \tab \bold{rows/names} \tab \bold{columns} \tab \bold{data}  \cr
-#' \bold{$orfs}        \tab \bold{$table}           \tab                      \tab \emph{dataframe}        \tab orfs              \tab misc. data     \tab misc. data   \cr
-#'                     \tab \bold{$abund}           \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances   \cr
-#'                     \tab \bold{$tpm}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm          \cr
-#'                     \tab \bold{$seqs}            \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences    \cr
-#'                     \tab \bold{$tax}             \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy     \cr
-#' \bold{$contigs}     \tab \bold{$table}           \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data   \cr
-#'                     \tab \bold{$abund}           \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances   \cr
-#'                     \tab \bold{$tpm}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab tpm          \cr
-#'                     \tab \bold{$seqs}            \tab                      \tab \emph{character vector} \tab contigs           \tab (n/a)          \tab sequences    \cr
-#'                     \tab \bold{$tax}             \tab                      \tab \emph{character matrix} \tab contigs           \tab tax. ranks     \tab taxonomies   \cr
-#'                     \tab \bold{$bins}            \tab                      \tab \emph{character matrix} \tab contigs           \tab bin. methods   \tab bins         \cr
-#' $bins               \tab \bold{$table}           \tab                      \tab \emph{dataframe}        \tab bins              \tab misc. data     \tab misc. data   \cr
-#'                     \tab \bold{$tpm}             \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab tpm          \cr
-#'                     \tab \bold{$tax}             \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy     \cr
-#' \bold{$taxa}        \tab \bold{$superkingdom}    \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages  \cr
-#'                     \tab \bold{$phylum}          \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab percentages  \cr
-#'                     \tab \bold{$class}           \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab percentages  \cr
-#'                     \tab \bold{$order}           \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab percentages  \cr
-#'                     \tab \bold{$family}          \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab families          \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab families          \tab samples        \tab percentages  \cr
-#'                     \tab \bold{$genus}           \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab percentages  \cr
-#'                     \tab \bold{$species}         \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab species           \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab species           \tab samples        \tab percentages  \cr
-#' \bold{$functions}   \tab \bold{$KEGG}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab tpm          \cr
-#'                     \tab                         \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab avg. copies  \cr
-#'                     \tab \bold{$COG}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab tpm          \cr
-#'                     \tab                         \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab avg. copies  \cr
-#'                     \tab \bold{$PFAM}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances   \cr
-#'                     \tab                         \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab tpm          \cr
-#'                     \tab                         \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab avg. copies  \cr
-#' \bold{$total_reads} \tab                         \tab                      \tab \emph{numeric vector}   \tab samples           \tab (n/a)          \tab total reads  \cr
-#' \bold{$misc}        \tab \bold{$project_name}    \tab                      \tab \emph{character vector} \tab (empty)           \tab (n/a)          \tab project name \cr
-#'                     \tab \bold{$samples}         \tab                      \tab \emph{character vector} \tab (empty)           \tab (n/a)          \tab samples      \cr
-#'                     \tab \bold{$tax_names_long}  \tab \bold{$superkingdom} \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names   \cr
-#'                     \tab                         \tab \bold{$phylum}       \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names   \cr
-#'                     \tab                         \tab \bold{$class}        \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names   \cr
-#'                     \tab                         \tab \bold{$order}        \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names   \cr
-#'                     \tab                         \tab \bold{$family}       \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names   \cr
-#'                     \tab                         \tab \bold{$genus}        \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names   \cr
-#'                     \tab                         \tab \bold{$species}      \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names   \cr
-#'                     \tab \bold{$tax_names_short} \tab                      \tab \emph{character vector} \tab full names        \tab (n/a)          \tab short names  \cr
-#'                     \tab \bold{$KEGG_names}      \tab                      \tab \emph{character vector} \tab KEGG ids          \tab (n/a)          \tab KEGG names   \cr
-#'                     \tab \bold{$COG_names}       \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab COG names    \cr
+#' \bold{lvl1}         \tab \bold{lvl2}               \tab \bold{lvl3}          \tab \bold{type}             \tab \bold{rows/names} \tab \bold{columns} \tab \bold{data}        \cr
+#' \bold{$orfs}        \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab orfs              \tab misc. data     \tab misc. data         \cr
+#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
+#'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
+#'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
+#' \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr
+#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab tpm                \cr
+#'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab contigs           \tab (n/a)          \tab sequences          \cr
+#'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab contigs           \tab tax. ranks     \tab taxonomies         \cr
+#'                     \tab \bold{$bins}              \tab                      \tab \emph{character matrix} \tab contigs           \tab bin. methods   \tab bins               \cr
+#' $bins               \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab bins              \tab misc. data     \tab misc. data         \cr
+#'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab tpm                \cr
+#'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy           \cr
+#' \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages        \cr
+#'                     \tab \bold{$phylum}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab percentages        \cr
+#'                     \tab \bold{$class}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab percentages        \cr
+#'                     \tab \bold{$order}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab percentages        \cr
+#'                     \tab \bold{$family}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab families          \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab families          \tab samples        \tab percentages        \cr
+#'                     \tab \bold{$genus}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab percentages        \cr
+#'                     \tab \bold{$species}           \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab species           \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab species           \tab samples        \tab percentages        \cr
+#' \bold{$functions}   \tab \bold{$KEGG}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab tpm                \cr
+#'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab avg. copies        \cr
+#'                     \tab \bold{$COG}               \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab tpm                \cr
+#'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab avg. copies        \cr
+#'                     \tab \bold{$PFAM}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances         \cr
+#'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab tpm                \cr
+#'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab avg. copies        \cr
+#' \bold{$total_reads} \tab                           \tab                      \tab \emph{numeric vector}   \tab samples           \tab (n/a)          \tab total reads        \cr
+#' \bold{$misc}        \tab \bold{$project_name}      \tab                      \tab \emph{character vector} \tab (empty)           \tab (n/a)          \tab project name       \cr
+#'                     \tab \bold{$samples}           \tab                      \tab \emph{character vector} \tab (empty)           \tab (n/a)          \tab samples            \cr
+#'                     \tab \bold{$tax_names_long}    \tab \bold{$superkingdom} \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names         \cr
+#'                     \tab                           \tab \bold{$phylum}       \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names         \cr
+#'                     \tab                           \tab \bold{$class}        \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names         \cr
+#'                     \tab                           \tab \bold{$order}        \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names         \cr
+#'                     \tab                           \tab \bold{$family}       \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names         \cr
+#'                     \tab                           \tab \bold{$genus}        \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names         \cr
+#'                     \tab                           \tab \bold{$species}      \tab \emph{character vector} \tab short names       \tab (n/a)          \tab full names         \cr
+#'                     \tab \bold{$tax_names_short}   \tab                      \tab \emph{character vector} \tab full names        \tab (n/a)          \tab short names        \cr
+#'                     \tab \bold{$KEGG_names}        \tab                      \tab \emph{character vector} \tab KEGG ids          \tab (n/a)          \tab KEGG names         \cr
+#'                     \tab \bold{$KEGG_paths}        \tab                      \tab \emph{character vector} \tab KEGG ids          \tab (n/a)          \tab KEGG hiararchy     \cr
+#'                     \tab \bold{$COG_names}         \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab COG names          \cr
+#'                     \tab \bold{$COG_paths}         \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab COG hierarchy      \cr
+#'                     \tab \bold{$ext_annot_sources} \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab external databases \cr
 #' }
 #' }
 #' @param project_path character, project directory generated by SqueezeMeta. 
@@ -147,20 +150,48 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     SQM$orfs$tpm                  = SQM$orfs$tpm[rownames(SQM$orfs$table),,drop=F]
     SQM$orfs$seqs                 = SQM$orfs$seqs[rownames(SQM$orfs$table)[rownames(SQM$orfs$table) %in% names(SQM$orfs$seqs)]]
    
-    # Load KEGG/COG names as misc data
+    # Load KEGG/COG/others names and paths as misc data
     KEGGids                      = SQM$orfs$table[,'KEGG ID']
     KEGGids                      = gsub('*', '', KEGGids, fixed=T)
     KEGGnames                    = SQM$orfs$table[,'KEGGFUN']
     KEGGnames                    = KEGGnames[KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
     SQM$misc$KEGG_names          = KEGGnames
     names(SQM$misc$KEGG_names)   = KEGGids  [KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    
+    SQM$misc$KEGG_names          = SQM$misc$KEGG_names[unique(names(SQM$misc$KEGG_names))]
+    KEGGpaths                    = SQM$orfs$table[,'KEGGPATH']
+    KEGGpaths                    = KEGGpaths[KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
+    SQM$misc$KEGG_paths          = KEGGpaths
+    names(SQM$misc$KEGG_paths)   = KEGGids  [KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
+    SQM$misc$KEGG_paths          = SQM$misc$KEGG_paths[unique(names(SQM$misc$KEGG_paths))]
+
     COGids                       = SQM$orfs$table[,'COG ID']
     COGids                       = gsub('*', '', COGids, fixed=T)
     COGnames                     = SQM$orfs$table[,'COGFUN']
     COGnames                     = COGnames[COGids!='' & !grepl(';', COGids, fixed=T)]
     SQM$misc$COG_names           = COGnames
     names(SQM$misc$COG_names)    = COGids  [COGids!='' & !grepl(';', COGids, fixed=T)]
+    SQM$misc$COG_names           = SQM$misc$COG_names[unique(names(SQM$misc$COG_names))]
+    COGpaths                     = SQM$orfs$table[,'COGPATH']
+    COGpaths                     = COGpaths[COGids!='' & !grepl(';', COGids, fixed=T)]
+    SQM$misc$COG_paths           = COGpaths
+    names(SQM$misc$COG_paths)    = COGids  [COGids!='' & !grepl(';', COGids, fixed=T)]
+    SQM$misc$COG_paths           = SQM$misc$COG_paths[unique(names(SQM$misc$COG_names))]
+
+    result_files                 = strsplit(list.files(sprintf('%s/results', project_path)), '.', fixed=T)
+    external_annotation_results  = result_files[sapply(result_files, FUN=function(x) length(x)>2 & x[3]=='fun3' & !x[4] %in% c('kegg', 'cog', 'pfam', 'tax'))]
+    SQM$misc$ext_annot_sources   = sapply(external_annotation_results, FUN=function(x) x[4])
+    for(method in SQM$misc$ext_annot_sources)
+        {
+        ids = SQM$orfs$table[,method]
+        ids = gsub('*', '', ids, fixed=T)
+        names = SQM$orfs$table[,sprintf('%s NAME', method)]
+        names = names[ids!=''] # We assume that there are not multiple annotations like in KEGG or COG. # names[ids!='' & !grepl(';', ids, fixed=T)]
+        field = sprintf('%s_names', method)
+        SQM$misc[[field]] = names
+        names(SQM$misc[[field]]) = ids[ids!=''] #  We assume that there are not multiple annotations like in KEGG or COG. # ids[ids!='' & !grepl(';', ids, fixed=T)]
+        SQM$misc[[field]] = SQM$misc[[field]][unique(names(SQM$misc[[field]]))]
+        }
+
 
     cat('Loading contigs\n')
     SQM$contigs                   = list()
@@ -339,7 +370,17 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         SQM$functions$PFAM$abund           = NULL # Just being explicit here
         SQM$functions$PFAM$tpm             = NULL # Just being explicit here
         }
-        
+
+    ### EXTERNAL ANNOTATION SOURCES
+    for(method in SQM$misc$ext_annot_sources)
+        {
+        SQM$functions[[method]] = list()
+	SQM$functions[[method]]$abund      = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.abund.tsv', project_path, project_name, method),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions[[method]]$tpm        = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.tpm.tsv', project_path, project_name, method),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        }
+
     ### COPY NUMBERS
     if(file.exists(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name)))
         {
@@ -370,9 +411,15 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
             {
             SQM$functions$PFAM$copy_number = NULL # Just being explicit here
             }
+	### EXTERNAL ANNOTATION SOURCES
+	for(method in SQM$misc$ext_annot_sources)
+            {                              # :'(
+            SQM$functions[[method]]$copy_number = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.copyNumber.tsv', project_path, project_name, method),
+                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+            }
         ### RecA coverage
-        SQM$misc$RecA_cov                  = unlist   (read.table(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name),
-                                                                  header=T, row.names=1) ['COG0468',] )
+        SQM$misc$RecA_cov                       = unlist(read.table(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name),
+                                                                    header=T, row.names=1) ['COG0468',] )
     }else
         {
         warning('    There are no copy number tables in your project, possibly because COG annotation was not performed or RecA was not present in the metagenome')

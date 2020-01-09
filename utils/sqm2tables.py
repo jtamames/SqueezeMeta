@@ -21,7 +21,7 @@ OPTIONS:
 """
 
 from os.path import abspath, dirname, realpath
-from os import mkdir
+from os import mkdir, listdir
 from sys import exit
 import argparse
 
@@ -55,8 +55,12 @@ def main(args):
     
     ### Functions
     if not args.sqm2anvio:
-        ### Functions
-        sampleNames, orfs, kegg, cog, pfam = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.trusted_functions, args.ignore_unclassified)
+        # Were custom annotation databases used in this project?
+        methods = [f.split('.')[-1] for f in listdir(perlVars['$resultpath']) if len(f.split('.'))>2 and f.split('.')[-2] == 'fun3']
+        customMethods = [method for method in methods if method not in ('kegg', 'cog', 'pfam', 'wranks')]
+
+        # Parse ORF table.
+        sampleNames, orfs, kegg, cog, pfam, custom = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.trusted_functions, args.ignore_unclassified, customMethods)
 
         # Round aggregated functional abundances.
         # We can have non-integer abundances bc of the way we split counts in ORFs with multiple KEGGs.
@@ -82,6 +86,12 @@ def main(args):
             write_row_dict(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
             if 'copyNumber' in pfam:
                 write_row_dict(sampleNames, pfam['copyNumber'], prefix + 'PFAM.copyNumber.tsv')
+        for method, d in custom.items():
+            write_row_dict(sampleNames, d['abundances'], prefix + method + '.abund.tsv')
+            write_row_dict(sampleNames, d['tpm'], prefix + method + '.tpm.tsv')
+            if 'copyNumber' in d:
+                write_row_dict(sampleNames, d['copyNumber'], prefix + method + '.copyNumber.tsv')
+
    
     else:
         # Not super beautiful code. Just read the orf names and create a fake orf dict

@@ -111,7 +111,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #'
 #' This function selects the most abundant functions across all samples in a SQM object and represents their abundances in a heatmap. Alternatively, a custom set of functions can be represented.
 #' @param SQM A SQM object.
-#' @param fun_level character. Either \code{"KEGG"}, \code{"COG"} or \code{"PFAM"} (default \code{"KEGG"}).
+#' @param fun_level character. Either \code{"KEGG"}, \code{"COG"}, \code{"PFAM"} or any other custom database used for annotation (default \code{"KEGG"}).
 #' @param count character. Either \code{"tpm"} for TPM normalized values, \code{"abund"} for raw abundances or \code{"copy_number"} for copy numbers (default \code{"tpm"}).
 #' @param N integer Plot the \code{N} most abundant functions (default \code{25}).
 #' @param fun character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).
@@ -124,12 +124,15 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
-plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c(), ignore_unclassified =T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
+plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c(), ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
-    if ((fun_level != 'KEGG' & fun_level != 'COG' & fun_level != 'PFAM'))
+    if (!fun_level %in% names(SQM$functions))
         {
-        stop('Select function category among "KEGG", "COG" or "PFAM"')
+        intro = 'Select function category among'
+        opts  = paste(names(SQM$functions), collapse='" "')
+        msg   = sprintf('%s "%s"', intro, opts)
+        stop(msg)
         }
     if(!count %in% c('abund', 'tpm', 'copy_number'))
         {
@@ -156,7 +159,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
         data = data[rownames(data) != 'Unclassified', , drop = F]
         }
     # Add KEGG & COG names
-    if (fun_level == 'KEGG' | fun_level == 'COG')
+    if (fun_level %in% c('COG', 'KEGG'))
         {
         item_name = SQM$misc[[paste0(fun_level, '_names')]][rownames(data)]
         item_name[is.na(item_name)] = 'no_name'

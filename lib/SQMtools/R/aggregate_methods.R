@@ -24,11 +24,12 @@ aggregate.taxa = function(SQM, rank, tax_source)
 aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_functions)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
-    stopifnot(fun %in% c('KEGG', 'COG', 'PFAM'))
+    stopifnot(fun %in% names(SQM$functions))
     stopifnot(is.logical(trusted_functions_only))
     stopifnot(is.logical(ignore_unclassified_functions))
     if(fun %in% c('KEGG', 'COG')) {funCol = sprintf('%s ID', fun)
-    }else{funCol = 'PFAM'}
+    }else if(fun == 'PFAM') { funCol = 'PFAM'
+    }else{funCol = fun}
     
     funs = SQM$orfs$table[,funCol]
     funs[funs==''] = 'Unclassified'
