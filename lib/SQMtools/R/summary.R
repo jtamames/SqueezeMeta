@@ -17,11 +17,11 @@ summary.SQM = function(SQM)
 
     res$contigs = list()
     res$contigs$nContigs     = nrow(SQM$contigs$table)
-    res$contigs$total_length = sum(SQM$contigs$table$Length)
+    res$contigs$total_length = sum(as.numeric(SQM$contigs$table$Length)) # as.numeric to avoid integer overflow.
     res$contigs$longest      = max(SQM$contigs$table$Length)
     res$contigs$shortest     = min(SQM$contigs$table$Length)
-    res$contigs$N50          = Npercent(SQM$contigs$table$Length, 50)
-    res$contigs$N90          = Npercent(SQM$contigs$table$Length, 90)
+    res$contigs$N50          = Npercent(as.numeric(SQM$contigs$table$Length), 50) # as.numeric to avoid integer overflow.
+    res$contigs$N90          = Npercent(as.numeric(SQM$contigs$table$Length), 90) # as.numeric to avoid integer overflow.
 
     sk = SQM$contigs$tax[,'superkingdom']
     sk = sk[!grepl('^Unclassified', sk)] # Remove Unclassified
