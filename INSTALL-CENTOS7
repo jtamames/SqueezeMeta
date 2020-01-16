@@ -18,7 +18,7 @@ sudo cpan Term::ANSIColor
 
 
 ###Install Python modules.
-sudo yum -y install python3 python36-scipy
+sudo yum -y install python3 python36-scipy python3-pandas
 sudo python3 -m pip install matplotlib dendropy pysam
 
 
