@@ -29,6 +29,8 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
     # data = data[, order(colSums(data), decreasing = T), drop = F] # Order functions according to their abundances
     data_melt = reshape2::melt(as.matrix(data), value.name = 'abun')
     colnames(data_melt) = c('sample', 'item', 'abun')
+    data_melt$sample = as.factor(data_melt$sample)
+    data_melt$item = as.factor(data_melt$item)
     data_melt$abun = as.numeric(data_melt$abun)
     #PLOT DATA
     if(is.null(label_x)) { label_x = '' }
@@ -74,6 +76,8 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
     data=t(data)
     data_melt = reshape2::melt(as.matrix(data), value.name = 'abun')
     colnames(data_melt) = c('sample', 'item', 'abun')
+    data_melt$sample = as.factor(data_melt$sample)
+    data_melt$item = as.factor(data_melt$item)
     data_melt$abun = as.numeric(data_melt$abun)
     #PLOT DATA
     p = ggplot2::ggplot(data_melt, ggplot2::aes(x = sample, y = abun, fill = item))
