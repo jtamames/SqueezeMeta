@@ -90,22 +90,23 @@ if(!$numthreads) { $numthreads=12; }
 if(!$evalue) { $evalue=0.001; }
 my $miniden=30;         #-- Minimum identity for the hit
 my $querycover=0;	#-- Minimum coverage of hit in query
-
-if(!$blocksize) {
-	print "  Setting block size for Diamond\n";
-	my %mem=get_mem_info;
-	my $ram=$mem{"MemAvailable"};
-	my $block_size_set=sprintf('%.1f',$ram/6000000);
-	if($block_size_set>8) { $block_size_set=8; }	
-	if($block_size_set<1) { $block_size_set=1; }
-	print "  AVAILABLE (free) RAM memory: $ram\nWe will set Diamond block size to $block_size_set (Gb RAM/6, Max 8). You can override this setting using the -b option when starting the project, or changing the \$blocksize variable in SqueezeMeta_conf.pl\n";
-	$blocksize=$block_size_set;
-	}
 	
 print BOLD "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
 if(!$nodiamond) { print outmet "Similarity searches for"; }
+
+if(!$blocksize) {
+        print "\nSetting block size for Diamond\n";
+        my %mem=get_mem_info;
+        my $ram=$mem{"MemAvailable"}/(1024*1024);
+        my $ramstr=sprintf('%.2f',$ram);
+        my $block_size_set=sprintf('%.1f',$ram/5);
+        if($block_size_set>8) { $block_size_set=8; }
+        if($block_size_set<1) { $block_size_set=1; }
+        print "  AVAILABLE (free) RAM memory: $ramstr Gb\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option when starting the project.\n\n";
+        $blocksize=$block_size_set;
+        }
 
 if($hel) { die "$helptext\n"; } 
 if(!$project) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }

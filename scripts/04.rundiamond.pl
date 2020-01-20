@@ -29,17 +29,18 @@ my $command;
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
-	#-- Setting block size for Diamond
-
+#-- Setting block size for Diamond
+	
 if($blocksize eq "NF") {
 	print "  Setting block size for Diamond\n";
 	my %mem=get_mem_info;
-	my $ram=$mem{"MemAvailable"};
-	my $block_size_set=sprintf('%.1f',$ram/6000000);
+	my $ram=$mem{"MemAvailable"}/(1024*1024);
+	my $ramstr=sprintf('%.2f',$ram);
+	my $block_size_set=sprintf('%.1f',$ram/5);
 	if($block_size_set>8) { $block_size_set=8; }	
 	if($block_size_set<1) { $block_size_set=1; }
-	print "  AVAILABLE (free) RAM memory: $ram\n  We will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option when starting the project, or changing the \$blocksize variable in SqueezeMeta_conf.pl\n";
-	print outsyslog "Diamond block size set to $block_size_set (Free Mem $ram bytes)\n";
+	print "  AVAILABLE (free) RAM memory: $ramstr Gb\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option when starting the project, or changing the \$blocksize variable in SqueezeMeta_conf.pl\n";
+	print outsyslog "Diamond block size set to $block_size_set (Free Mem $ramstr Gb)\n";
 	$blocksize=$block_size_set;
 	}
 
