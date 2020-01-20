@@ -2,13 +2,17 @@
 
 import sqlite3
 from subprocess import call
-
-
+try:
+    import anvio
+except ModuleNotFoundError:
+    raise Exception('Anvi\'o has not been detected. Are you sure that it has been activated?')
 
 def subset_anvio(splits, contigs_db, profile_db, outdir):
     """
     Subset anvi'o contigs, profile, and aux databases so that they only contain the requested splits.
     """
+    # NEW: Find out anvio version:
+    version = float(anvio.__version__)
 
     splits = list(splits)
     splitsSub = '({})'.format(','.join('?' * len(splits)))
@@ -101,6 +105,10 @@ def subset_anvio(splits, contigs_db, profile_db, outdir):
     query = 'CREATE TABLE kmer_splits AS SELECT * FROM old.kmer_splits WHERE contig IN {}'.format(splitsSub)
     c.execute(query, splits)
     
+    ##### New
+    if version > 6:
+      c.execute('CREATE TABLE scg_taxonomy AS SELECT * FROM old.scg_taxonomy') # Just copy
+
     conn.commit()
     conn.close()
     #############################################################################################

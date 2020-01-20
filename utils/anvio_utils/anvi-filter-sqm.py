@@ -35,7 +35,7 @@ OPTIONS:
      e.g. --extra-anvio-args "--taxonomic-level t_phylum --title Parrot"
      
 - By default, the script uses an in-house method to subset the anvi'o
-  databases. It's ~5x quicker than using anvi-split, and works well for
+  databases. It's ~5x quicker than using anvi-split in anvio5, and works well for
   us. However, the night is dark and full of bugs, so if you feel that
   your anvi'o view is missing some information, you can call the script
   with "-s safe" parameter. This will call anvi-split which should be
