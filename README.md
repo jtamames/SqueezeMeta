@@ -35,7 +35,7 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 7)  Functional assignment of genes (OPTIONAL)
 8)  Blastx on parts of the contigs with no gene prediction or no hits
 9)  Taxonomic assignment of contigs, and check for taxonomic disparities
-10)  Coverage and abundance estimation for genes and contigs 
+10) Coverage and abundance estimation for genes and contigs 
 11) Estimation of taxa abundances
 12) Estimation of function abundances
 13) Merging of previous results to obtain the ORF table
@@ -207,7 +207,7 @@ As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Na
 
 
 ## 10. Working in a low-memory environment
-In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. DIAMOND memory usage can be controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
+In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. By default SqueezeMeta will set up the right parameters for DIAMOND and the canu assembler based on the available memory in the system. DIAMOND memory usage can be manually controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
 We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limitations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
 
 
