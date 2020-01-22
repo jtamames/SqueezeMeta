@@ -115,6 +115,8 @@ def main(args):
 
     customFunMethods = {}
 
+    namesInfo = {}
+
     for projPath in projPaths:
         projName = projPath.strip('/').split('/')[-1]
         ### Validate projects.
@@ -131,7 +133,7 @@ def main(args):
             if args.sqmreads and not isdir('{}/results'.format(projPath)):
                 mkdir('{}/results'.format(projPath))
             if not args.sqmreads:
-                command = ['{}/utils/sqm2tables.py'.format(SQMpath), '{}'.format(projpath), '{}/results/tables'.format(projPath)]
+                command = ['{}/utils/sqm2tables.py'.format(SQMpath), '{}'.format(projPath), '{}/results/tables'.format(projPath)]
                 if args.ignore_unclassified:
                     command.append('--ignore_unclassified')
             else:
@@ -149,7 +151,7 @@ def main(args):
             fields = f.split('.')
             method = fields[-3]
             counts = fields[-2]
-            if method not in ('KO', 'COG', 'PFAM', 'allfilter', 'prokfilter', 'nofilter'):
+            if counts in ('abund', 'tpm', 'copyNumber') and method not in ('KO', 'COG', 'PFAM', 'allfilter', 'prokfilter', 'nofilter', 'orf', 'contig'):
                 if method not in custom_thissample:
                     custom_thissample[method] = {}
                 custom_thissample[method][counts] = f
@@ -196,7 +198,22 @@ def main(args):
             for counts, f in custom_thissample[method].items():
                 parse_table('{}/results/tables/{}'.format(projPath, f), customFunMethods[method][counts])
 
+        # Add function names and hierarchy paths.
+        allMethods = ['KO', 'COG']
+        allMethods.extend(customFunMethods.keys())
+        for method in allMethods:
+            if method not in namesInfo:
+                namesInfo[method] = {'Name': {}, 'Path': {}} if method in ('KO', 'COG') else {'Name': {}}
+            with open('{}/results/tables/{}.{}.names.tsv'.format(projPath, projName, method)) as infile:
+                infile.readline() # Burn headers
+                for line in infile:
+                    line = line.strip('\n').split('\t') # Explicitly strip just '\n' so I don't remove tabs when there are empty fields.
+                    namesInfo[method]['Name'][line[0]] = line[1]
+                    if 'Path' in namesInfo[method]:
+                        namesInfo[method]['Path'][line[0]] = line[2]
+                
 
+        
 
     ### Write combined tables.
     prefix = '{}/{}.'.format(args.output_dir, args.output_prefix)
@@ -236,6 +253,15 @@ def main(args):
         for counts, d in customFunMethods[method].items():
             custom_sampleNames = [s for s in sampleNames if s in d] # Define dinamically since we're not fully sure that all projects used the same methods.
             write_feature_dict(custom_sampleNames, d, prefix + '{}.{}.tsv'.format(method, counts))
+
+
+    # Combine function names and hierarchy paths.
+    allMethods = ['KO', 'COG']
+    allMethods.extend(customFunMethods.keys())
+    for method in allMethods:
+        columns = ['Name', 'Path'] if method in ('KO', 'COG') else ['Name']
+        write_feature_dict(columns, namesInfo[method], prefix + method + '.names.tsv') 
+    
 
 
 

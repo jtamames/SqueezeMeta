@@ -10,16 +10,18 @@ seterr(divide='ignore', invalid='ignore')
 TAXRANKS = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
 TAXRANKS_SHORT = ('k', 'p', 'c', 'o', 'f', 'g', 's')
 
-def parse_conf_file(project_path):
+def parse_conf_file(project_path, override = {}):
     """
     Parse the configuration file containing all the information relevant fot a given SqueezeMeta project.
     Return a dictionary in which the key is the corresponding SqueezeMeta_conf.pl variable (with the leading sigil, as in "$aafile") and the value is the value of the said variable.
+    Variable values can be overriden by providing a dictionary of structure {var_to_override: new_value}.
     """
     perlVars = {}
     for line in open('{}/SqueezeMeta_conf.pl'.format(project_path)):
         line = line.rsplit('#',1)[0] # Remove comment strings.
         if line.startswith('$'): # Is this a var definition?
             var, value = [x.strip(' \'\"') for x in line.strip().strip(';').split('=',1)]
+            value = value if var not in override else override[var]
             perlVars[var] = value
 
     ### Define this bc it's funny to parse perl code with python.
@@ -57,14 +59,20 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
         kegg, cog, pfam: dictionaries with the same structure as the orfs dictionary.
             the copies and length subdictionaries will contain the number of orfs from each kegg|cog|pfam
             in the different samples, or the aggregated length of each kegg|cog|pfam in the different
-            samples, respectively.
+            samples, respectively. In the case of kegg and cog, the info subdictionary will
+            contain function names and hierarchies.
+        custom: for each custom annotation method, a dictionary with the same structure as kegg/cog.
     """
 
     orfs = {res: {}               for res in ('abundances', 'coverages', 'copies', 'lengths')} # I know I'm being inconsistent with camelcase and underscores... ¯\_(ツ)_/¯
     kegg = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
+    kegg['info'] = {}
     cog  = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
+    cog['info'] = {}
     pfam = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
     custom = {method: {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')} for method in custom_methods}
+    [custom[method].update({'info': {}}) for method in custom]
+
 
     ### Define helper functions.
     def update_dicts(funDict, funIdx, trusted_only):
@@ -129,12 +137,21 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
             orfs['lengths'][orf] = lengths
 
             if not nokegg:
+                ID = line[idx['KEGG ID']].replace('*', '')
+                if ID:
+                    kegg['info'][ID] = [line[idx['KEGGFUN']], line[idx['KEGGPATH']]]
                 update_dicts(kegg, idx['KEGG ID'], trusted_only)
             if not nocog:
+                ID = line[idx['COG ID']].replace('*', '')
+                if ID:
+                    cog['info'][ID] = [line[idx['COGFUN']], line[idx['COGPATH']]]
                 update_dicts(cog, idx['COG ID'], trusted_only)
             if not nopfam:
                 update_dicts(pfam, idx['PFAM'], False) # PFAM are not subjected to the bestaver algorithm.
             for method in custom_methods:
+                ID = line[idx[method]].replace('*', '')
+                if ID:
+                    custom[method]['info'][ID] = [ line[idx[method + ' NAME']] ]
                 update_dicts(custom[method], idx[method], trusted_only)
 
     # Calculate tpm.

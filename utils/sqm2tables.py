@@ -35,7 +35,7 @@ from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_conti
 
 def main(args):
     ### Get result files paths from SqueezeMeta_conf.pl
-    perlVars = parse_conf_file(args.project_path)
+    perlVars = parse_conf_file(args.project_path, override = {'$basedir': args.project_path + '/../'})
     nokegg, nocog, nopfam, doublepass = map(int, [perlVars['$nokegg'], perlVars['$nocog'], perlVars['$nopfam'], perlVars['$doublepass']])
 
     ### Create output dir.
@@ -71,11 +71,13 @@ def main(args):
 
         #write_row_dict(sampleNames, orfs['tpm'], prefix + 'orf.tpm.tsv')
         if not nokegg:
+            write_row_dict(['Name', 'Path'], kegg['info'], prefix + 'KO.names.tsv')
             write_row_dict(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
             write_row_dict(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
             if 'copyNumber' in kegg:
                 write_row_dict(sampleNames, kegg['copyNumber'], prefix + 'KO.copyNumber.tsv')
         if not nocog:
+            write_row_dict(['Name', 'Path'], cog['info'], prefix + 'COG.names.tsv')
             write_row_dict(sampleNames, cog['abundances'], prefix + 'COG.abund.tsv')
             write_row_dict(sampleNames, cog['tpm'], prefix + 'COG.tpm.tsv')
             if 'copyNumber' in cog:
@@ -87,12 +89,12 @@ def main(args):
             if 'copyNumber' in pfam:
                 write_row_dict(sampleNames, pfam['copyNumber'], prefix + 'PFAM.copyNumber.tsv')
         for method, d in custom.items():
+            write_row_dict(['Name'], d['info'], prefix + method + '.names.tsv')
             write_row_dict(sampleNames, d['abundances'], prefix + method + '.abund.tsv')
             write_row_dict(sampleNames, d['tpm'], prefix + method + '.tpm.tsv')
             if 'copyNumber' in d:
                 write_row_dict(sampleNames, d['copyNumber'], prefix + method + '.copyNumber.tsv')
-
-   
+ 
     else:
         # Not super beautiful code. Just read the orf names and create a fake orf dict
         # since we need to know the names of all the orfs to create the taxonomy output.

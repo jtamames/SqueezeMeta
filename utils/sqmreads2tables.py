@@ -126,11 +126,14 @@ def main(args):
     for method in custom_methods:
         FUNMETHODS[method] = method
 
+    found_methods = set()
+
     fun_dict = {method: {sample: defaultdict(float) for sample in samples} for method in FUNMETHODS}
     for sample in samples:
         for method in FUNMETHODS:
             fun_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith(method)]
             for fun_file in fun_files:
+                found_methods.add(method)
                 with open('{}/{}/{}'.format(args.project_path, sample, fun_file)) as infile:
                     infile.readline()
                     infile.readline()
@@ -150,6 +153,31 @@ def main(args):
             total_reads = samples[sample]
             dict_to_write[sample]['Unclassified'] += (total_reads - classified_reads)
         DataFrame.from_dict(dict_to_write).fillna(0).to_csv('{}/{}.{}.abund.tsv'.format(args.output_dir, output_prefix, method_name), sep='\t')
+
+    # Write function names and hierarchy paths.
+    for method in found_methods:
+        method_name = FUNMETHODS[method]
+        written = set()
+        if method == 'cogs':
+            method = 'cog' # "cogs" is used within each sample directory, but the summary uses just "cog".
+        with open('{}/{}.out.allreads.fun{}'.format(args.project_path, project_name, method)) as infile, \
+             open('{}/{}.{}.names.tsv'.format(args.output_dir, output_prefix, method_name), 'w') as outfile:
+            infile.readline() # Burn headers.
+            infile.readline()
+            if method in ('kegg', 'cog'):
+                outfile.write('\tName\tPath\n')
+            else:
+                outfile.write('\tName\n')
+            for line in infile:
+                line = line.strip('\n').split('\t') # Explicitly strip just '\n' so I don't remove tabs when there are empty fields.
+                ID = line[0]
+                if ID not in written:
+                    written.add(ID)
+                    if method in ('kegg', 'cog'):
+                        outfile.write('{}\t{}\t{}\n'.format(ID, line[-2], line[-1]))
+                    else:
+                        outfile.write('{}\t{}\n'.format(ID, line[-1]))
+            
 
 
 
