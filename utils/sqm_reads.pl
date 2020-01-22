@@ -42,9 +42,9 @@ my $start_run = time();
 do "$scriptdir/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
 our($databasepath);
+our($methodsfile);
 
-
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter);
 
 my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -519,6 +519,7 @@ print "   Condensed annotations for mapped reads: $resultsdir/$output_all\n";
 
 $currtime=timediff();
 print CYAN "\n[",$currtime->pretty,"]: DONE! Have fun!\n";
+close outmet;
 print "For citation purposes, you can find a summary of methods in the file $methodsfile\n";
 print RESET;
 

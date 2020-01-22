@@ -21,6 +21,7 @@ do "$projectpath/parameters.pl";
 our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction21,%bindirs,%dasdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
+print " Running MinPath (Ye and Doak 2009, PLoS Comput Biol 5(8), e1000465)\n";
 open(infile1,"$extdatapath/metacyc_pathways_onto.txt") || die "Can't open $extdatapath/metacyc_pathways_onto.txt\n";
 while(<infile1>) { 
 	chomp;
