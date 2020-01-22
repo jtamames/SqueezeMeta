@@ -114,6 +114,7 @@ if($opt_db) {
 			open(infile3,$listf) || warn "Can't open names file for $opt_db\n";
 			while(<infile3>) {
 				chomp;
+                                $_=~s/\r//g; # Remove windows line terminators
 				next if(!$_ || ($_=~/\#/));
 				my @t=split(/\t/,$_);
 				$opt{$t[0]}{fun}=$t[1];
