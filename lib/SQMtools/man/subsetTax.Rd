@@ -4,9 +4,15 @@
 \alias{subsetTax}
 \title{Filter results by taxonomy}
 \usage{
-subsetTax(SQM, rank, tax, trusted_functions_only = F,
-  ignore_unclassified_functions = F, rescale_tpm = T,
-  rescale_copy_number = T)
+subsetTax(
+  SQM,
+  rank,
+  tax,
+  trusted_functions_only = F,
+  ignore_unclassified_functions = F,
+  rescale_tpm = T,
+  rescale_copy_number = T
+)
 }
 \arguments{
 \item{SQM}{SQM object to be subsetted.}

@@ -4,9 +4,14 @@
 \alias{subsetContigs}
 \title{Select contigs}
 \usage{
-subsetContigs(SQM, contigs, trusted_functions_only = F,
-  ignore_unclassified_functions = F, rescale_tpm = F,
-  rescale_copy_number = F)
+subsetContigs(
+  SQM,
+  contigs,
+  trusted_functions_only = F,
+  ignore_unclassified_functions = F,
+  rescale_tpm = F,
+  rescale_copy_number = F
+)
 }
 \arguments{
 \item{SQM}{SQM object to be subsetted.}

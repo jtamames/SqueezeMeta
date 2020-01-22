@@ -4,14 +4,21 @@
 \alias{plotFunctions}
 \title{Heatmap of the most abundant functions in a SQM object}
 \usage{
-plotFunctions(SQM, fun_level = "KEGG", count = "tpm", N = 25,
-  fun = c(), ignore_unclassified = T, gradient_col = c("ghostwhite",
-  "dodgerblue4"), base_size = 11)
+plotFunctions(
+  SQM,
+  fun_level = "KEGG",
+  count = "tpm",
+  N = 25,
+  fun = c(),
+  ignore_unclassified = T,
+  gradient_col = c("ghostwhite", "dodgerblue4"),
+  base_size = 11
+)
 }
 \arguments{
-\item{SQM}{A SQM object.}
+\item{SQM}{A SQM or SQMlite object.}
 
-\item{fun_level}{character. Either \code{"KEGG"}, \code{"COG"} or \code{"PFAM"} (default \code{"KEGG"}).}
+\item{fun_level}{character. Either \code{"KEGG"}, \code{"COG"}, \code{"PFAM"} or any other custom database used for annotation (default \code{"KEGG"}).}
 
 \item{count}{character. Either \code{"tpm"} for TPM normalized values, \code{"abund"} for raw abundances or \code{"copy_number"} for copy numbers (default \code{"tpm"}).}
 

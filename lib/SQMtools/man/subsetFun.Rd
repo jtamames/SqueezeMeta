@@ -4,9 +4,16 @@
 \alias{subsetFun}
 \title{Filter results by function}
 \usage{
-subsetFun(SQM, fun, ignore_case = T, fixed = F,
-  trusted_functions_only = F, ignore_unclassified_functions = F,
-  rescale_tpm = F, rescale_copy_number = F)
+subsetFun(
+  SQM,
+  fun,
+  ignore_case = T,
+  fixed = F,
+  trusted_functions_only = F,
+  ignore_unclassified_functions = F,
+  rescale_tpm = F,
+  rescale_copy_number = F
+)
 }
 \arguments{
 \item{SQM}{SQM object to be subsetted.}

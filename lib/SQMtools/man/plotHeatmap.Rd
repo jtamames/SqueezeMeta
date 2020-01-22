@@ -4,9 +4,14 @@
 \alias{plotHeatmap}
 \title{Plot a heatmap using ggplot2}
 \usage{
-plotHeatmap(data, label_x = "Samples", label_y = "Features",
-  label_fill = "Abundance", gradient_col = c("ghostwhite",
-  "dodgerblue4"), base_size = 11)
+plotHeatmap(
+  data,
+  label_x = "Samples",
+  label_y = "Features",
+  label_fill = "Abundance",
+  gradient_col = c("ghostwhite", "dodgerblue4"),
+  base_size = 11
+)
 }
 \arguments{
 \item{data}{numeric matrix or data frame.}

@@ -4,12 +4,21 @@
 \alias{plotTaxonomy}
 \title{Barplot of the most abundant taxa in a SQM object}
 \usage{
-plotTaxonomy(SQM, rank = "phylum", count = "percent", N = 15,
-  tax = NULL, others = T, ignore_unclassified = F, rescale = F,
-  color = NULL, base_size = 11)
+plotTaxonomy(
+  SQM,
+  rank = "phylum",
+  count = "percent",
+  N = 15,
+  tax = NULL,
+  others = T,
+  ignore_unclassified = F,
+  rescale = F,
+  color = NULL,
+  base_size = 11
+)
 }
 \arguments{
-\item{SQM}{A SQM object.}
+\item{SQM}{A SQM or a SQMlite object.}
 
 \item{rank}{Taxonomic rank to plot (default \code{phylum}).}
 

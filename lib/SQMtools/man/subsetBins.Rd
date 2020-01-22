@@ -4,9 +4,14 @@
 \alias{subsetBins}
 \title{Create a SQM object containing only the requested bins, and the contigs and ORFs contained in them.}
 \usage{
-subsetBins(SQM, bins, trusted_functions_only = F,
-  ignore_unclassified_functions = F, rescale_tpm = T,
-  rescale_copy_number = T)
+subsetBins(
+  SQM,
+  bins,
+  trusted_functions_only = F,
+  ignore_unclassified_functions = F,
+  rescale_tpm = T,
+  rescale_copy_number = T
+)
 }
 \arguments{
 \item{SQM}{SQM object to be subsetted.}

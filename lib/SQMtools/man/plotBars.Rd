@@ -4,8 +4,14 @@
 \alias{plotBars}
 \title{Plot a barplot using ggplot2}
 \usage{
-plotBars(data, label_x = "Samples", label_y = "Abundances",
-  label_fill = "Features", color = NULL, base_size = 11)
+plotBars(
+  data,
+  label_x = "Samples",
+  label_y = "Abundances",
+  label_fill = "Features",
+  color = NULL,
+  base_size = 11
+)
 }
 \arguments{
 \item{data}{Numeric matrix or data frame.}

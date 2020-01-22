@@ -4,9 +4,14 @@
 \alias{combineSQM}
 \title{Combine several SQM objects}
 \usage{
-combineSQM(..., tax_source = "orfs", trusted_functions_only = F,
-  ignore_unclassified_functions = F, rescale_tpm = T,
-  rescale_copy_number = T)
+combineSQM(
+  ...,
+  tax_source = "orfs",
+  trusted_functions_only = F,
+  ignore_unclassified_functions = F,
+  rescale_tpm = T,
+  rescale_copy_number = T
+)
 }
 \arguments{
 \item{...}{an arbitrary number of SQM objects}
