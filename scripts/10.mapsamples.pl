@@ -24,7 +24,7 @@ do "$projectpath/parameters.pl";
 	#-- Configuration variables from conf file
 
 our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
-    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+    $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
 
@@ -32,6 +32,8 @@ my $fastqdir="$datapath/raw_fastq";
 my $samdir="$datapath/sam";
 
 my $outfile=$mapcountfile;
+
+my $warnmes;
 
 if(-d $samdir) {} else { system("mkdir $samdir"); }
 
@@ -177,6 +179,16 @@ foreach my $thissample(keys %allsamples) {
 	 print outsyslog "Calling sqm_counter\n";
 	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
 }
+if($warnmes) { 
+	print outfile1 "\n# Notice that mapping percentage if low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
+	if($mincontiglen>200) { 
+		print outfile1 "# Notice also that you set the minimum contig length to $mincontiglen. In this way you are removing the contigs shorter than that size. This can be, at least partially, the cause of this low mapping percentage\n";
+		print outfile1 "# It is likely that redoing the analysis with the default minimum contig length (200) can solve this problem\n";
+		print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl fr this purpose (But you will lose the binnning results)\n";
+		}
+	else { print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl for this purpose (but you will lose the binning information)\n"; }
+	}
+
 close outfile1;
 
 print "  Output in $mapcountfile\n";
@@ -334,6 +346,7 @@ sub contigcov {
 	close infile4;
 	
 	my $mapperc=($mappedreads/$totalreadcount)*100;
+	if($mapperc<50) { $warnmes=1; }
 	printf outfile1 "$thissample\t$totalreadcount\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics
 
 	#-- Output RPKM/coverage values

@@ -108,6 +108,8 @@ sub run_checkm {
 	 	my @u=split(/\s+/,$_);
 		$u[0]=~s/\>//;
 		$taxcontig{$u[0]}=join(" ",@u[4..$#u]);
+                $taxcontig{$u[0]}=$u[1];
+# print "********$_***$u[0] $taxcontig{$u[0]}\n";
 		}
 		 
  	 }
@@ -283,6 +285,7 @@ sub recursive {
 						my @btax=split(/\;/,$bintax); 
 						my @ctax=split(/\;/,$taxnextcontig);
 						my $drank;
+                                    
 						if($score==$provhighscore) { $warnings=1; $draws.="$nextcontig ($ctax[$#ctax]);"; }
 						for(my $pos=0; $pos<=$#btax; $pos++) {	#-- If draw, choose the contig from the most similar taxa
 							if($btax[$pos] eq $ctax[$pos]) { $drank=$pos; }

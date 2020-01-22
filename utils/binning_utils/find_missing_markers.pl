@@ -58,7 +58,7 @@ close infile0;
 
 	
 open(infile0,$mergedfile) || die;
-my($pfamf,$header);
+my($pfamf,$pfamfound,$header);
 while(<infile0>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -66,13 +66,16 @@ while(<infile0>) {
 	$header=$_;
 	my @k=split(/\t/,$header);
 	for(my $pos=0; $pos<=$#k; $pos++) {
-		if($k[$pos] eq "PFAM") { $pfamf=1; last; }
+		if($k[$pos] eq "PFAM") { $pfamf=$pos; last; }
 		}
 	}
-	last if($header);
+        else {
+		my @k=split(/\t/,$_);
+		if($k[$pfamf]) { $pfamfound=1; }
+	}
 	}
 close infile0;
-if(!$pfamf) { die "Your gene table $mergedfile does not have PFAM annotations, this is required for finding missing markers\n"; }
+if(!$pfamfound) { die "Your gene table $mergedfile does not have PFAM annotations, this is required for finding missing markers\nPlease run scripts 05, 07 and 13, and try again\n"; }
 	
  	#-- Read NCBI's taxonomy 
 
@@ -108,13 +111,14 @@ foreach my $bin(sort @binlist) {	#-- Creates a list of the contigs in each bin
 
 
 foreach my $bin(sort @binlist) {
-	my $fastaname="$bindir/$bin";
+print "Working with $bin\n";	
+my $fastaname="$bindir/$bin";
 	my $binname="$bindir/$bin\.tax";
 	next if (!(-e $binname));
 	my(%consensus,%alltaxa);
 	my @misslist;
 	($skip,$thres)=0;
-	open(infile1,$binname) || die "Can't open $binname\n";
+	open(infile1,$binname) || warn "Can't open $binname\n";
 	print "\nFound bin $bin: ";
 	while(<infile1>) { 
 		chomp;
