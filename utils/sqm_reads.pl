@@ -42,9 +42,8 @@ my $start_run = time();
 do "$scriptdir/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
 our($databasepath);
-our($methodsfile);
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile);
 
 my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -128,6 +127,7 @@ my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa wi
 
 my $resultsdir=$project;
 if (-d $resultsdir) { print RED "WARNING: Project name $project already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
+$methodsfile="$resultsdir/methods.txt";
 
 my $output_all="$project.out.allreads";
 open(outall,">$resultsdir/$output_all") || die;
