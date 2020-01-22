@@ -91,9 +91,6 @@ my $miniden=30;         #-- Minimum identity for the hit
 my $querycover=0;	#-- Minimum coverage of hit in query
 	
 print BOLD "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
-open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
-print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
-if(!$nodiamond) { print outmet "Similarity searches for"; }
 
 if(!$blocksize) {
         print "\nSetting block size for Diamond\n";
@@ -128,6 +125,9 @@ my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa wi
 my $resultsdir=$project;
 if (-d $resultsdir) { print RED "WARNING: Project name $project already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
 $methodsfile="$resultsdir/methods.txt";
+open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
+if(!$nodiamond) { print outmet "Similarity searches for"; }
 
 my $output_all="$project.out.allreads";
 open(outall,">$resultsdir/$output_all") || die;
