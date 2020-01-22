@@ -119,10 +119,10 @@ foreach my $thissample(keys %allsamples) {
 		if($allsamples{$thissample}{$ifile}==1) { push(@pair1,$ifile); } else { push(@pair2,$ifile); }
 		}
 	my($par1name,$par2name);
-	if($pair1[0]=~/gz/) { $par1name="$project.$thissample.current_1.gz"; } 
-	else { $par1name="$project.$thissample.current_1"; }
-	if($pair2[0]=~/gz/) { $par2name="$project.$thissample.current_2.gz"; }
-	else { $par2name="$project.$thissample.current_2";}
+	if($pair1[0]=~/gz/) { $par1name="$projectname.$thissample.current_1.gz"; } 
+	else { $par1name="$projectname.$thissample.current_1"; }
+	if($pair2[0]=~/gz/) { $par2name="$projectname.$thissample.current_2.gz"; }
+	else { $par2name="$projectname.$thissample.current_2";}
 	my $a1=join(" ",@pair1);					
 	$command="cat $a1 > $tempdir/$par1name; ";	
 	if($#pair2>=0) { 
@@ -137,7 +137,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- Now we start mapping reads against contigs
 	
 	print "  Aligning to reference with $mapper\n";
-	if($keepsam10) { $outsam="$samdir/$project.$thissample.sam"; } else { $outsam="$samdir/$project.$thissample.current.sam"; }
+	if($keepsam10) { $outsam="$samdir/$projectname.$thissample.sam"; } else { $outsam="$samdir/$projectname.$thissample.current.sam"; }
 	
 	#-- Support for single reads
         if(!$mapper || ($mapper eq "bowtie")) {
@@ -251,28 +251,28 @@ sub sqm_counter {
 			last if($endread<$initgen);
 			my($endgen,$genname)=split(/\:/,$genesincontigs{$incontig}{$initgen});		
 			# print "  $incontig*$initread-$endread*$initgen-$endgen*\n"; 
-			if((($initread>=$initgen) && ($initread<=$endgen)) && (($endread>=$initgen) && ($endread<=$endgen))) {   #-- El read esta contenido en el gen
+			if((($initread>=$initgen) && ($initread<=$endgen)) && (($endread>=$initgen) && ($endread<=$endgen))) {   #-- Read is fully contained in the gene
 				$basesingen=$endread-$initread;
 				if($verbose) { print "Read contenido: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				# print outfile2 "$readid\t$genname\t$basesingen\n";
 				$accum{$genname}{reads}++;
 				$accum{$genname}{bases}+=$basesingen;
 				}
-			elsif(($initread>=$initgen) && ($initread<=$endgen)) {   #-- El read empieza dentro de este gen
+			elsif(($initread>=$initgen) && ($initread<=$endgen)) {   #-- Read starts within this gene
 				$basesingen=$endgen-$initread;
 				# print outfile2 "$readid\t$genname\t$basesingen\n";
 				if($verbose) {  print "Inicio read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				$accum{$genname}{reads}++;
 				$accum{$genname}{bases}+=$basesingen;
 				}
- 			elsif(($endread>=$initgen) && ($endread<=$endgen)) {   #-- El read termina dentro de este gen
+ 			elsif(($endread>=$initgen) && ($endread<=$endgen)) {   #-- Read ends within this gene
 				$basesingen=$endread-$initgen;
 				if($verbose) {  print "Final read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				# print outfile2 "$readid\t$genname\t$basesingen\n";
 				$accum{$genname}{bases}+=$basesingen;
 				$accum{$genname}{reads}++;
 				}
-			elsif(($initread<=$initgen) && ($endread>=$endgen)) {  #-- El gen esta contenido en el read
+			elsif(($initread<=$initgen) && ($endread>=$endgen)) {  #-- Gen is fully contained in the read
 				if($verbose) {  print "Gen contenido: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				$basesingen=$endgen-$initgen;
 				# print outfile2 "$readid\t$genname\t$basesingen\n";
