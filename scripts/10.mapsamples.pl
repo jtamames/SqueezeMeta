@@ -193,6 +193,7 @@ close outfile1;
 
 print "  Output in $mapcountfile\n";
 close outfile3;
+system("rm $bowtieref.*");	#-- Deleting bowtie references
 
 
 #----------------- sqm_counter counting 

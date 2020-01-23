@@ -555,6 +555,10 @@ my $DAS_Tool_empty=0;
 
 	print outfile1 "END\n";
 	$currtime=timediff();
+	print "Deleting temporal files in $tempdir\n";
+	print outfile2 "Deleting temporal files in $tempdir\n";
+	system("rm $tempdir/*");
+	if(-e "$datapath/megahit/final.contigs.fa") { system("rm -r $datapath/megahit/intermediate_contigs; rm $datapath/megahit/final.contigs.fa"); } 
 	print outfile2 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
 	print CYAN "[",$currtime->pretty,"]: FINISHED -> Have fun!\n"; print RESET;
 	if($finaltrace) { print "\nWARNINGS:\n$finaltrace\n"; }
