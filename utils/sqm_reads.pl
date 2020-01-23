@@ -141,6 +141,7 @@ print "Now reading samples from $equivfile\n";
 open(infile1,$equivfile) or do { print RED "Cannot open samples file $equivfile\n"; print RESET; die; };
 while(<infile1>) {
 	chomp;
+	$_=~s/\r//g; # Remove windows line terminators
 	next if(!$_ || ($_=~/^\#/));
 	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 	if($_=~/ /) { print RED "Please do not use blank spaces in the samples file\n"; print RESET; die; }
@@ -401,6 +402,7 @@ foreach my $idb(keys %allext) {
 	open(infile2,$allext{$idb}) or do { print RED "WARNING: Missing $idb equivalence file\n"; print RESET; };
 	while(<infile2>) {
 		chomp;
+		$_=~s/\r//g; # Remove windows line terminators
 		next if(!$_ || ($_=~/\#/));
 		my @t=split(/\t/,$_);
 		$opt{$idb}{$t[0]}{fun}=$t[1];
