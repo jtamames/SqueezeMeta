@@ -33,7 +33,6 @@ my $result = GetOptions ("completion=i" => \$complete_cutoff,
 		     "functions=s" => \$reqfunctions,
 		     "abundances=s" => \$abunmethod,
 		     "maxabun=i" => \$maxabun,
-		     "p=s" => \$project,
 		     "h" => \$hel
  		    );
 
@@ -43,7 +42,7 @@ my $pwd=cwd();
 my $projectpath=$ARGV[0];
 if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "./$projectpath/SqueezeMeta_conf.pl";
+do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
