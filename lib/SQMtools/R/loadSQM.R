@@ -217,29 +217,33 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
                                                          header=T, row.names=1, sep='\t'))
     SQM$contigs$tax               = SQM$contigs$tax[rownames(SQM$contigs$table),]
 
-    cat('    binning info...\n')
-    inBins                        = read.table(sprintf('%s/intermediate/19.%s.contigsinbins', project_path, project_name),
+					  
+    if(file.exists(sprintf('%s/results/19.%s.bintable', project_path, project_name)))
+        {
+        cat('    binning info...\n')
+        inBins                    = read.table(sprintf('%s/intermediate/19.%s.contigsinbins', project_path, project_name),
                                                header=T, sep='\t', quote='', comment.char='', skip=1, as.is=T)
-    inBins                        = reshape2::dcast(inBins, X..Contig~Method, value.var="Bin.ID")
-    rownames(inBins)              = inBins[,1]
-    SQM$contigs$bins              = as.matrix(inBins[,-1,drop=F])
-    notInBins                     = setdiff(rownames(SQM$contigs$table), SQM$contigs$bins)
-    notInBins                     = matrix(NA, nrow=length(notInBins), ncol=ncol(SQM$contigs$bins), dimnames=list(notInBins, colnames(SQM$contigs$bins)))
-    SQM$contigs$bins              = rbind(SQM$contigs$bins, notInBins)
-    SQM$contigs$bins              = SQM$contigs$bins[rownames(SQM$contigs$table),,drop=F]
-    SQM$contigs$bins[is.na(SQM$contigs$bins)] = 'No_bin'
+        inBins                    = reshape2::dcast(inBins, X..Contig~Method, value.var="Bin.ID")
+        rownames(inBins)          = inBins[,1]
+        SQM$contigs$bins          = as.matrix(inBins[,-1,drop=F])
+        notInBins                 = setdiff(rownames(SQM$contigs$table), SQM$contigs$bins)
+        notInBins                 = matrix(NA, nrow=length(notInBins), ncol=ncol(SQM$contigs$bins), dimnames=list(notInBins, colnames(SQM$contigs$bins)))
+        SQM$contigs$bins          = rbind(SQM$contigs$bins, notInBins)
+        SQM$contigs$bins          = SQM$contigs$bins[rownames(SQM$contigs$table),,drop=F]
+        SQM$contigs$bins[is.na(SQM$contigs$bins)] = 'No_bin'
 
-    cat('Loading bins\n')
-    cat('    table...\n')
-    SQM$bins                      = list()
-    SQM$bins$table                = read.table(sprintf('%s/results/19.%s.bintable', project_path, project_name),
+        cat('Loading bins\n')
+        cat('    table...\n')
+        SQM$bins                  = list()
+        SQM$bins$table            = read.table(sprintf('%s/results/19.%s.bintable', project_path, project_name),
                                                header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
-    cat('    abundances...\n')
-    SQM$bins$tpm                  = as.matrix(SQM$bins$table[,grepl('TPM', colnames(SQM$bins$table)),drop=F])
-    colnames(SQM$bins$tpm)        = gsub('TPM ', '', colnames(SQM$bins$tpm), fixed=T)
-    cat('    taxonomy...\n')
-    SQM$bins$tax                  = as.matrix(read.table(sprintf('%s/results/tables/%s.bin.tax.tsv', project_path, project_name),
+        cat('    abundances...\n')
+        SQM$bins$tpm              = as.matrix(SQM$bins$table[,grepl('TPM', colnames(SQM$bins$table)),drop=F])
+        colnames(SQM$bins$tpm)    = gsub('TPM ', '', colnames(SQM$bins$tpm), fixed=T)
+        cat('    taxonomy...\n')
+        SQM$bins$tax              = as.matrix(read.table(sprintf('%s/results/tables/%s.bin.tax.tsv', project_path, project_name),
                                                          header=T, row.names=1, sep='\t'))
+	}
     cat('Loading taxonomies\n')                                   
     SQM$taxa                      = list()
     SQM$taxa$superkingdom         = list()
