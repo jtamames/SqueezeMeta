@@ -1091,8 +1091,8 @@ sub pipeline {
 
 	print outfile3 "END\n";
 	$currtime=timediff();
-	print "Deleting temporal files in $tempdir\n";
-	print outfile4 "Deleting temporal files in $tempdir\n";
+	print "Deleting temporary files in $tempdir\n";
+	print outfile4 "Deleting temporary files in $tempdir\n";
 	system("rm $tempdir/*");
 	if(-e "$datapath/megahit/final.contigs.fa") { system("rm -r $datapath/megahit/intermediate_contigs; rm $datapath/megahit/final.contigs.fa"); } 
 	print outfile4 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
