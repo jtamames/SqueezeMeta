@@ -35,7 +35,7 @@ from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_conti
 
 def main(args):
     ### Get result files paths from SqueezeMeta_conf.pl
-    perlVars = parse_conf_file(args.project_path, override = {'$basedir': args.project_path + '/../'})
+    perlVars = parse_conf_file(args.project_path, override = {'$projectdir': args.project_path})
     nokegg, nocog, nopfam, doublepass = map(int, [perlVars['$nokegg'], perlVars['$nocog'], perlVars['$nopfam'], perlVars['$doublepass']])
 
     ### Create output dir.
