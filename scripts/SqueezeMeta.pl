@@ -39,7 +39,7 @@ our $installpath = abs_path("$scriptdir/..");
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$projectdir,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
 our($databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
@@ -111,7 +111,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "c|contiglen=i" => \$mincontiglen,
                      "a=s" => \$assembler,
                      "map=s" => \$mapper,
-                     "p=s" => \$project,
+                     "p=s" => \$projectdir,
                      "s|samples=s" => \$equivfile,
                      "extassembly=s" => \$extassembly,
                      "f|seq=s" => \$rawfastq, 
@@ -134,6 +134,9 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "v" => \$ver,
 		     "h" => \$hel
 		    );
+
+$projectdir = abs_path($projectdir);
+$projectname = (split '/', $projectdir)[-1];
 
 #-- Set some default values
 
@@ -170,12 +173,11 @@ if($hel) { die "$helptext\n"; }
 if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if(!$mode) { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
-if(($mode!~/sequential$/i) && (!$project)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
-if(($mode=~/sequential$/i) && ($project)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
+if(($mode!~/sequential$/i) && (!$projectdir)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
+if(($mode=~/sequential$/i) && ($projectdir)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
 if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
 if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
-if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
-
+if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }
 
 	#-- Check that everything is correct in the samples file
@@ -240,7 +242,7 @@ if($mode=~/sequential/i) {
 
 		#-- We start creating directories, progress and log files
 
-		$project=$thissample;
+		$projectname=$thissample;
 		my $projectdir="$pwd/$thissample";
 		if (-d $projectdir) { print RED; print "Project name $projectdir already exists. Please remove it or change the project name\n"; print RESET; die; } else { system("mkdir $projectdir"); }
 		print "Working with $thissample\n";
@@ -255,7 +257,7 @@ if($mode=~/sequential/i) {
 		# print outfile2 "$0 $params\n";
 		print outfile4 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 		print outfile4 "Run started for $thissample, ",scalar localtime,"\n";
-		print outfile4 "Project: $project\n";
+		print outfile4 "Project: $projectname\n";
 		print outfile4 "Map file: $equivfile\n";
 		print outfile4 "Fastq directory: $rawfastq\n";
 		print outfile4 "Command: $commandline\n"; 
@@ -282,7 +284,7 @@ if($mode=~/sequential/i) {
 		while(<infile2>) {
 			chomp;
 			next if !$_;
-			if   ($_=~/^\$projectname/)     { print outfile5 "\$projectname     = \"$project\";\n";         }
+			if   ($_=~/^\$projectname/)     { print outfile5 "\$projectname = \"$projectname\";\n";         }
 			elsif($_=~/^\$blocksize/)       { print outfile5 "\$blocksize       = $blocksize;\n";           }
 			elsif($_=~/^\$nocog/)           { print outfile5 "\$nocog           = $nocog;\n";               }
 			elsif($_=~/^\$nokegg/)          { print outfile5 "\$nokegg          = $nokegg;\n";              }
@@ -322,7 +324,6 @@ if($mode=~/sequential/i) {
 		open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 		print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
 		close outmet;
-
 
 	
 		#-- Linkage of files to put them into our data directories
@@ -401,18 +402,30 @@ if($mode=~/sequential/i) {
 
 else {
 
-	my $projectdir="$pwd/$project";
-	if (-d $projectdir) { print RED; print "Project name $projectdir already exists. Please remove it or change project name\n"; print RESET; die; } else { system("mkdir $projectdir"); }
+	if (-d $projectdir) {
+		print RED;
+		print "Project name $projectdir already exists. Please remove it or change project name\n";
+		print RESET; 
+		die;
+	}else{
+		my $ecode = system("mkdir $projectdir");
+		if($ecode!=0){
+			print RED;
+			print "Can't create project directory at $projectdir\n";
+			print RESET;
+			die;
+		}
+	}
 		
 	#-- We start creating directories, progress and log files
 
-	open(outfile3,">$pwd/$project/progress") or do { print RED; print "Can't write in $pwd/$project. Wrong permissions, or out of space?\n"; print RESET; die; }; #-- Un indice que indica en que punto estamos (que procedimientos han terminado)
-	open(outfile4,">$pwd/$project/syslog") or do { print RED; print "Can't write in $pwd/$project. Wrong permissions, or out of space?\n"; print RESET; die; };
+	open(outfile3,">$projectdir/progress") or do { print RED; print "Can't write in $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; }; #-- Un indice que indica en que punto estamos (que procedimientos han terminado)
+	open(outfile4,">$projectdir/syslog") or do { print RED; print "Can't write in $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; };
 	my $params = join(" ", @ARGV);
 	print outfile4 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 	print outfile4 "Run started ",scalar localtime," in $mode mode\n";
 	print outfile4 "Command: $commandline\n"; 
-	print outfile4 "Project: $project\n";
+	print outfile4 "Project: $projectname\n";
 	print outfile4 "Map file: $equivfile\n";
 	print outfile4 "Fastq directory: $rawfastq\n";
 	print outfile4 "Options: threads=$numthreads; contiglen=$mincontiglen; assembler=$assembler; mapper=$mapper; evalue=$evalue; miniden=$miniden;";
@@ -435,7 +448,7 @@ else {
 	print outfile6 "\$mode = \"$mode\";\n\n";
 	print outfile6 "\$installpath = \"$installpath\";\n";
 	while(<infile3>) {
-		if   ($_=~/^\$projectname/)               { print outfile6 "\$projectname     = \"$project\";\n";                     }
+		if   ($_=~/^\$projectname/)               { print outfile6 "\$projectname = \"$projectname\";\n";                     }
 		elsif($_=~/^\$blocksize/)                 { print outfile6 "\$blocksize       = $blocksize;\n";                       }
 		elsif($_=~/^\$nocog/)                     { print outfile6 "\$nocog           = $nocog;\n";                           }
 		elsif($_=~/^\$nokegg/)                    { print outfile6 "\$nokegg          = $nokegg;\n";                          }
@@ -466,6 +479,7 @@ else {
 
 	print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";
 	do "$projectdir/SqueezeMeta_conf.pl" or do { print RED; print "Can't write in directory $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; };
+	print("$mappingfile\n");
 
 	open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 	print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
@@ -497,9 +511,6 @@ else {
 #----------------------------PREPARING FILES FOR MERGING AND COASSEMBLY MODES-------------------------------------------
 
 sub moving {
-
-	my $projectdir="$pwd/$project";
-	#print "Now moving read files\n";
 	
 	#-- Reading samples from the file specified with -s option
 	
@@ -531,7 +542,7 @@ sub moving {
 	else { print "$numsamples samples found: @nmg\n\n"; }
 
 	open(infile0,$equivfile) || die;	#-- Deleting \r in samples file for windows compatibility
-	open(outfile0,">$mappingfile") || die;
+	open(outfile0,">$mappingfile") || die;  
 	while(<infile0>) {
 		$_=~s/\r//g;
 		print outfile0 $_;
@@ -575,7 +586,7 @@ sub timediff {
 
 sub pipeline {
 
-	if(-e "$tempdir/$project.log") { system("rm $tempdir/$project.log"); }
+	if(-e "$tempdir/$projectname.log") { system("rm $tempdir/$projectname.log"); }
 	my $rpoint=0;
 	my $DAS_Tool_empty=0;
 
@@ -591,7 +602,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
 		print BLUE "[",$currtime->pretty,"]: STEP1 -> RUNNING CO-ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 		if($longtrace) { print " (This will take all the metagenomes and assemble them together using $assembler as assembler)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project ");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n"; print RESET; die; }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -608,7 +619,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
 			print BLUE "[",$currtime->pretty,"]: STEP1 -> RUNNING ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 			if($longtrace) { print " (This will take all the metagenomes and assemble them independently using $assembler as assembler)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $project");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; print RESET; die; }
 			}
 	
@@ -623,7 +634,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP1.5 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP1.5 -> MERGING ASSEMBLIES: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will take all the individual assemblies and merge them in a single, combined assembly)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP1.5 -> $scriptname\n";  print RESET; die; }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -639,7 +650,7 @@ sub pipeline {
  		print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname ($assembler)\n";
  		print BLUE "[",$currtime->pretty,"]: STEP1 ->  RUNNING ASSEMBLY: $scriptname ($assembler)\n"; print RESET;
 		if($longtrace) { print " (This will take the metagenome and assemble it using $assembler as assembler)\n"; }
- 		my $ecode = system("perl $scriptdir/$scriptname $project");
+ 		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n"; print RESET; die; }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -656,8 +667,8 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP2 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP2 -> RNA PREDICTION: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will run barrnap and Aragorn for predicting putative RNAs in the contigs. This is done before predicting protein-coding genes for avoiding predicting these where there is a RNA)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
-		my $masked="$interdir/02.$project.maskedrna.fasta";
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+		my $masked="$interdir/02.$projectname.maskedrna.fasta";
 		if($ecode!=0)        { print RED; print "Stopping in STEP2 -> $scriptname\n";  print RESET; die; }
 		my $wc=qx(wc -l $masked);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -673,7 +684,7 @@ sub pipeline {
  		print outfile4 "[",$currtime->pretty,"]: STEP3 -> $scriptname\n";
  		print BLUE "[",$currtime->pretty,"]: STEP3 -> ORF PREDICTION: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will predict putative protein-coding genes in the contigs, using Prodigal)\n"; }
- 		my $ecode = system("perl $scriptdir/$scriptname $project");
+ 		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP3 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $aafile);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -690,7 +701,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP4 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP4 -> HOMOLOGY SEARCHES: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will take all ORFs and run homology searches against functional and taxonomic databases)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP4 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $taxdiamond);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -707,7 +718,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP5 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP5 -> HMMER/PFAM: $scriptname\n"; print RESET;
 			if($longtrace) { print " (This will take all ORFs and run HMMER searches against the PFAM database, for increased sensitivity in predicting protein families. This step is likely to be slow)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $project");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0){ print RED; print "Stopping in STEP5 -> $scriptname\n"; print RESET; die; }
 			my $wc=qx(wc -l $pfamhmmer);
 			my($wsize,$rest)=split(/\s+/,$wc);
@@ -724,7 +735,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP6 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP6 -> TAXONOMIC ASSIGNMENT: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will use our last common ancestor (LCA) algorithm to try to annotate the taxonomic origin of each ORF, from the homologues found in the previous step)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP6 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l "$fun3tax.wranks");
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -741,7 +752,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP7 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n"; print RESET;
 			if($longtrace) { print " (This will use fun3 algorithm to annotate putative functions for each ORF, from the homologues found in step 5)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $project");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)   { print RED; print "Stopping in STEP7 -> $scriptname\n"; print RESET; die; }
 			my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB,$rest);
 			if(!$nocog) {
@@ -761,7 +772,7 @@ sub pipeline {
 				open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 				while(<infile0>) {
 					my($dbname,$extdb,$dblist)=split(/\t/,$_);
-					my $wc=qx(wc -l $resultpath/07.$project.fun3.dbname);
+					my $wc=qx(wc -l $resultpath/07.$projectname.fun3.dbname);
 					($wsizeOPTDB,$rest)=split(/\s+/,$wc);
 					if($wsizeOPTDB<2) { $optdbsw=$wsizeOPTDB; }
 					}
@@ -783,7 +794,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP8 -> DOUBLEPASS, Blastx analysis: $scriptname\n"; print RESET;
 			if($longtrace) { print " (This will do many things: it will mask the parts of the contigs where an ORF has been found, and will run blastx in the remaining gaps, to identify possible genes missed in gene prediction. This is intended to be useful when dealing with eukaryotic or viral sequences, for which gene prediction is less accurate)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $project");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)  { print RED; print "Stopping in STEP8 -> $scriptname\n"; print RESET; die; }
 			my $wc=qx(wc -l $gff_file_blastx);
 			my($wsize,$rest)=split(/\s+/,$wc);
@@ -802,7 +813,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP9 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP9 -> CONTIG TAX ASSIGNMENT: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will produce a consensus taxonomic annotation for each contig, according to the annotations of their constituent ORFs)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP9 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $alllog);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -818,7 +829,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP10 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP10 -> MAPPING READS: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will map reads back to the contigs using $mapper and count how many map to each ORF, to estimate their abundances)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP10 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $mapcountfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -834,7 +845,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP11 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP11 -> COUNTING TAX ABUNDANCES: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will count the abundances of each taxon, to infer the composition of the community)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP11 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $mcountfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -851,10 +862,10 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP12 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP12 -> COUNTING FUNCTION ABUNDANCES: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will count the abundance of each function, to produce a functional profile of the community)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)     { print RED; print "Stopping in STEP12 -> $scriptname\n"; print RESET; die; }
-		my $cogfuncover="$resultpath/12.$project.cog.funcover";
-		my $keggfuncover="$resultpath/12.$project.kegg.funcover";
+		my $cogfuncover="$resultpath/12.$projectname.cog.funcover";
+		my $keggfuncover="$resultpath/12.$projectname.kegg.funcover";
 		my $wc=qx(wc -l $cogfuncover);
 		my($wsizeCOG,$rest)=split(/\s+/,$wc);
 		my $wc=qx(wc -l $keggfuncover);
@@ -873,7 +884,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP13 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP13 -> CREATING GENE TABLE: $scriptname\n"; print RESET;
 		if($longtrace) { print " (This will create the gene table by merging all the information compiled in previous steps)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP13 -> $scriptname\n"; print RESET; die;}
 		my $wc=qx(wc -l $mergedfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -892,7 +903,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP14 -> MAXBIN BINNING: $scriptname\n"; print RESET;
 			if($longtrace) { print " (This will use MaxBin for creating a set of bins)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
 			if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
 			my $dirbin=$bindirs{maxbin};
 			opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
@@ -917,7 +928,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP15 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP15 -> METABAT BINNING: $scriptname\n"; print RESET;
 			if($longtrace) { print " (This will use MetaBat for creating a set of bins)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
 			if($ecode!=0){ print RED; print "ERROR in STEP15 -> $scriptname\n"; print RESET; }
 			my $dirbin=$bindirs{metabat2};
 			opendir(indir2,$dirbin) || die "Can't open $dirbin directory\n";
@@ -942,7 +953,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP16 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP16 -> DAS_TOOL MERGING: $scriptname\n"; print RESET;
 			if($longtrace) { print " (This will use DASTool for creating a consensus between the sets of bins created in previous steps)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
 			if($ecode!=0){ print RED; print "ERROR in STEP16-> $scriptname\n"; print RESET; }
 			my $dirbin=$dasdir{DASTool};
 			opendir(indir2,$dirbin) || warn "Can't open $dirbin directory, no DAStool results\n";
@@ -973,7 +984,7 @@ sub pipeline {
 				print outfile4 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP17 -> BIN TAX ASSIGNMENT: $scriptname\n"; print RESET;
 				if($longtrace) { print " (This will produce taxonomic assignments for each bin as the consensus of the annotations of each of their contigs)\n"; }
-				my $ecode = system("perl $scriptdir/$scriptname $project >> $tempdir/$project.log");
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
 				if($ecode!=0){ print RED; print "Stopping in STEP17 -> $scriptname\n"; print RESET; die; }
 				my $wc=qx(wc -l $bintax);
 				my($wsize,$rest)=split(/\s+/,$wc);
@@ -993,10 +1004,10 @@ sub pipeline {
 				print outfile4 "[",$currtime->pretty,"]: STEP18 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP18 -> CHECKING BINS: $scriptname\n"; print RESET;
 				if($longtrace) { print " (This step will use checkM for estimating completeness and contamination for each bin)\n"; }
-				my $ecode = system("perl $scriptdir/$scriptname $project");
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 				if($ecode!=0) { print RED; print "Stopping in STEP18 -> $scriptname\n"; print RESET; die; }
 				foreach my $binmethod(keys %dasdir) {
-					$checkmfile="$interdir/18.$project.$binmethod.checkM";
+					$checkmfile="$interdir/18.$projectname.$binmethod.checkM";
 					my $wc=qx(wc -l $checkmfile);
 					my($wsize,$rest)=split(/\s+/,$wc);
 					if($wsize<4) {
@@ -1017,7 +1028,7 @@ sub pipeline {
 				print outfile4 "[",$currtime->pretty,"]: STEP19 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP19 -> CREATING BIN TABLE: $scriptname\n"; print RESET;
 				if($longtrace) { print " (Now we will compile all previous information for producing a bin table)\n"; }
-				my $ecode = system("perl $scriptdir/$scriptname $project");
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 				if($ecode!=0){ print RED; print "Stopping in STEP19 -> $scriptname\n"; print RESET; die; }
 				my $wc=qx(wc -l $bintable);
 				my($wsize,$rest)=split(/\s+/,$wc);
@@ -1037,7 +1048,7 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP20 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP20 -> CREATING CONTIG TABLE: $scriptname\n"; print RESET;
 		if($longtrace) { print " (In this step we will gather all information on contigs for producing a contig table. We do it now because we wanted to know the correspondence between contigs and bins)\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP20 -> $scriptname\n"; print RESET; die; }
 		my $wc=qx(wc -l $contigtable);
 		my($wsize,$rest)=split(/\s+/,$wc);
@@ -1056,9 +1067,9 @@ sub pipeline {
 				print outfile4 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP21 -> CREATING TABLE OF PATHWAYS IN BINS: $scriptname\n"; print RESET;
 				if($longtrace) { print " (In this step we will use MinPath and the gene content information for each bin to predict the possible presence of metabolic pathways in it)\n"; }
-				my $ecode = system("perl $scriptdir/$scriptname $project");
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 				if($ecode!=0){ print RED; print "Stopping in STEP21 -> $scriptname\n"; print RESET; die; }
-				my $minpathfile="$resultpath/21.$project.kegg.pathways";
+				my $minpathfile="$resultpath/21.$projectname.kegg.pathways";
 				my $wc=qx(wc -l $minpathfile);
 				my($wsize,$rest)=split(/\s+/,$wc);
 				if($wsize<3) { print RED; print "Stopping in STEP21 -> $scriptname. File $minpathfile is empty!\n"; print RESET; die; }
@@ -1077,9 +1088,9 @@ sub pipeline {
 		print outfile4 "[",$currtime->pretty,"]: STEP22 -> $scriptname\n";
 		print BLUE "[",$currtime->pretty,"]: STEP22 -> MAKING FINAL STATISTICS: $scriptname\n"; print RESET;
 		if($longtrace) { print " (Finally, we will produce final statistics on the run gathering information on genes, contigs and bins\n"; }
-		my $ecode = system("perl $scriptdir/$scriptname $project");
+		my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 		if($ecode!=0)        { print RED; print "Stopping in STEP22 -> $scriptname\n"; print RESET; die; }
-		my $statfile="$resultpath/22.$project.stats";
+		my $statfile="$resultpath/22.$projectname.stats";
 		my $wc=qx(wc -l $statfile);
 		my($wsize,$rest)=split(/\s+/,$wc);
 		if($wsize<10)        { print RED; print "Stopping in STEP22 -> $scriptname. File $statfile is empty!\n"; print RESET; die; }
