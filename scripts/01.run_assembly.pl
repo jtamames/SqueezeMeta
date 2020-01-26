@@ -87,7 +87,7 @@ else {
 			my $ram=$mem{"MemAvailable"}/(1024*1024);
 			my $ramstr=sprintf('%.2f',$ram);
 			$canumem=sprintf('%.0f',int($ram));
-			print "  AVAILABLE (free) RAM memory: $ramstr Gb\nWe will set canu to use $canumem Gb. You can override this setting using the -canumem option when calling SqueezeMeta.pl\n";
+			print "  AVAILABLE (free) RAM memory: $ramstr Gb. We will set canu to use $canumem Gb.\n  You can override this setting using the -canumem option when calling SqueezeMeta.pl\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ramstr Gb)\n";
 			}
      	   	$command="rm -r $datapath/canu; $canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name > $syslogfile 2>&1; "; 
