@@ -194,7 +194,9 @@ while(<infile1>) {
 	if(-e "$rawfastq/$file") {} else { print RED; print "Can't find sample file $rawfastq/$file for sample $sample in the samples file. Please check\n"; print RESET;  die; }
 }
 close infile1;
-
+foreach my $chsam(keys %pairsample) { 
+	if($pairsample{$chsam}!~/pair1/) { print RED; print "Sample $chsam has not pair1 in the samples file. Please check\n"; print RESET;  die; }
+	}
 
 my $currtime=timediff();
 print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
