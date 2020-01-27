@@ -180,12 +180,14 @@ if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"
 
 	#-- Check that everything is correct in the samples file
 
+my %pairsample;
 open(infile1,$equivfile) || die "Can't open samples file (-s) in $equivfile. Please check that it is the correct file\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	$_=~s/\r//g;
 	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+	$pairsample{$sample}.="$iden;";
 	if($_=~/ /) { print RED; print "Please do not use blank spaces in the samples file\n"; print RESET;  die; }
 	if(($iden ne "pair1") && ($iden ne "pair2")) { print RED; print "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; print RESET;  die; }
 	if((!$sample) || (!$file) || (!$iden)) { print RED; print "Bad format in samples file $equivfile. Missing fields\n"; print RESET;  die; }
