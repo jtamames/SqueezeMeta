@@ -39,7 +39,7 @@ our $installpath = abs_path("$scriptdir/..");
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$binners,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
@@ -84,9 +84,8 @@ Arguments:
    -b|-block-size <block size>: block size for diamond against the nr database (Default: 8)
    
  Binning:
-   --nobins: Skip all binning  (Default: no)
-   --nomaxbin: Skip MaxBin binning  (Default: no)
-   --nometabat: Skip MetaBat2 binning  (Default: no)
+   --nobins: Skip all binning  (Default: no). Overrides --binners 
+   --binners: Specify binning programs to be used (available: maxbin, metabat)  (Default: maxbin,metabat)
    
  Performance:
    -t <threads>: Number of threads (Default: 12)
@@ -121,8 +120,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "euk" => \$euknofilter,
 		     "extdb=s" => \$opt_db, 
 		     "nobins" => \$nobins,   
-		     "nomaxbin" => \$nomaxbin,   
-		     "nometabat" => \$nometabat,  
+		     "binners" => \$binners,   
 		     "D|doublepass" => \$doublepass, 
 		     "b|block_size=i" => \$blocksize,
 		     "e|evalue=f" => \$evalue,   
@@ -149,6 +147,7 @@ if(!$nopfam) { $nopfam=0; }
 if(!$euknofilter) { $euknofilter=0; }
 if(!$doublepass) { $doublepass=0; }
 if(!$nobins) { $nobins=0; }
+if(!$binners) { $binners="maxbin,metabat"; }
 if(!$nomaxbin) { $nomaxbin=0; }
 if(!$nometabat) { $nometabat=0; }
 if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
@@ -164,7 +163,7 @@ if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
 #-- Check if we have all the needed options
 
 
-my($dietext,$finaltrace);
+my($dietext,$finaltrace,%binnerstorun);
 if($ver) { exit; }
 if($hel) { die "$helptext\n"; } 
 if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
@@ -172,9 +171,15 @@ if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if(!$mode) { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
 if(($mode!~/sequential$/i) && (!$project)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
 if(($mode=~/sequential$/i) && ($project)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
-if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
-if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
+if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge)\n"; }
+if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr)\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq="$pwd/$rawfastq"; }
+my @binner=split(/\,/,$binners);
+foreach my $tbinner(@binner) { 
+	if($tbinner=~/maxbin/i) { $binnerstorun{"maxbin"}=1; }
+	elsif($tbinner=~/metabat/i) { $binnerstorun{"metabat"}=1; }
+	else { $dietext.="UNRECOGNIZED binner $tbinner (valid ones are maxbin, metabat)\n"; }
+	}
 
 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }
 
@@ -295,8 +300,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$euknofilter/)     { print outfile5 "\$euknofilter     = $euknofilter;\n";         }
 			elsif($_=~/^\$doublepass/)      { print outfile5 "\$doublepass      = $doublepass;\n";          }
 			elsif($_=~/^\$nobins/)          { print outfile5 "\$nobins          = $nobins;\n";              }
-			elsif($_=~/^\$nomaxbin/)        { print outfile5 "\$nomaxbin        = $nomaxbin;\n";            }
-			elsif($_=~/^\$nometabat/)       { print outfile5 "\$nometabat       = $nometabat;\n";           }
+			elsif($_=~/^\$binners/)         { print outfile5 "\$binners         = $binners;\n";            }
 			elsif($_=~/^\$mapper/)          { print outfile5 "\$mapper          = \"$mapper\";\n";          }
 			elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $cleaning;\n";            }
 			elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$cleaningoptions\";\n"; }
@@ -448,7 +452,7 @@ else {
 		elsif($_=~/^\$nopfam/)                    { print outfile6 "\$nopfam          = $nopfam;\n";                          }
 		elsif($_=~/^\$euknofilter/)               { print outfile6 "\$euknofilter     = $euknofilter;\n";                     }
 		elsif($_=~/^\$nobins/)                    { print outfile6 "\$nobins          = $nobins;\n";                          }
-		elsif($_=~/^\$nomaxbin/)                  { print outfile6 "\$nomaxbin        = $nomaxbin;\n";                        }
+		elsif($_=~/^\$binners/)                   { print outfile6 "\$binners         = $binners;\n";                        }
 		elsif($_=~/^\$nometabat/)                 { print outfile6 "\$nometabat       = $nometabat;\n";                       }
 		elsif($_=~/^\$doublepass/)                { print outfile6 "\$doublepass      = $doublepass;\n";                      }
 		elsif($_=~/^\$mapper/)                    { print outfile6 "\$mapper          = \"$mapper\";\n";                      }
