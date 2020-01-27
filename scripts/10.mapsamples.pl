@@ -239,12 +239,12 @@ sub sqm_counter {
 		if($countreads%1000000==0) { print "  $countreads reads counted\r"; }
 		#-- Calculation of the length match end using CIGAR string
 
-		while($cigar=~/^(\d+)([IDM])/) {
+		while($cigar=~/^(\d+)([IDMNSHPX])/) {
 			my $mod=$1;
 			my $type=$2;
-			if($type=~/M|D/) { $endread+=$mod; }	#-- Update end position according to the match found
-			elsif($type=~/I/) { $endread-=$mod; }
-			$cigar=~s/^(\d+)([IDM])//g;
+			if($type=~/M|D|N/) { $endread+=$mod; }	#-- Update end position according to the match found
+			elsif($type=~/I|S/) { $endread-=$mod; }
+			$cigar=~s/^(\d+)([IDMNSHPX])//g;
 			}
 		# print "*$incontig*$init*$end\n";
 		foreach my $initgen(sort { $a<=>$b; } keys %{ $genesincontigs{$incontig} }) {
