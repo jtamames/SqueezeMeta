@@ -21,20 +21,22 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$databasepath,$resultpath,$aafile,$contigsfna,%bindirs,$contigcov,$dastool_soft,$alllog,$tempdir,$methodsfile,$score_tres16,$numthreads,$syslogfile);
+our($installpath,$datapath,$databasepath,$resultpath,$interdir,$binresultsdir,$binners,$aafile,$contigsfna,$contigcov,$dastool_soft,$alllog,$tempdir,$methodsfile,$score_tres15,$numthreads,$syslogfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
-my $daspath="$resultpath/DAS";
-system("mkdir $daspath");
+my $daspath="$interdir/binners/DAS";
+if(-d $daspath) {} else { system("mkdir $daspath"); }
 
 #-- Creating contigs in bins tables
 
 print "Creating tables of contigs in bins... ";
 my($tables,$methods,$thiseq,$numbinmethods);
 my @files;
-foreach my $binmethod(sort keys %bindirs) {
-	my $bindir=$bindirs{$binmethod};
+my @binner=split(/\,/,$binners);
+
+foreach my $binmethod(@binner) {
+	my $bindir="$interdir/binners/$binmethod";
 	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 	my @fastafiles=grep(/fasta$|fa$/,readdir indir1);
 	closedir indir1;
@@ -62,25 +64,28 @@ foreach my $binmethod(sort keys %bindirs) {
 chop $tables;
 chop $methods;
 print "done\n";
+if(-d $binresultsdir) {} else { system "mkdir $binresultsdir"; }
 
 if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta files from it
 	my $gmet=$methods;
 	print "Only one binning result: Copying $gmet results and skipping DAS Tool\n";
 	print outsyslog "Only one binning result: Copying $gmet results and skipping DAS Tool\n";
-	my $bindir=$bindirs{$gmet};
-	system("mkdir $resultpath/DAS/$project\_DASTool\_bins");
-	my $command="cp $bindir/*fasta $resultpath/DAS/$project\_DASTool\_bins";
-	system $command;
-	my $command="cp $bindir/*fa $resultpath/DAS/$project\_DASTool\_bins";
-	system $command;
+	my @binner=split(/\,/,$binners);
+	foreach my $tbinner(@binner) { 
+		my $bindir="$interdir/binners/$tbinner";
+		my $command="cp $bindir/*fasta $binresultsdir";
+		system $command;
+		my $command="cp $bindir/*fa $binresultsdir";
+		system $command;
+		}
 	}
 
 else { 				#-- Otherwise, run DAS tool to combine results
 	
-	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
+	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres15 --search_engine diamond -t $numthreads -o $interdir/binners/DAS/$project --db_directory $databasepath";
  
 	print "Running DAS Tool for $methods\n";
-	print outsyslog "Running DAS Tool for $methods: das_command\n";
+	print outsyslog "Running DAS Tool for $methods: $das_command\n";
 	my $ecode = system $das_command;
 	if($ecode!=0) { warn "Error running command:    $das_command"; }
 	else {
@@ -89,4 +94,7 @@ else { 				#-- Otherwise, run DAS tool to combine results
 		close outmet;
 		}
 	}
+
+print "  Final binning results stored in $binresultsdir\n";	
+system("mv $interdir/binners/DAS/$project\_DASTool\_bins/* $binresultsdir");	
 close outsyslog;

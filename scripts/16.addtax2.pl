@@ -22,7 +22,7 @@ do "$projectpath/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$databasepath,$interdir,$alllog,$bintax,$mincontigs17,$minconsperc_asig17,$minconsperc_total17,%bindirs,%dasdir);
+our($datapath,$databasepath,$interdir,$alllog,$bintax,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir);
 
 	#-- Some configuration values for the algorithm
 	
@@ -70,9 +70,8 @@ close infile1;
 
 
 open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
-foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
-	my $bindir=$dasdir{$binmethod};
-	print "  Looking for $binmethod bins in $bindir\n";
+	my $bindir=$binresultsdir;
+	print "  Looking for bins in $bindir\n";
 
 	#-- Reading bin directories
 
@@ -169,7 +168,7 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		
 			#-- If it does, store the consensus tax and rank
 		
-			if(($percas>=$minconsperc_asig17) && ($perctotal>=$minconsperc_total17) && ($totalcount>=$mincontigs17) && ($times>$times2)) { 
+			if(($percas>=$minconsperc_asig16) && ($perctotal>=$minconsperc_total16) && ($totalcount>=$mincontigs16) && ($times>$times2)) { 
 				#-- Calculation of disparity for this rank
 				my($chimera,$nonchimera,$unknown)=0;
 				foreach my $contig(sort keys %store) { 
@@ -221,11 +220,10 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 				}
 			print outfile2 ";";
 			}
-		printf outfile1 "$binmethod\t$k\tConsensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
+		printf outfile1 "DAS\t$k\tConsensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
 		close outfile2;
 
  	}
-}
 close outfile1;
 
 

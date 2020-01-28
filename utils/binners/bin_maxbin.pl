@@ -21,7 +21,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($databasepath,$contigsfna,$contigcov,$maxbin_soft,$alllog,$tempdir,$interdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
 my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
@@ -32,14 +32,6 @@ my(%allcontigs,%skip);
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
-	#-- Reading contigs
-
-#open(infile1,$contigsfna) || die;
-#while(<infile1>) {
-#	chomp;
-#	if($_=~/^\>([^ ]+)/) { $allcontigs{$1}=1; }
-#	}
-#close infile1;
 
 print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
 open(infile0,$mappingfile) || die "Can't open $alllog\n";
@@ -83,7 +75,7 @@ close outfile1;
 
 	#-- Creating binning directory
 
-my $dirbin=$bindirs{maxbin};
+my $dirbin="$interdir/binners/maxbin";
 if(-d $dirbin) {} else { system "mkdir $dirbin"; }
 
 	#-- Creating abundance file

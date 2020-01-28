@@ -23,7 +23,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resultpath,$tempdir,$minsize18,$numthreads,$interdir,$methodsfile,$syslogfile);
+our($installpath,$datapath,$taxlist,$binresultsdir,$checkm_soft,$alllog,$resultpath,$tempdir,$minsize17,$numthreads,$interdir,$methodsfile,$syslogfile,$checkmfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
@@ -52,8 +52,8 @@ close infile1;
 
 	#-- Read bin directories
 
-foreach my $binmethod(sort keys %dasdir) {
-	my $bindir=$dasdir{$binmethod};
+	my $binmethod="DAS";
+	my $bindir=$binresultsdir;
 	print "  Looking for $binmethod bins in $bindir\n";
 	
 	#-- Read contigs in bins
@@ -76,8 +76,7 @@ print "  $numbins bins found\n\n";
 closedir indir;
 
 
-my($checkmfile,$currentbin);
-$checkmfile="$interdir/18.$project.$binmethod.checkM";	#-- From checkm_batch.pl, checkm results for all bins
+my $currentbin;
 if(-e $checkmfile) { system("rm $checkmfile"); }
 
 	#-- Working for each bin
@@ -100,7 +99,7 @@ foreach my $m(@files) {
 			my($cons,$size,$chim,$chimlev)=split(/\t/,$_);
 			$cons=~s/Consensus\: //;
 			$size=~s/Total size\: //g;
-			if($size<$minsize18) { print "  Skipping bin because of low size ($size<$minsize18)\n"; next; }
+			if($size<$minsize17) { print "  Skipping bin because of low size ($size<$minsize17)\n"; next; }
 			$consensus{$thisfile}=$cons;
 			my @k=split(/\;/,$cons);
 		
@@ -169,7 +168,6 @@ foreach my $m(@files) {
  	} 
 print "\n  Storing results for $binmethod in $checkmfile\n";
 
-}
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Bin statistics were computed using CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n";

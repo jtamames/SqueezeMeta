@@ -28,7 +28,7 @@ our($datapath,$tempdir,$basedir,$prinseq_soft,$mincontiglen,$resultpath,$contigs
 my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
 
-my $resultfile="$resultpath/22.$project.stats";
+my $resultfile="$resultpath/21.$project.stats";
 open(outfile1,">$resultfile") || die "Can't open $resultfile for writing\n";
 
 	#-- Read list of external databases

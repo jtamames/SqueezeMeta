@@ -18,7 +18,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction21,%bindirs,%dasdir);
+our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction20,$binresultsdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
 print " Running MinPath (Ye and Doak 2009, PLoS Comput Biol 5(8), e1000465)\n";
@@ -100,7 +100,7 @@ close outsyslog;
 sub outres {
 	my $clas=shift;
 	my $totpath;
-	open(outfile5,">$resultpath/21.$project.$clas.pathways") || die "Can't open $resultpath/21.$project.$clas.pathways for writing\n";
+	open(outfile5,">$resultpath/20.$project.$clas.pathways") || die "Can't open $resultpath/20.$project.$clas.pathways for writing\n";
 	print outfile5 "Bin\tTax\tPathways found";
 	foreach my $pt(sort keys %allpaths) { print outfile5 "\t$pt"; $totpath++; }
 	print outfile5 "\n";
@@ -112,7 +112,7 @@ sub outres {
 		foreach my $pt(sort keys %allpaths) { 
 			my $fraction=$pathgenes{$mt}{$pt}/$pathgenes{total}{$pt};
 			my $pv;
-			if((($fraction>=$minfraction21) || ($pathgenes{$mt}{$pt}>=5)) && ($pathways{$mt}{$pt})) { $pv=$pathgenes{$mt}{$pt} } else { $pv="NF"; }
+			if((($fraction>=$minfraction20) || ($pathgenes{$mt}{$pt}>=5)) && ($pathways{$mt}{$pt})) { $pv=$pathgenes{$mt}{$pt} } else { $pv="NF"; }
 			print outfile5 "\t$pv"; 
 			}
 		print outfile5 "\n";

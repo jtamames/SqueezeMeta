@@ -29,16 +29,16 @@ $minraw12=200;  	     #-- STEP12: Minimum number of raw counts to be included in
 
 $seqsinfile13=0;     #-- STEP13: Put sequences in the output table (0=no, 1=yes)
 
-$maxchimerism15=0.1;   #--STEP15:  Threshold for excluding chimeric contigs
-$mingenes15=1;	     #--STEP15:  Threshold for excluding small contigs (few genes than this)
-$smallnoannot15=1;     #-- STEP15: For excluding contigs with just one gene an no annotation
+$maxchimerism14=0.1;   #--STEP14:  Threshold for excluding chimeric contigs
+$mingenes14=1;	     #--STEP14:  Threshold for excluding small contigs (few genes than this)
+$smallnoannot14=1;     #-- STEP14: For excluding contigs with just one gene an no annotation
 
-$score_tres16=0.25;    #-- STEP16: Score threshold for keeping bins (proxy for level of completeness)
+$score_tres15=0.25;    #-- STEP15: Score threshold for keeping bins (proxy for level of completeness)
 
-$mincontigs17=1;  	     #-- STEP17: Minimum number of contigs for the bin 
-$minconsperc_asig17=0.6;       #-- STEP17: Ratio contigs for the taxon/sum(genes all taxa). Therefore it only considers assigned contigs
-$minconsperc_total17=0.3;      #-- STEP17: Ratio contigs for the taxon/number of contigs. Therefore it considers all (assigned+unassigned) contigs
+$mincontigs16=1;  	     #-- STEP16: Minimum number of contigs for the bin 
+$minconsperc_asig16=0.6;       #-- STEP16: Ratio contigs for the taxon/sum(genes all taxa). Therefore it only considers assigned contigs
+$minconsperc_total16=0.3;      #-- STEP16: Ratio contigs for the taxon/number of contigs. Therefore it considers all (assigned+unassigned) contigs
 
-$minsize18=20000;  #--STEP18: Minimum size of a bin to be considered
+$minsize17=20000;  #--STEP17: Minimum size of a bin to be considered
 
-$minfraction21=0.1;    #--STEP21: Minimum percentage of genes from a pathway to be present
+$minfraction20=0.1;    #--STEP20: Minimum percentage of genes from a pathway to be present

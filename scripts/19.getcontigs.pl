@@ -23,7 +23,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,$nobins,$contigtable,%bindirs,%dasdir);
+our($datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,$nobins,$contigtable,$binresultsdir);
 
 my(%contig,%allsamples);
 tie %allsamples,"Tie::IxHash";
@@ -147,7 +147,7 @@ foreach my $ctg(@sortedcontigs) {
 		my $bname;
 		my $ld=0;
 		$binfield="{\"Bins\": [";
-		foreach my $binmet(sort keys %dasdir) { 
+			my $binmet="DAS";
 			if($contig{$p}{bin}{$binmet}) { 
 				$bname=$contig{$p}{bin}{$binmet};
 				$bname=~s/\.fasta\.contigs|\.fa\.contigs//;
@@ -155,7 +155,6 @@ foreach my $ctg(@sortedcontigs) {
 				$binfield.="{ \"$binmet\":\"$contig{$p}{bin}{$binmet}\" }"; 
 				$ld=1;
 				}
-			}
 		$binfield.="] }";					 
 	 if(!$ld) { $binfield=""; }	#-- JSON format
 	 $binfield=$bname;		#- Simpler nomenclature, not in JSON format

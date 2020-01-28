@@ -7,15 +7,14 @@ $scriptdir    = "$installpath/scripts";   #-- Scripts directory
 
 #-- Paths relatives to the project
 
-$projectname = "";
-$basedir     = ".";
-$datapath    = "$basedir/$projectname/data";                                       #-- Directory containing all datafiles
-$resultpath  = "$basedir/$projectname/results";                                    #-- Directory for storing results
-$extpath     = "$basedir/$projectname/ext_tables";                                 #-- Directory for storing tables for further analysis
-$tempdir     = "$basedir/$projectname/temp";                                       #-- Temp directory
-$interdir    = "$basedir/$projectname/intermediate";                               #-- Temp directory
-%bindirs     = ("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");  #-- Directories for bins
-%dasdir      = ("DASTool","$resultpath/DAS/$projectname\_DASTool\_bins");	   #-- Directory for DASTool results
+$projectname   = "";
+$basedir       = ".";
+$datapath      = "$basedir/$projectname/data";                                       #-- Directory containing all datafiles
+$resultpath    = "$basedir/$projectname/results";                                    #-- Directory for storing results
+$extpath       = "$basedir/$projectname/ext_tables";                                 #-- Directory for storing tables for further analysis
+$tempdir       = "$basedir/$projectname/temp";                                       #-- Temp directory
+$interdir      = "$basedir/$projectname/intermediate";                               #-- Temp directory
+$binresultsdir = "$resultpath/bins";						   #-- Directory for bins
 
 
 #-- Result files
@@ -49,11 +48,12 @@ $mapcountfile    = "$interdir/10.$projectname.mapcount";        #-- From mapsamp
 $contigcov       = "$interdir/10.$projectname.contigcov";       #-- From mapbamsamples.pl, coverages of  for all samples
 $mcountfile      = "$resultpath/11.$projectname.mcount";        #-- From mcount.pl, abundances of all taxa
 $mergedfile      = "$resultpath/13.$projectname.orftable";      #-- Gene table file
-$bintax          = "$interdir/17.$projectname.bintax";          #-- From addtax2.pl
-$bincov          = "$interdir/19.$projectname.bincov";          #-- Coverage of bins, from getbins.pl
-$bintable        = "$resultpath/19.$projectname.bintable";      #-- Mapping of contigs in bins, from getbins.pl
-$contigsinbins   = "$interdir/19.$projectname.contigsinbins";   #-- Bin to which each contig belongs
-$contigtable     = "$resultpath/20.$projectname.contigtable";   #-- From getcontigs.pl, contigs table
+$bintax          = "$interdir/16.$projectname.bintax";          #-- From addtax2.pl
+$checkmfile	 = "$interdir/17.$project.checkM";	#-- From checkm_batch.pl
+$bincov          = "$interdir/18.$projectname.bincov";          #-- Coverage of bins, from getbins.pl
+$bintable        = "$resultpath/18.$projectname.bintable";      #-- Mapping of contigs in bins, from getbins.pl
+$contigsinbins   = "$interdir/18.$projectname.contigsinbins";   #-- Bin to which each contig belongs
+$contigtable     = "$resultpath/19.$projectname.contigtable";   #-- From getcontigs.pl, contigs table
 
 #-- Datafiles
 
@@ -80,6 +80,7 @@ $doublepass      = 0;
 $cleaning        = 0;
 $cleaningoptions = "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper          = "bowtie";
+$binners	 = "maxbin,metabat2";
 
 #-- External software
 
@@ -107,3 +108,4 @@ $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "$installpath/bin/kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";
+%binscripts	    = ('maxbin',"$installpath/utils/binners/bin_maxbin.pl",'metabat2',"$installpath/utils/binners/bin_metabat2.pl");

@@ -23,7 +23,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$interdir,$bintable);
+our($datapath,$bincov,$contigcov,$binresultsdir,$contigsinbins,$resultpath,$interdir,$bintable,$checkmfile);
 my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna,%rinsample);
 tie %allsamples,"Tie::IxHash";
 
@@ -56,13 +56,11 @@ open(outfile2,">>$contigsinbins") || die "Can't open $contigsinbins for writing\
 print outfile2 "#--Created by $0,",scalar localtime,"\n";
 print outfile2 "# Contig\tMethod\tBin ID\n";
 
-foreach my $binmethod(sort keys %dasdir) {
-
+	my $binmethod="DAS";
 	#-- For all the binning methods
 
 	print "  Method:$binmethod\n";
-	my $bindir=$dasdir{$binmethod};
-	my $checkmfile="$interdir/18.$project.$binmethod.checkM";
+	my $bindir=$binresultsdir;
 	print "  Reading checkM results in $checkmfile\n";
 	
 		#-- Read checkM results for each bin
@@ -180,7 +178,6 @@ foreach my $binmethod(sort keys %dasdir) {
 			}
 		}
 
-	}
 		
 	#-- Create table of results	
 					   

@@ -19,7 +19,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile);
+our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$interdir,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,$syslogfile);
 my %skip;
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
@@ -71,7 +71,7 @@ close outfile1;
 
 	#-- Creating binning directory
 
-my $dirbin=$bindirs{metabat2};
+my $dirbin="$interdir/binners/metabat2";
 if(-d $dirbin) {} else { system "mkdir $dirbin"; }
 
 	#-- Reading contig abundances
