@@ -204,6 +204,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     subSQM$orfs$table                 = SQM$orfs$table[orfs      ,,drop=F]
     subSQM$orfs$abund                 = SQM$orfs$abund[orfs      ,,drop=F]
+    subSQM$orfs$bases                 = SQM$orfs$bases[orfs      ,,drop=F]
     subSQM$orfs$cov                   = SQM$orfs$cov[orfs        ,,drop=F]
     subSQM$orfs$tpm                   = SQM$orfs$tpm[orfs        ,,drop=F]
     subSQM$orfs$seqs                  = SQM$orfs$seqs[orfs]
@@ -242,14 +243,18 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     PFAM                              = aggregate.fun(subSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
 
     subSQM$functions$KEGG$abund       = KEGG$abund
+    subSQM$functions$KEGG$bases       = KEGG$bases
     subSQM$functions$COG$abund        = COG$abund
+    subSQM$functions$COG$bases        = COG$bases
     subSQM$functions$PFAM$abund       = PFAM$abund
+    subSQM$functions$PFAM$bases       = PFAM$bases
 
     ext_annots = list()
     for(method in subSQM$misc$ext_annot_sources)
         {
         ext_annots[[method]]          = aggregate.fun(subSQM, method, trusted_functions_only, ignore_unclassified_functions)
         subSQM$functions[[method]]$abund = ext_annots[[method]]$abund
+        subSQM$functions[[method]]$bases = ext_annots[[method]]$bases
         }
 
     if(rescale_tpm)

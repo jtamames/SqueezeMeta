@@ -43,6 +43,10 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
     rownames(abund)            = abund[,1]
     abund                      = as.matrix(abund[,-1,drop=F])
 
+    bases                      = aggregate(SQM$orfs$bases, by=list(funs), FUN=sum)
+    rownames(bases)            = bases[,1]
+    bases                      = as.matrix(bases[,-1,drop=F])
+
     coverage                   = aggregate(SQM$orfs$cov  , by=list(funs), FUN=sum)
     rownames(coverage)         = coverage[,1]
     coverage                   = as.matrix(coverage[,-1,drop=F])
@@ -66,6 +70,7 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
     if(ignore_unclassified_functions)
         {
         abund    = abund[rownames(abund)      !='Unclassified',]
+        bases    = bases[rownames(bases)      !='Unclassified',]
         tpm      = tpm  [rownames(tpm)        !='Unclassified',]
         coverage = coverage[rownames(coverage)!='Unclassified',]
         lengths  = lengths[rownames(lengths)  !='Unclassified',]
@@ -73,6 +78,7 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
         }
 
     stopifnot(identical(rownames(abund), rownames(tpm)))
+    stopifnot(identical(rownames(abund), rownames(bases)))
     stopifnot(identical(rownames(abund), rownames(coverage)))
     stopifnot(identical(rownames(abund), rownames(lengths)))
     stopifnot(identical(rownames(abund), rownames(copies)))
@@ -92,6 +98,16 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
                 abund_r = abund[mf,,drop=F] / length(mfs)
                 rownames(abund_r) = fun_
                 abund = rbind(abund, abund_r)
+                }
+
+            if(fun_ %in% rownames(bases))
+                {
+                bases[fun_,] = bases[fun_,] + bases[mf,] / length(mfs)
+            } else
+                {
+                bases_r = bases[mf,,drop=F] / length(mfs)
+                rownames(bases_r) = fun_
+                bases = rbind(bases, bases_r)
                 }
 
             if(fun_ %in% rownames(coverage))
@@ -134,21 +150,23 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
         }
 
     abund        = abund   [!rownames(abund)    %in% multiFuns,,drop=F]
+    bases        = bases   [!rownames(bases)    %in% multiFuns,,drop=F]
     coverage     = coverage[!rownames(coverage) %in% multiFuns,,drop=F]
     lengths      = lengths [!rownames(lengths)  %in% multiFuns,,drop=F]
     copies       = copies  [!rownames(copies)   %in% multiFuns,,drop=F]
     tpm          = tpm     [!rownames(tpm)      %in% multiFuns,,drop=F]
 
     avgLengths   = lengths / copies
-    rpk          = 1000 * abund/avgLengths
+    rpk          = 1000 * bases/avgLengths
     rpk[is.na(rpk)] = 0
     tpm_rescaled = 1000000 * t(t(rpk)/colSums(rpk))
 
     abund        = abund   [sort(rownames(abund))           ,,drop=F]
+    bases        = abund   [sort(rownames(bases))           ,,drop=F]
     coverage     = coverage[sort(rownames(coverage))        ,,drop=F]
     tpm          = tpm     [sort(rownames(tpm))             ,,drop=F]
     tpm_rescaled = tpm_rescaled[sort(rownames(tpm_rescaled)),,drop=F]
 
-    return(list(abund=round(abund), cov=coverage, tpm=tpm, tpm_rescaled=tpm_rescaled))
+    return(list(abund=round(abund), bases=round(bases), cov=coverage, tpm=tpm, tpm_rescaled=tpm_rescaled))
 
     }

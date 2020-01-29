@@ -23,12 +23,13 @@ require(reshape2)
 #' \tabular{lllllll}{
 #' \bold{lvl1}         \tab \bold{lvl2}               \tab \bold{lvl3}          \tab \bold{type}             \tab \bold{rows/names} \tab \bold{columns} \tab \bold{data}        \cr
 #' \bold{$orfs}        \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab orfs              \tab misc. data     \tab misc. data         \cr
-#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances (reads) \cr
+#'                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances (bases) \cr
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
 #' \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr
-#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (reads) \cr
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab contigs           \tab (n/a)          \tab sequences          \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab contigs           \tab tax. ranks     \tab taxonomies         \cr
@@ -36,27 +37,30 @@ require(reshape2)
 #' $bins               \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab bins              \tab misc. data     \tab misc. data         \cr
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy           \cr
-#' \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances         \cr
+#' \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$phylum}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$phylum}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$class}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$class}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$order}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$order}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$family}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab families          \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$family}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab families          \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab families          \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$genus}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$genus}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$species}           \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab species           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$species}           \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab species           \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab species           \tab samples        \tab percentages        \cr
-#' \bold{$functions}   \tab \bold{$KEGG}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances         \cr
+#' \bold{$functions}   \tab \bold{$KEGG}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances (reads) \cr
+#'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances (bases) \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab avg. copies        \cr
-#'                     \tab \bold{$COG}               \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$COG}               \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances (reads) \cr
+#'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances (bases) \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab avg. copies        \cr
-#'                     \tab \bold{$PFAM}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$PFAM}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances (reads) \cr
+#'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances (bases) \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab avg. copies        \cr
 #' \bold{$total_reads} \tab                           \tab                      \tab \emph{numeric vector}   \tab samples           \tab (n/a)          \tab total reads        \cr
@@ -76,7 +80,7 @@ require(reshape2)
 #'                     \tab \bold{$COG_paths}         \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab COG hierarchy      \cr
 #'                     \tab \bold{$ext_annot_sources} \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab external databases \cr
 #' }
-#' If external databases for functional classification were provided to SqueezeMeta via the \code{-extdb} argument, the corresponding abundance, tpm and copy number profiles will be present in \code{SQM$functions} (e.g. results for the CAZy database would be present in \code{SQM$functions$CAZy}). Additionally, the extended names of the features present in the external database will be present in \code{SQM$misc} (e.g. \code{SQM$misc$CAZy_names}).
+#' If external databases for functional classification were provided to SqueezeMeta via the \code{-extdb} argument, the corresponding abundance (reads and bases), tpm and copy number profiles will be present in \code{SQM$functions} (e.g. results for the CAZy database would be present in \code{SQM$functions$CAZy}). Additionally, the extended names of the features present in the external database will be present in \code{SQM$misc} (e.g. \code{SQM$misc$CAZy_names}).
 #' }
 #' @param project_path character, project directory generated by SqueezeMeta. 
 #' @param tax_mode character, which taxonomic classification should be loaded? SqueezeMeta applies the identity thresholds described in \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4005636/}{Luo \emph{et al.}, 2014}. Use \code{allfilter} for applying the minimum identity threshold to all taxa (default) and \code{prokfilter} for applying the threshold to Bacteria and Archaea, but not to Eukaryotes.
@@ -133,6 +137,8 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     cat('    abundances...\n')
     SQM$orfs$abund               = as.matrix(SQM$orfs$table[,grepl('Raw read count', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$abund)     = gsub('Raw read count ', '', colnames(SQM$orfs$abund), fixed=T)
+    SQM$orfs$bases               = as.matrix(SQM$orfs$table[,grepl('Raw base count', colnames(SQM$orfs$table)),drop=F])
+    colnames(SQM$orfs$bases)     = gsub('Raw base count ', '', colnames(SQM$orfs$abund), fixed=T)
     SQM$orfs$cov                 = as.matrix(SQM$orfs$table[,grepl('Coverage', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$cov)       = gsub('Coverage ', '', colnames(SQM$orfs$cov), fixed=T)
     SQM$orfs$tpm                 = as.matrix(SQM$orfs$table[,grepl('TPM', colnames(SQM$orfs$table)),drop=F])
@@ -334,14 +340,17 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         has_KEGG                               = TRUE
         SQM$functions$KEGG$abund               = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$KEGG$bases               = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.bases.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$KEGG$tpm                 = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.tpm.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
     }else
         {
         warning('    There are no KEGG results in your project. Skipping...')
         has_KEGG                               = FALSE
-        SQM$functions$KEGG$abund               = NULL # Just being explicit here
-        SQM$functions$KEGG$tpm                 = NULL # Just being explicit here
+        SQM$functions$KEGG$abund               = NULL # Just being needessly explicit here
+        SQM$functions$KEGG$bases               = NULL # Just being needessly explicit here
+        SQM$functions$KEGG$tpm                 = NULL # Just being needessly explicit here
         }
     ### COG              
     if(file.exists(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name)))
@@ -350,14 +359,17 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         SQM$functions$COG                      = list()
         SQM$functions$COG$abund                = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$COG$bases                = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.bases.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$COG$tpm                  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.tpm.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
     }else
         {
         warning('    There are no COG results in your project. Skipping...')
         has_COG                            = FALSE
-        SQM$functions$COG$abund            = NULL # Just being explicit here
-        SQM$functions$COG$tpm              = NULL # Just being explicit here
+        SQM$functions$COG$abund            = NULL # Just being needessly explicit here
+        SQM$functions$COG$bases            = NULL # Just being needessly explicit here
+        SQM$functions$COG$tpm              = NULL # Just being needessly explicit here
         }
     ### PFAM
     SQM$functions$PFAM                     = list()
@@ -366,14 +378,17 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         has_PFAM = TRUE
         SQM$functions$PFAM$abund           = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$PFAM$bases           = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.bases.tsv', project_path, project_name),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$PFAM$tpm             = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.tpm.tsv', project_path, project_name),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
     }else
         {
         warning('    There are no PFAM results in your project. Skipping...')
         has_PFAM                           = FALSE
-        SQM$functions$PFAM$abund           = NULL # Just being explicit here
-        SQM$functions$PFAM$tpm             = NULL # Just being explicit here
+        SQM$functions$PFAM$abund           = NULL # Just being needlessly explicit here
+        SQM$functions$PFAM$bases           = NULL # Just being needlessly explicit here
+        SQM$functions$PFAM$tpm             = NULL # Just being needlessly explicit here
         }
 
     ### EXTERNAL ANNOTATION SOURCES
@@ -381,6 +396,8 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         {
         SQM$functions[[method]] = list()
 	SQM$functions[[method]]$abund      = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.abund.tsv', project_path, project_name, method),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions[[method]]$bases      = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.bases.tsv', project_path, project_name, method),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions[[method]]$tpm        = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.tpm.tsv', project_path, project_name, method),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))

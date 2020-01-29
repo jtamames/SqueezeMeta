@@ -73,24 +73,28 @@ def main(args):
         if not nokegg:
             write_row_dict(['Name', 'Path'], kegg['info'], prefix + 'KO.names.tsv')
             write_row_dict(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
+            write_row_dict(sampleNames, kegg['bases'], prefix + 'KO.bases.tsv')
             write_row_dict(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
             if 'copyNumber' in kegg:
                 write_row_dict(sampleNames, kegg['copyNumber'], prefix + 'KO.copyNumber.tsv')
         if not nocog:
             write_row_dict(['Name', 'Path'], cog['info'], prefix + 'COG.names.tsv')
             write_row_dict(sampleNames, cog['abundances'], prefix + 'COG.abund.tsv')
+            write_row_dict(sampleNames, cog['bases'], prefix + 'COG.bases.tsv')
             write_row_dict(sampleNames, cog['tpm'], prefix + 'COG.tpm.tsv')
             if 'copyNumber' in cog:
                 write_row_dict(sampleNames, cog['copyNumber'], prefix + 'COG.copyNumber.tsv')
                 write_row_dict(sampleNames, {'COG0468': cog['coverages']['COG0468']}, prefix + 'RecA.tsv')
         if not nopfam:
             write_row_dict(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
+            write_row_dict(sampleNames, pfam['bases'], prefix + 'PFAM.bases.tsv')
             write_row_dict(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
             if 'copyNumber' in pfam:
                 write_row_dict(sampleNames, pfam['copyNumber'], prefix + 'PFAM.copyNumber.tsv')
         for method, d in custom.items():
             write_row_dict(['Name'], d['info'], prefix + method + '.names.tsv')
             write_row_dict(sampleNames, d['abundances'], prefix + method + '.abund.tsv')
+            write_row_dict(sampleNames, d['bases'], prefix + method + '.bases.tsv')
             write_row_dict(sampleNames, d['tpm'], prefix + method + '.tpm.tsv')
             if 'copyNumber' in d:
                 write_row_dict(sampleNames, d['copyNumber'], prefix + method + '.copyNumber.tsv')

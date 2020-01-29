@@ -474,7 +474,7 @@ if($opt_db) {
 foreach my $cnt(keys %mapping) { print outfile1 "\tTPM $cnt"; }
 foreach my $cnt(keys %mapping) { print outfile1 "\tCoverage $cnt"; }
 foreach my $cnt(keys %mapping) { print outfile1 "\tRaw read count $cnt"; }
-foreach my $cnt(keys %mapping) { print outfile1 "\tRAW base count $cnt"; }
+foreach my $cnt(keys %mapping) { print outfile1 "\tRaw base count $cnt"; }
 print outfile1 "\tHits"; 
 if($seqsinfile13) { print outfile1 "\tAASEQ"; }
 print outfile1 "\n";

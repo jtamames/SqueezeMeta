@@ -64,13 +64,13 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
         custom: for each custom annotation method, a dictionary with the same structure as kegg/cog.
     """
 
-    orfs = {res: {}               for res in ('abundances', 'coverages', 'copies', 'lengths')} # I know I'm being inconsistent with camelcase and underscores... ¯\_(ツ)_/¯
-    kegg = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
+    orfs = {res: {}               for res in ('abundances', 'bases', 'coverages', 'copies', 'lengths')} # I know I'm being inconsistent with camelcase and underscores... ¯\_(ツ)_/¯
+    kegg = {res: defaultdict(int) for res in ('abundances', 'bases', 'coverages', 'copies', 'lengths')}
     kegg['info'] = {}
-    cog  = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
+    cog  = {res: defaultdict(int) for res in ('abundances', 'bases', 'coverages', 'copies', 'lengths')}
     cog['info'] = {}
-    pfam = {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')}
-    custom = {method: {res: defaultdict(int) for res in ('abundances', 'coverages', 'copies', 'lengths')} for method in custom_methods}
+    pfam = {res: defaultdict(int) for res in ('abundances', 'bases', 'coverages', 'copies', 'lengths')}
+    custom = {method: {res: defaultdict(int) for res in ('abundances', 'bases', 'coverages', 'copies', 'lengths')} for method in custom_methods}
     [custom[method].update({'info': {}}) for method in custom]
 
 
@@ -87,6 +87,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
                     continue
                 # If we have a multi-KO annotation, split counts between all KOs.
                 funDict['abundances'][fun] += abundances / len(funs)
+                funDict['bases'][fun]      += bases / len(funs)
                 funDict['coverages'][fun]  += coverages / len(funs)
                 funDict['copies'][fun]     += copies # We treat every KO as an individual smaller gene: less size, less reads, one copy.
                 funDict['lengths'][fun]    += lengths / len(funs)
@@ -95,7 +96,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
     def tpm(funDict):
         # Calculate reads per kilobase.    
         fun_avgLengths = {fun: funDict['lengths'][fun] / funDict['copies'][fun] for fun in funDict['lengths']} # NaN appears if a fun has no copies in a sample.
-        fun_rpk = {fun: funDict['abundances'][fun] / (fun_avgLengths[fun]/1000) for fun in funDict['abundances']}
+        fun_rpk = {fun: funDict['bases'][fun] / (fun_avgLengths[fun]/1000) for fun in funDict['bases']}
 
         # Remove NaNs.
         for fun, rpk in fun_rpk.items():
@@ -113,6 +114,7 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
         header = infile.readline().strip().split('\t')
         idx =  {h: i for i,h in enumerate(header)}
         samples = [h for h in header if 'Raw read count' in h]
+        samplesBases = [h for h in header if 'Raw base count' in h]
         samplesCov = [h for h in header if 'Coverage' in h]
         sampleNames = [s.replace('Raw read count ', '') for s in samples]
 
@@ -128,10 +130,12 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
                 continue # print and continue for debug info.
 
             abundances = array([int(line[idx[sample]]) for sample in samples])
+            bases = array([int(line[idx[sample]]) for sample in samplesBases])
             coverages = array([float(line[idx[sample]]) for sample in samplesCov])
             copies = (abundances>0).astype(int) # 1 copy if abund>0 in that sample, else 0.
             lengths = length * copies   # positive if abund>0 in that sample, else 0.
             orfs['abundances'][orf] = abundances
+            orfs['bases'][orf] = bases
             orfs['coverages'][orf] = coverages
             orfs['copies'][orf] = copies
             orfs['lengths'][orf] = lengths
