@@ -135,9 +135,6 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "h" => \$hel
 		    );
 
-$projectdir = abs_path($projectdir);
-$projectname = (split '/', $projectdir)[-1];
-
 #-- Set some default values
 
 if(!$numthreads) { $numthreads=12; }
@@ -179,6 +176,9 @@ if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mo
 if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }
+
+$projectdir = abs_path($projectdir);
+$projectname = (split '/', $projectdir)[-1];
 
 	#-- Check that everything is correct in the samples file
 
