@@ -27,6 +27,7 @@ our($installpath,$datapath,$taxlist,%bindirs,%dasdir,$checkm_soft,$alllog,$resul
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
+print "  Evaluating bins with CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n\n";
 
 my $markerdir="$datapath/checkm_markers";
 my $checktemp="$tempdir/checkm_batch";

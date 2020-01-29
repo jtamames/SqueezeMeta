@@ -108,11 +108,11 @@ print outfile1 "\n";
 
 close outfile1;
 
-	#-- Running metabat
+	#-- Running metabat2
 
 my $command="$metabat_soft -t 8 -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
-print outsyslog "Running metabat2: $command\n";
-print "  Running metabat\n";
+print outsyslog "Running metabat2 : $command\n";
+print "  Running metabat2 (Kang et al 2019, PeerJ 7, e7359)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";

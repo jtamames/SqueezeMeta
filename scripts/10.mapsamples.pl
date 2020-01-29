@@ -68,6 +68,7 @@ print "  Metagenomes found: $numsamples\n";
         #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
 
 if($mapper eq "bowtie") {
+	print "  Mapping with Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n";
 	print outmet "Read mapping against contigs was performed using Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n"; 
         if(-e "$bowtieref.1.bt2") {}
         else {
@@ -78,6 +79,7 @@ if($mapper eq "bowtie") {
                 }
         }
 elsif($mapper eq "bwa") {
+	print "  Mapping with BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
 	print outmet "Read mapping against contigs was performed using BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
         if(-e "$bowtieref.bwt") {}
         else {
@@ -87,7 +89,10 @@ elsif($mapper eq "bwa") {
                 system($bwa_command);
                 }
         }
-elsif($mapper=~/minimap/i) { print outmet "Read mapping against contigs was performed using Minimap2 (Li 2018, Bioinformatics 34(18), 3094-3100)\n"; }
+elsif($mapper=~/minimap/i) { 
+	print "  Mapping with Minimap2 (Li 2018, Bioinformatics 34(18), 3094-3100)\n"; 
+	print outmet "Read mapping against contigs was performed using Minimap2 (Li 2018, Bioinformatics 34(18), 3094-3100)\n"; 
+	}
 
 	#-- Prepare output files
 
@@ -285,7 +290,7 @@ sub sqm_counter {
 		
 		}
 	close infile3;
-	print "\n";
+	print "  $countreads reads counted\n";
 
 	my $accumrpk;
 	foreach my $print(sort keys %accum) { 

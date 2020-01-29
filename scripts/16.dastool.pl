@@ -79,7 +79,7 @@ else { 				#-- Otherwise, run DAS tool to combine results
 	
 	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
  
-	print "Running DAS Tool for $methods\n";
+	print "Running DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43) for $methods\n";
 	print outsyslog "Running DAS Tool for $methods: das_command\n";
 	my $ecode = system $das_command;
 	if($ecode!=0) { warn "Error running command:    $das_command"; }

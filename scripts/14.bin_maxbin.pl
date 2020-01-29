@@ -118,7 +118,7 @@ close outfile1;
 
 my $command="perl $maxbin_soft -thread $numthreads -contig $tempfasta -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
 print outsyslog "Running Maxbin: $command\n";
-print "  Running Maxbin\n";
+print "  Running Maxbin (Wu et al 2016, Bioinformatics 32(4), 605-7)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 
