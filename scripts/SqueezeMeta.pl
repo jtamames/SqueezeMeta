@@ -39,7 +39,7 @@ our $installpath = abs_path("$scriptdir/..");
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$binners,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$checkmfile,$blocksize,$evalue,$miniden,$binners,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$binresultsdir,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%binscripts);  
 
@@ -982,7 +982,6 @@ sub pipeline {
 				my $ecode = system("perl $scriptdir/$scriptname $project");
 				if($ecode!=0) { print RED; print "Stopping in STEP17 -> $scriptname\n"; print RESET; die; }
 				my $binmethod="DAS";
-				$checkmfile="$interdir/17.$project.$binmethod.checkM";
 				my $wc=qx(wc -l $checkmfile);
 				my($wsize,$rest)=split(/\s+/,$wc);
 				if($wsize<4) {
