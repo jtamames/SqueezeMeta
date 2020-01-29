@@ -17,7 +17,7 @@ my $path=$ARGV[1];
 my $mode=$ARGV[2];
 if(!$projectpath) { die "Please provide a valid project name or project path (use -h for help)\n"; }
 if(!$path) { die "Please provide a KEGG pathway code (use -h for help)\n"; }
-if($mode && (($mode!~/single/i) || ($mode!~/multiple/i))) { die "Invalid mode, please use single or multiple (use -h for help)\n"; };
+if($mode && (($mode!~/single/i) && ($mode!~/multiple/i))) { die "Invalid mode, please use single or multiple (use -h for help)\n"; };
 if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
 do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
