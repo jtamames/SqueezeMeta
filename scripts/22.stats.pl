@@ -177,7 +177,7 @@ close infile4;
 	#-- Statistics on bins (disparity, assignment..)
 
 my %bins;
-if($mode ne "sequential") {
+if(!$nobins) {
 	my $header;
 	if(-e $bintable) {
 		open(infile5,$bintable) || die "Can't open $bintable\n";
