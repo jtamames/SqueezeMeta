@@ -80,5 +80,13 @@ print outsyslog "  Extracting final bins: $command\n";
 print "  Extracting final bins\n";
 $command="$concoctdir/scripts/extract_fasta_bins.py $contigsfna $bindir/concoct_int/clustering_merged.csv --output_path $bindir > /dev/null 2>&1";
 system($command);
+print "  Renaming bins\n";
+opendir(indir1,$bindir) || die "Cannot open bin directory $bindir\n";
+my @mfiles=grep(/\.fa/,readdir indir1);
+closedir(indir1);
+foreach my $renam(@mfiles) {
+	my $newname="concoct.".$renam;
+	system("mv $bindir/$renam $bindir/$newname");
+	}
 
 close outsyslog;

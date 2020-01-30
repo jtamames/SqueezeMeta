@@ -36,6 +36,7 @@ my @files;
 my @binner=split(/\,/,$binners);
 
 foreach my $binmethod(@binner) {
+	print "  Using results from $binmethod\n";
 	my $bindir="$interdir/binners/$binmethod";
 	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 	my @fastafiles=grep(/fasta$|fa$/,readdir indir1);
