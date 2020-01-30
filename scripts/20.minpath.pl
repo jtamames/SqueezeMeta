@@ -18,10 +18,13 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction20,$binresultsdir);
+our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$interdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction20,$binresultsdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
 print " Running MinPath (Ye and Doak 2009, PLoS Comput Biol 5(8), e1000465)\n";
+my $minpathdir="$interdir/minpath";
+if(-d $minpathdir) {} else { system("mkdir $minpathdir"); }
+
 open(infile1,"$extdatapath/metacyc_pathways_onto.txt") || die "Can't open $extdatapath/metacyc_pathways_onto.txt\n";
 while(<infile1>) { 
 	chomp;
@@ -121,6 +124,8 @@ sub outres {
 	}
  
 sub metacyc {
+	my $minpathcycdir="$minpathdir/metacyc";
+	if(-d $minpathcycdir) {} else { system("mkdir $minpathcycdir"); }
 	foreach my $kbin(sort keys %ecs) {
 		my $outec="$tempdir/$kbin.minpath.temp";
 		open(outfile1,">$outec") || die "Can't open $outec for writing\n";
@@ -134,7 +139,7 @@ sub metacyc {
 		       }
 		close outfile1; 
 		print "  Running MinPath for metacyc: $kbin         \r";
-		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
+		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $minpathcycdir/$kbin.metacyc.details  > /dev/null";
 		print outsyslog "Running MinPath for metacyc ($kbin): $command \n";
 		my $ecode = system $command;
  		if($ecode!=0) {
@@ -154,7 +159,7 @@ sub metacyc {
 				}
 			}
 		close infile5;  
-		open(infile7,"$tempdir/$kbin.metacyc.details") || next;
+		open(infile7,"$minpathcycdir/$kbin.metacyc.details") || next;
 			while(<infile7>) {
 			chomp;
 				if($_=~/^path.*fam0 (\d+) fam-found (\d+) \# (.*)/) {
@@ -166,7 +171,7 @@ sub metacyc {
 		close infile7;
 	
 	
-		open(outfile4,">$tempdir/$kbin.metacyc.pathways") || die "Can't open $tempdir/$kbin.metacyc.pathways for writing\n";
+		open(outfile4,">$minpathcycdir/$kbin.metacyc.pathways") || die "Can't open $tempdir/$kbin.metacyc.pathways for writing\n";
 		foreach my $konto(sort keys %accum) { 
 			print outfile4 "$konto\n"; 
 			$pathways{$kbin}{$konto}=1; 
@@ -179,6 +184,9 @@ sub metacyc {
 	}
 
 sub kegg {
+	my $minpathkeggdir="$minpathdir/kegg";
+	if(-d $minpathkeggdir) {} else { system("mkdir $minpathkeggdir"); }
+
 	foreach my $kbin(sort keys %kegg) {
 		my $outkegg="$tempdir/$kbin.minpath.temp.kegg";
 		my($binmethod,$rest)=split(/\./,$kbin);
@@ -193,7 +201,7 @@ sub kegg {
 			}
 		close outfile3;	
 		print "  Running MinPath for kegg: $kbin         \r";
-		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $outdir/$kbin.kegg.details > /dev/null";
+		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $minpathkeggdir/$kbin.kegg.details > /dev/null";
 		print outsyslog "Running MinPath for kegg ($kbin): $command \n";
 		my $ecode = system $command;
  		if($ecode!=0) {
@@ -216,7 +224,7 @@ sub kegg {
 			}
 		close infile6;	
 	
-		open(infile7,"$outdir/$kbin.kegg.details") || next;
+		open(infile7,"$minpathkeggdir/$kbin.kegg.details") || next;
 		while(<infile7>) {
 			chomp;
 			if($_=~/^path.*fam0 (\d+) fam-found (\d+) \# (.*)/) {
@@ -227,7 +235,7 @@ sub kegg {
 		close infile7;
 	
 	
-		open(outfile4,">$outdir/$kbin.kegg.pathways") || die "Can't open $outdir/$kbin.kegg.pathways for writing\n";
+		open(outfile4,">$minpathkeggdir/$kbin.kegg.pathways") || die "Can't open $outdir/$kbin.kegg.pathways for writing\n";
 		foreach my $konto(sort keys %accum) { 
 			print outfile4 "$konto\n"; 
 			$pathways{$kbin}{$konto}=1; 

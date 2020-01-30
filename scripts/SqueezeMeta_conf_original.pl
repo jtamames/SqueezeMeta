@@ -108,4 +108,4 @@ $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "$installpath/bin/kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";
-%binscripts	    = ('maxbin',"$installpath/utils/binners/bin_maxbin.pl",'metabat2',"$installpath/utils/binners/bin_metabat2.pl");
+%binscripts	    = ('maxbin',"$installpath/utils/binners/bin_maxbin.pl",'metabat2',"$installpath/utils/binners/bin_metabat2.pl",'concoct',"$installpath/utils/binners/bin_concoct.pl");

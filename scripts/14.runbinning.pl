@@ -37,8 +37,7 @@ foreach my $tbinner(@binner) {
 	if(-d $dirbin) {} else { system("mkdir $dirbin"); }
 	my @binfiles;
 	opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
-	if($tbinner eq "maxbin") { @binfiles=grep(/maxbin.*fasta/,readdir indir1); }
-	elsif($tbinner eq "metabat2") { @binfiles=grep(/fa$/,readdir indir1); }
+	@binfiles=grep(/fasta$|fa$/,readdir indir1);
 	closedir indir1;
 	my $firstfile="$dirbin/$binfiles[0]";
 	my ($wsize,$rest);
@@ -47,6 +46,6 @@ foreach my $tbinner(@binner) {
 		($wsize,$rest)=split(/\s+/,$wc);
 		}
 	else { $wsize==0; }
-	if($wsize<2) { print RED; print "WARNING in STEP14 -> $scriptname. No MaxBin results!\n"; print RESET; $finaltrace.="WARNING in STEP14: No Maxbin results!\n"; }
+	if($wsize<2) { print RED; print "WARNING in STEP14 -> $scriptname. No $tbinner results!\n"; print RESET; $finaltrace.="WARNING in STEP14: No $tbinner results!\n"; }
 }
 
