@@ -64,7 +64,7 @@ The script *download_databases.pl* can be run to download a pre-formatted versio
 
 `/path/to/SqueezeMeta/scripts/preparing_databases/download_databases.pl /download/path`
 
-, where `<datapath>` is the destination folder. This is the recommended option.
+, where `/download/path` is the destination folder. This is the recommended option.
 
 Alternatively, the script *make_databases.pl* can be run to download from source and format the latest version of the databases.
 
