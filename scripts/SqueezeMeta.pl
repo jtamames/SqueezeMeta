@@ -1111,7 +1111,7 @@ sub pipeline {
 	print outfile4 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
 	print BLUE "[",$currtime->pretty,"]: FINISHED -> Have fun!\n"; print RESET;
 	if($finaltrace) { print "\nWARNINGS:\n$finaltrace\n"; }
-	print "For citation purposes, you can find a summary of methods in the file $methodsfile\n";
+	print "For citation purposes, you can find a summary of methods in the file $methodsfile\n\n";
 }
 
 

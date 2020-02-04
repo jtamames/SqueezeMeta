@@ -556,6 +556,7 @@ my $DAS_Tool_empty=0;
 	print outfile2 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
 	print CYAN "[",$currtime->pretty,"]: FINISHED -> Have fun!\n"; print RESET;
 	if($finaltrace) { print "\nWARNINGS:\n$finaltrace\n"; }
+	print "For citation purposes, you can find a summary of methods in the file $methodsfile\n\n";
 
 
 #---------------------------------------- TIME CALCULATIONS --------------------------------
