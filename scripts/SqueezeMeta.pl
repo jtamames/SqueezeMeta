@@ -38,7 +38,7 @@ our $installpath = abs_path("$scriptdir/..");
 ###
 
 our $pwd=cwd();
-our($nocog,$nokegg,$nopfam,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
+our($nodiamond,$nocog,$nokegg,$nopfam,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$project,$equivfile,$rawfastq,$checkmfile,$blocksize,$evalue,$miniden,$binners,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
 our($databasepath,$extdatapath,$softdir,$basedir,$datapath,$binresultsdir,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%binscripts);  
@@ -75,6 +75,7 @@ Arguments:
    -map: mapping software <bowtie, bwa, minimap2-ont, minimap2-pb, minimap2-sr> (Default: bowtie) 
 
  Annotation:  
+   --nodiamond: Check if Diamond results are already in place, and just in that case skips the Diamond run (Default: no)
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
@@ -113,14 +114,15 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "p=s" => \$project,
                      "s|samples=s" => \$equivfile,
                      "extassembly=s" => \$extassembly,
-                     "f|seq=s" => \$rawfastq, 
+                     "f|seq=s" => \$rawfastq,
+		     "nodiamond" => \$nodiamond,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nopfam" => \$nopfam,  
 		     "euk" => \$euknofilter,
 		     "extdb=s" => \$opt_db, 
 		     "nobins" => \$nobins,   
-		     "binners" => \$binners,   
+		     "binners=s" => \$binners,   
 		     "D|doublepass" => \$doublepass, 
 		     "b|block_size=i" => \$blocksize,
 		     "e|evalue=f" => \$evalue,   
@@ -141,6 +143,7 @@ if(!$mincontiglen) { $mincontiglen=200; }
 if(!$assembler) { $assembler="megahit"; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$blocksize) { $blocksize="NF"; }
+if(!$nodiamond) { $nodiamond=0; }
 if(!$nocog) { $nocog=0; }
 if(!$nokegg) { $nokegg=0; }
 if(!$nopfam) { $nopfam=0; }
@@ -281,7 +284,7 @@ if($mode=~/sequential/i) {
 
 		print outfile5 "\$version = \"$version\";\n";
 		print outfile5 "\$mode = \"$mode\";\n";
-		print outfile6 "\$date = \"",scalar localtime,"\";\n\n";
+		print outfile5 "\$date = \"",scalar localtime,"\";\n\n";
 		print outfile5 "\$installpath = \"$installpath\";\n";
 
 		while(<infile2>) {
@@ -290,13 +293,14 @@ if($mode=~/sequential/i) {
 			if($_=~/^\$basedir/)            { print outfile5 "\$basedir     = \"$pwd\";\n";                 }
 			elsif($_=~/^\$projectname/)     { print outfile5 "\$projectname = \"$project\";\n";             }
 			elsif($_=~/^\$blocksize/)       { print outfile5 "\$blocksize       = $blocksize;\n";           }
+			elsif($_=~/^\$nodiamond/)       { print outfile5 "\$nodiamond       = $nodiamond;\n";           }
 			elsif($_=~/^\$nocog/)           { print outfile5 "\$nocog           = $nocog;\n";               }
 			elsif($_=~/^\$nokegg/)          { print outfile5 "\$nokegg          = $nokegg;\n";              }
 			elsif($_=~/^\$nopfam/)          { print outfile5 "\$nopfam          = $nopfam;\n";              }
 			elsif($_=~/^\$euknofilter/)     { print outfile5 "\$euknofilter     = $euknofilter;\n";         }
 			elsif($_=~/^\$doublepass/)      { print outfile5 "\$doublepass      = $doublepass;\n";          }
 			elsif($_=~/^\$nobins/)          { print outfile5 "\$nobins          = $nobins;\n";              }
-			elsif($_=~/^\$binners/)         { print outfile5 "\$binners         = \"$binners\";\n";            }
+			elsif($_=~/^\$binners/)         { print outfile5 "\$binners         = \"$binners\";\n";         }
 			elsif($_=~/^\$mapper/)          { print outfile5 "\$mapper          = \"$mapper\";\n";          }
 			elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $cleaning;\n";            }
 			elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$cleaningoptions\";\n"; }
@@ -329,9 +333,10 @@ if($mode=~/sequential/i) {
 		print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
 		close outmet;
 		if(!$nobins) {
+			my $validbinners=join(",",keys %binscripts);
 			my @binner=split(/\,/,$binners);
 			foreach my $tbinner(@binner) { 
-				if(!$binscripts{$tbinner}) { print RED; print "UNRECOGNIZED binner $tbinner (valid ones are maxbin, metabat2)\n"; print RESET; die; }
+				if(!$binscripts{$tbinner}) { print RED; print "UNRECOGNIZED binner $tbinner (valid ones are $validbinners)\n"; print RESET; die; }
 				}
 			}
 
@@ -452,6 +457,7 @@ else {
 		elsif($_=~/^\$projectname/)               { print outfile6 "\$projectname = \"$project\";\n";                         }
 		elsif($_=~/^\$blocksize/)                 { print outfile6 "\$blocksize       = $blocksize;\n";                       }
 		elsif($_=~/^\$nocog/)                     { print outfile6 "\$nocog           = $nocog;\n";                           }
+	        elsif($_=~/^\$nodiamond/)                 { print outfile6 "\$nodiamond       = $nodiamond;\n";                       }
 		elsif($_=~/^\$nokegg/)                    { print outfile6 "\$nokegg          = $nokegg;\n";                          }
 		elsif($_=~/^\$nopfam/)                    { print outfile6 "\$nopfam          = $nopfam;\n";                          }
 		elsif($_=~/^\$euknofilter/)               { print outfile6 "\$euknofilter     = $euknofilter;\n";                     }
@@ -485,9 +491,10 @@ else {
 	print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
 	close outmet;
 	if(!$nobins) {
+		my $validbinners=join(",",keys %binscripts);
 		my @binner=split(/\,/,$binners);
 		foreach my $tbinner(@binner) { 
-			if(!$binscripts{$tbinner}) { print RED; print "UNRECOGNIZED binner $tbinner (valid ones are maxbin, metabat2)\n"; print RESET; die; }
+			if(!$binscripts{$tbinner}) { print RED; print "UNRECOGNIZED binner $tbinner (valid ones are $validbinners)\n"; print RESET; die; }
 			}
 		}
 

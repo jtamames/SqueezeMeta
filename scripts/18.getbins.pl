@@ -85,6 +85,7 @@ print outfile2 "# Contig\tMethod\tBin ID\n";
 
 	#-- Read data for each bin (tax, size, disparity)
 
+	print "  Looking for bins in $bindir\n";
 	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 	my @files=grep(/tax$/,readdir indir1);
 	closedir indir1;

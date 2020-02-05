@@ -23,7 +23,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile,$syslogfile);
+our($aafile,$numthreads,$diamond_soft,$nodiamond,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile,$syslogfile);
 my $command;
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
@@ -44,43 +44,60 @@ if($blocksize eq "NF") {
 	$blocksize=$block_size_set;
 	}
 
-print outmet "Similarity searches for ";
+my($taxfound,$cogfound,$keggfound);
+if(-e $taxdiamond) { $taxfound=1; }
+if(-e $cogdiamond) { $cogfound=1; }
+if(-e $keggdiamond) { $keggfound=1; }
+my($donediamond,$stringmethods);
 
-print "  Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for";
+$stringmethods="Similarity searches for ";
 
 #-- nr database
 
-$command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
-print " taxa";
-print outsyslog "Running Diamond for taxa: $command\n";
-my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
-print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
-
+if((!$nodiamond) || ($nodiamond && !$taxfound)) {
+	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
+	print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa\n";
+	print outsyslog "Running Diamond for taxa: $command\n";
+	my $ecode = system $command;
+	$donediamond=1;
+	if($ecode!=0) { die "Error running command:    $command"; }
+	$stringmethods.="GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+	}
+else { print "  Found --nodiamond flag and Diamond result for taxa ($taxdiamond): skipping\n"; }	
+	
 #-- COG database
 
 if(!$nocog) {
-	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
-	print " COGS";
-	print outsyslog "Running Diamond for COGs: $command\n";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
-	print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
-}
+	if((!$nodiamond) || ($nodiamond && !$cogfound)) {
+		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
+		print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for COGs\n";
+		print outsyslog "Running Diamond for COGs: $command\n";
+		my $ecode = system $command;
+		$donediamond=1;
+		if($ecode!=0) { die "Error running command:    $command"; }
+		$stringmethods.="eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
+		}
+	else { print "  Found --nodiamond flag and Diamond result for COGs ($cogdiamond): skipping\n"; }	
+	}
 
 #-- KEGG database
 
 if(!$nokegg) {
-	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
-	print " KEGG";
-	print outsyslog "Running Diamond for KEGG: $command\n";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
-	print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
-}
+	if((!$nodiamond) || ($nodiamond && !$keggfound)) {
+		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
+		print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for KEGG\n";
+		print outsyslog "Running Diamond for KEGG: $command\n";
+		my $ecode = system $command;
+		$donediamond=1;
+		if($ecode!=0) { die "Error running command:    $command"; }
+		$stringmethods.="KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
+		}
+	else { print "  Found --nodiamond flag and Diamond result for KEGG ($keggdiamond): skipping\n"; }	
+	}
 
 #-- Optional databases
 
+my $outfound;
 if($opt_db) {
 	open(infile1,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 	while(<infile1>) {
@@ -88,17 +105,23 @@ if($opt_db) {
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
 		my $outdb="$interdir/04.$project.$dbname.diamond";
-		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
-		print " $dbname";
-		print outsyslog "Running Diamond for $dbname: $command\n";
-		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
-		print outmet "$dbname, ";
+		if(-e $outdb) { $outfound=1; }
+		if((!$nodiamond) || ($nodiamond && !$outfound)) {
+			$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
+			print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for $dbname\n";
+			print outsyslog "Running Diamond for $dbname: $command\n";
+			my $ecode = system $command;
+			$donediamond=1;
+			if($ecode!=0) { die "Error running command:    $command"; }
+			$stringmethods.="$dbname, ";
+			}
+		else { print "  Found --nodiamond flag and Diamond result for $dbname ($outdb): skipping\n"; }		
 		}
 }
 
-print outmet " were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
+$stringmethods.=" were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 print "\n";
-close outmet;
+if($donediamond) { print outmet $stringmethods; } else { print outsyslog "Skipping Diamond runs because of --nodiamond flag\n"; }
 close outsyslog;
+close outmet;
 

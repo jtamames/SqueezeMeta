@@ -71,6 +71,7 @@ $pfam_db   = "$databasepath/Pfam-A.hmm";
 #-- Variables
 
 $blocksize       = 8;
+$nodiamond       = 0;
 $nocog           = 0;
 $nokegg          = 0;
 $nopfam          = 0;
