@@ -450,9 +450,11 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
 
 
     cat('Loading total reads\n')
+    lines           = readLines(sprintf('%s/results/10.%s.mappingstat', project_path, project_name))
+    ncomments       = sum(substr(lines,1,1) == '#')
     SQM$total_reads = as.matrix(
-                                read.table(sprintf('%s/results/10.%s.mappingstat', project_path, project_name), 
-                                           header=T, sep='\t', row.names=1, skip=1, comment.char='#') # Results from 10.%s.mappingstat may contain a second commented line.
+                                read.table(text = lines,
+                                           header=T, sep='\t', row.names=1, skip=ncomments-1, comment.char='')
                                )[,'Total.reads']
 
     class(SQM)      = 'SQM'
