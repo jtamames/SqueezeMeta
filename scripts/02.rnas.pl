@@ -20,9 +20,15 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
+#-- Checking for version compatibility
+
+our($installpath);
+system("perl $installpath/utils/versionchange.pl $projectpath");
+do "$projectpath/SqueezeMeta_conf.pl";
+
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$aragorn_soft,$trnafile,$methodsfile,$syslogfile);
+our($installpath,$resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$aragorn_soft,$trnafile,$methodsfile,$syslogfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";

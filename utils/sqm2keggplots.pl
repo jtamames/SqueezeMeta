@@ -25,7 +25,13 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
-our($datapath,$resultpath);
+#-- Checking for version compatibility
+
+our($installpath);
+system("perl $installpath/utils/versionchange.pl $projectpath");
+do "$projectpath/SqueezeMeta_conf.pl";
+
+our($installpath,$datapath,$resultpath);
 
 if($mode=~/multiple/i) { $mode="multiple"; } else { $mode="single"; }
 

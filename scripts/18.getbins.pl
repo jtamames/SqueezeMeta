@@ -21,9 +21,16 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
+#-- Checking for version compatibility
+
+our($installpath);
+system("perl $installpath/utils/versionchange.pl $projectpath");
+do "$projectpath/SqueezeMeta_conf.pl";
+
 #-- Configuration variables from conf file
 
-our($datapath,$bincov,$contigcov,$binresultsdir,$contigsinbins,$resultpath,$interdir,$bintable,$checkmfile);
+our($installpath,$datapath,$bincov,$contigcov,$binresultsdir,$contigsinbins,$resultpath,$interdir,$bintable,$checkmfile);
+
 my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna,%rinsample);
 tie %allsamples,"Tie::IxHash";
 

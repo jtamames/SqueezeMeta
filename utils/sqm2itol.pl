@@ -46,7 +46,13 @@ do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-our($installpath, $extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,%bindirs,%dasdir);
+#-- Checking for version compatibility
+
+our($installpath);
+system("perl $installpath/utils/versionchange.pl $projectpath");
+do "$projectpath/SqueezeMeta_conf.pl";
+
+our($installpath,$extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,$binresultdir);
 
 if(!$complete_cutoff) { $complete_cutoff=30; }		#-- Do not consider bins below this level of completion
 if(!$contamination_cutoff) { $contamination_cutoff=100; }		#-- Do not consider bins above this level of contamination
@@ -57,7 +63,7 @@ die "Abundances must be either \"RPKM\", \"TPM\" or \"coverage\"\n" if(($abunmet
 if(!$maxabun) { $maxabun=0; }
 my $numtaxalabels=4;
 
-my $dirbin=$dasdir{DASTool};
+my $dirbin=$binresultsdir;
 
 my @colors=("#fc05ea","#0000ff","#ff0000","#00ff00","#7a4304","#f77300","#00adf7","#04721c","#7a30db","#c4c107");	#-- Magenta, Blue, Red, Green, brown, Orange, ligth blue, dark green, yellow
 my @colors2=("#f77300","#00adf7","#04721c","#7a30db","#c4c107");	#-- Orange, ligth blue, dark green, yellow

@@ -11,19 +11,6 @@ use File::Basename;
 
 $|=1;
 
-my $scriptdir;
-if(-l __FILE__)
-	{
-	my $symlinkpath = dirname(__FILE__);
-        my $symlinkdest = readlink(__FILE__);
-        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
-        }
-else
-	{
-	$scriptdir = abs_path(dirname(__FILE__));
-	}
-my $installpath = abs_path("$scriptdir/..");
-
 my $pwd=cwd();
 my $projectpath=$ARGV[0];
 if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
@@ -32,7 +19,7 @@ do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-our($version,$resultpath,$basedir,$interdir,$bintable,$bintax,$bincov,$contigsinbins,$contigtable,$basedir,$mode,$scriptdir,%bindirs);
+our($installpath,$version,$resultpath,$basedir,$interdir,$bintable,$bintax,$bincov,$contigsinbins,$contigtable,$basedir,$mode,$scriptdir,%bindirs);
 if(!$version) { $version="Unknown older version"; }
 open(infile1,"$installpath/version.txt") || warn "Cannot find version number in $installpath/version.txt\n";
 my $thisversion=<infile1>;

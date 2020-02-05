@@ -18,9 +18,15 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
+#-- Checking for version compatibility
+
+our($installpath);
+system("perl $installpath/utils/versionchange.pl $projectpath");
+do "$projectpath/SqueezeMeta_conf.pl";
+
 #-- Configuration variables from conf file
 
-our($hmmer_soft,$pfamhmmer,$numthreads,$pfam_db,$aafile,$evaluehmmer5,$methodsfile,$syslogfile);
+our($installpath,$hmmer_soft,$pfamhmmer,$numthreads,$pfam_db,$aafile,$evaluehmmer5,$methodsfile,$syslogfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 

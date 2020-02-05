@@ -17,10 +17,15 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
+#-- Checking for version compatibility
+
+our($installpath);
+system("perl $installpath/utils/versionchange.pl $projectpath");
+do "$projectpath/SqueezeMeta_conf.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$resultpath,$contigslen,$alllog,$taxlist,$contigcov,$mcountfile);
+our($installpath,$datapath,$resultpath,$contigslen,$alllog,$taxlist,$contigcov,$mcountfile);
 
 my(%lon,%taxa,%abund,%abundreads,%samples,%accum,%accumbases,%accumreads,%taxcorr,%cseen);
 

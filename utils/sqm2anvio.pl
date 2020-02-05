@@ -28,9 +28,15 @@ do "$projectpath/parameters.pl";
 if((!$project) or (!$outdir)) { die "Usage: sqm2anvio.pl <project name> <output dir>\n"; }
 
 
+#-- Checking for version compatibility
+
+our($installpath);
+system("perl $installpath/utils/versionchange.pl $projectpath");
+do "$projectpath/SqueezeMeta_conf.pl";
+
 #-- Configuration variables from conf file
 
-our($resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$contigsinbins,$datapath);
+our($installdir,$resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$contigsinbins,$datapath);
 
 our $scriptdir = abs_path(dirname(__FILE__));
 our $installpath = "$scriptdir/..";
