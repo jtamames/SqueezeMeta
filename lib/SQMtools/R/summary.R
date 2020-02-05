@@ -60,8 +60,14 @@ summary.SQM = function(SQM)
     res$orfs$COG       = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,'COG ID' ] != '') )
     res$orfs$COG_good  = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,'COG ID' ], fixed=T) )
     res$orfs$PFAM      = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,'PFAM'   ] != '') )
+    for(method in SQM$misc$ext_annot_sources)
+        {
+        res$orfs[[method]]                     = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,method] != '') )
+        res$orfs[[sprintf('%s_good', method)]] = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,method], fixed=T) )
+        }
 
-    res$samples = SQM$misc$samples
+    res$samples           = SQM$misc$samples
+    res$ext_annot_sources = SQM$misc$ext_annot_sources
 
     class(res) = 'summary.SQM'
 
@@ -123,6 +129,11 @@ print.summary.SQM = function(summ)
     cat( sprintf('\tWith COG\t%s\n'             , paste(summ$orfs$COG      , collapse='\t')) )
     cat( sprintf('\tWith COG (best aver)\t%s\n' , paste(summ$orfs$COG_good , collapse='\t')) )
     cat( sprintf('\tWith PFAM\t%s\n'            , paste(summ$orfs$PFAM     , collapse='\t')) )
+    for(method in summ$ext_annot_sources)
+        {
+        cat( sprintf('\tWith %s\t%s\n'            , method, paste(summ$orfs[[method]]                      , collapse='\t')) )
+        cat( sprintf('\tWith %s (best aver)\t%s\n', method, paste(summ$orfs[[sprintf('%s_good', method)]] , collapse='\t')) )
+        }
     cat('\n')
     }
 
