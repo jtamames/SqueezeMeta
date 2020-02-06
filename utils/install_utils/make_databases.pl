@@ -60,12 +60,12 @@ system("rm $database_dir/kegg.db");
 
 ### Download and create nr db.
 print "Downloading and creating nr database. This will take a while (several hours)...\n";
-system "perl $dbscriptdir/make_nr_db.pl $database_dir";
+system "perl $libpath/install/make_nr_db.pl $database_dir";
 
 
 ### Download and create eggnog db.
 print "\nDownloading and creating eggnog database...\n\n";
-system "perl $dbscriptdir/make_eggnog_db.pl $database_dir";
+system "perl $libpath/install/make_eggnog_db.pl $database_dir";
 
 
 ### Download and create Pfam db.
@@ -79,24 +79,24 @@ system "rm $lca_dir";
 system "mkdir $lca_dir";
 
 print "\n  Running rectaxa.pl\n";
-system "perl $dbscriptdir/rectaxa.pl $lca_dir";
+system "perl $libpath/install/rectaxa.pl $lca_dir";
 
 print "\n  Running nrindex.pl\n";
-system "perl $dbscriptdir/nrindex.pl $database_dir";
+system "perl $libpath/install/nrindex.pl $database_dir";
 
 print "\n  Running taxid_tree.pl\n";
-system "perl $dbscriptdir/taxid_tree.pl $lca_dir";
+system "perl $libpath/install/taxid_tree.pl $lca_dir";
 system "sed -i \"s/['\\\"]//g\" $lca_dir/taxid_tree.txt"; # Remove quotes for sqlite3.
 
 print "\n  Creating sqlite databases\n\n";
 
-system "sqlite3 $lca_dir/taxid.db < $dbscriptdir/taxid.sql";
+system "sqlite3 $lca_dir/taxid.db < $libpath/install/taxid.sql";
 system "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db -cmd '.separator \"\\t\"'";
 my $textrows = `wc -l $lca_dir/taxid_tree.txt`;
 my $dbrows = `echo 'SELECT count(*) FROM taxid;' | sqlite3 $lca_dir/taxid.db`;
 if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!" }
 
-system "sqlite3 $lca_dir/parents.db < $dbscriptdir/parents.sql";
+system "sqlite3 $lca_dir/parents.db < $libpath/install/parents.sql";
 system "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/parents.db -cmd '.separator \"\\t\"'";
 
 if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
