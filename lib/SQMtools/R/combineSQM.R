@@ -18,7 +18,7 @@
 #' proteo.amins = subsetFun(proteo, "Amino acid metabolism")
 #' bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=F)
 #' @export
-combineSQM = function(..., tax_source = 'contigs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = T, rescale_copy_number = T)
+combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = T, rescale_copy_number = T)
     {
     # intermediate function so that we can pass extra args to combineSQM
     myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number)
