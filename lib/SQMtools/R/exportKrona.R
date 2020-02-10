@@ -1,6 +1,6 @@
 #' Export the taxonomy of a SQM object into a krona Chart
 #'
-#' This function selects the most abundant functions across all samples in a SQM object and represents their abundances in a heatmap. Alternatively, a custom set of functions can be represented.
+#' Generate a krona chart containing the full taxonomy from a SQM object.
 #'
 #' Original code was kindly provided by Giuseppe D'Auria (dauria_giu@gva.es).
 #'
