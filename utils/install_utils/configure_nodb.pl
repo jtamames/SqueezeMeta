@@ -2,6 +2,7 @@
 
 use strict;
 
+if(!$ARGV[0]) { die "Please provide a database directory!   "; }
 use Cwd 'abs_path';
 my $databasedir=abs_path($ARGV[0]);
 
