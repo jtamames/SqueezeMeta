@@ -6,6 +6,8 @@ my $REMOVE_NR=1;
 my $REMOVE_TAXDUMP=1;
 my $REMOVE_LCA_TAX_INTERMEDIATE=1;
 
+if(!$ARGV[0]) { die "Please provide a download directory!   "; }
+
 use Cwd 'abs_path';
 my $download_dir = abs_path($ARGV[0]);
 my $database_dir = "$download_dir/db";
