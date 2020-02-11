@@ -33,7 +33,7 @@ if((!$project) or (!$outdir)) { die "Usage: sqm2anvio.pl <project name> <output 
 our($resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$contigsinbins,$datapath);
 
 our $scriptdir = abs_path(dirname(__FILE__));
-our $installpath = "$scriptdir/..";
+our $installpath = "$scriptdir/../..";
 
 my $version="1.1";
 my $gff;
