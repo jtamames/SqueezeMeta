@@ -91,15 +91,15 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
 	print("\n");
 	print("\tIf you didn't download them yet please run:\n");
 	print("\n");
-	print("\t* perl $installpath/utils/install/make_databases.pl /download/path/\n");
+	print("\t* perl $installpath/utils/install_utils/make_databases.pl /download/path/\n");
 	print("\t\t(To download the latest source data and compile the databases in your server)\n");
 	print("\n");
-	print("\t* perl $installpath/utils/install/make_databases.pl /download/path/\n");
+	print("\t* perl $installpath/utils/install_utils/download_databases.pl /download/path/\n");
 	print("\t\t(To download a pre-compiled version of the database, which is much quicker)\n");
 	print("\n");
 	print("\tIf the databases are already present in your server, you can configure this installation of SqueezeMeta with:\n");
 	print("\n");
-	print("\t* perl $installpath/utils/install/configure_nodb.pl /path/to/db\n");
+	print("\t* perl $installpath/utils/install_utils/configure_nodb.pl /path/to/db\n");
 	print("\t\t(Where /path/to/db is the path to the \"db\" folder generated when downloading the databases)\n");
 	print("\n");
 	$warnings .= "\t- Databases were not installed, or are not configured in this installation of SqueezeMeta\n";
