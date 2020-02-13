@@ -23,7 +23,7 @@ sudo apt-get install git sqlite3 libxml2-dev libcurl4-openssl-dev
 
 
 ### Perl modules.
-sudo apt-get install libtie-ixhash-perl libclass-dbi-mysql-perl libxml-parser-perl libdbd-sqlite3-perl
+sudo apt-get install libtie-ixhash-perl libclass-dbi-mysql-perl libxml-parser-perl libxml-libxml-perl libdbd-sqlite3-perl
 sudo cpan Linux::MemInfo
 sudo cpan Term::ANSIColor
 # If using Ubuntu 14, install DBD::SQLite::Constants with cpan. Not needed for Ubuntu 16+
@@ -31,7 +31,8 @@ sudo cpan DBD::SQLite::Constants
 
 
 ### Python modules.
-sudo apt-get install python3-pip python3-dev python3-scipy python3-matplotlib python3-numpy python3-pandas 
+sudo apt-get install python3-pip python3-dev python3-scipy python3-matplotlib python3-numpy python3-pandas python3-cython
+sudo -H python3 -m pip install cython 
 sudo -H python3 -m pip install dendropy pysam
 
 
