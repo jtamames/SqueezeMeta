@@ -16,7 +16,7 @@ exportPathway = function(SQM, pathway_id, samples = NULL, split_samples = F, out
     {
     # Check params.
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
-    if(!is.null(x))
+    if(!is.null(samples))
         {
 	missing_samples = setdiff(samples, SQM$misc$samples)
         if(length(missing_samples) > 0)
