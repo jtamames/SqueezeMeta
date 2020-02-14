@@ -205,7 +205,7 @@ if($opt_db) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		print " $dbname";
+		print "                            $dbname\n";
 		my $optdbdiamond="$interdir/04.$project.$dbname.diamond";
 		my $optdbresult="$resultpath/07.$project.fun3.$dbname";
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }

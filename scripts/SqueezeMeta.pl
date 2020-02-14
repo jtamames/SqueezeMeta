@@ -776,7 +776,7 @@ sub pipeline {
 				open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 				while(<infile0>) {
 					my($dbname,$extdb,$dblist)=split(/\t/,$_);
-					my $wc=qx(wc -l $resultpath/07.$projectname.fun3.dbname);
+					my $wc=qx(wc -l $resultpath/07.$projectname.fun3.$dbname);
 					($wsizeOPTDB,$rest)=split(/\s+/,$wc);
 					if($wsizeOPTDB<2) { $optdbsw=$wsizeOPTDB; }
 					}
