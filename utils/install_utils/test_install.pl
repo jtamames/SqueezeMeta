@@ -30,6 +30,11 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf_original.pl") { die ("\nCRITICAL E
 our $warnings;
 
 print("\n");
+print("Checking for gcc\n");
+check_command("gcc --help", "ERROR: The GCC compiler can not be found in this environment!!");
+
+
+print("\n");
 print("Checking that ruby is installed\n");
 check_command("ruby -h", "ERROR: The ruby interpreter can not be found in this environment!!");
 
@@ -65,6 +70,7 @@ if(!$ecode) {
 	check_python_library("dendropy");
 	check_python_library("pysam");
 	check_python_library("pandas");
+	check_python_library("cython");
 	#check_python_library("madeToFail");
 }
 
