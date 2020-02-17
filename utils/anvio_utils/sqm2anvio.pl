@@ -182,17 +182,18 @@ opendir(indir1,$samdir) || die;
 my @samfiles=grep(/\.sam$/,readdir indir1);
 my $samlist=join(" ",@samfiles);
 closedir indir1;
-if($#samfiles>=0) { 
-	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder (y/n)? ";
-        while(1) {
-		$samkeep=<STDIN>;
-		chomp $samkeep;
-		if($samkeep eq 'y' or $samkeep eq 'yes'){ $samkeep=1; print "Compressing SAM files to the BAM format\n"; last }
-		elsif($samkeep eq 'n' or $samkeep eq 'no') { $samkeep=0; print "SAM files will be ignored\n"; last }
-                else { print "Only y(es) or n(o) are valid answers\n" }
-		}
-	}
+#if($#samfiles>=0) { 
+#	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder (y/n)? ";
+#        while(1) {
+#		$samkeep=<STDIN>;
+#		chomp $samkeep;
+#		if($samkeep eq 'y' or $samkeep eq 'yes'){ $samkeep=1; print "Compressing SAM files to the BAM format\n"; last }
+#		elsif($samkeep eq 'n' or $samkeep eq 'no') { $samkeep=0; print "SAM files will be ignored\n"; last }
+#               else { print "Only y(es) or n(o) are valid answers\n" }
+#		}
+#	}
 
+$samkeep=1;
 if($samkeep) { 
 	foreach my $sam(@samfiles) {
 		(my $bam = $sam) =~ s/\.sam/-RAW.bam/;
