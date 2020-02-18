@@ -1,6 +1,6 @@
 import sqlite3
 from numbers import Number
-
+from functools import reduce
 
 class SplitFilter():
     TAX_KEYWORDS = ['SUPERKINGDOM', 'PHYLUM', 'CLASS', 'ORDER', 'FAMILY', 'GENUS', 'SPECIES']
