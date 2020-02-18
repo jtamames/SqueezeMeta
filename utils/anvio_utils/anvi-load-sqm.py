@@ -19,8 +19,8 @@ USAGE: anvi-load-sqm.py [-h] -p PROJECT -o OUTPUT [--num-threads NUM_THREADS]
                         [--skip-SNV-profiling] [--profile-SCVs]
 
 
-       -p PROJECT, --project PROJECT          Name of the output directory of sqm2anvio.pl (REQUIRED)
-       -o OUTPUT                              Output directory (REQUIRED)
+       -p PROJECT, --project PROJECT          Name of the SQM project. E.g. Hadza16 (REQUIRED)
+       -o OUTPUT                              Path to the output directory (REQUIRED)
        --num-threads         NUM_THREADS      Number of threads
        --run-HMMS                             Run anvi-run-hmms command from anvi'o for identifying single-copy core genes
        --min-contig-length  MIN_CONTIG_LENGTH Minimum length of contigs
