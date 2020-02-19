@@ -1,19 +1,25 @@
+#-- Project dir (calculated dinamically on execution, DO NOT MODIFY)
+
+use File::Basename;
+use Cwd 'abs_path';
+$projectdir   = abs_path(dirname(__FILE__));
+
 
 #-- Generic paths
 
-$databasepath = "$installpath/db";
+$databasepath = "/media/disk7/fer/SqueezeMeta/db";
 $extdatapath  = "$installpath/data";
 $scriptdir    = "$installpath/scripts";   #-- Scripts directory
 
-#-- Paths relatives to the project
+
+#-- Paths relative to the project
 
 $projectname = "";
-$basedir     = ".";
-$datapath    = "$basedir/$projectname/data";                                       #-- Directory containing all datafiles
-$resultpath  = "$basedir/$projectname/results";                                    #-- Directory for storing results
-$extpath     = "$basedir/$projectname/ext_tables";                                 #-- Directory for storing tables for further analysis
-$tempdir     = "$basedir/$projectname/temp";                                       #-- Temp directory
-$interdir    = "$basedir/$projectname/intermediate";                               #-- Temp directory
+$datapath    = "$projectdir/data";                                       #-- Directory containing all datafiles
+$resultpath  = "$projectdir/results";                                    #-- Directory for storing results
+$extpath     = "$projectdir/ext_tables";                                 #-- Directory for storing tables for further analysis
+$tempdir     = "$projectdir/temp";                                       #-- Temp directory
+$interdir    = "$projectdir/intermediate";                               #-- Temp directory
 %bindirs     = ("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");  #-- Directories for bins
 %dasdir      = ("DASTool","$resultpath/DAS/$projectname\_DASTool\_bins");	   #-- Directory for DASTool results
 
@@ -21,8 +27,8 @@ $interdir    = "$basedir/$projectname/intermediate";                            
 #-- Result files
 
 $mappingfile     = "$datapath/00.$projectname.samples";         #-- Mapping file (samples -> fastq)
-$methodsfile     = "$basedir/$projectname/methods.txt";		#-- File listing the  methods used and their citation info
-$syslogfile      = "$basedir/$projectname/syslog";              #-- Logging file
+$methodsfile     = "$projectdir/methods.txt";		        #-- File listing the  methods used and their citation info
+$syslogfile      = "$projectdir/syslog";                        #-- Logging file
 $contigsfna      = "$resultpath/01.$projectname.fasta";         #-- Contig file from assembly
 $contigslen      = "$interdir/01.$projectname.lon";             #-- Length of each contig
 $rnafile         = "$resultpath/02.$projectname.rnas";          #-- RNAs from barrnap
@@ -68,6 +74,7 @@ $lca_db    = "$databasepath/LCA_tax/taxid.db";
 $bowtieref = "$datapath/$projectname.bowtie";   #-- Contigs formatted for Bowtie
 $pfam_db   = "$databasepath/Pfam-A.hmm";
 
+
 #-- Variables
 
 $blocksize       = 8;
@@ -80,6 +87,7 @@ $doublepass      = 0;
 $cleaning        = 0;
 $cleaningoptions = "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper          = "bowtie";
+
 
 #-- External software
 
@@ -105,5 +113,5 @@ $minpath_soft       = "python3 $installpath/bin/MinPath1.4.py";
 $canu_soft          = "$installpath/bin/canu/canu";
 $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
-$kmerdb_soft        = "$installpath/bin/kmer-db";
+$kmerdb_soft        = "LD_LIBRARY_PATH=$installpath/lib $installpath/bin/kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";

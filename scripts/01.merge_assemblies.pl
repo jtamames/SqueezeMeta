@@ -11,9 +11,9 @@ my $pwd=cwd();
 
 $|=1;
 
-my $projectpath=$ARGV[0];
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 

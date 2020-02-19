@@ -15,14 +15,14 @@ use lib ".";
 
 my $pwd=cwd();
 
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
@@ -231,6 +231,7 @@ sub query {
 	#-- Changing nomenclature to abbreviations
 	
 	$abb=~s/sub\w+\:/n_/g;
+	$abb=~s/sub\w+\_/n_/g;
 	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
 	print outfile2 "$lastorf\t$abb\n";		

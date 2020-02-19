@@ -33,7 +33,7 @@ if((!$project) or (!$outdir)) { die "Usage: sqm2anvio.pl <project name> <output 
 our($resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$contigsinbins,$datapath);
 
 our $scriptdir = abs_path(dirname(__FILE__));
-our $installpath = "$scriptdir/..";
+our $installpath = "$scriptdir/../..";
 
 my $version="1.1";
 my $gff;
@@ -96,7 +96,7 @@ my %orftax;
 my $firstline;
 
 # get sqm2tables.py taxonomy
-my $ecode = system("$installpath/utils/sqm2tables.py $project $outdir --sqm2anvio");
+my $ecode = system("$installpath/utils/sqm2tables.py $projectpath $outdir --sqm2anvio");
 if($ecode!=0) { die("Error running subprocess: $installpath/utils/sqm2tables.py $project $outdir --sqm2anvio"); }
 open(infile2, "$outdir/$project_name.orf.tax.allfilter.tsv") || die "Cannot open taxonomy table $outdir/$project_name.orf.tax.allfilter.tsv";
 while(<infile2>) {
@@ -182,17 +182,18 @@ opendir(indir1,$samdir) || die;
 my @samfiles=grep(/\.sam$/,readdir indir1);
 my $samlist=join(" ",@samfiles);
 closedir indir1;
-if($#samfiles>=0) { 
-	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder (y/n)? ";
-        while(1) {
-		$samkeep=<STDIN>;
-		chomp $samkeep;
-		if($samkeep eq 'y' or $samkeep eq 'yes'){ $samkeep=1; print "Compressing SAM files to the BAM format\n"; last }
-		elsif($samkeep eq 'n' or $samkeep eq 'no') { $samkeep=0; print "SAM files will be ignored\n"; last }
-                else { print "Only y(es) or n(o) are valid answers\n" }
-		}
-	}
+#if($#samfiles>=0) { 
+#	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder (y/n)? ";
+#        while(1) {
+#		$samkeep=<STDIN>;
+#		chomp $samkeep;
+#		if($samkeep eq 'y' or $samkeep eq 'yes'){ $samkeep=1; print "Compressing SAM files to the BAM format\n"; last }
+#		elsif($samkeep eq 'n' or $samkeep eq 'no') { $samkeep=0; print "SAM files will be ignored\n"; last }
+#               else { print "Only y(es) or n(o) are valid answers\n" }
+#		}
+#	}
 
+$samkeep=1;
 if($samkeep) { 
 	foreach my $sam(@samfiles) {
 		(my $bam = $sam) =~ s/\.sam/-RAW.bam/;

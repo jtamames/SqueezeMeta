@@ -42,6 +42,8 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     #    Abundances
     combSQM$orfs$abund                 = as.matrix(combSQM$orfs$table[,grepl('Raw read count', colnames(combSQM$orfs$table)),drop=F])
     colnames(combSQM$orfs$abund)       = gsub('Raw read count ', '', colnames(combSQM$orfs$abund), fixed=T)
+    combSQM$orfs$bases                 = as.matrix(combSQM$orfs$table[,grepl('Raw base count', colnames(combSQM$orfs$table)),drop=F])
+    colnames(combSQM$orfs$bases)       = gsub('Raw base count ', '', colnames(combSQM$orfs$abund), fixed=T)
     combSQM$orfs$cov                   = as.matrix(combSQM$orfs$table[,grepl('Coverage', colnames(combSQM$orfs$table)),drop=F])
     colnames(combSQM$orfs$cov)         = gsub('Coverage ', '', colnames(combSQM$orfs$abund), fixed=T)
     combSQM$orfs$tpm                   = as.matrix(combSQM$orfs$table[,grepl('TPM', colnames(combSQM$orfs$table)),drop=F])
@@ -111,19 +113,39 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     PFAM                               = aggregate.fun(combSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
 
     combSQM$functions$KEGG$abund       = KEGG$abund
+    combSQM$functions$KEGG$bases       = KEGG$bases
     combSQM$functions$COG$abund        = COG$abund
+    combSQM$functions$COG$bases        = COG$bases
     combSQM$functions$PFAM$abund       = PFAM$abund
+    combSQM$functions$PFAM$bases       = PFAM$bases
+
+    ext_annots = list()
+    for(method in combSQM$misc$ext_annot_sources)
+        {
+        ext_annots[[method]]             = aggregate.fun(combSQM, method, trusted_functions_only, ignore_unclassified_functions)
+        combSQM$functions[[method]]$abund = ext_annots[[method]]$abund
+        combSQM$functions[[method]]$bases = ext_annots[[method]]$bases
+        }
 
     if(rescale_tpm)
         {
         combSQM$functions$KEGG$tpm     = KEGG$tpm_rescaled
         combSQM$functions$COG$tpm      = COG$tpm_rescaled
         combSQM$functions$PFAM$tpm     = PFAM$tpm_rescaled
+         for(method in combSQM$misc$ext_annot_sources)
+            {
+            combSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm_rescaled
+            }
+
     }else
         {
         combSQM$functions$KEGG$tpm     = KEGG$tpm
         combSQM$functions$COG$tpm      = COG$tpm
         combSQM$functions$PFAM$tpm     = PFAM$tpm
+        for(method in combSQM$misc$ext_annot_sources)
+            {
+            combSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm
+            }
     }
 
 
@@ -153,6 +175,11 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         combSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA)
         combSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA)
         combSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA)
+        for(method in combSQM$misc$ext_annot_sources)
+            {
+            combSQM$functions[[method]]$copy_number = t(t(ext_annots[[method]]$cov) / RecA)
+            }
+
         combSQM$misc$RecA_cov              = RecA
         }
 
