@@ -301,14 +301,23 @@ sub sqm_counter {
 		}
 	$accumrpk/=1000000;
 
-	foreach my $print(sort keys %accum) { 
-		my $longt=$long_gen{$print};
+	#-- Reading genes from gff for: 1) include all ORFs, even these with no counts, and 2) in the fixed order
+
+	my $currentgene;
+	open(infilegff,$gff_file) || die "Can't open gff file $gff_file\n";
+	while(<infilegff>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		if($_=~/ID\=([^;]+)/) { $currentgene=$1; }	
+		my $longt=$long_gen{$currentgene};
 		next if(!$longt);
-		my $coverage=$accum{$print}{bases}/$longt;
-		my $rpkm=($accum{$print}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
-		my $tpm=$rpk{$print}/$accumrpk;
-		printf outfile3 "$print\t$longt\t$accum{$print}{reads}\t$accum{$print}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm; 
+		my $coverage=$accum{$currentgene}{bases}/$longt;
+		my $rpkm=($accum{$currentgene}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
+		my $tpm=$rpk{$currentgene}/$accumrpk;
+		printf outfile3 "$currentgene\t$longt\t$accum{$currentgene}{reads}\t$accum{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm;
 		}
+	close infilegff;
+
 }
 
 
