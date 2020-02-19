@@ -23,11 +23,47 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$interdir,$tempdir,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$rnafile,$trnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$euknofilter,$doublepass,$taxdiamond,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
+our($datapath,$resultpath,$interdir,$tempdir,$coglist,$kegglist,$aafile,$ntfile,$gff_file,$mappingfile,$rnafile,$trnafile,$fun3tax,$alllog,$nocog,$nokegg,$nopfam,$euknofilter,$doublepass,$taxdiamond,$fun3kegg,$fun3cog,$fun3pfam,$opt_db,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$gff_file_blastx,$fna_blastx,$mapcountfile,$mergedfile,$doublepass,$seqsinfile13);
 
-my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist,%blasthits);
+my(%orfdata,%contigdata,%cog,%kegg,%opt,%datafiles,%mapping,%opt,%optlist,%blasthits,%samples);
 tie %orfdata,"Tie::IxHash";
 tie %mapping,"Tie::IxHash";
+
+	#-- CREATING GENE TABLE
+
+print "  Creating table in $mergedfile\n";
+open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
+
+	#-- Headers
+
+open(infile1,$mappingfile) || die "Can't open samples file in $mappingfile\n";
+while(<infile1>) {
+	chomp;
+	next if(!$_ || ($_=~/^\#/));
+	$_=~s/\r//g;
+	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+	$samples{$sample}=1; 
+	}
+close infile1;
+
+print outfile1 "#--Created by $0, ",scalar localtime,"\n";
+print outfile1 "ORF ID\tContig ID\tMolecule\tMethod\tLength NT\tLength AA\tGC perc\tGene name\tTax\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
+if($opt_db) {
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$dblist)=split(/\t/,$_);
+		print outfile1 "\t$dbname\t$dbname NAME";
+		}
+	close infile0;
+	}
+
+foreach my $cnt(sort keys %samples) { print outfile1 "\tTPM $cnt\tCoverage $cnt\tRaw read count $cnt\tRaw base count $cnt"; }	
+print outfile1 "\tHits"; 
+if($seqsinfile13) { print outfile1 "\tAASEQ"; }
+print outfile1 "\n";
+
 
 	#-- Reading gff for getting the list of ORFs
 
@@ -450,57 +486,10 @@ while(<infile12>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/) || ($_=~/^Gen/));
 	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$tpm,$idfile)=split(/\t/,$_);
-	$mapping{$idfile}{$orf}{rpkm}=$rpkm;		#-- RPKM values
-	$mapping{$idfile}{$orf}{tpm}=$tpm;		#-- TPM values
-	$mapping{$idfile}{$orf}{raw}=$rawreads; 		#-- Raw counts
-	$mapping{$idfile}{$orf}{coverage}=$coverage;	#-- Coverage values
-	$mapping{$idfile}{$orf}{rawbases}=$rawbases;	#-- Coverage values
-	#  print "$idfile*$orf*$fpkm\n"
-}
-close infile12;	     
-  
-	#-- CREATING GENE TABLE
-
-print "  Creating table\n";
-open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
-
-	#-- Headers
-
-print outfile1 "#--Created by $0, ",scalar localtime,"\n";
-print outfile1 "ORF ID\tContig ID\tMolecule\tMethod\tLength NT\tLength AA\tGC perc\tGene name\tTax\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
-if($opt_db) { 
-	foreach my $topt(sort keys %optlist) { print outfile1 "\t$topt\t$topt NAME"; }
-	}
-foreach my $cnt(keys %mapping) { print outfile1 "\tTPM $cnt"; }
-foreach my $cnt(keys %mapping) { print outfile1 "\tCoverage $cnt"; }
-foreach my $cnt(keys %mapping) { print outfile1 "\tRaw read count $cnt"; }
-foreach my $cnt(keys %mapping) { print outfile1 "\tRaw base count $cnt"; }
-print outfile1 "\tHits"; 
-if($seqsinfile13) { print outfile1 "\tAASEQ"; }
-print outfile1 "\n";
-
-	#-- ORF data
 	
-		#-- Sorting first by contig ID, then by position in contig
 
-my (@listorfs,@sortedorfs);
-foreach my $orf(keys %orfdata) {
-	next if(!$ingff{$orf});		#-- Excluding ORFs not in gff table (removed in doublepass by overlapping hits in blastx)
-	my @sf=split(/\_/,$orf);
-	my $ipos=pop @sf;
-	#my $contname=join("_",@sf);
-	my $contname=pop @sf;
-	my($poinit,$poend)=split(/\-/,$ipos);
+	#-- We start writing the table while reading mapcount, to avoid storing that many data in memory
 
-	push(@listorfs,{'orf',=>$orf,'contig'=>$contname,'posinit'=>$poinit});
-	}
-@sortedorfs=sort {
-	$a->{'contig'} <=> $b->{'contig'} ||
-	$a->{'posinit'} <=> $b->{'posinit'}
-	} @listorfs;
-
-foreach my $orfm(@sortedorfs) { 
-	my $orf=$orfm->{'orf'};
 	my($cogprint,$keggprint,$optprint);
 	my $ctg=$orf;
 	$ctg=~s/\_\d+\-\d+$//;
@@ -518,11 +507,12 @@ foreach my $orfm(@sortedorfs) {
 		}
 	
 	#-- Abundance values
-
-	foreach my $cnt(keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'tpm'} || "0"; print outfile1 "\t$sdat"; }
-	foreach my $cnt(keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'coverage'} || "0"; print outfile1 "\t$sdat"; }
-	foreach my $cnt(keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'raw'} || "0"; print outfile1 "\t$sdat"; }
-	foreach my $cnt(keys %mapping) { my $sdat=$mapping{$cnt}{$orf}{'rawbases'} || "0"; print outfile1 "\t$sdat"; }
+	
+	my $sdat=$tpm || "0"; print outfile1 "\t$sdat";
+	my $sdat=$coverage || "0"; print outfile1 "\t$sdat";
+	my $sdat=$rawreads || "0"; print outfile1 "\t$sdat";
+	my $sdat=$rawbases || "0"; print outfile1 "\t$sdat";
+	
 	
 	#-- Diamond hits
 	
@@ -532,7 +522,9 @@ foreach my $orfm(@sortedorfs) {
 
 	if($seqsinfile13) { print outfile1 "\t$orfdata{$orf}{aaseq}"; }
 	print outfile1 "\n";
-}
+	}
+close infile12;	     
+  
 close outfile1;
 
 print "============\nGENE TABLE CREATED: $mergedfile\n============\n\n";
