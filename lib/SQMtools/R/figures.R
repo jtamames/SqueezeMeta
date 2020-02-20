@@ -116,7 +116,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' This function selects the most abundant functions across all samples in a SQM object and represents their abundances in a heatmap. Alternatively, a custom set of functions can be represented.
 #' @param SQM A SQM or SQMlite object.
 #' @param fun_level character. Either \code{"KEGG"}, \code{"COG"}, \code{"PFAM"} or any other custom database used for annotation (default \code{"KEGG"}).
-#' @param count character. Either \code{"tpm"} for TPM normalized values, \code{"abund"} for raw abundances or \code{"copy_number"} for copy numbers (default \code{"tpm"}).
+#' @param count character. Either \code{"tpm"} for TPM normalized values, \code{"abund"} for raw abundances or \code{"copy_number"} for copy numbers (default \code{"tpm"}). If a given count type is not available in this object (e.g. TPM or copy number in a SQMlite objects originating from a SQM reads project) percentages will be plotted instead.
 #' @param N integer Plot the \code{N} most abundant functions (default \code{25}).
 #' @param fun character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param ignore_unclassified logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).
@@ -156,13 +156,19 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
         N = 25
         }
     # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df.
-    data = as.data.frame(SQM[['functions']][[fun_level]][[count]])
+    if(class(SQM) == 'SQMlite' & !count %in% names(SQM[['functions']][[fun_level]]))
+        {
+        print(sprintf('%s counts are not available for this object. Returning percentages instead', count))
+        percents = 100 * t(t(SQM[['functions']][[fun_level]][['abund']]) / colSums(SQM[['functions']][[fun_level]][['abund']]))
+        data = as.data.frame(percents)
+    }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
     data = mostAbundant(data, N = N, items = fun)
     # remove unclassified functions (only possible when not custom items)
     # if N include unclassified function, add one more function
     if (ignore_unclassified & is.null(fun) & 'Unclassified' %in% rownames(data) & N != 0)
         {
-        data = as.data.frame(SQM[['functions']][[fun_level]][[count]])
+        if(class(SQM) == 'SQMlite' & !count %in% names(SQM[['functions']][[fun_level]])) { data = as.data.frame(percents)
+        } else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
         data = mostAbundant(data, N = (N + 1), items = fun)
         data = data[rownames(data) != 'Unclassified', , drop = F]
         }

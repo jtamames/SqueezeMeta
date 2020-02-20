@@ -88,6 +88,10 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
     SQM                           = list()
 
     allFiles                      = strsplit(list.files(tables_path), '.', fixed=T)
+    if(length(allFiles) == 0)
+        {
+        stop(sprintf('Directory "%s" does not seem to contain valid SqueezeMeta tables', tables_path))
+        }
     
     project_name                  = allFiles[sapply(allFiles, function(x) x[2] == 'superkingdom' & x[3] =='allfilter' & x[4] == 'abund' & x[5] == 'tsv')][[1]][1]
     SQM$misc                      = list()
@@ -102,8 +106,14 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
     SQM$taxa$family               = list()
     SQM$taxa$genus                = list()
     SQM$taxa$species              = list()
-    
 
+    ### Check that this is a valid SQM project.
+    if(is.null(project_name))
+        {
+        stop(sprintf('Directory "%s" does not seem to contain valid SqueezeMeta tables', tables_path))
+        }
+
+    
     SQM$taxa$superkingdom$abund   = as.matrix(read.table(sprintf('%s/%s.superkingdom.%s.abund.tsv', tables_path, project_name, tax_mode, project_name),
                                                          header=T, sep='\t', row.names=1, check.names=F))
     SQM$taxa$phylum$abund         = as.matrix(read.table(sprintf('%s/%s.phylum.%s.abund.tsv', tables_path, project_name, tax_mode),
