@@ -45,7 +45,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 	#-- Read the sample's file names
 
-my(%allsamples,%rpk);
+my %allsamples;
 tie %allsamples,"Tie::IxHash";
 open(infile1,$mappingfile) || die "Can't open mappingfile $mappingfile\n";
 print "  Reading mapping file from $mappingfile\n";
@@ -103,7 +103,7 @@ open(outfile1,">$resultpath/10.$projectname.mappingstat") || die "Can't open $re
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
 open(outfile3,">$mapcountfile") || die "Can't open $mapcountfile for writing\n";
-print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,"\n";
+print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
 print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
 
 	#-- Now we start mapping the reads of each sample against the reference
@@ -200,6 +200,12 @@ print "  Output in $mapcountfile\n";
 close outfile3;
 system("rm $bowtieref.*");	#-- Deleting bowtie references
 
+	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
+	
+my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+system($command);	
+
+
 
 #----------------- sqm_counter counting 
 
@@ -293,6 +299,7 @@ sub sqm_counter {
 	print "  $countreads reads counted\n";
 
 	my $accumrpk;
+	my %rpk;
 	foreach my $print(sort keys %accum) { 
 		my $longt=$long_gen{$print};
 		next if(!$longt);
@@ -317,7 +324,8 @@ sub sqm_counter {
 		printf outfile3 "$currentgene\t$longt\t$accum{$currentgene}{reads}\t$accum{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm;
 		}
 	close infilegff;
-
+	
+	
 }
 
 
