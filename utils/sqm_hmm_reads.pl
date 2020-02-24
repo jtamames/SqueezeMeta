@@ -16,6 +16,7 @@ use strict;
 
 ###
 use File::Basename;
+use Cwd 'abs_path';
 
 my $utilsdir;
 if(-l __FILE__)
