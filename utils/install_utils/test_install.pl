@@ -132,6 +132,7 @@ if($warnings) {
 	print("\n");
 	print("WARNING: Some SqueezeMeta dependencies could not be found in your environment!\n");
 	print($warnings);
+	die("\n");
 } else {
 	print("\n");
 	print("All checks successful\n");
