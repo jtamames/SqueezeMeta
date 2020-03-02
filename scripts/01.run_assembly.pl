@@ -116,6 +116,7 @@ if($mincontiglen>200) {
 	if($ecode!=0) { die "Error running command:    $command"; }
 	print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 	}
+elsif($extassembly) { system("cp $outassembly $contigsfna"); }
 else { system("mv $outassembly $contigsfna"); }
 
 #-- Run prinseq_lite for statistics

@@ -374,13 +374,13 @@ if($mode=~/sequential/i) {
 		if(!$par1files) { print RED; print "There must be at least one 'pair1' sequence file in your samples file $mappingfile, and there is none!\n"; print RESET; die;  }
 		if($par1files>1) { 
 			my $command="cat $ca1 > $par1name"; 
-			print "$command\n"; 
+			#print "$command\n"; 
 			system($command); 
 		} 
 		else {
 			#my $command="cp $ca1 $par1name"; 
 			my $command="ln -s $ca1 $par1name";
-			print "$command\n";
+			#print "$command\n";
 			system($command);
  
 		}
