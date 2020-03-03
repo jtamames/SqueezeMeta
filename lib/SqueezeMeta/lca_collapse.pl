@@ -57,7 +57,7 @@ open(outc,">$resultpath/$outname.wranks") || die;
 #open(outnof,">$tempdir/$outname\_nofilter") || die;
 open(outcnof,">$resultpath/$outname\_noidfilter.wranks") || die "Can't open $resultpath/$outname\_noidfilter.wranks for writing\n";
 
-my(%accum,%accumnofilter,%provhits,%providen,%giden);
+my(%provhits,%providen,%giden);
 my($validhits,$validhitsnofilter,$tothits,$skipidentical,$refscore,$refiden,$string,$posinit,$posend);
 tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
@@ -70,23 +70,23 @@ while(<infile2>) {
 	$_=~s/\;\_//g;
 	my @fields=split(/\t/,$_);
 	my $thisorf=$fields[0];
-	if($thisorf) { 
-		# print "!!! $thisorf $lastorf\n";
-		$lastorf=$thisorf;
-		query();
-		(%accum,%accumnofilter,%provhits,%providen,%giden)=();
-		($validhits,$validhitsnofilter,$tothits,$skipidentical)=0;
-		$string="";
-		($refscore,$refiden)=0;	
-		}
 	if($noidentical && (!$skipidentical) && ($fields[2] eq "100.0")) { $skipidentical=1; next; }			   
 	if(!$refscore) { $refscore=$fields[11]; }
 	if(!$refiden) { $refiden=$fields[2]; }  
 	$posinit=$fields[6];			   
 	$posend=$fields[7];
- 	if($fields[$#fields]>$provhits{$fields[1]}) { $provhits{$fields[1]}=$fields[$#fields]; }
- 	if($fields[2]>$providen{$fields[1]}) { $providen{$fields[1]}=$fields[2]; }
+ 	$provhits{$fields[1]}=$fields[11];
+ 	$providen{$fields[1]}=$fields[2];
 	$tothits++;			   
+	if($thisorf) { 
+		# print "!!! $thisorf $lastorf\n";
+		$lastorf=$thisorf;	
+		query();
+		(%provhits,%providen,%giden)=();
+		($validhits,$validhitsnofilter,$tothits,$skipidentical)=0;
+		$string="";
+		($refscore,$refiden)=0;	
+		}
 	}
 close infile2;
 #close out;
@@ -128,6 +128,7 @@ sub query {
 				     
 	$query.=");";	
 	print "*$query*\n" if $verbose;			     
+	my (%accum,%accumnofilter)=();		     
 	if($refcc) {
 		my $sth = $dbh->prepare($query);  
 		$sth->execute();
@@ -186,5 +187,6 @@ sub query {
 	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# print outcnof "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";		
 	print outcnof "$lastorf\t$abb\n";		
-	print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;	
+	print "$lastorf\t$parents{$lasttax}{noranks}\n" if $verbose;
+	(%accum,%accumnofilter)=();	
        }
