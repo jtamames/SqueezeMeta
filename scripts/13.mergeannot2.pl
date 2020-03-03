@@ -659,10 +659,10 @@ if($opt_db) {
 	}
 	
 foreach my $tsam(keys %samples) {
-	my $sdat=$tempstore{tpm} || "0"; print outfile1 "\t$sdat";
-	my $sdat=$tempstore{coverage} || "0"; print outfile1 "\t$sdat";
-	my $sdat=$tempstore{rawreads} || "0"; print outfile1 "\t$sdat";
-	my $sdat=$tempstore{rawbases} || "0"; print outfile1 "\t$sdat";
+	my $sdat=$tempstore{$tsam}{tpm} || "0"; print outfile1 "\t$sdat";
+	my $sdat=$tempstore{$tsam}{coverage} || "0"; print outfile1 "\t$sdat";
+	my $sdat=$tempstore{$tsam}{rawreads} || "0"; print outfile1 "\t$sdat";
+	my $sdat=$tempstore{$tsam}{rawbases} || "0"; print outfile1 "\t$sdat";
 	}
 	
 if($blasthits{$lastorf}) { print outfile1 "\t$blasthits{$lastorf}"; } else { print outfile1 "\t0"; } 
