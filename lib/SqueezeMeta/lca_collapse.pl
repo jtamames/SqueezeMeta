@@ -72,11 +72,11 @@ while(<infile2>) {
 	my $thisorf=$fields[0];
 	if($thisorf) { 
 		# print "!!! $thisorf $lastorf\n";
+		$lastorf=$thisorf;
 		query();
 		(%accum,%accumnofilter,%provhits,%providen,%giden)=();
 		($validhits,$validhitsnofilter,$tothits,$skipidentical)=0;
 		$string="";
-		$lastorf=$thisorf;	
 		($refscore,$refiden)=0;	
 		}
 	if($noidentical && (!$skipidentical) && ($fields[2] eq "100.0")) { $skipidentical=1; next; }			   
@@ -134,7 +134,7 @@ sub query {
 		while(my @list=$sth->fetchrow()) {
 			print "$lastorf\t@list\n" if $verbose;
 			for(my $pos=2; $pos<=8; $pos++) {
-				my $rank=$ranks[$pos-2];
+				my $rank=$ranks[$pos-1];
 				my $tax=$list[$pos];
 				print " $rank $tax $giden{$list[0]} $idenrank{$rank}\n" if $verbose;
 				if($list[0] eq $besthit) { $bhit{$rank}=$tax; }

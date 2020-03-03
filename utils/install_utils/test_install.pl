@@ -58,6 +58,7 @@ check_perl_library("DBD::SQLite");
 check_perl_library("Data::Dumper");
 check_perl_library("Cwd"); # If this script is running then this is 100% present but meh...
 check_perl_library("XML::LibXML");
+check_perl_library("Term::ANSIColor");
 
 
 print("\n");
@@ -71,6 +72,7 @@ if(!$ecode) {
 	check_python_library("pysam");
 	check_python_library("pandas");
 	check_python_library("cython");
+        check_python_library("future");
 	#check_python_library("madeToFail");
 }
 
@@ -131,6 +133,7 @@ if($warnings) {
 	print("\n");
 	print("WARNING: Some SqueezeMeta dependencies could not be found in your environment!\n");
 	print($warnings);
+	die("\n");
 } else {
 	print("\n");
 	print("All checks successful\n");

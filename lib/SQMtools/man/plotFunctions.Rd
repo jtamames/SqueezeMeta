@@ -20,7 +20,7 @@ plotFunctions(
 
 \item{fun_level}{character. Either \code{"KEGG"}, \code{"COG"}, \code{"PFAM"} or any other custom database used for annotation (default \code{"KEGG"}).}
 
-\item{count}{character. Either \code{"tpm"} for TPM normalized values, \code{"abund"} for raw abundances or \code{"copy_number"} for copy numbers (default \code{"tpm"}).}
+\item{count}{character. Either \code{"tpm"} for TPM normalized values, \code{"abund"} for raw abundances or \code{"copy_number"} for copy numbers (default \code{"tpm"}). If a given count type is not available in this object (e.g. TPM or copy number in a SQMlite objects originating from a SQM reads project) percentages will be plotted instead.}
 
 \item{N}{integer Plot the \code{N} most abundant functions (default \code{25}).}
 

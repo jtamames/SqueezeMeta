@@ -32,7 +32,7 @@ sudo cpan DBD::SQLite::Constants
 
 ### Python modules.
 sudo apt-get install python3-pip python3-dev python3-scipy python3-matplotlib python3-numpy python3-pandas python3-cython
-sudo -H python3 -m pip install cython 
+sudo -H python3 -m pip install future cython 
 sudo -H python3 -m pip install dendropy pysam
 
 

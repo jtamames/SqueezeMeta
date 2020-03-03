@@ -155,6 +155,7 @@ if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:
 if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
 
 $mode=~tr/A-Z/a-z/;
+$opt_db = abs_path($opt_db);
 
 #-- Override settings if running on lowmem or MinION mode.
 if($lowmem) { $blocksize=3; $canumem=15; }

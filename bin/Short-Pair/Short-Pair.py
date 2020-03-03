@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 import os
 import sys
 import pickle
@@ -74,12 +74,12 @@ def step3(inputFile):
     
 def combineHmmer(inputFolder, outputFolder, allOutput, nDomains, namePattern):
     fa = open(allOutput, 'wt')
-    for i in xrange(1, nDomains+1):     
+    for i in range(1, nDomains+1):     
 #    for i in xrange(201, nDomains+1):
         mapLinesList = []
         mapScoresList = []
         readPairSet = set()
-        for j in xrange(1, 7):
+        for j in range(1, 7):
             inputFile = namePattern % (i, j)
             fi = open(inputFolder+'/'+inputFile, 'rt')
             mapReadPairToLines = {}
@@ -103,8 +103,8 @@ def combineHmmer(inputFolder, outputFolder, allOutput, nDomains, namePattern):
         outputFile = os.path.join(outputFolder, outputFile)
         fo = open(outputFile, 'wt')
         for pair in sorted(readPairSet):
-            maxScore = -sys.maxint        
-            for j in xrange(1, 7):
+            maxScore = -sys.maxsize        
+            for j in range(1, 7):
                 mapReadPairToLines = mapLinesList[j-1]
                 mapReadPairToScore = mapScoresList[j-1]
                 if pair not in mapReadPairToScore:
@@ -123,7 +123,7 @@ def step4(inputFolder, namePattern, outputFile):
     mapLinesList = []
     mapScoresList = []
     readPairSet = set()
-    for j in xrange(1, 7):
+    for j in range(1, 7):
         inputFile = namePattern % (j)
         fi = open(inputFolder+'/'+inputFile, 'rt')
         mapReadPairToLines = {}
@@ -145,8 +145,8 @@ def step4(inputFolder, namePattern, outputFile):
     ### start to combine   
     fo = open(outputFile, 'wt')
     for pair in sorted(readPairSet):
-        maxScore = -sys.maxint        
-        for j in xrange(1, 7):
+        maxScore = -sys.maxsize        
+        for j in range(1, 7):
             mapReadPairToLines = mapLinesList[j-1]
             mapReadPairToScore = mapScoresList[j-1]
             if pair not in mapReadPairToScore:
@@ -584,16 +584,16 @@ def runHmmer(inputFile1, inputFile2, inputFile3, hmmFolder, outputFileInput, fas
         os.system(command)
         outputFile = r'%s.allframe' % (faaFile)           
         fo = open(outputFile, 'wt')
-        maxScore = -sys.maxint
+        maxScore = -sys.maxsize
         maxString = ''
-        for i in xrange(1,7):
+        for i in range(1,7):
             command = "%s/hmmer3_pipeline_missing_end.sh" % exec_path # exec_path, FPS
             args = [command, "%s/%s.hmm" % (hmmFolder, family), "%s.frame%d" % (faaFile, i), "%d" % i, "10"]
             my_env = os.environ # Add SQM/bin/hmmer to the PATH env. variable for subprocess
             my_env['PATH'] = '%s/../hmmer:' % exec_path + os.environ['PATH']
-            outString = subprocess.Popen(args, env=my_env, stdout=subprocess.PIPE).communicate()[0]
+            outString = subprocess.Popen(args, env=my_env, stdout=subprocess.PIPE).communicate()[0].decode()
             fo.write(outString)
-            if outString != '':
+            if outString:
                 row = outString.split()
                 score = float(row[2])
                 if score > maxScore:
@@ -711,7 +711,7 @@ def PairLikelihoodV2(hmmSav, seedSav, fragmentLengthDist, inputFile4, threshold,
         mapLengthToFrequency[length] = frequency
         total += frequency
     fi.close()
-    for key in mapLengthToFrequency.keys():
+    for key in list(mapLengthToFrequency.keys()):
         mapLengthToFrequency[key] = mapLengthToFrequency[key] / float(total)    
     
     mapReadToLine = {}    
@@ -783,7 +783,7 @@ def PairLikelihoodV2(hmmSav, seedSav, fragmentLengthDist, inputFile4, threshold,
     fo.close()     
     
     mapNumberToFrequency = {}
-    for read in mapReadToFamilySet.keys():
+    for read in list(mapReadToFamilySet.keys()):
         number = len(mapReadToFamilySet[read])
         if number not in mapNumberToFrequency:
             mapNumberToFrequency[number] = 0
@@ -804,11 +804,11 @@ def part1(fastaName, fastaFile1, fastaFile2, pattern1, pattern2, hmm, step4Outpu
     step1(fastaFile2, pattern2)
     step3InputList = []
     step3OutputList = []
-    for i in xrange(1,7):
+    for i in range(1,7):
         inputFile = pattern1 + '.frame%d' % i
         step2Output = step2(hmm, inputFile)
         step3InputList.append(step2Output)
-    for i in xrange(1,7):
+    for i in range(1,7):
         inputFile = pattern2 + '.frame%d' % i
         step2Output = step2(hmm, inputFile)
         step3InputList.append(step2Output)        
