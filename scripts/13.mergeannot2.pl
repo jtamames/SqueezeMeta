@@ -552,31 +552,6 @@ while(<infile12>) {
 
 	#-- We start writing the table while reading mapcount, to avoid storing that many data in memory
 
-	my($cogprint,$keggprint,$optprint);
-	my $ctg=$orf;
-	$ctg=~s/\_\d+\-\d+$//;
-	my $funcogm=$orfdata{$orf}{cog};
-	my $funkeggm=$orfdata{$orf}{kegg};
-	if($orfdata{$orf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
-	if($orfdata{$orf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
-	printf outfile1 "$orf\t$ctg\t$orfdata{$orf}{molecule}\t$orfdata{$orf}{method}\t$orfdata{$orf}{lengthnt}\t$orfdata{$orf}{length}\t%.2f\t$orfdata{$orf}{name}\t$orfdata{$orf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$orf}{pfam}",$orfdata{$orf}{gc};
-	if($opt_db) { 
-		foreach my $topt(sort keys %optlist) { 
-			my $funoptdb=$orfdata{$orf}{$topt};
-			if($orfdata{$orf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
-			print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
-			}
-		}
-	
-	#-- Abundance values
-	
-	my $sdat=$tpm || "0"; print outfile1 "\t$sdat";
-	my $sdat=$coverage || "0"; print outfile1 "\t$sdat";
-	my $sdat=$rawreads || "0"; print outfile1 "\t$sdat";
-	my $sdat=$rawbases || "0"; print outfile1 "\t$sdat";
-	
-	
-	#-- Diamond hits
 
 	if(!$lastorf) { $lastorf=$orf; }
 	if($orf eq $lastorf) {
