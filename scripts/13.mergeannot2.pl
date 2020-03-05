@@ -635,8 +635,14 @@ if($opt_db) {
 	
 foreach my $tsam(keys %samples) {
 	my $sdat=$tempstore{$tsam}{tpm} || "0"; print outfile1 "\t$sdat";
+	}
+foreach my $tsam(keys %samples) {
 	my $sdat=$tempstore{$tsam}{coverage} || "0"; print outfile1 "\t$sdat";
+	}
+foreach my $tsam(keys %samples) {
 	my $sdat=$tempstore{$tsam}{rawreads} || "0"; print outfile1 "\t$sdat";
+	}
+foreach my $tsam(keys %samples) {
 	my $sdat=$tempstore{$tsam}{rawbases} || "0"; print outfile1 "\t$sdat";
 	}
 	
