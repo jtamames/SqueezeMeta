@@ -389,6 +389,7 @@ if($doublepass) {
 	my($ntorf,$ntseq,$gc);
 	open(infile6,$fna_blastx) || warn "Can't open nt file $ntfile\n";
 	print "  Calculating GC content for blastx genes\n";
+	my ($poinit,$poend);
 	while(<infile6>) { 
 		chomp;
 		if($_=~/^\>([^ ]+)/) {			#-- If we are reading a new ORF, store the data for the last one
@@ -397,7 +398,7 @@ if($doublepass) {
 			my @sf=split(/\_/,$ntorf);
 			my $ipos=pop @sf;
 			my $contname=join("_",@sf);
-			my($poinit,$poend)=split(/\-/,$ipos);
+		        $poinit,$poend=split(/\-/,$ipos);
 			$orfdata{$ntorf}{gc}=$gc;
 			$orfdata{$ntorf}{length}=int(($poend-$poinit+1)/3);
 			$orfdata{$ntorf}{molecule}="CDS";
@@ -409,8 +410,9 @@ if($doublepass) {
 		else { $ntseq.=$_; }		#-- Otherwise store the sequence of the current			      
 	}
 	close infile6;
-	if($ntseq) { $gc=gc_count($ntseq); }		#-- Last ORF in the file
-	$orfdata{$ntorf}{gc}=$gc; 
+	$gc=gc_count($ntseq);	#-- Last ORF in the file
+	$orfdata{$ntorf}{gc}=$gc;
+	$orfdata{$ntorf}{length}=int(($poend-$poinit+1)/3);                                                                     $orfdata{$ntorf}{molecule}="CDS";                                                                                       $orfdata{$ntorf}{method}="blastx";
 	$datafiles{'gc'}=1;
 	}
 

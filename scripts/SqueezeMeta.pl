@@ -347,7 +347,8 @@ if($mode=~/sequential/i) {
 	open(outfile0,">$mappingfile") || die;
 	while(<infile0>) {
 		$_=~s/\r//g;
-		print outfile0 $_;
+		($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+		if($sample eq $thissample) { print outfile0 $_; } # Generate a samples file containing only fastqs from this sample.
 		}
 	close outfile0;
 	close infile0;
