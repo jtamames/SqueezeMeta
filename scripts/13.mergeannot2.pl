@@ -107,7 +107,10 @@ if($opt_db) {
 	close infile0;
 	}
 
-foreach my $cnt(sort keys %samples) { print outfile1 "\tTPM $cnt\tCoverage $cnt\tRaw read count $cnt\tRaw base count $cnt"; }	
+foreach my $cnt(keys %samples) { print outfile1 "\tTPM $cnt"; }
+foreach my $cnt(keys %samples) { print outfile1 "\tCoverage $cnt"; }
+foreach my $cnt(keys %samples) { print outfile1 "\tRaw read count $cnt"; }
+foreach my $cnt(keys %samples) { print outfile1 "\tRaw base count $cnt"; }
 print outfile1 "\tHits"; 
 if($seqsinfile13) { print outfile1 "\tAASEQ"; }
 print outfile1 "\n";
