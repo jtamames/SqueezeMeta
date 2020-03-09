@@ -29,9 +29,9 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf_original.pl") { die ("\nCRITICAL E
 
 our $warnings;
 
-print("\n");
-print("Checking for gcc\n");
-check_command("gcc --help", "ERROR: The GCC compiler can not be found in this environment!!");
+#print("\n");
+#print("Checking for gcc\n");
+#check_command("gcc --help", "ERROR: The GCC compiler can not be found in this environment!!");
 
 
 print("\n");
