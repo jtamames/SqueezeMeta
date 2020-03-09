@@ -24,6 +24,9 @@ SqueezeMeta can be run in three different modes, depending of the type of multi-
 
 - Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
 
+- Seqmerge mode: This is intended to work with more samples than the merged mode. Instead of merging all individual assemblies in a single step, which can be very computationally demanding, seqmerge works sequentially. First, it assembles individually all samples, as in merged mode. But then it will merge the two most similar assemblies. Similarity is measured as Amino Acid Identity values using the wonderful CompareM software by Donovan Parks. After this first merging, it again evaluates similarity and merge, and proceeds this way until all metagenomes have been merged in one. Therefore, for n metagenomes, it will need n-1 merging steps.
+
+
 SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
 1)  Assembly
@@ -121,6 +124,7 @@ The command for running SqueezeMeta has the following syntax:
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
+* *--euk*: Drop identity filters for eukaryotic annotation (Default: no) 
 * *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
 * *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
@@ -169,7 +173,7 @@ Sample3	readfileD_1.fastq	pair1	noassembly
 Sample3	readfileD_2.fastq	pair2	noassembly
 ```
 
-The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the "noassembly" value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Notice also that paired reads are expected, and that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
+The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the "noassembly" value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Similarly, an extra column with the "nobinning" value can be included in order to avoid using those samples for binning. Notice that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
 
 ### Restart
 
@@ -177,7 +181,7 @@ Any interrupted SqueezeMeta run can be restarted using the program restart.pl. I
 
 `restart.pl <projectname>`
 
-This command must be issued in the upper directory to the project <projectname>, and will restart the run of that project by reading the progress.txt file to find out the point where the run stopped. 
+This command will restart the run of that project by reading the progress.txt file to find out the point where the run stopped. 
  
 Alternatively, the run can be restarted from a specific step by issuing the command:
 
@@ -186,7 +190,7 @@ Alternatively, the run can be restarted from a specific step by issuing the comm
 e.g. `restart.pl <projectname> -step 6` would restart the pipeline from the taxonomic assignment of genes. The different steps of the pipeline are listed in section 1.
 
 ### Running scripts
-Also, any individual script of the pipeline can be run in the upper directory to the project using the same syntax: 
+Also, any individual script of the pipeline can be run using the same syntax: 
 
 `script <projectname>` (for instance, `04.rundiamond.pl <projectname>` to repeat the DIAMOND run for the project)
 
@@ -230,11 +234,13 @@ Assuming your databases are not inside the SqueezeMeta directory, just remove it
 
 
 ## 12. Downstream analysis of SqueezeMeta results
-SqueezeMeta comes with a variety of options to explore the results and generate different plots. These are fully described in the PDF manual. Briefly, the three main ways to analyze the output of SqueezeMeta are the following:
+SqueezeMeta comes with a variety of options to explore the results and generate different plots. These are fully described in the PDF manual and in the [wiki](https://github.com/jtamames/SqueezeMeta/wiki). Briefly, the three main ways to analyze the output of SqueezeMeta are the following:
 
-**1) Integration with R:** We provide the *SQMtools* R package, which allows to easily load a whole SqueezeMeta project and expose the results into R. The package includes functions to select particular taxa or functions and generate plots. The package also makes the different tables generated by SqueezeMeta easily available for third-party R packages such as *vegan* (for multivariate analysis), *DESeq2* (for differential abundance testing) or for custom analysis pipelines.
+<img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/Figure_1_readmeSQM.png" width="50%">
 
-**2) Integration with the anvi'o analysis pipeline:** We provide a compatibility layer for loading SqueezeMeta results into the anvi'o analysis and visualization platform (http://merenlab.org/software/anvio/). This includes a built-in query language for selecting the contigs to be visualized in the anvi'o interactive interface.
+**1) Integration with R:** We provide the *SQMtools* R package, which allows to easily load a whole SqueezeMeta project and expose the results into R. The package includes functions to select particular taxa or functions and generate plots. The package also makes the different tables generated by SqueezeMeta easily available for third-party R packages such as *vegan* (for multivariate analysis), *DESeq2* (for differential abundance testing) or for custom analysis pipelines. See examples [here](https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results).
+
+**2) Integration with the anvi'o analysis pipeline:** We provide a compatibility layer for loading SqueezeMeta results into the anvi'o analysis and visualization platform (http://merenlab.org/software/anvio/). This includes a built-in query language for selecting the contigs to be visualized in the anvi'o interactive interface. See examples [here](https://github.com/jtamames/SqueezeMeta/wiki/Loading-SQM-results-into-anvi'o).
 
 **3) MySQL database:** SqueezeMeta includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
 
