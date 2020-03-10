@@ -49,7 +49,11 @@ sudo R CMD INSTALL <installpath>/SqueezeMeta/lib/SQMtools
 
 ### Install databases and test data.
 # This will occupy around 200Gb.
-<installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <datapath>
+<installpath>/SqueezeMeta/utils/install_utils/download_databases.pl <datapath>
+
+
+### Test that all the dependencies can be located in this environment.
+<installpath>/SqueezeMeta/utils/install_utils/test_install.pl
 
 
 ### Run SqueezeMeta on test data.
