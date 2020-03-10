@@ -1,9 +1,8 @@
 package:
   name: squeezemeta
-  version: "1.0.0"
+  version: '1.1.0'
 
 source:
-        #  url: https://github.com/jtamames/SqueezeMeta/archive/v1.0.0.zip
   git_url: https://github.com/jtamames/squeezemeta.git
 
 requirements:
@@ -13,10 +12,15 @@ requirements:
     - r-reshape2
     - r-doMC
     - r-data.table
+    - perl=5.26
+    - perl-app-cpanminus
   run:
     - python=3.6
     - numpy
     - scipy
+    - pandas
+    - cython
+    - future
     - matplotlib
     - dendropy
     - pysam
@@ -27,14 +31,48 @@ requirements:
     - perl-lwp-simple
     - perl-xml-libxml
     - perl-xml-parser
-    - java-jdk 
+    - openjdk
     - ruby=2.5
     - r=3.6
     - r-ggplot2
     - r-reshape2
     - r-doMC
     - r-data.table
-    - bioconductor-pathview 
+    - bioconductor-pathview
+
+build:
+  noarch: generic
+
+test:
+  command: "cd $PREFIX/SqueezeMeta/scripts; for script in *.pl; do perl -c $script; done; perl $PREFIX/SqueezeMeta/utils/install_utils/test_install.pl"
 
 about:
   home:  https://github.com/jtamames/SqueezeMeta
+  license: GPL-3
+  license_file: ../LICENSE
+  summary: 'SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins'
+  description:
+          "SqueezeMeta is a fully automatic pipeline for metagenomics/metatranscriptomics,
+          covering all steps of the analysis. SqueezeMeta includes multi-metagenome
+          support allowing the co-assembly of related metagenomes and the retrieval of
+          individual genomes via binning procedures.
+          \n
+          \n
+          To install this package with conda run:
+          \n
+          \n
+          `conda create -n SqueezeMeta -c bioconda -c fpusan squeezemeta`
+          \n
+          \n
+          And activate it with:
+          \n
+          \n
+          `conda activate SqueezeMeta`
+          \n
+          \n
+          Detailed usage instructions can be found at <http://github.com/jtamames/SqueezeMeta>"
+  dev_url: https://github.com/jtamames/SqueezeMeta
+  doc_url: https://github.com/jtamames/SqueezeMeta
+  doc_source_url: https://github.com/jtamames/SqueezeMeta/blob/master/README.md
+  recipe-maintainers:
+      - fpusan

@@ -2,7 +2,7 @@
 % Please edit documentation in R/exportKrona.R
 \name{exportKrona}
 \alias{exportKrona}
-\title{Export the taxonomy of a SQM object into a krona Chart}
+\title{Export the taxonomy of a SQM object into a Krona Chart}
 \usage{
 exportKrona(SQM, output_name = NA)
 }

@@ -1,4 +1,4 @@
-#' Export the taxonomy of a SQM object into a krona Chart
+#' Export the taxonomy of a SQM object into a Krona Chart
 #'
 #' Generate a krona chart containing the full taxonomy from a SQM object.
 #'
