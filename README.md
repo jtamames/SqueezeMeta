@@ -183,7 +183,7 @@ Sample3	readfileD_1.fastq	pair1	noassembly
 Sample3	readfileD_2.fastq	pair2	noassembly
 ```
 
-The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the "noassembly" value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Similarly, an extra column with the "nobinning" value can be included in order to avoid using those samples for binning. Notice that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
+The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the `noassembly` value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Similarly, an extra column with the `nobinning` value can be included in order to avoid using those samples for binning. Notice that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
 
 ### Restart
 
