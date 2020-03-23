@@ -173,9 +173,10 @@ class SplitFilter():
             Parse a string consisting a single relational expression into a tuple of the form (operation, subject, value)
             """
             if expr:
-                temp_expr = expr.replace(' NOT IN', ' $not in$').replace(' CONTAINS', ' $contains$') # Hack since "IN" is itself a substring of "CONTAINS" and "NOT IN".
-                temp_relOps = [op.replace('NOT IN', '$not in$').replace('CONTAINS', '$contains$') for op in self.RELATIONAL_OPERATORS] # Keep hacking
-                ops = [op.replace('$','').upper() for op in temp_relOps if op in temp_expr] # Finish hacking.
+                temp_expr = expr.replace(' NOT IN ', ' $not in$ ').replace(' CONTAINS ', ' $contains$ ').replace(' DOES NOT CONTAIN ', ' $does not contain$ ')  # Hack since "IN" is itself a substring of "CONTAINS",
+                                                                                                                                                                #  "NOT IN" and "DOES NOT CONTAIN"
+                temp_relOps = [op.replace('NOT IN', '$not in$').replace('CONTAINS', '$contains$').replace('DOES NOT CONTAIN', '$does not contain$') for op in self.RELATIONAL_OPERATORS] # Keep hacking
+                ops = [op.replace('$','').upper() for op in temp_relOps if op in temp_expr] # Finish hacking
                 if len(ops) != 1:
                     raise Exception('Either none or more than one relational operators in expression "{}"'.format(expr))
                 op = ops[0]
@@ -341,6 +342,7 @@ class SplitFilter():
         else:
             raise Exception('This should not happen')
         query = 'SELECT DISTINCT genes_in_splits.split FROM genes_in_splits, gene_functions WHERE gene_functions.source IN ({}) AND (gene_functions.function {} {} OR gene_functions.accession {} {}) AND gene_functions.gene_callers_id==genes_in_splits.gene_callers_id;'.format(sources, op, valueSub, op, valueSub)
+        print(query)
         # DISTINCT is not really needed as we will cast results into a set, but is clearer this way.
         c.execute(query, value)
         goodSplits = set([x[0] for x in c.fetchall()])
