@@ -75,13 +75,18 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
 
 
     ### Define helper functions.
-    def update_dicts(funDict, funIdx, trusted_only):
-        # abundances, coverages, copies, lengths and ignore_unclassified_fun are taken from the outer scope.
+    def update_dicts(funDict, colName, trusted_only):
+        funIdx = idx[colName]
+        # idx, abundances, coverages, copies, lengths and ignore_unclassified_fun are taken from the outer scope.
         if trusted_only and line[funIdx] and line[funIdx][-1] != '*': # Functions confirmed with the bestaver algorithm have a trailing asterisk.
             pass
         else:
             funs = line[funIdx].replace('*','')
-            funs = ['Unclassified'] if not funs else funs.strip(';').split(';') # So much fun!
+            if colName != 'PFAM':
+                funs = ['Unclassified'] if not funs else funs.strip(';').split(';') # So much fun!
+            else: # PFAM has ID and description in the same field, and some descriptions have the ";" character we use for separation.
+                funs = ['Unclassified'] if not funs else funs.strip(';').split('];')
+                funs = ['{}]'.format(fun) if (i+1)<len(funs) else fun for i,fun in enumerate(funs)] # Add back the trailing "]" in all but the last function.
             for fun in funs:
                 if ignore_unclassified_fun and fun == 'Unclassified':
                     continue
@@ -144,19 +149,19 @@ def parse_orf_table(orf_table, nokegg, nocog, nopfam, trusted_only, ignore_uncla
                 ID = line[idx['KEGG ID']].replace('*', '')
                 if ID:
                     kegg['info'][ID] = [line[idx['KEGGFUN']], line[idx['KEGGPATH']]]
-                update_dicts(kegg, idx['KEGG ID'], trusted_only)
+                update_dicts(kegg, 'KEGG ID', trusted_only)
             if not nocog:
                 ID = line[idx['COG ID']].replace('*', '')
                 if ID:
                     cog['info'][ID] = [line[idx['COGFUN']], line[idx['COGPATH']]]
-                update_dicts(cog, idx['COG ID'], trusted_only)
+                update_dicts(cog, 'COG ID', trusted_only)
             if not nopfam:
-                update_dicts(pfam, idx['PFAM'], False) # PFAM are not subjected to the bestaver algorithm.
+                update_dicts(pfam, 'PFAM', False) # PFAM are not subjected to the bestaver algorithm.
             for method in custom_methods:
                 ID = line[idx[method]].replace('*', '')
                 if ID:
                     custom[method]['info'][ID] = [ line[idx[method + ' NAME']] ]
-                update_dicts(custom[method], idx[method], trusted_only)
+                update_dicts(custom[method], method, trusted_only)
 
     # Calculate tpm.
     orfs['tpm'] = tpm(orfs)
