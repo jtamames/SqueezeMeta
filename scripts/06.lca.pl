@@ -232,13 +232,13 @@ sub query {
 	
 	$abb=~s/sub\w+\:/n_/g;
 	$abb=~s/sub\w+\_/n_/g;
-	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/species group\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
 	print outfile2 "$lastorf\t$abb\n";		
 	if($noidfilter6) {
 		# print outfile3 "$lastorf\t$parents{$lasttaxnofilter}{noranks}\n";
 		my $abb=$parents{$lasttaxnofilter}{wranks};
-		$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g; 
+		$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/species group\:/n_/g; $abb=~s/\w+\:/n_/g; 
 		# print outfile4 "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";	
 		print outfile4 "$lastorf\t$abb\n";	
 		}	
