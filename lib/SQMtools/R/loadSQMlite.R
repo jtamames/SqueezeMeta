@@ -186,6 +186,17 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
     rownames(SQM$taxa$species$percent)      = SQM$misc$tax_names_short[rownames(SQM$taxa$species$percent)]
 
 
+    # Now the rownames are a character vector which actually has its own names inside. Some R packages don't like this, so we correct it.
+    for(taxlevel in names(SQM$taxa))
+        {
+        for(counts in names(SQM$taxa[[taxlevel]]))
+            {
+            names(rownames(SQM$taxa[[taxlevel]][[counts]])) = NULL
+            }
+        }
+
+
+
     cat('Loading functions\n')
     SQM$functions                           = list()
 
