@@ -112,7 +112,7 @@ foreach my $m(@files) {
 				if($ftax!~/\_/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\_/,$ftax); }
 				$ntax=~s/unclassified //gi;
 				$ntax=~s/ \<.*\>//gi; 
-				if($tax{$ntax} && ($rank ne "n") && ($rank ne "s")) { 
+				if($tax{$ntax} && ($rank ne "n") && ($rank ne "s") && ($branks{$rank})) { 
 				push( @{ $alltaxa{$thisfile} },"$branks{$rank}\_$ntax");
 				#   print "$m\t$ntax\t$tax{$ntax}\n";
 				}
