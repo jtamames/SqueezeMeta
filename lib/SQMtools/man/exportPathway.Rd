@@ -9,6 +9,7 @@ exportPathway(
   pathway_id,
   samples = NULL,
   split_samples = F,
+  sample_colors = NULL,
   output_suffix = "pathview"
 )
 }
@@ -21,6 +22,8 @@ exportPathway(
 
 \item{split_samples}{logical. Generate a different output file for each sample (default \code{FALSE}).}
 
+\item{sample_colors}{character. An optional vector with the plotting colors for each sample. Will be ignored if split_samples is set to \code{TRUE}.(default \code{NULL}).}
+
 \item{output_suffix}{character. Suffix to be added to the output files (default \code{"pathview"}).}
 }
 \description{
@@ -28,7 +31,7 @@ This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \e
 }
 \examples{
 data(Hadza)
-exportPathway(Hadza, "00910", output_suffix = "nitrogen_metabolism")
+exportPathway(Hadza, "00910", output_suffix = "nitrogen_metabolism", sample_colors = c("red", "blue"))
 }
 \seealso{
 \code{\link[plotFunctions]{plotFunctions}} for plotting the most functions taxa of a SQM object.
