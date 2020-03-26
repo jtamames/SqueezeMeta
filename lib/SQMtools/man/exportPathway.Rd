@@ -7,9 +7,13 @@
 exportPathway(
   SQM,
   pathway_id,
+  count = "tpm",
   samples = NULL,
   split_samples = F,
   sample_colors = NULL,
+  log_scale = F,
+  max_scale_value = NULL,
+  color_bins = 10,
   output_suffix = "pathview"
 )
 }
@@ -18,16 +22,24 @@ exportPathway(
 
 \item{pathway_id}{character. The five-number KEGG pathway identifier. A list of all pathway identifiers can be found in \url{https://www.genome.jp/kegg/pathway.html}.}
 
-\item{samples}{character. A vector with the names of the samples to export. If absent, all samples will be exported (default \code{NULL}).}
+\item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"tpm"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
+
+\item{samples}{character. An optional vector with the names of the samples to export. If absent, all samples will be exported (default \code{NULL}).}
 
 \item{split_samples}{logical. Generate a different output file for each sample (default \code{FALSE}).}
 
-\item{sample_colors}{character. An optional vector with the plotting colors for each sample. Will be ignored if split_samples is set to \code{TRUE}.(default \code{NULL}).}
+\item{sample_colors}{character. An optional vector with the plotting colors for each sample (default \code{NULL}).}
+
+\item{log_scale}{logical. Use a base 10 logarithmic transformation for the color scale (default \code{FALSE}).}
+
+\item{max_scale_value}{numeric. Maximum value to include in the color scale. By default it is the maximum value in the selected samples (default \code{NULL}).}
+
+\item{color_bins}{numeric. Number of bins used to generate the gradient in the color scale (default \code{10}).}
 
 \item{output_suffix}{character. Suffix to be added to the output files (default \code{"pathview"}).}
 }
 \description{
-This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \emph{Nucleic acids research}, 45:W501-W508). It will generate annotated KEGG pathway maps showing which reactions are present in the different samples.
+This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \emph{Nucleic acids research}, 45:W501-W508). It will generate annotated KEGG pathway maps showing which reactions are present in the different samples. It will also generate legends with the color scales for each sample in separate png files.
 }
 \examples{
 data(Hadza)
