@@ -14,7 +14,8 @@ plotTaxonomy(
   ignore_unclassified = F,
   rescale = F,
   color = NULL,
-  base_size = 11
+  base_size = 11,
+  max_scale_value = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ plotTaxonomy(
 \item{color}{Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).}
 
 \item{base_size}{numeric. Base font size (default \code{11}).}
+
+\item{max_scale_value}{numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).}
 }
 \value{
 a ggplot2 plot object.

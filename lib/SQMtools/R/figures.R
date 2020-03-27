@@ -63,6 +63,7 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
 #' @param label_fill character Label for color categories (default \code{"Features"}).
 #' @param color Vector with custom colors for the different features. If empty, the default ggplot2 palette will be used (default \code{NULL}).
 #' @param base_size numeric. Base font size (default \code{11}).
+#' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotHeatmap}} for plotting a heatmap with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 #' @examples
@@ -70,9 +71,10 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
 #' sk = Hadza$taxa$superkingdom$abund
 #' plotBars(sk, label_y = "Raw reads", label_fill = "Superkingdom")
 #' @export
-plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fill = 'Features', color = NULL, base_size = 11)
+plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fill = 'Features', color = NULL, base_size = 11, max_scale_value = NULL)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
+    if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
     data=t(data)
     data_melt = reshape2::melt(as.matrix(data), value.name = 'abun')
     colnames(data_melt) = c('sample', 'item', 'abun')
@@ -105,6 +107,10 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
     if (!is.null(color) & length(color) >= length(unique(as.character(data_melt$item))))
         {
         p = p + ggplot2::scale_fill_manual( values = setNames(color, unique(as.character(data_melt$item))) )
+        }
+    if (!is.null(max_scale_value))
+        {
+        p = p + ggplot2::ylim(0, max_scale_value)
         }
     return(p)
     }
@@ -209,6 +215,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
 #' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
 #' @param color Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).
 #' @param base_size numeric. Base font size (default \code{11}).
+#' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
@@ -217,7 +224,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, "family")
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, ignore_unclassified = F, rescale = F, color = NULL, base_size = 11)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, ignore_unclassified = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
@@ -237,6 +244,8 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         warning(sprintf('We can\'t plot N = %s? taxa. Continuing with default values', N))
         N = 15
         }
+    if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
+
     # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df.
     data = as.data.frame(SQM[['taxa']][[rank]][[count]])
     data = mostAbundant(data, N = N, items = tax, others = others, rescale = rescale)
@@ -295,7 +304,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         }
     nice_label = c(abund='Raw abundance', percent='Percentage')[count]
     nice_rank  = paste0(toupper(substr(rank,1,1)), substr(rank,2,nchar(rank)))
-    p = plotBars(data, label_y = nice_label, color = color, label_fill = nice_rank, base_size = base_size)
+    p = plotBars(data, label_y = nice_label, color = color, label_fill = nice_rank, base_size = base_size, max_scale_value = max_scale_value)
     return(p)
     }
 
