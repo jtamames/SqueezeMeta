@@ -72,14 +72,13 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
     node.data = node.info(xml.file)
     # Map our data.
     plot.data.gene = node.map(mol.data=mat, node.data, node.types="ortholog", entrez.gnodes=F)
-
-    # Create sub matrix with the color for each KO in each sample..
     cols.ts.gene = node.color(plot.data.gene, limit=2, bins=4) # The number of bins does not matter for this.
-    present = intersect(rownames(mat), plot.data.gene$kegg.names)
-    absent = setdiff(plot.data.gene$kegg.names, rownames(mat))
-    submat = mat[present,]
-    submat = rbind(submat, matrix(0, nrow=length(absent), ncol=ncol(mat), dimnames=list(absent, colnames(mat))))
-    submat = submat[plot.data.gene$kegg.names,] # sort it the same way.
+     
+    # This also added the abundances of the different KOs mapping to the same reaction, and assigned it to one of the KOs (the first one?)
+    # So plot.data.gene is missing KOs, but has the abundances for each reaction right. We will use that data.
+    submat = as.matrix(plot.data.gene[,colnames(mat),drop=F])
+    submat[is.na(submat)] = 0
+
     zeros = submat==0
 
     # Change to log-scale if required.
