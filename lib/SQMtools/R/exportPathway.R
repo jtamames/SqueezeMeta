@@ -105,9 +105,12 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
     } else
         {
         # Calculate fold change and overwrite submat and plot.data.gene.
-	submat = submat + pseudocount
+        submat = submat + pseudocount
 	log2FC = log(rowMeans(submat[,fold_change_groups[[2]],drop=F]) / rowMeans(submat[,fold_change_groups[[1]],drop=F]), 2)
 	submat = cbind(submat[,0], log2FC = log2FC)
+	zeros = submat==0
+	print(submat)
+	print(zeros)
 	plot.data.gene = cbind(plot.data.gene[,!colnames(plot.data.gene) %in% SQM$misc$samples], log2FC = log2FC)
 	}
 
