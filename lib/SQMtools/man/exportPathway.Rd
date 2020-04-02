@@ -12,6 +12,8 @@ exportPathway(
   split_samples = F,
   sample_colors = NULL,
   log_scale = F,
+  fold_change_groups = NULL,
+  fold_change_colors = NULL,
   max_scale_value = NULL,
   color_bins = 10,
   output_suffix = "pathview"
@@ -30,9 +32,13 @@ exportPathway(
 
 \item{sample_colors}{character. An optional vector with the plotting colors for each sample (default \code{NULL}).}
 
-\item{log_scale}{logical. Use a base 10 logarithmic transformation for the color scale (default \code{FALSE}).}
+\item{log_scale}{logical. Use a base 10 logarithmic transformation for the color scale. Will have no effect if \code{fold_change_groups} is provided (default \code{FALSE}).}
 
-\item{max_scale_value}{numeric. Maximum value to include in the color scale. By default it is the maximum value in the selected samples (default \code{NULL}).}
+\item{fold_change_groups}{list. An optional list containing two vectors of samples. If provided, the function will generate a single plot displaying the log2 fold-change between the average abundances of both groups of samples ( log(second group / first group) ) (default \code{NULL}).}
+
+\item{fold_change_colors}{character. An optional vector with the plotting colors of both groups in the fold-change plot. Will be ignored if \code{fold_change_group} is not provided.}
+
+\item{max_scale_value}{numeric. Maximum value to include in the color scale. By default it is the maximum value in the selected samples (if plotting abundances in samples) or the maximum absolute log2 fold-change (if plotting fold changes) (default \code{NULL}).}
 
 \item{color_bins}{numeric. Number of bins used to generate the gradient in the color scale (default \code{10}).}
 
@@ -44,6 +50,7 @@ This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \e
 \examples{
 data(Hadza)
 exportPathway(Hadza, "00910", count = 'copy_number', output_suffix = "nitrogen_metabolism", sample_colors = c("red", "blue"))
+exportPathway(Hadza, "00250", count = 'tpm', output_suffix = "ala_asp_glu_metabolism_FoldChange", fold_change_groups = list(c("H1"), c("H12")))
 }
 \seealso{
 \code{\link[plotFunctions]{plotFunctions}} for plotting the most functions taxa of a SQM object.
