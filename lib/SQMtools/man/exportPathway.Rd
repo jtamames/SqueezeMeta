@@ -50,7 +50,7 @@ This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \e
 \examples{
 data(Hadza)
 exportPathway(Hadza, "00910", count = 'copy_number', output_suffix = "nitrogen_metabolism", sample_colors = c("red", "blue"))
-exportPathway(Hadza, "00250", count = 'tpm', output_suffix = "ala_asp_glu_metabolism_FoldChange", fold_change_groups = list(c("H1"), c("H12")))
+exportPathway(Hadza, "00250", count = 'tpm', output_suffix = "ala_asp_glu_metabolism_FoldChange", fold_change_groups = list(c("H1"), c("H12")), max_scale_value=2)
 }
 \seealso{
 \code{\link[plotFunctions]{plotFunctions}} for plotting the most functions taxa of a SQM object.
