@@ -18,7 +18,7 @@
 #' @examples
 #' data(Hadza)
 #' exportPathway(Hadza, "00910", count = 'copy_number', output_suffix = "nitrogen_metabolism", sample_colors = c("red", "blue"))
-#' exportPathway(Hadza, "00250", count = 'tpm', output_suffix = "ala_asp_glu_metabolism_FoldChange", fold_change_groups = list(c("H1"), c("H12")))
+#' exportPathway(Hadza, "00250", count = 'tpm', output_suffix = "ala_asp_glu_metabolism_FoldChange", fold_change_groups = list(c("H1"), c("H12")), max_scale_value=2)
 #' @export
 exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_samples = F, sample_colors = NULL, log_scale = F, fold_change_groups = NULL, fold_change_colors = NULL, max_scale_value = NULL, color_bins = 10, output_suffix = 'pathview')
     {
