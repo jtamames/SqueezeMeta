@@ -144,18 +144,19 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
             if(!log_scale) { true_breaks = breaks } else { true_breaks = 10 ** breaks; true_breaks[1] = 0 } # Breaks for the legend text
         } else 
 	    {
-            gradient = colorRampPalette(c(fold_change_colors[1], 'white', fold_change_colors[2]))(color_bins)
+            gradient = colorRampPalette(c(fold_change_colors[1], bg.col, fold_change_colors[2]))(color_bins)
 	    true_breaks = breaks # Breaks for the legend text
 	    }
         cols.ts.gene[,i] = gradient[submat_color[,i]]
 	filename = sprintf('ko%s.%s.%s.legend.png', pathway_id, output_suffix, colnames(cols.ts.gene)[i])
 	cat(sprintf('Info: Writing legend file %s\n', filename))
 	png(filename)
-        plot(c(0,2),c(0,1),type = 'n', axes = F, xlab = '', ylab = '', main = sprintf('%s - %s', colnames(mat)[i], nice_label[count]))
+        plot(c(0,2),c(0,1),type = 'n', axes = F, xlab = '', ylab = '', main = sprintf('%s - %s', colnames(cols.ts.gene)[i], nice_label[count]))
         text(x=1.5, y = seq(0,1,l=color_bins), labels = signif(true_breaks,3))
         rasterImage(rev(gradient), 0, 0, 1,1)
 	dev.off()
         }
+    cols.ts.gene[zeros] = bg.col # In log2FC plots, if we have an even number of color bins, rxns with zero FC (i.e. absent rxns) will not be exactly white.
     # KEGG view
     keggview.native(plot.data.gene = plot.data.gene,
                     cols.ts.gene = cols.ts.gene, node.data=node.data,
