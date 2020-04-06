@@ -114,6 +114,7 @@ sub splitfiles {
                         print outfiletemp $_;
                         $nextp+=$splitlines;
                         }
+                else { print outfiletemp $_; }
                 }
         close infile2;
         }

@@ -71,8 +71,8 @@ print "  Starting multithread LCA in $numthreads threads: ";
 print syslogfile "  Starting multithread LCA in $numthreads threads\n";
 my $threadnum;
 for($threadnum=1; $threadnum<=$numthreads; $threadnum++) {
-print "$threadnum ";
-my $thr=threads->create(\&current_thread,$threadnum);
+	print "$threadnum ";
+	my $thr=threads->create(\&current_thread,$threadnum);
 }
 print "\n";
 $_->join() for threads->list();
@@ -127,7 +127,9 @@ sub splitfiles {
                         print outfiletemp $_;
                         $nextp+=$splitlines;
                         }
-                }        close infile2;
+               else { print outfiletemp $_; }
+                }        
+	close infile2;
         }
 
 
@@ -239,8 +241,11 @@ sub query {
 	$lasttax="";			
 	foreach my $k(@ranks) {
 		print "   $k\n" if $verbose;
-		foreach my $t(keys %{ $accum{$k} }) {
-			print "      $t $accum{$k}{$t}\n" if $verbose;
+                my $maxp=0;
+                foreach my $t(sort { $accum{$k}{$a}<=>$accum{$k}{$b}; } keys %{ $accum{$k} }) {
+                        if($t && ($accum{$k}{$t}==$maxp)) { $lasttax=""; next; }    #-- Equality of hits, don´t choose any
+                        $maxp=$accum{$k}{$t};
+                        print "      $t $accum{$k}{$t}\n" if $verbose;
 			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits)) { 
 				next if(($t ne $bhit{$k}) && ($bhitforced));
 				print "$k -> $t\n" if $verbose;
