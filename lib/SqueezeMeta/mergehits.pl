@@ -21,6 +21,7 @@ while(<in>) {
 	my $contig=$fields[0];
 	$contig=~s/\_[^_]+$//;
 	my $current=$contig;
+print "$current\n";
 	if($current eq $last) {
 		my @f=split(/\t/,$_);
 		my $long=$f[7]-$f[6];

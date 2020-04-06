@@ -188,7 +188,7 @@ sub run_blastx {
 	#-- Run Diamond search
 
 	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
-	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
+	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet --range-culling -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	system $blastx_command;
@@ -199,7 +199,7 @@ sub collapse {
 	#-- Collapse hits using blastxcollapse.pl
 
 	print "  Collapsing hits with blastxcollapse.pl\n";
-	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
+	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 -p $numthreads $blastxout > $collapsed";
 	print outsyslog "Collapsing hits with blastxcollapse.pl: $collapse_command\n";
 	system $collapse_command;
 	}
