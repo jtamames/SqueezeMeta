@@ -229,7 +229,7 @@ foreach my $thissample(keys %allsamples) {
 		my $numhits=($#y)+1;
 		print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\n";
 			
-		my $lca_command="perl $auxdir/lca_reads.pl $outfile";
+		my $lca_command="perl $auxdir/lca_reads.pl $outfile $numthreads";
 		$currtime=timediff();
 		print CYAN "[",$currtime->pretty,"]: Running LCA\n";
 		system($lca_command);

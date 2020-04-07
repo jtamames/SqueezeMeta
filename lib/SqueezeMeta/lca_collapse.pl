@@ -244,7 +244,7 @@ sub query {
                 my $maxp=0;
                 foreach my $t(sort { $accum{$k}{$a}<=>$accum{$k}{$b}; } keys %{ $accum{$k} }) {
                         if($t && ($accum{$k}{$t}==$maxp)) { $lasttax=""; next; }    #-- Equality of hits, don´t choose any
-                        $maxp=$accum{$k}{$t};
+                        if($t) { $maxp=$accum{$k}{$t}; }
                         print "      $t $accum{$k}{$t}\n" if $verbose;
 			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits)) { 
 				next if(($t ne $bhit{$k}) && ($bhitforced));
