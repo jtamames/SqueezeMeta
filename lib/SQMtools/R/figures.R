@@ -211,7 +211,8 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
 #' @param N integer Plot the \code{N} most abundant taxa (default \code{15}).
 #' @param tax character. Custom taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).
-#' @param ignore_unclassified logical. Don't include unclassified contigs in the plot (default \code{FALSE}).
+#' @param ignore_unclassified logical. Don't include unclassified reads in the plot (default \code{FALSE}).
+#' @param no_partial_classifications logical. Treat reads not fully classified at the requested level (e.g. "Unclassified bacteroidetes" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).
 #' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
 #' @param color Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).
 #' @param base_size numeric. Base font size (default \code{11}).
@@ -224,7 +225,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = c
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, "family")
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, ignore_unclassified = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, ignore_unclassified = F, collapse_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
@@ -246,14 +247,23 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         }
     if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
 
+    data0 = SQM[['taxa']][[rank]][[count]]
+    # First collapse partial classifications if required.
+    if(no_partial_classifications)
+        {
+        unclassified = grepl('[Uu]nclassified', rownames(data0))
+        unclassified_counts = colSums(data0[unclassified,])
+	data0 = rbind(data0[!unclassified,], 'Unclassified' = unclassified_counts)
+        }
+
     # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df.
-    data = as.data.frame(SQM[['taxa']][[rank]][[count]])
+    data = as.data.frame(data0)
     data = mostAbundant(data, N = N, items = tax, others = others, rescale = rescale)
     # remove unclassified taxa (only possible when not custom items)
     # if N include unclassified taxa, add one more taxa
     if (ignore_unclassified & is.null(tax) & 'Unclassified' %in% rownames(data) & N != 0)
         { # We overwrite data from scratch!
-        data = as.data.frame(SQM[['taxa']][[rank]][[count]]) # Pick one more taxa
+        data = as.data.frame(data0) # Pick one more taxa
         data = mostAbundant(data, N = N + 1, items = tax, others = others, rescale = F) # Create the data table again
         data = data[rownames(data) != 'Unclassified', , drop = F] # Remove 'Unclassified'
         data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
