@@ -78,14 +78,14 @@ for($threadnum=1; $threadnum<=$numthreads; $threadnum++) {
 print "\n";
 $_->join() for threads->list();
 
-my $wrankfile="$resultpath/$outname.blastx.tax.wranks";
+my $wrankfile="$resultpath/$outname.wranks";
 my $catcommand="cat ";
 for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.wranks "; }
 $catcommand.=" > $wrankfile";
 print "  Creating $wrankfile file\n";
 system $catcommand;
 
-my $wrankfile="$resultpath/$outname.blastx.tax_noidfilter.wranks";
+my $wrankfile="$resultpath/$outname\_noidfilter.wranks";
 my $catcommand="cat ";
 for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.noidfilter.wranks "; }
 $catcommand.=" > $wrankfile";
