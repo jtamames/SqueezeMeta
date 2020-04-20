@@ -57,7 +57,7 @@ Detailed information about the different steps of the pipeline can be found in t
 
 ## 2. Installation
 
-The easiest way to install SqueezeMeta is by using conda.
+SqueezeMeta is intended to be run in a x86_64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda.
 
 `conda create -n SqueezeMeta -c bioconda -c fpusan squeezemeta`
 
@@ -134,7 +134,7 @@ The command for running SqueezeMeta has the following syntax:
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
-* *--euk*: Drop identity filters for eukaryotic annotation (Default: no) 
+* *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details.
 * *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
 * *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
