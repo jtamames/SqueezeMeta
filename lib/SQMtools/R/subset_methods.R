@@ -15,6 +15,8 @@
 #' data(Hadza)
 #' Hadza.iron = subsetFun(Hadza, "iron")
 #' Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
+#' # Search for multiple patterns using regular expressions
+#' Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=F)
 #' @export
 subsetFun = function(SQM, fun, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
