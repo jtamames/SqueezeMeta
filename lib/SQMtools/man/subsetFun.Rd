@@ -42,6 +42,8 @@ Create a SQM object containing only the ORFs with a given function, and the cont
 data(Hadza)
 Hadza.iron = subsetFun(Hadza, "iron")
 Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
+# Search for multiple patterns using regular expressions
+Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=F)
 }
 \seealso{
 \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.

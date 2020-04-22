@@ -14,7 +14,7 @@ use Term::ANSIColor qw(:constants);
 use lib ".";
 use strict;
 
-my $version="1.1.0";
+my $version="1.1.1";
 my $start_run = time();
 
 my $longtrace=0;    #-- Reports an explanation msg for each of the steps

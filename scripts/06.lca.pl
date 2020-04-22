@@ -12,6 +12,7 @@ use DBD::SQLite::Constants qw/:file_open/;
 use Tie::IxHash;
 use Cwd;
 use lib ".";
+use threads;
 
 my $pwd=cwd();
 
@@ -26,7 +27,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$databasepath,$interdir,$taxdiamond,$lca_db,$fun3tax,$evalue,$scoreratio6,$diffiden6,$flex6,$minhits6,$noidfilter6);
+our($datapath,$databasepath,$interdir,$tempdir,$taxdiamond,$lca_db,$fun3tax,$numthreads,$evalue,$scoreratio6,$diffiden6,$flex6,$minhits6,$noidfilter6,$syslogfile);
 my $infile=$taxdiamond;
 
 #-- Some parameters for the algorithm
@@ -36,10 +37,13 @@ my %idenrank=('species',85,'genus',60,'family',55,'order',50,'class',46,'phylum'
 my $verbose=0;
 my $thereareresults=0;
 
-#-- Prepare the LCA database (containing the acc -> tax correspondence)
+my(%provhits,%accum,%accumnofilter,%providen);
+my($thisorf,$lastorf,$validhits,$validhitsnofilter,$tothits,$refscore,$refiden,$assigned,%giden);
+tie %provhits,"Tie::IxHash";
+tie %accum,"Tie::IxHash";
+tie %accumnofilter,"Tie::IxHash";
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1, sqlite_open_flags => SQLITE_OPEN_READONLY }) or die $DBI::errstr;
-$dbh->sqlite_busy_timeout( 120 * 1000 );
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 #-- Reads the taxonomic tree (parsed from NCBI's taxonomy in the parents.txt file)
 
@@ -60,26 +64,93 @@ while(<infile1>) {
 	}
 close infile1;
 
-#-- Preparing the output files
+#-- Split Diamond file
 
-open(outfile2,">$fun3tax.wranks") || die "Can't open $fun3tax.wranks for writing\n";
-print outfile2 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
-if($noidfilter6) {
-	open(outfile4,">$fun3tax.noidfilter.wranks") || die "Can't open $fun3tax.noidfilter.wranks for writing\n";
-	print outfile4 "# Created by $0 from $infile, ",scalar localtime,", evalue=$evalue, scoreratio=$scoreratio6, diffiden=$diffiden6, flex=$flex6, minhits=$minhits6\n";
+splitfiles();
+
+#-- Launch threads
+
+print "  Starting multithread LCA in $numthreads threads: ";
+print syslogfile "  Starting multithread LCA in $numthreads threads\n";
+my $threadnum;
+for($threadnum=1; $threadnum<=$numthreads; $threadnum++) {
+print "$threadnum ";
+my $thr=threads->create(\&current_thread,$threadnum);
+}
+print "\n";
+$_->join() for threads->list();
+
+my $catcommand="cat ";
+for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.wranks "; }
+$catcommand.=" > $fun3tax.wranks";
+print "  Creating $fun3tax.wranks file\n";
+print syslogfile "  Creating $fun3tax.wranks file: $catcommand\n";
+system $catcommand;
+
+my $catcommand="cat ";
+for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.noidfilter.wranks "; }
+$catcommand.=" > $fun3tax.noidfilter.wranks";
+print "  Creating $fun3tax.noidfilter.wranks file\n";
+print syslogfile "  Creating $fun3tax.noidfilter.wranks file: $catcommand\n";
+system $catcommand;
+print syslogfile "  Removing temporaty diamond files in $tempdir\n";
+# system("rm $tempdir/diamond_lca.*.m8");
+ 
+
+sub splitfiles {
+	print "  Splitting Diamond file\n";
+	print syslogfile "  Splitting Diamond file\n";
+	system("wc -l $infile > $tempdir/wc");
+	open(intemp,"$tempdir/wc");
+	my $wc=<intemp>;
+	close intemp;
+	chomp $wc;
+	$wc=~s/\s+.*//;    #-- Number of lines in the diamond result
+	my $splitlines=int($wc/$numthreads);
+	print syslogfile "Total lines in Diamond: $wc; Allocating $splitlines in $numthreads threads\n";
+	my $nextp=$splitlines;
+	my ($filelines,$splitorf);
+	my $numfile=1;
+	print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
+	open(outfiletemp,">$tempdir/diamond_lca.$numfile.m8");
+	open(infile2,$infile) || die "Can't open Diamond file $infile\n"; 
+	while(<infile2>) {
+		$filelines++;
+		my @f=split(/\t/,$_);
+		if($filelines==$nextp) { $splitorf=$f[0];  }
+		if($filelines<=$nextp) { print outfiletemp $_; next; }                      
+		elsif($f[0] ne $splitorf) { 
+			close outfiletemp;
+			$numfile++;
+			print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n"; 
+			open(outfiletemp,">$tempdir/diamond_lca.$numfile.m8");
+			print outfiletemp $_;
+			$nextp+=$splitlines;
+			}
+                else { print outfiletemp $_; }
+		}
+	close infile2;
 	}
 
-#-- Parsing of the diamond file
 
-my(%provhits,%accum,%accumnofilter,%providen);
-my($thisorf,$lastorf,$validhits,$validhitsnofilter,$tothits,$refscore,$refiden,$assigned,%giden);
-tie %provhits,"Tie::IxHash";
-tie %accum,"Tie::IxHash";
-tie %accumnofilter,"Tie::IxHash";
+sub current_thread {
 
-if($infile=~/\.gz$/) { open(infile2,"zcat $infile|") || die "Can't open gzipped file $infile\n"; }			#-- If file is gzipped
-else { open(infile2,$infile) || die "Can't open Diamond file $infile\n"; }	#-- or if it is not
+#-- Preparing the output files
 
+my $threadnum=shift;
+print syslogfile "Starting thread $threadnum\n";
+
+#-- Prepare the LCA database (containing the acc -> tax correspondence)
+
+my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1, sqlite_open_flags => SQLITE_OPEN_READONLY }) or die $DBI::errstr;
+$dbh->sqlite_busy_timeout( 120 * 1000 );
+
+my $currentfile="$tempdir/diamond_lca.$threadnum.m8";
+open(outfile2,">$tempdir/fun3tax\_$threadnum.wranks") || die "Can't open $tempdir/fun3tax\_$threadnum.wranks for writing\n";
+if($noidfilter6) {
+        open(outfile4,">$tempdir/fun3tax\_$threadnum.noidfilter.wranks") || die "Can't open $tempdir/fun3tax\_$threadnum.noidfilter.wranks for writing\n";
+        }
+open(infile2,$currentfile) || die "Cannot open $currentfile\n"; 
 while(<infile2>) { 
 	chomp;
 	my $string;
@@ -93,7 +164,7 @@ while(<infile2>) {
 		#-- We finished reading the hits for an ORF,then we will query the database for the taxa of the hits
 		#-- and then we clean all the data corresponding to the past ORF 
 		
-		query();
+		query($dbh);
    
 		(%accum,%accumnofilter,%provhits,%providen,%giden)=();
  		($validhits,$validhitsnofilter,$tothits)=0;
@@ -101,7 +172,7 @@ while(<infile2>) {
 		$lastorf=$thisorf;	
 		($refscore,$refiden)=0;	
 		$assigned++;
-		if(!($assigned%1000)) { print "  $assigned ORFs processed     \r"; }
+	#	if(!($assigned%1000)) { print "  $assigned ORFs processed     \r"; }
 		}
 
 	#-- If we are reading a hit, we store its bitscore and identity value
@@ -121,20 +192,21 @@ close infile2;
 #-- For the last ORF, we have to call again query() because the file ended before we could make the call
 
 $lastorf=$thisorf;
-query();    
+query($dbh);    
 
 # close outfile1;
 close outfile2;
 #close outfile3;
 close outfile4;
-print "  Total: $assigned ORFs processed\n";
+# print "  Total: $assigned ORFs processed\n";
 
-if(!$thereareresults) { die "Tax assignment done in $fun3tax.wranks but no results found. Aborting\n"; }
+if(!$thereareresults) { die "Tax assignment done in $fun3tax\_$threadnum.wranks but no results found. Aborting\n"; }
 
-print "  Tax assignment done! Result stored in file $fun3tax.wranks\n";
-
+print "  Tax assignment done! Result stored in file $fun3tax\_$threadnum.wranks\n" if $verbose;
+}
 
 sub query {
+	my $dbh=shift;
 	my($refcc,$genocc,$unicc,$ratioscore,$idendiff)=0; 
 	# if($lastorf=~/k141_440_IC1025022_4/) { $verbose=1; } else { $verbose=0; }
 	print "refscore: $refscore refiden: $refiden\n" if $verbose; 
@@ -177,11 +249,11 @@ sub query {
 				my $rank=$ranks[$pos-1];	#-- Retrieve the rank
 				my $tax=$list[$pos];		#-- and the taxon
 				print "$lastorf $rank $giden{$list[0]} $idenrank{$rank}\n" if $verbose;
-				if($giden{$list[0]}>=$idenrank{$rank}) { $accum{$rank}{$tax}++; }		#-- and add a count for that taxon in that rank
-				$accumnofilter{$rank}{$tax}++; 		#-- Not considering identity filters for ranks
+				if($giden{$list[0]}>=$idenrank{$rank}) { $accum{$rank}{$tax}++;  }		#-- and add a count for that taxon in that rank
+                                $accumnofilter{$rank}{$tax}++; 		#-- Not considering identity filters for ranks
 			}
-		if(($list[7]) && ($giden{$list[0]}>=$idenrank{'superkingdom'})) { $validhits++;  }			#-- Count the number of valid hits
-		if(($list[2])) { $validhitsnofilter++; }
+		if(($list[7]) && ($giden{$list[0]}>=$idenrank{'superkingdom'}))  { $validhits++; }			#-- Count the number of valid hits
+                if(($list[2])) { $validhitsnofilter++; }
 		}
 	}
 
@@ -197,7 +269,10 @@ sub query {
 	
 	foreach my $k(@ranks) {	
 		print "   $k\n" if $verbose;
-		foreach my $t(keys %{ $accum{$k} }) {
+		my $maxp=0;
+		foreach my $t(sort { $accum{$k}{$a}<=>$accum{$k}{$b}; } keys %{ $accum{$k} }) {
+			if($t && ($accum{$k}{$t}==$maxp)) { $lasttax=""; next; }    #-- Equality of hits, don´t choose any
+			if($t) { $maxp=$accum{$k}{$t}; }
 			print "      $t $accum{$k}{$t}\n" if $verbose;
 			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { 	#-- REQUIREMENTS FOR VALID LCA
 				print "$k -> $t\n" if $verbose;
@@ -232,13 +307,13 @@ sub query {
 	
 	$abb=~s/sub\w+\:/n_/g;
 	$abb=~s/sub\w+\_/n_/g;
-	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/species group\:/n_/g; $abb=~s/\w+\:/n_/g;
+	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# print outfile2 "$lastorf\t$parents{$lasttax}{wranks}\n";		
 	print outfile2 "$lastorf\t$abb\n";		
 	if($noidfilter6) {
 		# print outfile3 "$lastorf\t$parents{$lasttaxnofilter}{noranks}\n";
 		my $abb=$parents{$lasttaxnofilter}{wranks};
-		$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/species group\:/n_/g; $abb=~s/\w+\:/n_/g; 
+		$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g; 
 		# print outfile4 "$lastorf\t$parents{$lasttaxnofilter}{wranks}\n";	
 		print outfile4 "$lastorf\t$abb\n";	
 		}	

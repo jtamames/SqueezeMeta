@@ -16,7 +16,9 @@ use Cwd;
 use Linux::MemInfo;
 use lib ".";
 
+
 my $pwd=cwd();
+my $verbose=0;
 
 my $projectdir=$ARGV[0];
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
@@ -115,7 +117,7 @@ sub masking {
 		}
 	
 		
-	foreach my $tgene(keys %annotations) {		
+	foreach my $tgene(sort keys %annotations) {		
 		my @f=split(/\t/,$tgene);
 		my @gpos=split(/\_/,$f[0]);
 		my $posn=pop @gpos;
@@ -125,7 +127,7 @@ sub masking {
 		#-- If there is taxonomic and/or functional annotation, we consider the gene as correctly predicted
 		if(($annotations{$tgene}{tax}=~/k\_/) || ($annotations{$tgene}{cog}) ||  ($annotations{$tgene}{kegg}) || ($annotations{$tgene}{pfam})) {
 			$skip{$f[0]}=1;
-			# print "Skip $f[0]\n";
+			#  print "Skip $f[0]\n";
 			}
 		}	
 
@@ -188,7 +190,7 @@ sub run_blastx {
 	#-- Run Diamond search
 
 	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
-	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
+	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet --range-culling -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	system $blastx_command;
@@ -199,7 +201,7 @@ sub collapse {
 	#-- Collapse hits using blastxcollapse.pl
 
 	print "  Collapsing hits with blastxcollapse.pl\n";
-	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 $blastxout > $collapsed";
+	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 -p $numthreads $blastxout > $collapsed";
 	print outsyslog "Collapsing hits with blastxcollapse.pl: $collapse_command\n";
 	system $collapse_command;
 	}
@@ -495,9 +497,21 @@ sub remakegff {
 			my $olap=0;
 			foreach my $initpres(sort keys %{ $incontig{$tcontig} }) {
 				my $endpres=$incontig{$tcontig}{$initpres};
-				if(($initpres>=$poinit) && ($initpres<=$poend))  { $olap=1; last; }	# A blastx hit starts into a prodigal CDS
-				if(($endpres>=$poinit) && ($endpres<=$poend)) { $olap=1; last; }	# A blastx hit ends into a prodigal CDS
-				if(($poinit>=$initpres) && ($poend<=$endpres))	{ $olap=1; last; }	# A prodigal hit is contained into a blastx hit
+				if(($initpres>=$poinit) && ($initpres<=$poend))  { # A blastx hit starts into a prodigal CDS
+					$olap=1; 
+					print "$tcontig: Blastx $initpres-$endpres starts within Prodigal $ipos\n" if $verbose;
+					last; 
+					}
+				if(($endpres>=$poinit) && ($endpres<=$poend)) {  # A blastx hit ends into a prodigal CDS 
+					$olap=1; 
+					print "$tcontig: Blastx $initpres-$endpres starts within Prodigal $ipos\n" if $verbose;
+				 	last; 
+					}
+				if(($poinit>=$initpres) && ($poend<=$endpres))	{ # A prodigal hit is contained into a blastx hit
+					$olap=1; 
+					print "$tcontig: Prodigal hit $ipos is contained within Blastx $initpres-$endpres\n" if $verbose; 
+					last; 
+					}
 				}
 			 if(!$olap) { $allorfs{$oid}=1; }
 			}

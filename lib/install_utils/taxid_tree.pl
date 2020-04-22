@@ -21,6 +21,7 @@ while(<infile1>) {
 	my @k=split(/\;/,$_);
 	my @f=split(/\:/,$k[0]);
 	my $specie=$f[2];
+        $specie=~s/\[|\]//g;
 	for(my $pos=1; $pos<=$#k; $pos++) {
 		@p=split(/\:/,$k[$pos]);
 		$tax{$specie}{$p[0]}=$p[2];
