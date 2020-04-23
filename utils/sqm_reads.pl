@@ -208,7 +208,7 @@ foreach my $thissample(keys %allsamples) {
 		my $outfile="$thissampledir/$thisfile.tax.m8";
 		my $outfile_tax="$thissampledir/$thisfile.tax.wranks";
 		my $outfile_tax_nofilter="$thissampledir/$thisfile.tax_nofilter.wranks";
-		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b $blocksize -o $outfile";
+		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -F 15 -k 0 --quiet -b $blocksize --range-culling -o $outfile";
 		# print "Running BlastX: $blastx_command\n";
 		my %iblast;
 		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
@@ -228,8 +228,28 @@ foreach my $thissample(keys %allsamples) {
 		my @y=keys %iblast;
 		my $numhits=($#y)+1;
 		print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\n";
+
+        #-- Collapse hits using blastxcollapse.pl
+	
+	my $collapsed="$outfile.collapsed";
+	my $collapsedmerged="$collapsed.merged";
+
+        print "  Collapsing hits with blastxcollapse.pl\n";
+        my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 -p $numthreads $outfile > $collapsed";
+        print outsyslog "Collapsing hits with blastxcollapse.pl: $collapse_command\n";
+        system $collapse_command;
+
+        #-- Merge frameshifts
+
+        my $merge_command="$installpath/lib/SqueezeMeta/mergehits.pl $collapsed > $collapsedmerged";
+        print "  Merging splitted hits with mergehits.pl\n";
+        print outsyslog "Merging splitted hits with mergehits.pl: $merge_command\n";
+        system $merge_command;
+
 			
-		my $lca_command="perl $auxdir/lca_reads.pl $outfile $numthreads";
+		# my $lca_command="perl $auxdir/ $numthreads";
+        my $lca_command="perl $installpath/lib/SqueezeMeta/lca_collapse.pl $project $collapsedmerged";
+
 		$currtime=timediff();
 		print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
 		system($lca_command);
