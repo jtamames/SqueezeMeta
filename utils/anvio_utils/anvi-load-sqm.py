@@ -299,7 +299,7 @@ def main(args):
         contigs, genes, functions, tax_genes, tax_contigs, bams = check_sqm2anvio(args.project)
     else:
         print('{}/results/sqm2anvio does not exist'.format(args.project)) ###############333 CREATE!!!!!!
-        print('Create sqm2anvio directory with all the input files for anvi\'o')
+        print('Creating sqm2anvio directory with all the input files for anvi\'o')
         command = ['{}/sqm2anvio.pl'.format(utils_home), args.project, '{}/results/sqm2anvio'.format(args.project)]
         run_command(command)
         contigs, genes, functions, tax_genes, tax_contigs, bams = check_sqm2anvio(args.project)
