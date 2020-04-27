@@ -100,8 +100,8 @@ while(<infile1>) {
 		}
 	$contamination{$binname}=$k[9];
 
-	if($k[2]=~/phylum\:([^;]+)/) { $phylo{$binname}{phylum}=$1; $countphylo{phylum}{$1}++; }
-	if($k[2]=~/genus\:([^;]+)/) { $phylo{$binname}{genus}=$1; $countphylo{genus}{$1}++;}
+	if($k[2]=~/p\_([^;]+)/) { $phylo{$binname}{phylum}=$1; $countphylo{phylum}{$1}++; }
+	if($k[2]=~/g\_([^;]+)/) { $phylo{$binname}{genus}=$1; $countphylo{genus}{$1}++;}
 	}
 close infile1;
 print "Found $totalbins bins\nWorking with $numbins bins with more than $complete_cutoff% completion and less than $contamination_cutoff% contamination\n";
