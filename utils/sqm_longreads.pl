@@ -19,6 +19,7 @@ use strict;
 use File::Basename;
 use Cwd 'abs_path';
 
+my $pwd=cwd();
 my $utilsdir;
 if(-l __FILE__)
         {
@@ -33,17 +34,19 @@ else
 my $installpath = abs_path("$utilsdir/..");
 my $scriptdir = "$installpath/scripts";
 my $auxdir = "$installpath/lib/SQM_reads";
+
 ###
 
 
-my $version="0.1.0, Sept 2019";
+my $version="0.1.0, Apr 2020";
 my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
+do "$scriptdir/parameters.pl";
 #-- Configuration variables from conf file
 our($databasepath);
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile);
+my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile,$evaluetax4,$minidentax4);
 
 my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -64,6 +67,7 @@ Arguments:
    --euk: Drop identity filters for eukaryotic annotation  (Default: no)
    -extdb <database file>: List of user-provided databases
    -e|-evalue: max evalue for discarding hits for Diamond run  (Default: 1e-03)
+   -i|-miniden: minimum identity for the hits (Default: 30)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
    -h: this help
@@ -75,6 +79,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "s|samples=s" => \$equivfile,
                      "f|seq=s" => \$rawseqs, 
 		     "e|evalue=f" => \$evalue,   
+		     "i|miniden=f" => \$miniden,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nodiamond" => \$nodiamond,   
@@ -87,10 +92,10 @@ my $result = GetOptions ("t=i" => \$numthreads,
 
 if(!$numthreads) { $numthreads=12; }
 if(!$evalue) { $evalue=0.001; }
-my $miniden=30;         #-- Minimum identity for the hit
+if(!$miniden) { $miniden=30; }         #-- Minimum identity for the hit
 my $querycover=0;	#-- Minimum coverage of hit in query
 	
-print BOLD "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
+print BOLD "\nSqueezeMeta on Long Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 
 if(!$blocksize) {
         print "\nSetting block size for Diamond\n";
@@ -114,6 +119,7 @@ my(%allsamples,%ident,%noassembly,%accum,%totalseqs,%optaccum,%allext);
 my($sample,$file,$iden,$mapreq);
 tie %allsamples,"Tie::IxHash";
 
+my $verbose=0;
 my $nr_db="$databasepath/nr.dmnd";
 my $cog_db="$databasepath/eggnog";
 my $kegg_db="$databasepath/keggdb";
@@ -122,7 +128,8 @@ my $coglist="$installpath/data/coglist.txt";    #-- COG equivalence file (COGid 
 my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
 my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
 
-my $resultsdir=$project;
+my $resultsdir="$pwd/$project";
+print "----$resultsdir---\n";
 my @fields=split(/\//, $resultsdir);
 my $project=$fields[-1];
 if (-d $resultsdir) { print RED "WARNING: Project name $resultsdir already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
@@ -143,7 +150,7 @@ print "Now reading samples from $equivfile\n";
 open(infile1,$equivfile) or do { print RED "Cannot open samples file $equivfile\n"; print RESET; die; };
 while(<infile1>) {
 	chomp;
-	$_=~s/\r//g; # Remove windows line terminators
+	$_=~s/\r//g; # Remove DOS line terminators
 	next if(!$_ || ($_=~/^\#/));
 	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 	if($_=~/ /) { print RED "Please do not use blank spaces in the samples file\n"; print RESET; die; }
@@ -171,95 +178,136 @@ my $sampnum;
 print "$numsamples metagenomes found";
 print "\n";
 print outall "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
-print outall "# Sample\tFile\tRead\tTax";
+print outall "# Sample\tFile\tRead\tTax\tConsensus tax\t";
 if(!$nocog) { print outall "\tCOG"; }
 if(!$nokegg) { print outall "\tKEGG"; }
 if($opt_db) {  foreach my $extdb(sort keys %allext) { print outall "\t$extdb"; } }
 print outall "\n";
 print outcount "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
-print outcount "# Sample\tFile\tTotal Reads\tReads with hits to nr\n";
+print outcount "# Sample\tFile\tTotal Reads\tReads with hits\tTotal number of hits\n";
 
 	
-my(%cogaccum,%keggaccum);
+my(%cogaccum,%keggaccum,%rblast,%iblast,%store,%inputfile);
+my($thisfile,$numseqs);
 foreach my $thissample(keys %allsamples) {
-	my %store;
 	$sampnum++;
 	print BOLD "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; print RESET;
 	my $thissampledir="$resultsdir/$thissample";
 	if(-d $thissampledir) {} else { system("mkdir $thissampledir"); }
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
+		(%iblast,%rblast)=();
+		my $numseqs=0;
 		print "   File: $thisfile\n";
 		my $idenf=$allsamples{$thissample}{$thisfile};
-		if($thisfile=~/fastq.gz/) { system("zcat $rawseqs/$thisfile | wc > rc.txt"); }
-		elsif($thisfile=~/fastq/) { system("wc $rawseqs/$thisfile > rc.txt"); }
-		elsif($thisfile=~/fasta.gz/) { system("zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"); }
-		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $rawseqs/$thisfile > rc.txt"); }
-		open(inw,"rc.txt");
-		my $line=<inw>;
-		$line=~s/^\s+//g;
-		my @l=split(/\s+/,$line);
-		my $numseqs=$l[0];
-		close inw;
-		chomp $numseqs;
-		if($thisfile=~/fastq/) { $numseqs/=4; }
-		system("rm rc.txt");
-		$totalseqs{$thisfile}++;
+
+		#-- Transforming the input to a gunzipped fasta file
+
+		my $fastqfile="$rawseqs/$thisfile";
+		my $fastafile="$thissampledir/$thisfile";
+		system("cp $fastqfile $fastafile");
+		if($fastafile=~/gz$/) { system("gunzip $fastafile"); $fastafile=~s/\.gz$//; }
+                my $fastaname=$fastafile;
+		$fastaname=~s/fastq$/fasta/;
+		if($fastafile=~/fastq$/) {
+			$fastaname=~s/fastq$/fasta/;
+			open(outfasta,">$fastaname") || die;
+			my($nline,$header,$seqline);
+			open(infastq,$fastafile) || die;
+			while(<infastq>) {
+				$header=$_;
+				$header=~s/^\@//;
+				$header=~s/\s+.*//;
+				chomp $header;
+				$inputfile{$header}=$thisfile;
+				$seqline=<infastq>;
+				$_=<infastq>;
+				$_=<infastq>;
+				print outfasta ">$header\n$seqline";
+				}
+			close infastq;
+			close infasta;
+			}
+		my $numseqs;
+		system("wc -l $fastaname > $thissampledir/rc.txt");
+		open(inf,"$thissampledir/rc.txt") || die;
+		$numseqs=<inf>;
+		close inf;
+		$numseqs=~s/\s+.*//;
+		$numseqs/=2;
+		$totalseqs{$thisfile}=$numseqs;
+
+	#---- Taxonomic annotation
+
 		$currtime=timediff();
-		my $outfile="$thissampledir/$thisfile.tax.m8";
-		my $outfile_tax="$thissampledir/$thisfile.tax.wranks";
-		my $outfile_tax_nofilter="$thissampledir/$thisfile.tax_nofilter.wranks";
-		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b $blocksize -o $outfile";
-		# print "Running BlastX: $blastx_command\n";
-		my %iblast;
-		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
+		print CYAN "[",$currtime->pretty,"]: Starting taxonomic annotation\n"; print RESET;		
+		my $blastxout="$thissampledir/$thissample.nr.blastx";
+		my $collapsed="$thissampledir/$thissample.nr.blastx.collapsed.m8";
+		my $collapsedmerged=$collapsed;
+		$collapsedmerged=~s/\.m8/\.merged\.m8/;
+		my $ntseqs="$thissampledir/$thissample.nt.fasta";
+		my $wrankfile="$thissampledir/$thissample.fun3.blastx.tax.wranks";
+		my $wrankfile_nofilter="$thissampledir/$thissample.fun3.blastx.tax.noidfilter.wranks";
+		if($nodiamond) { print "   (Skipping Diamond search for taxa because of --nodiamond flag)\n"; } 
 		else { 
 			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
-			system($blastx_command);
 			print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+			run_blastx($fastafile,$blastxout);
+			collapse($blastxout,$collapsed);
+			merge($collapsed,$collapsedmerged);
+			getseqs($collapsedmerged,$fastaname,$ntseqs);
 			}
-		open(inf,$outfile);
+
+		lca($collapsedmerged,$thissampledir,$scriptdir,$thissample,$numthreads);
+		my $numtotalhits;
+		open(inf,$collapsedmerged);
 		while(<inf>) {
 			chomp;
 			next if !$_;
 			my @h=split(/\t/,$_);
-			$iblast{$h[0]}=1;
+			my @u=split(/\_/,$h[0]);
+			pop @u;
+			my $ctg=join("_",@u);
+			$iblast{$ctg}=1;
+			$rblast{$h[0]}=1;
 			}
 		close inf;
-		my @y=keys %iblast;
-		my $numhits=($#y)+1;
-		print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\n";
-			
-		my $lca_command="perl $auxdir/lca_reads.pl $outfile $numthreads";
-		$currtime=timediff();
-		print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
-		system($lca_command);
-		open(infiletax,$outfile_tax) || die;
+		my $consensusfile=$wrankfile;
+		open(infiletax,$wrankfile) || die "Cannot open file $wrankfile\n";
 		while(<infiletax>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
 			my @f=split(/\t/,$_);
-			my $orfid="$f[0]\_$idenf";
-			$store{$orfid}{tax}=$f[1];
+			$store{$f[0]}{tax}=$f[1];
 			}
 		close infiletax;
 		if($euknofilter) {     #-- Drops the filters for eukaryotes
-			open(infiletax,$outfile_tax_nofilter) || die;
+			$consensusfile=$wrankfile_nofilter;
+			open(infiletax,$wrankfile_nofilter) || die "Cannot open file $wrankfile_nofilter\n";
 			while(<infiletax>) {
 				chomp;
 				next if(!$_ || ($_=~/^\#/));
 				my @f=split(/\t/,$_);
-				my $orfid="$f[0]\_$idenf";
-				if($f[1]=~/Eukaryota/) { $store{$orfid}{tax}=$f[1]; }
+				if($f[1]=~/Eukaryota/) { $store{$f[0]}{tax}=$f[1]; }
 				}
 			close infiletax;
 			}
 		
+		#-- Run consensus annotation of reads
+
+		print "  Running consensus annotation: Output in $thissampledir/readconsensus.txt\n";
+		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $consensusfile";
+		# print "$command\n";
+		system($command);
+	
+	#---- Functional annotation
+		
 		$currtime=timediff();
+                print CYAN "[",$currtime->pretty,"]: Starting functional annotation\n"; print RESET; 
 		if(!$nocog) {
 			my $outfile="$thissampledir/$thisfile.cogs.m8";
-			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
+			if($nodiamond) { print "   (Skipping Diamond run for COGs because of --nodiamond flag)\n"; } 
 			else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
 				system($blastx_command); 
@@ -268,16 +316,21 @@ foreach my $thissample(keys %allsamples) {
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
 			$currtime=timediff();
-			print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
+			print "[",$currtime->pretty,"]: Running functional annotations for COGs\n"; print RESET;
 			system($func_command);
 			open(infilecog,$outfile_cog) || die;
-			while(<infilecog>) {
+			while(<infilecog>) { 
 				chomp;
 				next if(!$_ || ($_=~/^\#/));
 				my @f=split(/\t/,$_);
-				my $orfid="$f[0]\_$idenf";
+				my $orfid="$f[0]";
 				$store{$orfid}{cog}=$f[1];
 				if($f[1] eq $f[2]) { $store{$orfid}{cog}.="*"; }
+				my $ctg=$orfid;
+				$ctg=~s/\_\d+\-\d+$//;
+	                        $iblast{$ctg}=1;
+	                        $rblast{$orfid}=1;
+
 				}
 			close infilecog;
 			}
@@ -285,9 +338,9 @@ foreach my $thissample(keys %allsamples) {
 		if(!$nokegg) {
 			$currtime=timediff();
 			my $outfile="$thissampledir/$thisfile.kegg.m8";
-			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
+			if($nodiamond) { print "   (Skipping Diamond run for KEGG because of --nodiamond flag)\n"; }
 			else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n"; print RESET;
 				system($blastx_command); 
@@ -296,16 +349,20 @@ foreach my $thissample(keys %allsamples) {
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 			$currtime=timediff();
-			print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
+			print "[",$currtime->pretty,"]: Running functional annotation for KEGG\n"; print RESET;
 			system($func_command);
 			open(infilekegg,$outfile_kegg) || die;
 			while(<infilekegg>) {
 				chomp;
 				next if(!$_ || ($_=~/^\#/));
 				my @f=split(/\t/,$_);
-				my $orfid="$f[0]\_$idenf";
+				my $orfid="$f[0]";
 				$store{$orfid}{kegg}=$f[1];
 				if($f[1] eq $f[2]) { $store{$orfid}{kegg}.="*"; }
+                                my $ctg=$orfid;
+                                $ctg=~s/\_\d+\-\d+$//;
+                                $iblast{$ctg}=1;
+                                $rblast{$orfid}=1;
 				}
 			close infilekegg;
 			}
@@ -317,9 +374,9 @@ foreach my $thissample(keys %allsamples) {
 				my($extdbname,$extdb,$dblist)=split(/\t/,$_);
 				$currtime=timediff();
 				my $outfile="$thissampledir/$thisfile.$extdbname.m8";
-				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+				my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 				#print "Running BlastX: $blastx_command\n";
-				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
+				if($nodiamond) { print "   (Skipping Diamond run for $extdbname because of --nodiamond flag)\n"; }
 				else { 
 					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
 					system($blastx_command); 
@@ -328,30 +385,76 @@ foreach my $thissample(keys %allsamples) {
 				my $outfile_opt="$thissampledir/$thisfile.$extdbname";
 				my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
 				$currtime=timediff();
-				print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
+				print "[",$currtime->pretty,"]: Running functional annotation for $extdbname\n"; print RESET;
 				system($func_command);
 				open(infileopt,$outfile_opt) || die;
 				while(<infileopt>) {
 					chomp;
 					next if(!$_ || ($_=~/^\#/));
 					my @f=split(/\t/,$_);
-					my $orfid="$f[0]\_$idenf";
+					my $orfid="$f[0]";
 					$store{$orfid}{$extdbname}=$f[1];
 					if($f[1] eq $f[2]) { $store{$orfid}{$extdbname}.="*"; }
+	                                my $ctg=$orfid;
+        	                        $ctg=~s/\_\d+\-\d+$//;
+                	                $iblast{$ctg}=1;
+                        	        $rblast{$orfid}=1;
 					}
 				close infileopt;
 				}
+			close infile0;
 			}
+
+	#-- Mapping counts
+
+        my @y=keys %iblast;
+        my $numhits=($#y)+1;
+        my @y=keys %rblast;
+        my $numtotalhits=($#y)+1;
+        print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\t$numtotalhits\n";
+	system("rm $thissampledir/diamond_collapse*; rm $thissampledir/collapsed*m8; rm $thissampledir/rc.txt; rm $thissampledir/wc;");
+ 
+
 		}
+
+	#-- Global statistics
+
+	my %consannot;
+	my $consannotation="$thissampledir/readconsensus.txt";
+	
+	open(infile5,$consannotation) || die "Cannot open consensus annotation in $consannotation\n";
+	while(<infile5>) {
+		chomp;
+		next if !$_;
+		my($readname,$constax)=split(/\t/,$_);
+		my @tfields=split(/\;/,$constax);        #-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
+                my $lastconstax=$tfields[$#tfields];
+		$consannot{$readname}=$lastconstax;
+		}
+	close infile5;
 		
 	if(!$nodiamond) { print outmet " were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n"; }		
-	foreach my $k(sort keys %store) {
+	my @listorfs;
+	foreach my $orf(keys %store) { 
+		my @j=split(/\_/,$orf);
+		my $pos=pop @j;
+		my $contname=join("_",@j);
+		my($poinit,$poend)=split("-",$pos); 
+		push(@listorfs,{'orf',=>$orf,'contig'=>$contname,'posinit'=>$poinit});
+		}
+		my @sortedorfs=sort {
+		$a->{'contig'} cmp $b->{'contig'} ||
+		$a->{'posinit'} <=> $b->{'posinit'}
+		} @listorfs;
+	#foreach my $k(sort keys %store) {
+	foreach my $orf(@sortedorfs) {
+		my $k=$orf->{'orf'};
 		my @tfields=split(/\;/,$store{$k}{tax});	#-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
 		my $lasttax=$tfields[$#tfields];
-		my @j=split(/\_/,$k);
-		my $rpair=pop @j;
-		my $rread=join("_",@j);
-		print outall "$thissample\t$rread\t$rpair\t$lasttax\t";
+		my $tread=$k;
+		$tread=~s/\_\d+\-\d+$//;
+		my $ifile=$inputfile{$tread};
+		print outall "$thissample\t$ifile\t$k\t$lasttax\t$consannot{$tread}\t";
 		if(!$nocog) { print outall "\t$store{$k}{cog}"; }
 		if(!$nokegg) { print outall "\t$store{$k}{kegg}"; }
 		if($opt_db) { 
@@ -375,8 +478,10 @@ foreach my $thissample(keys %allsamples) {
 				$accum{$thissample}{$topt}{$store{$k}{$topt}}++;		
 				$optaccum{$topt}{$store{$k}{$topt}}++;	
 				}
-			}	
+			}
+
 		}
+
 	}
 		
 close outall;	
@@ -416,7 +521,7 @@ foreach my $idb(keys %allext) {
 
 
 $currtime=timediff();
-print CYAN "\n[",$currtime->pretty,"]: Creating global tables\n";
+print CYAN "\n[",$currtime->pretty,"]: Creating global tables\n"; print RESET;
 print "   Tax table: $resultsdir/$output_all.mcount\n";		
 open(outtax,">$resultsdir/$output_all.mcount");
 print outtax "# Created by $0 from data in $equivfile", scalar localtime,"\n";
@@ -522,10 +627,105 @@ print "   Mapping statistics: $resultsdir/$output_counts\n";
 print "   Condensed annotations for mapped reads: $resultsdir/$output_all\n";
 
 $currtime=timediff();
-print CYAN "\n[",$currtime->pretty,"]: DONE! Have fun!\n";
+print CYAN "\n[",$currtime->pretty,"]: DONE! Have fun!\n"; print RESET;
 close outmet;
 print "For citation purposes, you can find a summary of methods in the file $methodsfile\n";
 print RESET;
+
+
+sub run_blastx {
+
+	#-- Run Diamond search
+	my $queryfile=shift;
+	my $blastxout=shift;
+	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
+	my $blastx_command="$diamond_soft blastx -q $queryfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet --range-culling -b $blocksize -e $evalue --id $miniden -o $blastxout";
+	print outsyslog "Running Diamond BlastX: $blastx_command\n";
+	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
+	print "Running Diamond Blastx: $blastx_command**\n" if $verbose;
+	system $blastx_command;
+	}
+
+sub collapse {
+
+	#-- Collapse hits using blastxcollapse.pl
+	my($blastxout,$collapsed)=@_;
+	print "  Collapsing hits with blastxcollapse.pl\n";
+	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 -p $numthreads $blastxout > $collapsed";
+	print outsyslog "Collapsing hits with blastxcollapse.pl: $collapse_command\n";
+	print "Collapsing hits with blastxcollapse.pl: $collapse_command\n" if $verbose;
+	system $collapse_command;
+	}
+	
+sub merge {
+
+	#-- Merge frameshifts
+	my($collapsed,$collapsedmerged)=@_;
+	my $merge_command="$installpath/lib/SqueezeMeta/mergehits.pl $collapsed > $collapsedmerged";
+	print "  Merging splitted hits with mergehits.pl\n";
+	print outsyslog "Merging splitted hits with mergehits.pl: $merge_command\n";
+	print "Merging splitted hits with mergehits.pl: $merge_command\n" if $verbose;
+	system $merge_command;
+	}
+
+sub getseqs {
+
+	#-- Get new nt sequences
+	my($collapsedmerged,$fastafile,$ntseqs)=@_;
+	print "  Getting nt sequences from $fastafile\n";
+	my %orfstoget;
+	open(infile4,$collapsedmerged) || die "Can't open $collapsedmerged\n";
+	while(<infile4>) {
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		my @t=split(/\t/,$_);
+		my @w=split(/\_/,$t[0]);
+		my $posn=pop @w;
+		my $contname=join("_",@w);
+		$orfstoget{$contname}{$posn}=1;
+		# print "$contname*$posn*\n";
+		}
+	close infile4;
+	my($currcontig,$newcontig,$contigseq);
+	open(outfile2,">$ntseqs") || die "Can't open $ntseqs for writing\n";
+	open(infile5,$fastafile) || die "Can't open $fastafile\n";
+	while(<infile5>) { 
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		if($_=~/^\>([^ ]+)/) {
+			$newcontig=$1; 
+			if($currcontig) { 
+				foreach my $gorf(keys %{ $orfstoget{$currcontig} }) { 
+					my($pinit,$pend)=split(/\-/,$gorf);
+					my $tlen=$pend-$pinit+1;
+					my $mseq=substr($contigseq,$pinit,$tlen);
+					print outfile2 ">$currcontig\_$gorf\n$mseq\n";
+					}
+				}
+			$currcontig=$newcontig;
+			$contigseq="";
+			}
+		else { $contigseq.=$_; }
+	}	
+	close infile5;
+	foreach my $gorf(keys %{ $orfstoget{$currcontig} }) {
+		my($pinit,$pend)=split(/\-/,$gorf);
+		my $tlen=length($pend-$pinit+1);
+		my $mseq=substr($contigseq,$pinit,$tlen);
+		print outfile2 ">$currcontig\_$gorf\n$mseq\n";
+		}
+	close outfile2;	
+	print "  Sequences stored in $ntseqs\n";				
+	}
+
+
+sub lca {
+	my($collapsedmerged,$thissampledir,$scriptdir,$thissample,$numthreads)=@_;
+	my $lca_command="perl $auxdir/lca_collapse.pl $collapsedmerged $thissampledir $scriptdir $thissample $numthreads";
+	$currtime=timediff();
+	print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
+	system($lca_command);
+	}
 
 #---------------------------------------- TIME CALCULATIONS --------------------------------
 
@@ -535,5 +735,8 @@ sub timediff {
 	my $timesp = Time::Seconds->new( $run_time );
 	return $timesp;
 }
+
+
+
 
 
