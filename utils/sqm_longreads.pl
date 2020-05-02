@@ -412,7 +412,7 @@ foreach my $thissample(keys %allsamples) {
         my @y=keys %rblast;
         my $numtotalhits=($#y)+1;
         print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\t$numtotalhits\n";
-	system("rm $thissampledir/diamond_collapse*; rm $thissampledir/collapsed*m8; rm $thissampledir/rc.txt; rm $thissampledir/wc;");
+#	system("rm $thissampledir/diamond_collapse*; rm $thissampledir/collapsed*m8; rm $thissampledir/rc.txt; rm $thissampledir/wc;");
  
 
 		}
@@ -430,6 +430,7 @@ foreach my $thissample(keys %allsamples) {
 		my @tfields=split(/\;/,$constax);        #-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
                 my $lastconstax=$tfields[$#tfields];
 		$consannot{$readname}=$lastconstax;
+		$accum{$thissample}{taxread}{$constax}++;
 		}
 	close infile5;
 		
@@ -525,10 +526,10 @@ print CYAN "\n[",$currtime->pretty,"]: Creating global tables\n"; print RESET;
 print "   Tax table: $resultsdir/$output_all.mcount\n";		
 open(outtax,">$resultsdir/$output_all.mcount");
 print outtax "# Created by $0 from data in $equivfile", scalar localtime,"\n";
-print outtax "Rank\tTax\tTotal";
-foreach my $sprint(sort keys %accum) { print outtax "\t$sprint"; }
+print outtax "Rank\tTax\tTotal ORFs\tTotal reads";
+foreach my $sprint(sort keys %accum) { print outtax "\t$sprint ORFs\t$sprint reads"; }
 print outtax "\n";
-my %taxaccum;
+my(%taxaccum,%taxaccumread);
 foreach my $isam(sort keys %accum) {
 	foreach my $itax(keys %{ $accum{$isam}{tax} }) {
 		$itax=~s/\;$//;
@@ -540,15 +541,27 @@ foreach my $isam(sort keys %accum) {
 			$taxaccum{total}{$thisrank}+=$accum{$isam}{tax}{$itax};
 			}
 		}
+        foreach my $itax(keys %{ $accum{$isam}{taxread} }) {
+                $itax=~s/\;$//;
+                my @stx=split(/\;/,$itax);
+                my $thisrank;
+                foreach my $tf(@stx) {
+                        $thisrank.="$tf;";
+                        $taxaccumread{$isam}{$thisrank}+=$accum{$isam}{taxread}{$itax};
+                        $taxaccumread{total}{$thisrank}+=$accum{$isam}{taxread}{$itax};
+                        }
+                }
+
 	}
 foreach my $ntax(sort { $taxaccum{total}{$b}<=>$taxaccum{total}{$a}; } keys %{ $taxaccum{total} }) {
 	my @stx=split(/\;/,$ntax);
 	my($lastrank,$lasttax)=split(/\_/,$stx[$#stx]);
 	next if(!$ranks{$lastrank});
-	print outtax "$lastrank\t$ntax\t$taxaccum{total}{$ntax}";
+	print outtax "$lastrank\t$ntax\t$taxaccum{total}{$ntax}\t$taxaccumread{total}{$ntax}";
 	foreach my $isam(sort keys %accum) {
 		my $dato=$taxaccum{$isam}{$ntax} || "0";
-		print outtax "\t$dato";
+		my $datoread=$taxaccumread{$isam}{$ntax} || "0";
+		print outtax "\t$dato\t$datoread";
 		}
 	print outtax "\n";
 	}
