@@ -19,7 +19,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
@@ -94,6 +94,13 @@ else {
 	   	$command.="mv $datapath/canu/$project.contigs.fasta $outassembly"; 
  		print outmet "Assembly was done using Canu (Koren et al 2017, Genome Res 27(5):722-36)\n";
      	  }
+	elsif($assembler=~/flye/i) {
+                system("rm -r $datapath/flye > /dev/null 2>&1");
+                $outassembly="$datapath/flye/contigs.fasta";
+                $command="$flye_soft $assembler_options -o $datapath/flye --plasmids --meta --genome-size 5m --threads $numthreads --nano-raw $par1name > $syslogfile 2>&1; "; 
+                $command.="mv $datapath/flye/assembly.fasta $outassembly";
+                print outmet "Assembly was done using Flye (Kolmogorov et al 2019, Nature Biotech 37, 540–546)\n";
+          }
 
 
 	else { die "Unrecognized assembler\n"; }
@@ -173,7 +180,16 @@ close infile2;
 if($contigname) { $len=length $seq; print outfile2 "$contigname\t$len\n"; }
 close outfile2;
 close outmet;
-close outsyslog;
 
 print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");
+
+if($singletons) {
+	print "  Now adding unmapped reads\n";
+	print outsyslog "  Now adding unmapped reads\n";
+	my $command="perl $scriptdir/01.remap.pl $projectdir";
+	system $command;
+	}        
+
+
+close outsyslog;

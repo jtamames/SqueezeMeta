@@ -25,7 +25,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile);
+our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$singletons,$scriptdir,$methodsfile,$syslogfile);
 
 #-- Read all the samples and store file names
 
@@ -223,6 +223,7 @@ if($contigname) { my $len=length $seq; print outfile2 "$contigname\t$len\n"; }
 close outfile2;
 
 print "  Contigs for sample $thissample stored in $contigsfna\n";
+
 
 }                              #-- End of current sample
 

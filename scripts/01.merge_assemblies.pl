@@ -20,7 +20,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile);
+our($resultpath,$interdir,$tempdir,$scriptdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile,$singletons);
 
 #-- Merges the assemblies in a single dataset
 
@@ -134,7 +134,17 @@ while(<infile1>) {
 }
 close infile1;
 close outfile1;
+print "  Number of contigs: $numc\n";
+print outsyslog "  Number of contigs: $numc\n";
+
+
+if($singletons) {
+        print "  Now adding unmapped reads\n";
+        print outsyslog "  Now adding unmapped reads\n";
+	my $command="perl $scriptdir/01.remap.pl $projectdir";
+	system $command;
+        }
+
 close outsyslog;
 close out_met;
-print "  Number of contigs: $numc\n";
 
