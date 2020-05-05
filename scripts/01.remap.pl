@@ -151,7 +151,7 @@ foreach my $thissample(keys %allsamples) {
 
 	system("cp $contigsfna $provcontigs");
 	open(outsingletons,">>$provcontigs");
-	open(singletonlist,">$interdir/01.$project.singletons");
+	open(singletonlist,">$interdir/01.$projectname.singletons");
 	open(infilesam,$outsam) || die "Cannot open SAM file $outsam\n";
 		while(<infilesam>) { 
 		chomp;

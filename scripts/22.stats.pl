@@ -22,7 +22,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
+our($datapath,$tempdir,$interdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode,$singletons);
 
 my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
@@ -46,7 +46,7 @@ if($opt_db) {
 
 my @ranks=('k','p','c','o','f','g','s');
 my %equirank=('k','superkingdom','p','phylum','c','class','o','order','f','family','g','genus','s','species');
-my($totalbases,$totalreads);
+my($totalbases,$totalreads,$singletoncount);
 my $mapfile="$resultpath/10.$project.mappingstat";
 open(infile1,$mapfile) || die "Can't open $mapfile\n";
 while(<infile1>) {
@@ -99,6 +99,17 @@ while(<infile3>) {
 	if($k[2]>=0.25) { $contigs{chimerism}{0.25}++; }
 	}
 close infile3;
+
+if($singletons) {		#-- Count singleton raw reads
+	my $singletonlist="$interdir/01.$projectname.singletons";
+	open(infile0,$singletonlist) || die "Cannot open singleton list in $singletonlist\n";
+	while(<infile0>) {
+		chomp;
+		next if !$_;
+		$singletoncount++;
+		}
+	close infile0;
+	}
 
 	#-- Statistics on genes (disparity, assignment..)
 		
@@ -249,7 +260,13 @@ print outfile1 "\n";
 
 print outfile1 "\n#------------------- Statistics on contigs\n";
 print outfile1 "#\tAssembly\n";
-print outfile1 "Number of contigs\t$contigs{num}\nTotal length\t$contigs{bases}\nLongest contig\t$contigs{max}\nShortest contig\t$contigs{min}\n";
+print outfile1 "Number of contigs\t$contigs{num}\n";
+if($singletons) { 
+	my $conum=$contigs{num}-$singletoncount;
+	print "Number of singletons\t$singletoncount\n";
+	print "Contigs from assembly\t$conum\n";
+	}
+print outfile1 "Total length\t$contigs{bases}\nLongest contig\t$contigs{max}\nShortest contig\t$contigs{min}\n";
 print outfile1 "N50\t$contigs{N50}\nN90\t$contigs{N90}\n";
 foreach my $rk(@ranks) { 
 	my @ctk=keys %{ $contax{$rk} };

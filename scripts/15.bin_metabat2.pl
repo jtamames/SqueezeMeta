@@ -26,7 +26,9 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 my %singletonlist;
 if($singletons) {               #-- Excluding singleton raw reads from binning
-        my $singletonlist="$interdir/01.$project.singletons";
+        my $singletonlist="$interdir/01.$projectname.singletons";
+	print "  Excluding singleton reads from $singletonlist\n";
+	print outsyslog "  Excluding singleton reads from $singletonlist\n";
         open(infile0,$singletonlist) || die "Cannot open singleton list in $singletonlist\n";
         while(<infile0>) {
                 chomp;
