@@ -144,6 +144,7 @@ foreach my $thissample(sort keys %samplefiles) {
 			my %mem=get_mem_info;
 			my $ram=$mem{"MemAvailable"};
 			$canumem=sprintf('%.1f',$ram/1000000);
+			$canumem*=0.8;
 			print "AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem. You can override this setting using the -canumem option\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ram bytes)\n";
 			}
