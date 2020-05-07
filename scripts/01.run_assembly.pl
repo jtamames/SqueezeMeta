@@ -87,6 +87,7 @@ else {
 			my $ram=$mem{"MemAvailable"}/(1024*1024);
 			my $ramstr=sprintf('%.2f',$ram);
 			$canumem=sprintf('%.0f',int($ram));
+			$canumem*=0.8;
 			print "  AVAILABLE (free) RAM memory: $ramstr Gb. We will set canu to use $canumem Gb.\n  You can override this setting using the -canumem option when calling SqueezeMeta.pl\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ramstr Gb)\n";
 			}
