@@ -23,12 +23,14 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$euknofilter,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9);
+our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$euknofilter,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9,$consensus);
 
 #-- Some local configuration variables
 
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranksabb=('k','p','c','o','f','g','s');
+
+if($consensus) { $minconsperc_total9=$consensus; }  #-- Overrides the parameter if user-set or mode minion
 
 #-- Input and output files
 

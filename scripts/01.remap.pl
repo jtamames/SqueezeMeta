@@ -20,17 +20,20 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$mappingfile,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile);
-our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,$mapper,$bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+our($datapath,$assembler,$outassembly,$megahit_soft,$mappingfile,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile,$mincotiglen);
+our($bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,$mapper,$bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 my $fastqdir="$datapath/raw_fastq";
 my $samdir="$datapath/sam";
 
-my $provcontigs="$tempdir/contigs_sg.fasta";
-
-my $samcommand="mkdir $samdir > 2&1";
+my $samcommand="mkdir $samdir > /dev/null 2>&1";
 system $samcommand;
+system("rm $interdir/01.$projectname.singletons  > /dev/null 2>&1");
+open(syslog,">>$syslogfile");
+
+my $assemblybck="$interdir/01.$projectname.assembly_orig.fasta";    #-- Make a copy of the original assembly
+system("cp $contigsfna $assemblybck");
 
 #---------- Mapping reads
 
@@ -76,6 +79,17 @@ my @f=keys %allsamples;
 my $numsamples=$#f+1;
 my $nums;
 
+my $cocount;
+open(infile0,$contigsfna) || die;       #-- Count contigs, to start numbering after the last one
+while(<infile0>) {
+	chomp;
+	if($_=~/\>([^ ]+)/) {
+	my @l=split(/\_/,$1);
+	$cocount=pop @l;
+	}
+}
+close infile0;
+
 foreach my $thissample(keys %allsamples) {
 	my($formatseq,$command,$outsam,$formatoption);
 	$nums++;
@@ -92,10 +106,10 @@ foreach my $thissample(keys %allsamples) {
 		if($allsamples{$thissample}{$ifile}==1) { push(@pair1,$ifile); } else { push(@pair2,$ifile); }
 		}
 	my($par1name,$par2name);
-	if($pair1[0]=~/gz/) { $par1name="$projectname.$thissample.current_1.gz"; } 
-	else { $par1name="$projectname.$thissample.current_1"; }
-	if($pair2[0]=~/gz/) { $par2name="$projectname.$thissample.current_2.gz"; }
-	else { $par2name="$projectname.$thissample.current_2";}
+	if($pair1[0]=~/gz/) { $par1name="$projectname.$thissample\_1.gz"; } 
+	else { $par1name="$projectname.$thissample\_1"; }
+	if($pair2[0]=~/gz/) { $par2name="$projectname.$thissample\_2.gz"; }
+	else { $par2name="$projectname.$thissample\_2";}
 	my $a1=join(" ",@pair1);					
 	$command="cat $a1 > $tempdir/$par1name; ";	
 	if($#pair2>=0) { 
@@ -110,7 +124,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- Now we start mapping reads against contigs
 	
 	print "  Aligning to reference with $mapper\n";
-	if($keepsam10) { $outsam="$samdir/$projectname.$thissample.sam"; } else { $outsam="$samdir/$projectname.$thissample.current.sam"; }
+	$outsam="$samdir/$projectname.$thissample.sam";
 	
 	#-- Support for single reads
         if(!$mapper || ($mapper eq "bowtie")) {
@@ -131,27 +145,15 @@ foreach my $thissample(keys %allsamples) {
             else { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
         elsif($mapper eq "minimap2-sr") {
             #Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
-            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads > $outsam";
- }
+            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads > $outsam"; }
             else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
 
         print outsyslog "  Mapping: $command\n";                          
 	system($command);
 	
-	my $cocount;
-	open(infile0,$contigsfna) || die;	#-- Count contigs, to start numbering after the last one
-	while(<infile0>) {
-		chomp;
-		if($_=~/\>([^ ]+)/) {
-			my @l=split(/\_/,$1);
-			$cocount=pop @l;
-			}
-		}
-	close infile0;
-
-	system("cp $contigsfna $provcontigs");
-	open(outsingletons,">>$provcontigs");
-	open(singletonlist,">$interdir/01.$projectname.singletons");
+	my $provcontigs="$tempdir/contigs.$nums.fasta";
+	open(outsingletons,">$provcontigs");
+	open(singletonlist,">>$interdir/01.$projectname.singletons");
 	open(infilesam,$outsam) || die "Cannot open SAM file $outsam\n";
 		while(<infilesam>) { 
 		chomp;
@@ -168,9 +170,24 @@ foreach my $thissample(keys %allsamples) {
 	close infilesam;
 	close outsingletons;
 	close singletonlist;
-
  }
-system("mv $provcontigs $contigsfna");
+my $command="cat $contigsfna $tempdir/contigs.*.fasta > $tempdir/prov.fasta; mv $tempdir/prov.fasta $contigsfna";
+system ($command); 
+
+#-- Run prinseq_lite for removing short contigs
+
+$command="$prinseq_soft -fasta $contigsfna -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
+print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
+print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n  ";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
+
+#-- Run prinseq_lite for statistics
+
+$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
+print outsyslog "Running prinseq for contig statistics: $command\n  ";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
 
 #-- Counts length of the contigs (we will need it later)
 

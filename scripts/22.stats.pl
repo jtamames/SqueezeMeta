@@ -263,8 +263,8 @@ print outfile1 "#\tAssembly\n";
 print outfile1 "Number of contigs\t$contigs{num}\n";
 if($singletons) { 
 	my $conum=$contigs{num}-$singletoncount;
-	print "Number of singletons\t$singletoncount\n";
-	print "Contigs from assembly\t$conum\n";
+	print outfile1 "Number of singletons\t$singletoncount\n";
+	print outfile1 "Contigs from assembly\t$conum\n";
 	}
 print outfile1 "Total length\t$contigs{bases}\nLongest contig\t$contigs{max}\nShortest contig\t$contigs{min}\n";
 print outfile1 "N50\t$contigs{N50}\nN90\t$contigs{N90}\n";

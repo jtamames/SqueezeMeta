@@ -25,7 +25,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$singletons,$scriptdir,$methodsfile,$syslogfile);
+our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$flye_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$singletons,$scriptdir,$methodsfile,$syslogfile);
 
 #-- Read all the samples and store file names
 
@@ -70,7 +70,7 @@ foreach my $thissample(sort keys %samplefiles) {
 	$command="cat $cat1 > $par1name";
 	# print "$command\n";
 	print outsyslog "Merging read files: $command\n";
-	system $command;		
+	system $command;
 	if($cat2) {		#-- Support for single reads
 		$command="cat $cat2 > $par2name";
 		# print "$command\n";
@@ -134,6 +134,22 @@ foreach my $thissample(sort keys %samplefiles) {
 		system("mv $datapath/spades/contigs.fasta $assemblyname");
 	}
  
+       #-- For flye
+
+	if($assembler=~/flye/i) {
+                system("rm -r $datapath/flye > /dev/null 2>&1");
+                $outassembly="$datapath/flye/contigs.fasta";
+		$assemblyname="$datapath/flye/$thissample.contigs.fasta";
+                $command="$flye_soft $assembler_options -o $datapath/flye --plasmids --meta --genome-size 5m --threads $numthreads --nano-raw $par1name > $syslogfile 2>&1; "; 
+                $command.="mv $datapath/flye/assembly.fasta $outassembly";
+                print outsyslog "Running Flye for $thissample: $command\n";
+                print outmet "Assembly was done using Flye (Kolmogorov et al 2019, Nature Biotech 37, 540–546)\n";
+                my $ecode = system $command;
+                if($ecode!=0) { die "Error running command:    $command"; }
+                system("mv $outassembly $assemblyname");
+          }
+
+
        #-- For canu
 
         if($assembler=~/canu/i) {
@@ -144,7 +160,8 @@ foreach my $thissample(sort keys %samplefiles) {
 			my %mem=get_mem_info;
 			my $ram=$mem{"MemAvailable"};
 			$canumem=sprintf('%.1f',$ram/1000000);
-			print "AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem. You can override this setting using the -canumem option\n";
+			$canumem*=0.8;
+			print "AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem (80%). You can override this setting using the -canumem option\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ram bytes)\n";
 			}
  		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw $par1name >> $syslogfile 2>&1";

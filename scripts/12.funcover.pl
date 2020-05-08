@@ -183,13 +183,13 @@ while(<infile6>) {
 	my $mapbases=$k[3];
 	# print "$k[0] $cfun_kegg $cfun_cog $sample $longorfs{$k[0]}\n";
 	$totalbases{$sample}+=$mapbases;
-	next if((!$cfun_kegg) && (!$cfun_cog));
+	# next if((!$cfun_kegg) && (!$cfun_cog));
 	next if($taxreq && (!$validid{$k[0]}));
 	$allsamples{$sample}++;
 	if($mapbases) {
 	
 		#-- Counting KEGGs
-	
+		
 		if($cfun_kegg) {
 			my @kegglist=split(/\;/,$cfun_kegg);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
 			foreach my $tlist_kegg(@kegglist) {
@@ -208,6 +208,7 @@ while(<infile6>) {
 	
 		foreach my $odb(sort keys %optdb) {
 			my $cfun_opt=$tfun{$k[0]}{$odb};
+			# print "$k[0] $odb $cfun_opt\n";
 			if($cfun_opt) {
 				my @optlist=split(/\;/,$cfun_opt);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
 				foreach my $tlist_opt(@optlist) {
