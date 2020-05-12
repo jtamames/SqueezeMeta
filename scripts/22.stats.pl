@@ -100,12 +100,15 @@ while(<infile3>) {
 	}
 close infile3;
 
+my %singletonsample;
 if($singletons) {		#-- Count singleton raw reads
 	my $singletonlist="$interdir/01.$projectname.singletons";
 	open(infile0,$singletonlist) || die "Cannot open singleton list in $singletonlist\n";
 	while(<infile0>) {
 		chomp;
 		next if !$_;
+		my @y=split(/\t/,$_);
+		$singletonsample{$y[0]}=$y[1];
 		$singletoncount++;
 		}
 	close infile0;
@@ -123,6 +126,7 @@ while(<infile4>) {
 	if(!$header) { $header=$_; @head=split(/\t/,$header); next; }
 	$genes{totgenes}++;
 	my @k=split(/\t/,$_);
+	if($singletonsample{$k[1]}) { $genes{$singletonsample{$k[1]}}{singletons}++; $genes{total}{singletons}++; }
 	my $taxorf;
 	foreach(my $pos=0; $pos<=$#k; $pos++) {
 		my $f=$head[$pos];
@@ -304,6 +308,11 @@ print outfile1 "\n";
 print outfile1 "Number of ORFs\t$genes{totgenes}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{totgenes}"; }
 print outfile1 "\n";
+if($singletons) {
+	print outfile1 "ORFs in singletons\t$genes{total}{singletons}";
+	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{singletons}"; }
+	print outfile1 "\n";
+	}
 print outfile1 "Number of rRNAs\t$genes{rnas}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{rnas}"; }
 print outfile1 "\n";

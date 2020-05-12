@@ -213,7 +213,7 @@ sub sqm_counter {
 	print "  Counting with sqm_counter\n";
 	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
 	my(%genesincontigs,%accum,%long_gen);
-	my $countreads;
+	my($countreads,$lastread);
 	open(infile2,$gff_file) || die "Can't open $gff_file for writing\n";
 	while(<infile2>) {
 		chomp;
@@ -236,10 +236,12 @@ sub sqm_counter {
 	open(infile3,$samfile) || die "Can't open sam file $samfile\n"; ;
 	while(<infile3>) { 
 		chomp;
-		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@SQ/));
+		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@/));
 		my @k=split(/\t/,$_);
 		my $readid=$k[0];
+		next if($k[0] eq $lastread);       #-- Minimap2 can output more than one alignment per read
 		next if($k[2]=~/\*/);
+		$lastread=$readid;
 		my $cigar=$k[5];
 		next if($cigar eq "*");
 		# print "\n$_\n";

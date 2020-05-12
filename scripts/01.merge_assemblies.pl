@@ -137,14 +137,6 @@ close outfile1;
 print "  Number of contigs: $numc\n";
 print outsyslog "  Number of contigs: $numc\n";
 
-
-if($singletons) {
-        print "  Now adding unmapped reads\n";
-        print outsyslog "  Now adding unmapped reads\n";
-	my $command="perl $scriptdir/01.remap.pl $projectdir";
-	system $command;
-        }
-
 close outsyslog;
 close out_met;
 

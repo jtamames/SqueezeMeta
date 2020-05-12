@@ -185,12 +185,4 @@ close outmet;
 print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");
 
-if($singletons) {
-	print "  Now adding unmapped reads\n";
-	print outsyslog "  Now adding unmapped reads\n";
-	my $command="perl $scriptdir/01.remap.pl $projectdir";
-	system $command;
-	}        
-
-
 close outsyslog;

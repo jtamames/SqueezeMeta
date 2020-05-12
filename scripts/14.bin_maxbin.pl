@@ -50,7 +50,8 @@ if($singletons) {		#-- Excluding singleton raw reads from binning
 	while(<infile0>) {
 		chomp;
 		next if !$_;
-		$singletonlist{$_}=1;
+		my @y=split(/\t/,$_);
+		$singletonlist{$y[0]}=1;
 		}
 	close infile0;
 	}

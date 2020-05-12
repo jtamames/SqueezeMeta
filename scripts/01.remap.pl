@@ -33,6 +33,7 @@ system("rm $interdir/01.$projectname.singletons  > /dev/null 2>&1");
 open(syslog,">>$syslogfile");
 
 my $assemblybck="$interdir/01.$projectname.assembly_orig.fasta";    #-- Make a copy of the original assembly
+print "  Copying contigs from $contigsfna to $assemblybck\n";
 system("cp $contigsfna $assemblybck");
 
 #---------- Mapping reads
@@ -61,7 +62,7 @@ elsif($mapper=~/minimap/i) {
 	print "  Mapping with Minimap2 (Li 2018, Bioinformatics 34(18), 3094-3100)\n"; 
 	}
 
-my(%allsamples);
+my(%allsamples,%singletonlist,%mapped_original,%readcount);
 tie %allsamples,"Tie::IxHash";
 open(infile1,$mappingfile) || die "Can't open mappingfile $mappingfile\n";
 print "  Reading mapping file from $mappingfile\n";
@@ -86,6 +87,7 @@ while(<infile0>) {
 	if($_=~/\>([^ ]+)/) {
 	my @l=split(/\_/,$1);
 	$cocount=pop @l;
+	# print "  Last contig number: $cocount\n";
 	}
 }
 close infile0;
@@ -123,7 +125,7 @@ foreach my $thissample(keys %allsamples) {
 	
 	#-- Now we start mapping reads against contigs
 	
-	print "  Aligning to reference with $mapper\n";
+	# print "  Aligning to reference with $mapper\n";
 	$outsam="$samdir/$projectname.$thissample.sam";
 	
 	#-- Support for single reads
@@ -137,42 +139,61 @@ foreach my $thissample(keys %allsamples) {
             else { $command="$bwa_soft mem $bowtieref $tempdir/$par1name -v 1 -t $numthreads > $outsam"; } }
         elsif($mapper eq "minimap2-ont") {
             #Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
-            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads > $outsam"; }
-            else { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
+            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads --secondary=no > $outsam"; }
+            else { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name -t $numthreads --secondary=no > $outsam"; } }
         elsif($mapper eq "minimap2-pb") {
             #Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
-            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads > $outsam"; }
-            else { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
+            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads --secondary=no > $outsam"; }
+            else { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name -t $numthreads --secondary=no > $outsam"; } }
         elsif($mapper eq "minimap2-sr") {
             #Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
-            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads > $outsam"; }
-            else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads > $outsam"; } }
+            if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads --secondary=no > $outsam"; }
+            else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads --secondary=no > $outsam"; } }
 
+	# print "  Mapping: $command\n";
         print outsyslog "  Mapping: $command\n";                          
 	system($command);
 	
 	my $provcontigs="$tempdir/contigs.$nums.fasta";
+	my $singletonfile="$interdir/01.$projectname.singletons";
+	my $lastid;
+	# print "  Reading SAM in $outsam to create $provcontigs and $singletonfile\n";
 	open(outsingletons,">$provcontigs");
-	open(singletonlist,">>$interdir/01.$projectname.singletons");
 	open(infilesam,$outsam) || die "Cannot open SAM file $outsam\n";
 		while(<infilesam>) { 
 		chomp;
-		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@SQ/));
+		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@/));
 		my @k=split(/\t/,$_);
 		my $readid=$k[0];
+		next if($readid eq $lastid);	#-- Minimap2 can output more than one alignment per read
+		$readcount{$thissample}++;
 		if($k[2]=~/\*/) { 
 			$cocount++;
+			# print "   Contignumber $cocount\n";
                 	my $newcontigname="$assembler\_$cocount";
                 	print outsingletons ">$newcontigname singleton $readid\n$k[9]\n";
-			print singletonlist "$newcontigname\n";
+			$singletonlist{$newcontigname}="$thissample\t$readid";
 			}
+		else { $mapped_original{$thissample}++; }
+		$lastid=$readid;
 		}
 	close infilesam;
 	close outsingletons;
-	close singletonlist;
  }
 my $command="cat $contigsfna $tempdir/contigs.*.fasta > $tempdir/prov.fasta; mv $tempdir/prov.fasta $contigsfna";
 system ($command); 
+
+#-- Make original mapping statistics
+
+open(outmap,">$interdir/01.$projectname.mappingstat_orig") || die;
+print outmap "#-- Created by $0, ",scalar localtime,"\n";
+print outmap "# Sample\tTotal reads\tMapped reads\tMapping perc\n";
+foreach my $tsamp(sort keys %readcount) { 
+	my $perc=($mapped_original{$tsamp}/$readcount{$tsamp})*100;
+	printf outmap "$tsamp\t$readcount{$tsamp}\t$mapped_original{$tsamp}\t%.2f\n",$perc;
+	}
+print outmap "\n# This result corresponds to the mapping of reads to the original assembly, before the introduction of singletons\n";
+close outmap;
 
 #-- Run prinseq_lite for removing short contigs
 
@@ -184,7 +205,7 @@ if($ecode!=0) { die "Error running command:    $command"; }
 
 #-- Run prinseq_lite for statistics
 
-$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$project.stats";
+$command="$prinseq_soft -fasta $contigsfna -stats_len -stats_info -stats_assembly > $interdir/01.$projectname.stats";
 print outsyslog "Running prinseq for contig statistics: $command\n  ";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
@@ -192,8 +213,10 @@ if($ecode!=0) { die "Error running command:    $command"; }
 #-- Counts length of the contigs (we will need it later)
 
 my $numc;
+my $singletonfile="$interdir/01.$projectname.singletons";
 print "  Counting length of contigs\n";
 open(outfile2,">$contigslen") || die "Can't open $contigslen for writing\n";
+open(outfile3,">$singletonfile") || die;
 open(infile2,$contigsfna) || die "Can't open $contigsfna\n";
 while(<infile2>) {
         chomp;
@@ -204,7 +227,8 @@ while(<infile2>) {
                 if($contigname) {
                         $len=length $seq;
                         print outfile2 "$contigname\t$len\n";
-                        }
+        		if($singletonlist{$contigname}) { print outfile3 "$contigname\t$singletonlist{$contigname}\n"; }     
+		       }
                 $seq="";
                 $contigname=$thisname;
                 }
@@ -213,6 +237,7 @@ while(<infile2>) {
 close infile2;
 if($contigname) { $len=length $seq; print outfile2 "$contigname\t$len\n"; }
 close outfile2;
+close outfile3;
 close outmet;
 close outsyslog;
 

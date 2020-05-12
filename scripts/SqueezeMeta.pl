@@ -240,8 +240,7 @@ if($mode=~/sequential/i) {
 	print "$numsamples metagenomes found: @nmg";
 	print "\n\n";
 
-	open(outfile1,">$pwd/global_progress") or do { print RED; print "Can't write in directory $pwd\n"; print RESET; die; }; 	#-- An index indicating where are we and which parts of the method finished already. For the global process
-	open(outfile2,">$pwd/global_syslog") || do { print RED; print "Can't write in directory $pwd\n"; print RESET; die; }; 		 #-- A log file for the global proccess
+	open(outfile2,">$pwd/syslog") || do { print RED; print "Can't write in directory $pwd\n"; print RESET; die; }; 		 #-- A log file for the global proccess
 	print outfile2 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 	print outfile2 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
 	print outfile2 "Command: $commandline\n"; 
@@ -257,7 +256,6 @@ if($mode=~/sequential/i) {
 		my $projectdir="$pwd/$thissample";
 		if (-d $projectdir) { print RED; print "Project name $projectdir already exists. Please remove it or change the project name\n"; print RESET; die; } else { system("mkdir $projectdir"); }
 		print "Working with $thissample\n";
-		print outfile1 ">$thissample\n";
 	
 		open(outfile3,">$projectdir/progress") or do { print RED; print "Can't write in directory $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; };  #-- An index indicating where are we and which parts of the method finished already. For the global process
 		open(outfile4,">$projectdir/syslog")  or do { print RED; print "Can't write in directory $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; }; 	#-- A log file for the global proccess
@@ -1134,7 +1132,7 @@ sub pipeline {
 	$currtime=timediff();
 	print "\nDeleting temporary files in $tempdir\n";
 	print outfile4 "\nDeleting temporary files in $tempdir\n";
-	system("rm -r $tempdir/*");
+	# system("rm -r $tempdir/*");
 	if(-e "$datapath/megahit/final.contigs.fa") { system("rm -r $datapath/megahit/intermediate_contigs; rm $datapath/megahit/final.contigs.fa"); } 
 	print outfile4 "[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
 	print BLUE "[",$currtime->pretty,"]: FINISHED -> Have fun!\n"; print RESET;
