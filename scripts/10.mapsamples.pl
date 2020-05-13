@@ -239,7 +239,7 @@ sub sqm_counter {
 		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@/));
 		my @k=split(/\t/,$_);
 		my $readid=$k[0];
-		next if($k[0] eq $lastread);       #-- Minimap2 can output more than one alignment per read
+		next if($readid eq $lastread);       #-- Minimap2 can output more than one alignment per read
 		next if($k[2]=~/\*/);
 		$lastread=$readid;
 		my $cigar=$k[5];
@@ -342,6 +342,7 @@ sub contigcov {
 
 	#-- Count length of contigs and bases mapped from the sam file
 
+	my($thisr,$lastr);
 	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
 	while(<infile4>) {
 		chomp;
@@ -358,6 +359,9 @@ sub contigcov {
 		#-- And the mapped reads to sum base coverage
 
 		else {
+			$thisr=$t[0];
+			next if($thisr eq $lastr);
+			$lastr=$thisr;
 			if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
 				$readcount{$t[2]}{reads}++;
 				$readcount{$t[2]}{lon}+=length $t[9];
