@@ -342,6 +342,7 @@ sub contigcov {
 
 	#-- Count length of contigs and bases mapped from the sam file
 
+	my($thisr,$lastr);
 	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
 	while(<infile4>) {
 		chomp;
@@ -359,6 +360,9 @@ sub contigcov {
 
 		else {
 			if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+				$thisr=$t[0];
+				next if($thisr eq $lastr);
+				$lastr=$thisr;
 				$readcount{$t[2]}{reads}++;
 				$readcount{$t[2]}{lon}+=length $t[9];
 				$mappedreads++;
