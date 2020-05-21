@@ -3,6 +3,7 @@
 # SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
 - Find the SqueezeMeta paper at: https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full 
+- We also have a preprint showing how to analyse the output of SqueezeMeta at: https://www.biorxiv.org/content/10.1101/2020.04.23.057133v1.full
 - Make sure to [check the wiki!](https://github.com/jtamames/SqueezeMeta/wiki)
 
 ## 1. What is SqueezeMeta?
