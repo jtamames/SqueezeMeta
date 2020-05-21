@@ -2,7 +2,7 @@
 
 
 use strict;
-use Getopt::Long qw(:config gnu_getopt gnu_compat);
+use Getopt::Long; #qw(:config gnu_getopt gnu_compat);
 use Data::Dumper;
 use threads;
 
@@ -44,7 +44,6 @@ GetOptions (
 	    "i|no-identical"      => \$flgs->{'no-identical'},
 	    "s|show-bitscore"      => \$flgs->{'show-bitscore'}
 	    );
-	    
 $blastfile = pop @ARGV;
 my $tempdir=$blastfile;
 my @g=split(/\//,$blastfile);
