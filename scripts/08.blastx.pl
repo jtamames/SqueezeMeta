@@ -48,7 +48,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 moving();
 masking();
 blocksize();
-run_blastx();
+# run_blastx();
 collapse();
 merge();
 getseqs();

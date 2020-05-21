@@ -215,6 +215,7 @@ while(<infile6>) {
 					$funstat{$odb}{$tlist_opt}{$sample}{copies}++;
 					$funstat{$odb}{$tlist_opt}{$sample}{length}+=$longorfs{$k[0]}; 
 					$funstat{$odb}{$tlist_opt}{$sample}{bases}+=$mapbases;
+                                        $funstat{$odb}{$tlist_opt}{$sample}{reads}+=$k[2];
 					foreach my $tk(keys %equival) {
 						my $krank=$equival{$tk};
 						my $itax=$taxf{$k[0]}{$krank};
@@ -268,10 +269,10 @@ while(<infile7>) {
 		foreach my $tlist_cog(@coglist) { 
 			if($tlist_cog) { $funstat{cog}{$tlist_cog}{$sample}{reads}+=$k[2]; }  
 			}
-		foreach my $odb(sort keys %optdb) {
-			my $cfun_opt=$tfun{$k[0]}{$odb};
-			if($cfun_opt) { $funstat{$odb}{$cfun_opt}{$sample}{reads}+=$k[2]; }
-			}
+#		foreach my $odb(sort keys %optdb) {
+#			my $cfun_opt=$tfun{$k[0]}{$odb};
+#			if($cfun_opt) { $funstat{$odb}{$cfun_opt}{$sample}{reads}+=$k[2]; }
+#			}
 		}
 	
 	}
@@ -317,7 +318,7 @@ foreach my $classfun(sort keys %funstat) {
 			# print "$classfun*$kid*$samp*$funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}\n";
 			my $rpkm=(($funstat{$classfun}{$kid}{$samp}{reads}*1000000000)/($funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}));
  			my $tpm=$rpk{$kid}/$accumrpk;
-			my $stringtax=""; 
+		my $stringtax=""; 
 			foreach my $tk(keys %equival) {
 				my $krank=$equival{$tk};
 				my $countt=0;

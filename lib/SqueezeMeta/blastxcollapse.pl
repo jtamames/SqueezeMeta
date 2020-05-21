@@ -12,7 +12,7 @@ our $AUTHOR = "SQM";
 our $PROGRAM = $0;
 
 ## Defaults:
-my $blastfile;
+my $blastfile=pop @ARGV;
 my $min_identity = 20;
 my $min_alilong = 0;
 my $min_overlap = 0.8;
@@ -45,8 +45,8 @@ GetOptions (
 	    "s|show-bitscore"      => \$flgs->{'show-bitscore'}
 	    );
 	    
-$blastfile = pop @ARGV;
 my $tempdir=$blastfile;
+print "***$blastfile**$numthreads**\n";
 my @g=split(/\//,$blastfile);
 pop @g;
 my $tempdir=join("/",@g);
@@ -57,7 +57,7 @@ open(syslogfile,">>$syslogfile");
 
 #-- Split Diamond file
 
-splitfiles();
+splitfiles($numthreads);
 
 #-- Launch threads
 
@@ -85,6 +85,7 @@ print syslogfile "  Removing temporaty collapsed files in $tempdir\n";
 
 sub splitfiles {
         # print "  Splitting Diamond file\n";
+	my $numthreads=shift;
         print syslogfile "  Splitting Diamond file\n";
         system("wc -l $blastfile > $tempdir/wc");
         open(intemp,"$tempdir/wc");
