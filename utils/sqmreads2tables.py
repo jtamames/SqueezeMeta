@@ -3,7 +3,7 @@
 Part of the SqueezeMeta distribution. 25/03/2018 Original version,
                             (c) Fernando Puente-Sánchez, CNB-CSIC.
 
-Generate tabular outputs from sqm_reads results.
+Generate tabular outputs from sqm_reads.pl or sqm_longreads.pl results.
 
 USAGE: sqm_reads2tables.py [-h] project_path output_dir
                      [--trusted-functions] [--ignore-unclassified]
@@ -54,7 +54,9 @@ def main(args):
         for line in infile:
             if line.startswith('#'):
                 continue
-            sample, file_, total_reads, reads_with_hits_to_nr = line.strip().split('\t')
+            sample, file_, total_reads, reads_with_hits_to_nr, *total_hits = line.strip().split('\t') # *_ since longreads output will have one more column
+            if total_hits:
+                total_reads = total_hits[0]
             samples[sample] += int(total_reads)
  
 

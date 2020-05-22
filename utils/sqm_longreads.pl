@@ -246,7 +246,7 @@ foreach my $thissample(keys %allsamples) {
 		$collapsedmerged=~s/\.m8/\.merged\.m8/;
 		my $ntseqs="$thissampledir/$thissample.nt.fasta";
 		my $wrankfile="$thissampledir/$thissample.fun3.blastx.tax.wranks";
-		my $wrankfile_nofilter="$thissampledir/$thissample.fun3.blastx.tax.noidfilter.wranks";
+		my $wrankfile_nofilter="$thissampledir/$thissample.fun3.blastx.tax.nofilter.wranks";
 		if($nodiamond) { print "   (Skipping Diamond search for taxa because of --nodiamond flag)\n"; } 
 		else { 
 			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
