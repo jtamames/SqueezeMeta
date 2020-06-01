@@ -9,6 +9,7 @@ $|=1;
 
 my $projectdir=$ARGV[0];	#-- directory for the file
 my $input=$ARGV[1];		#-- wranks file
+my $filter=$ARGV[2];		#-- With/without idfilters
 
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranksabb=('k','p','c','o','f','g','s');
@@ -80,8 +81,16 @@ while(<infile3>) {		#-- Looping on the ORFs
 	}
 close infile3;
 
-my $outputlong="$projectdir/readconsensus.log";
-my $outputshort="$projectdir/readconsensus.txt";
+my($outputlong,$outputshort);
+if($filter eq "idfilter") {
+	$outputlong="$projectdir/readconsensus.log";
+	$outputshort="$projectdir/readconsensus.txt";
+	}
+else {
+	$outputlong="$projectdir/readconsensus\_noidfilter.log";
+	$outputshort="$projectdir/readconsensus\_noidfilter.txt";
+	}
+
 print "  Output in $outputshort\n";
 open(outfile1,">$outputlong") || die "Can't open $outputlong for writing\n";
 open(outfile2,">$outputshort") || die "Can't open $outputshort for writing\n";

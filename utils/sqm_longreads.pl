@@ -136,6 +136,9 @@ if (-d $resultsdir) { print RED "WARNING: Project name $resultsdir already exist
 $methodsfile="$resultsdir/methods.txt";
 open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
+open(outsyslog,">$resultsdir/syslog") || warn "Cannot open syslog file in $resultsdir/syslog\n";
+print outsyslog "Created by $0, ",scalar localtime,"\nCommand: $commandline\n";
+
 if(!$nodiamond) { print outmet "Similarity searches for"; }
 
 my $output_all="$project.out.allreads";
@@ -246,7 +249,7 @@ foreach my $thissample(keys %allsamples) {
 		$collapsedmerged=~s/\.m8/\.merged\.m8/;
 		my $ntseqs="$thissampledir/$thissample.nt.fasta";
 		my $wrankfile="$thissampledir/$thissample.fun3.blastx.tax.wranks";
-		my $wrankfile_nofilter="$thissampledir/$thissample.fun3.blastx.tax.noidfilter.wranks";
+		my $wrankfile_noeukfilter="$thissampledir/$thissample.fun3.blastx.tax.noeukfilter.wranks";
 		if($nodiamond) { print "   (Skipping Diamond search for taxa because of --nodiamond flag)\n"; } 
 		else { 
 			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
@@ -281,8 +284,8 @@ foreach my $thissample(keys %allsamples) {
 			}
 		close infiletax;
 		if($euknofilter) {     #-- Drops the filters for eukaryotes
-			$consensusfile=$wrankfile_nofilter;
-			open(infiletax,$wrankfile_nofilter) || die "Cannot open file $wrankfile_nofilter\n";
+			$consensusfile=$wrankfile_noeukfilter;
+			open(infiletax,$wrankfile_noeukfilter) || die "Cannot open file $wrankfile_noeukfilter\n";
 			while(<infiletax>) {
 				chomp;
 				next if(!$_ || ($_=~/^\#/));
@@ -295,10 +298,16 @@ foreach my $thissample(keys %allsamples) {
 		#-- Run consensus annotation of reads
 
 		print "  Running consensus annotation: Output in $thissampledir/readconsensus.txt\n";
-		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $consensusfile";
+		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $consensusfile idfilter";
+		print outsyslog "  Running consensus annotation: Output in $thissampledir/readconsensus.txt: $command\n";
 		# print "$command\n";
 		system($command);
-	
+	        my $noidfilter_consensus=$consensusfile;
+		$noidfilter_consensus=~s/\.wranks/\_noidfilter\.wranks/;
+		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $noidfilter_consensus noidfilter";
+		print outsyslog "  Running consensus annotation wit no id filters: Output in $noidfilter_consensus: $command\n";
+		system($command);
+
 	#---- Functional annotation
 		
 		$currtime=timediff();
@@ -652,7 +661,7 @@ sub run_blastx {
 	my $queryfile=shift;
 	my $blastxout=shift;
 	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
-	my $blastx_command="$diamond_soft blastx -q $queryfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet --range-culling -b $blocksize -e $evalue --id $miniden -o $blastxout";
+	my $blastx_command="$diamond_soft blastx -q $queryfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet --range-culling -b $blocksize -e $evalue --id $miniden --top 10 -o $blastxout";
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	print "Running Diamond Blastx: $blastx_command**\n" if $verbose;
