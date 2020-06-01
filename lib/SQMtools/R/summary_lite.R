@@ -148,6 +148,7 @@ most_abundant_row = function(table, ignore_unclassified=T)
     if(ignore_unclassified) { table = table[!grepl('Unclassified', rownames(table)),,drop=F] }
     colMaxsIdx = apply(table, 2, which.max)
     res = rownames(table)[colMaxsIdx]
+    if(is.null(res)) { res = rep('Unclassified', ncol(table)) }
     names(res) = colnames(table)
     return(res)
     }
