@@ -50,13 +50,22 @@ def main(args):
     project_name = args.project_path.strip('/').split('/')[-1]
     output_prefix = project_name #args.output_dir.strip('/').split('/')[-1]
     samples = defaultdict(int)
+    samples_orfs = defaultdict(int)
     with open('{}/{}.out.mappingstat'.format(args.project_path, project_name)) as infile:
         for line in infile:
             if line.startswith('#'):
                 continue
             sample, file_, total_reads, reads_with_hits_to_nr, *total_hits = line.strip().split('\t') # *_ since longreads output will have one more column
             if total_hits:
-                total_reads = total_hits[0]
+                total_orfs = 0
+                with open('{}/{}/{}.nt.fasta'.format(args.project_path, sample, sample)) as infile: # in longreads mode we can have more than one ORF per read
+                    for line in infile:
+                        if line.startswith('>'):
+                            total_orfs +=1
+                samples_orfs[sample] = total_orfs
+                longreads = True
+            else:
+                longreads = False
             samples[sample] += int(total_reads)
  
 
@@ -68,7 +77,10 @@ def main(args):
                 fields = line.strip().split('\t')
                 # .replace('_nofilter') so that reads from allfilter and nofilter have the same name, but reads from fwd and rev don't.
                 read = path.replace('_nofilter', '') + fields[0]
-                tax_string = fields[1] if len(fields) > 1 else 'n_Unclassified'
+                if not longreads:
+                    tax_string = fields[1] if len(fields) > 1 else 'n_Unclassified'
+                else:
+                    tax_string = fields[1] if fields[1] else 'n_Unclassified'
                 tax, tax_wranks = parse_tax_string(tax_string)
                 out_dict[read] = tax_wranks
 
@@ -79,14 +91,20 @@ def main(args):
 
         read_tax = {'nofilter': {}, 'allfilter': {}, 'prokfilter': {}}
 
-        ### Parse nofilter taxonomy.
-        nofilter_tax_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith('.tax_nofilter.wranks')]
+        ### Parse nofilter taxonomy
+        if not longreads:
+            nofilter_tax_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith('.tax_nofilter.wranks')]
+        else:
+            nofilter_tax_files = ['readconsensus_nofilter.txt']
         for tax_file in nofilter_tax_files:
             path = '{}/{}/{}'.format(args.project_path, sample, tax_file)
             tax_file_to_dict(path, read_tax['nofilter'])
 
         ### Parse taxonomy with filters.
-        allfilter_tax_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith('.tax.wranks')]
+        if not longreads:
+            allfilter_tax_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith('.tax.wranks')]
+        else:
+            allfilter_tax_files = ['readconsensus.txt']
         for tax_file in allfilter_tax_files:
             path = '{}/{}/{}'.format(args.project_path, sample, tax_file)
             tax_file_to_dict(path, read_tax['allfilter'])
@@ -152,7 +170,10 @@ def main(args):
         dict_to_write = fun_dict[method]
         for sample, funs in dict_to_write.items():
             classified_reads = sum(funs.values())
-            total_reads = samples[sample]
+            if not longreads:
+                total_reads = samples[sample]
+            else:
+                total_reads = samples_orfs[sample] # In longreads mode we can have more than one orf per read. For taxonomy we get the consensus for each reads, but in functions we count ORFs independently.
             dict_to_write[sample]['Unclassified'] += (total_reads - classified_reads)
         DataFrame.from_dict(dict_to_write).fillna(0).to_csv('{}/{}.{}.abund.tsv'.format(args.output_dir, output_prefix, method_name), sep='\t')
 
