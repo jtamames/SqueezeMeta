@@ -1,4 +1,6 @@
-require(reshape2)
+library(reshape2)
+library(data.table)
+
 
 #' Load a SqueezeMeta project into R
 #'
@@ -167,8 +169,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                               header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=F)
     } else if (engine == 'data.table')
         {
-        library(data.table)
-        SQM$orfs$table           = fread(sprintf('%s/results/13.%s.orftable', project_path, project_name), sep='\t')
+        SQM$orfs$table           = data.table::fread(sprintf('%s/results/13.%s.orftable', project_path, project_name), sep='\t')
         }
     SQM$orfs$table               = generic.table(SQM$orfs$table)
     cat('    abundances...\n')
@@ -249,9 +250,9 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=F)
     } else if (engine == 'data.table')
         {
-        SQM$contigs$table         = fread(sprintf('%s/results/20.%s.contigtable', project_path, project_name), sep='\t')
+        SQM$contigs$table         = data.table::fread(sprintf('%s/results/20.%s.contigtable', project_path, project_name), sep='\t')
         }
-    SQM$contigs$table                = generic.table(SQM$contigs$table)
+    SQM$contigs$table             = generic.table(SQM$contigs$table)
     cat('    abundances...\n')
     SQM$contigs$abund             = as.matrix(SQM$contigs$table[,grepl('Raw read count', colnames(SQM$contigs$table)),drop=F])
     colnames(SQM$contigs$abund)   = gsub('Raw read count ', '', colnames(SQM$contigs$abund), fixed=T)
