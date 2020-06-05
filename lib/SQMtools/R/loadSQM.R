@@ -166,10 +166,10 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     if(engine == 'data.frame')
         {
         SQM$orfs$table           = read.table(sprintf('%s/results/13.%s.orftable', project_path, project_name),
-                                              header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=F)
+                                              header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
     } else if (engine == 'data.table')
         {
-        SQM$orfs$table           = data.table::fread(sprintf('%s/results/13.%s.orftable', project_path, project_name), sep='\t')
+        SQM$orfs$table           = data.table::fread(sprintf('%s/results/13.%s.orftable', project_path, project_name), header=T, sep='\t')
         }
     SQM$orfs$table               = generic.table(SQM$orfs$table)
     cat('    abundances...\n')
@@ -184,12 +184,20 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     SQM$misc$samples             = colnames(SQM$orfs$abund)
     
     cat('    sequences\n')    
-    SQM$orfs$seqs                = read.namedvector(sprintf('%s/results/tables/%s.orf.sequences.tsv', project_path, project_name))
+    SQM$orfs$seqs                = read.namedvector(sprintf('%s/results/tables/%s.orf.sequences.tsv', project_path, project_name), engine=engine)
     
     cat('    taxonomy...\n')
-    SQM$orfs$tax                 = as.matrix(read.table(sprintf('%s/results/tables/%s.orf.tax.%s.tsv', project_path, project_name, tax_mode),
+    if(engine == 'data.frame')
+        {
+        SQM$orfs$tax             = as.matrix(read.table(sprintf('%s/results/tables/%s.orf.tax.%s.tsv', project_path, project_name, tax_mode),
                                                         header=T, row.names=1, sep='\t'))
-
+    }else if(engine == 'data.table')
+        {
+        ta                       = data.table::fread(sprintf('%s/results/tables/%s.orf.tax.%s.tsv', project_path, project_name, tax_mode), header=T, sep='\t')
+        SQM$orfs$tax             = as.matrix(ta[,-1])
+        rownames(SQM$orfs$tax)   = unlist(ta[,1])
+        }
+    SQM$orfs$tax                 = SQM$orfs$tax[rownames(SQM$orfs$table),]
     # Remove orfs with no nt length (which should be fixed at some point). The tax table contains the correct number of orfs.
     # THIS SHOULD NOT BE NEEDED ANYMORE
     #SQM$orfs$table               = SQM$orfs$table[rownames(SQM$orfs$table) %in% rownames(SQM$orfs$tax),]
@@ -247,10 +255,10 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     if(engine == 'data.frame')
         {
         SQM$contigs$table         = read.table(sprintf('%s/results/20.%s.contigtable', project_path, project_name),
-                                               header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=F)
+                                               header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
     } else if (engine == 'data.table')
         {
-        SQM$contigs$table         = data.table::fread(sprintf('%s/results/20.%s.contigtable', project_path, project_name), sep='\t')
+        SQM$contigs$table         = data.table::fread(sprintf('%s/results/20.%s.contigtable', project_path, project_name), header=T, sep='\t')
         }
     SQM$contigs$table             = generic.table(SQM$contigs$table)
     cat('    abundances...\n')
@@ -262,12 +270,21 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     colnames(SQM$contigs$tpm)     = gsub('TPM ', '', colnames(SQM$contigs$tpm), fixed=T)
 
     cat('    sequences...\n')                                                 
-    SQM$contigs$seqs              = read.namedvector(sprintf('%s/results/tables/%s.contig.sequences.tsv', project_path, project_name))
+    SQM$contigs$seqs              = read.namedvector(sprintf('%s/results/tables/%s.contig.sequences.tsv', project_path, project_name), engine=engine)
     SQM$contigs$seqs              = SQM$contigs$seqs[rownames(SQM$contigs$table)]
 
     cat('    taxonomy...\n')
-    SQM$contigs$tax               = as.matrix(read.table(sprintf('%s/results/tables/%s.contig.tax.tsv', project_path, project_name),
+    if(engine == 'data.frame')
+        {
+        SQM$contigs$tax           = as.matrix(read.table(sprintf('%s/results/tables/%s.contig.tax.tsv', project_path, project_name),
                                                          header=T, row.names=1, sep='\t'))
+    }else if(engine == 'data.table')
+        {
+        ta                        = data.table::fread(sprintf('%s/results/tables/%s.contig.tax.tsv', project_path, project_name), header=T, sep='\t')
+        SQM$contigs$tax           = as.matrix(ta[,-1])
+        rownames(SQM$contigs$tax) = unlist(ta[,1])
+        }
+
     SQM$contigs$tax               = SQM$contigs$tax[rownames(SQM$contigs$table),]
 
 					  
