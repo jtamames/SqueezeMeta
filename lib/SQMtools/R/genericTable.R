@@ -103,6 +103,33 @@ as.matrix.generic.data.table = function(x)
     return(res)
     }
 
+#' @export
+#' @noRd
+rbind.generic.data.table = function(...)
+    {
+    res = data.table:::rbind.data.table(...)
+    rownames(res) = res$rn
+    class(res) = c('generic.data.table', class(res))
+    return(res)
+    }
+
+
+#' @export
+#' @noRd
+cbind.generic.data.table = function(...)
+    {
+    inter = Reduce(intersect, lapply(list(...), FUN=rownames))
+    uni = Reduce(union, lapply(list(...), FUN=rownames))
+    stopifnot(identical(inter, uni))
+    res = data.table:::cbind.data.table(...)
+    rn = res[,ncol(res),with=F]
+    res = res[,colnames(res)!='rn',with=F]
+    res$rn = rn
+    rownames(res) = res$rn
+    class(res) = c('generic.data.table', class(res))
+    return(res)
+    }
+
 
 #' @export
 #' @noRd
