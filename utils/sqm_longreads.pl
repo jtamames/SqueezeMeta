@@ -238,6 +238,7 @@ foreach my $thissample(keys %allsamples) {
 		$numseqs=~s/\s+.*//;
 		$numseqs/=2;
 		$totalseqs{$thisfile}=$numseqs;
+		system("rm $thissampledir/rc.txt");
 
 	#---- Taxonomic annotation
 
@@ -262,6 +263,7 @@ foreach my $thissample(keys %allsamples) {
 			}
 
 		lca($collapsedmerged,$thissampledir,$scriptdir,$thissample,$numthreads);
+		open(outsyslog,">>$resultsdir/syslog");
 		my $numtotalhits;
 		open(inf,$collapsedmerged);
 		while(<inf>) {
@@ -423,7 +425,7 @@ foreach my $thissample(keys %allsamples) {
         my $numtotalhits=($#y)+1;
         print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\t$numtotalhits\n";
 #	system("rm $thissampledir/diamond_collapse*; rm $thissampledir/collapsed*m8; rm $thissampledir/rc.txt; rm $thissampledir/wc;");
- 
+ 	system("rm -r $thissampledir/temp");
 
 		}
 
@@ -677,7 +679,9 @@ sub collapse {
 	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 -p $numthreads $blastxout > $collapsed";
 	print outsyslog "Collapsing hits with blastxcollapse.pl: $collapse_command\n";
 	print "Collapsing hits with blastxcollapse.pl: $collapse_command\n" if $verbose;
+	close outsyslog;
 	system $collapse_command;
+	open(outsyslog,">>$resultsdir/syslog");
 	}
 	
 sub merge {
@@ -688,7 +692,9 @@ sub merge {
 	print "  Merging splitted hits with mergehits.pl\n";
 	print outsyslog "Merging splitted hits with mergehits.pl: $merge_command\n";
 	print "Merging splitted hits with mergehits.pl: $merge_command\n" if $verbose;
+	close outsyslog;
 	system $merge_command;
+	open(outsyslog,">>$resultsdir/syslog");
 	}
 
 sub getseqs {
@@ -747,7 +753,9 @@ sub lca {
 	my $lca_command="perl $auxdir/lca_collapse.pl $collapsedmerged $thissampledir $scriptdir $thissample $numthreads";
 	$currtime=timediff();
 	print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
+	close(outsyslog);
 	system($lca_command);
+	open(outsyslog,">>$resultsdir/syslog");
 	}
 
 #---------------------------------------- TIME CALCULATIONS --------------------------------

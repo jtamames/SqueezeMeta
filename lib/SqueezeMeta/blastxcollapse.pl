@@ -78,10 +78,10 @@ for(my $h=1; $h<=$numthreads; $h++) {
 	}
 
 print syslogfile "  Removing temporaty collapsed files in $tempdir\n";
-#system("rm $tempdir/collapsed.*.m8");
-#system("rm $tempdir/diamond_collapse.*.m8");
-
-
+system("rm $tempdir/collapsed.*.m8");
+system("rm $tempdir/diamond_collapse.*.m8");
+system("rm $tempdir/wc");
+close syslogfile;
 
 sub splitfiles {
         # print "  Splitting Diamond file\n";

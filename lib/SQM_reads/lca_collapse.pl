@@ -105,12 +105,12 @@ sub splitfiles {
         chomp $wc;
         $wc=~s/\s+.*//;    #-- Number of lines in the diamond result
         my $splitlines=int($wc/$numthreads);
-        print syslogfile "Total lines in Diamond: $wc; Allocating $splitlines in $numthreads threads\n";
+        # print syslogfile "Total lines in Diamond: $wc; Allocating $splitlines in $numthreads threads\n";
 
         my $nextp=$splitlines;
         my ($filelines,$splitorf);
         my $numfile=1;
-        print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
+        # print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
         open(outfiletemp,">$tempdir/diamond_lca.$numfile.m8");
         open(infile2,$infile) || die "Can't open Diamond file $infile\n";
         while(<infile2>) {
@@ -121,7 +121,7 @@ sub splitfiles {
                 elsif($f[0] ne $splitorf) {
                         close outfiletemp;
                         $numfile++;
-                        print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
+                        # print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
                         open(outfiletemp,">$tempdir/diamond_lca.$numfile.m8");
                         print outfiletemp $_;
                         $nextp+=$splitlines;
@@ -176,6 +176,7 @@ sub current_thread {
 	close infile2;
 	close outc;
 	close outcnof;
+	close outsyslog;
 	print "  Tax assignment done! Result stored in file $fun3tax\_$threadnum.wranks\n" if $verbose;
 }
 
