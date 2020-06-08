@@ -98,7 +98,7 @@ sub splitfiles {
         my $nextp=$splitlines;
         my ($filelines,$splitorf);
         my $numfile=1;
-        print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
+        # print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
         open(outfiletemp,">$tempdir/diamond_collapse.$numfile.m8");
         open(infile2,$blastfile) || die "Can't open Diamond file $blastfile\n";
         while(<infile2>) {

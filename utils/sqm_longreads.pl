@@ -132,7 +132,7 @@ my $resultsdir="$pwd/$project";
 print "----$resultsdir---\n";
 my @fields=split(/\//, $resultsdir);
 my $project=$fields[-1];
-if (-d $resultsdir) { print RED "WARNING: Project name $resultsdir already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
+if (-d $resultsdir) { print RED "WARNING: Project name $resultsdir already exists\n"; print RESET; print outsyslog "WARNING: Project name $resultsdir already exists\n"; } else { system("mkdir $resultsdir"); }
 $methodsfile="$resultsdir/methods.txt";
 open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
@@ -150,16 +150,17 @@ open(outcount,">$resultsdir/$output_counts") || die;
 #-- Reading the sample file 
 
 print "Now reading samples from $equivfile\n";
-open(infile1,$equivfile) or do { print RED "Cannot open samples file $equivfile\n"; print RESET; die; };
+print outsyslog "Now reading samples from $equivfile\n";
+open(infile1,$equivfile) or do { print RED "Cannot open samples file $equivfile\n"; print RESET; print outsyslog "Cannot open samples file $equivfile\n"; die; };
 while(<infile1>) {
 	chomp;
 	$_=~s/\r//g; # Remove DOS line terminators
 	next if(!$_ || ($_=~/^\#/));
 	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-	if($_=~/ /) { print RED "Please do not use blank spaces in the samples file\n"; print RESET; die; }
-	if(($iden ne "pair1") && ($iden ne "pair2")) { print RED "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n";  print RESET; die; }
-	if((!$sample) || (!$file) || (!$iden)) { print RED "Bad format in samples file $equivfile. Missing fields\n"; print RESET; die; }
-	if(-e "$rawseqs/$file") {} else { print RED "Cannot find sample file $rawseqs/$file for sample $sample in the samples file. Please check\n"; print RESET; die; }
+	if($_=~/ /) { print RED "Please do not use blank spaces in the samples file\n"; print RESET; print outsyslog "Please do not use blank spaces in the samples file\n"; die; }
+	if(($iden ne "pair1") && ($iden ne "pair2")) { print RED "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n";  print RESET; print outsyslog "Samples file, line $_: file label must be \"pair1\" or \"pair2\"\n"; die; }
+	if((!$sample) || (!$file) || (!$iden)) { print RED "Bad format in samples file $equivfile. Missing fields\n"; print RESET; print outsyslog "Bad format in samples file $equivfile. Missing fields\n"; die; }
+	if(-e "$rawseqs/$file") {} else { print RED "Cannot find sample file $rawseqs/$file for sample $sample in the samples file. Please check\n"; print RESET; print outsyslog "Cannot find sample file $rawseqs/$file for sample $sample in the samples file\n"; die; }
 	$allsamples{$sample}{$file}=$iden;
 	$ident{$sample}{$file}=$iden;
 }
@@ -180,6 +181,7 @@ my $numsamples=$#nmg+1;
 my $sampnum;
 print "$numsamples metagenomes found";
 print "\n";
+print outsyslog "$numsamples metagenomes found\n";
 print outall "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
 print outall "# Sample\tFile\tRead\tTax\tConsensus tax\t";
 if(!$nocog) { print outall "\tCOG"; }
@@ -195,12 +197,14 @@ my($thisfile,$numseqs);
 foreach my $thissample(keys %allsamples) {
 	$sampnum++;
 	print BOLD "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; print RESET;
+	print outsyslog "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; 
 	my $thissampledir="$resultsdir/$thissample";
 	if(-d $thissampledir) {} else { system("mkdir $thissampledir"); }
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		(%iblast,%rblast)=();
 		my $numseqs=0;
 		print "   File: $thisfile\n";
+		print outsyslog "   File: $thisfile\n";
 		my $idenf=$allsamples{$thissample}{$thisfile};
 
 		#-- Transforming the input to a gunzipped fasta file
@@ -244,6 +248,7 @@ foreach my $thissample(keys %allsamples) {
 
 		$currtime=timediff();
 		print CYAN "[",$currtime->pretty,"]: Starting taxonomic annotation\n"; print RESET;		
+		print outsyslog "[",$currtime->pretty,"]: Starting taxonomic annotation\n";		
 		my $blastxout="$thissampledir/$thissample.nr.blastx";
 		my $collapsed="$thissampledir/$thissample.nr.blastx.collapsed.m8";
 		my $collapsedmerged=$collapsed;
@@ -255,6 +260,7 @@ foreach my $thissample(keys %allsamples) {
 		if($nodiamond) { print "   (Skipping Diamond search for taxa because of --nodiamond flag)\n"; } 
 		else { 
 			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
+			print outsyslog "[",$currtime->pretty,"]: Running Diamond for taxa\n";
 			print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
 			run_blastx($fastafile,$blastxout);
 			collapse($blastxout,$collapsed);
@@ -315,13 +321,16 @@ foreach my $thissample(keys %allsamples) {
 		
 		$currtime=timediff();
                 print CYAN "[",$currtime->pretty,"]: Starting functional annotation\n"; print RESET; 
+                print outsyslog"[",$currtime->pretty,"]: Starting functional annotation\n"; 
 		if(!$nocog) {
+			print outsyslog "Starting COG annotation\n";
 			my $outfile="$thissampledir/$thisfile.cogs.m8";
 			my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run for COGs because of --nodiamond flag)\n"; } 
+			if($nodiamond) { print "   (Skipping Diamond run for COGs because of --nodiamond flag)\n"; print outsyslog"   (Skipping Diamond run for COGs because of --nodiamond flag)\n"; } 
 			else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
+				print outsyslog "[",$currtime->pretty,"]: Running Diamond for COGs: $blastx_command\n";
 				system($blastx_command); 
 				print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
 			}
@@ -329,6 +338,7 @@ foreach my $thissample(keys %allsamples) {
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
 			$currtime=timediff();
 			print "[",$currtime->pretty,"]: Running functional annotations for COGs\n"; print RESET;
+			print outsyslog "[",$currtime->pretty,"]: Running functional annotations for COGs: $func_command\n";
 			system($func_command);
 			open(infilecog,$outfile_cog) || die;
 			while(<infilecog>) { 
@@ -348,20 +358,23 @@ foreach my $thissample(keys %allsamples) {
 			}
 			
 		if(!$nokegg) {
+			print outsyslog "Starting KEGG annotation\n";
 			$currtime=timediff();
 			my $outfile="$thissampledir/$thisfile.kegg.m8";
 			my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run for KEGG because of --nodiamond flag)\n"; }
+			if($nodiamond) { print "   (Skipping Diamond run for KEGG because of --nodiamond flag)\n"; print outsyslog "   (Skipping Diamond run for KEGG because of --nodiamond flag)\n"; }
 			else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n"; print RESET;
+				print outsyslog "[",$currtime->pretty,"]: Running Diamond for KEGG: $blastx_command\n";
 				system($blastx_command); 
 				print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
 			}
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 			$currtime=timediff();
-			print "[",$currtime->pretty,"]: Running functional annotation for KEGG\n"; print RESET;
+			print CYAN "[",$currtime->pretty,"]: Running functional annotation for KEGG\n"; print RESET;
+			print outsyslog "[",$currtime->pretty,"]: Running functional annotation for KEGG: $func_command\n"; 
 			system($func_command);
 			open(infilekegg,$outfile_kegg) || die;
 			while(<infilekegg>) {
@@ -384,6 +397,7 @@ foreach my $thissample(keys %allsamples) {
 				chomp;
 				next if(!$_ || ($_=~/\#/));
 				my($extdbname,$extdb,$dblist)=split(/\t/,$_);
+				print outsyslog "Starting $extdbname annotation\n";
 				$currtime=timediff();
 				my $outfile="$thissampledir/$thisfile.$extdbname.m8";
 				my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
@@ -391,6 +405,7 @@ foreach my $thissample(keys %allsamples) {
 				if($nodiamond) { print "   (Skipping Diamond run for $extdbname because of --nodiamond flag)\n"; }
 				else { 
 					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
+					print outsyslog "[",$currtime->pretty,"]: Running Diamond for $extdbname: $blastx_command\n";
 					system($blastx_command); 
 					print outmet "$extdbname, ";
 				}
@@ -398,6 +413,7 @@ foreach my $thissample(keys %allsamples) {
 				my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
 				$currtime=timediff();
 				print "[",$currtime->pretty,"]: Running functional annotation for $extdbname\n"; print RESET;
+				print outsyslog "[",$currtime->pretty,"]: Running functional annotation for $extdbname: $func_command\n"; 
 				system($func_command);
 				open(infileopt,$outfile_opt) || die;
 				while(<infileopt>) {
@@ -423,6 +439,7 @@ foreach my $thissample(keys %allsamples) {
         my $numhits=($#y)+1;
         my @y=keys %rblast;
         my $numtotalhits=($#y)+1;
+	print outsyslog "Counting mapped counts\n";
         print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\t$numtotalhits\n";
 #	system("rm $thissampledir/diamond_collapse*; rm $thissampledir/collapsed*m8; rm $thissampledir/rc.txt; rm $thissampledir/wc;");
  	system("rm -r $thissampledir/temp");
@@ -433,6 +450,7 @@ foreach my $thissample(keys %allsamples) {
 
 	my %consannot;
 	my $consannotation="$thissampledir/readconsensus.txt";
+	print outsyslog "Making global statistics: Reading from $consannotation\n";
 	
 	open(infile5,$consannotation) || die "Cannot open consensus annotation in $consannotation\n";
 	while(<infile5>) {
@@ -507,7 +525,8 @@ my(%cog,%kegg,%opt);
 
 	#-- Reading data for KEGGs (names, pathways)
 
-open(infile2,$kegglist) or do { print RED "WARNING: Missing KEGG equivalence file\n"; print RESET; };
+print outsyslog "Making global statistics\n";
+open(infile2,$kegglist) or do { print RED "WARNING: Missing KEGG equivalence file\n"; print RESET; print outsyslog "WARNING: Missing KEGG equivalence file\n"; };
 while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/\#/));
@@ -519,7 +538,7 @@ while(<infile2>) {
 close infile2;
 
 foreach my $idb(keys %allext) {
-	open(infile2,$allext{$idb}) or do { print RED "WARNING: Missing $idb equivalence file\n"; print RESET; };
+	open(infile2,$allext{$idb}) or do { print RED "WARNING: Missing $idb equivalence file\n"; print RESET; print outsyslog "WARNING: Missing $idb equivalence file\n"; };
 	while(<infile2>) {
 		chomp;
 		$_=~s/\r//g; # Remove windows line terminators
@@ -535,7 +554,9 @@ foreach my $idb(keys %allext) {
 
 $currtime=timediff();
 print CYAN "\n[",$currtime->pretty,"]: Creating global tables\n"; print RESET;
-print "   Tax table: $resultsdir/$output_all.mcount\n";		
+print outsyslog "\n[",$currtime->pretty,"]: Creating global tables\n"; 
+print "   Tax table: $resultsdir/$output_all.mcount\n";
+print outsyslog "   Tax table: $resultsdir/$output_all.mcount\n";		
 open(outtax,">$resultsdir/$output_all.mcount");
 print outtax "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 print outtax "Rank\tTax\tTotal ORFs\tTotal reads";
@@ -592,6 +613,7 @@ if(!$nocog) {
 	close infile1;
 
 	print "   COG table: $resultsdir/$output_all.funcog\n";		
+	print outsyslog "   COG table: $resultsdir/$output_all.funcog\n";		
 	open(outcog,">$resultsdir/$output_all.funcog");
 	print outcog "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 	print outcog "COG\tTotal";
@@ -611,6 +633,7 @@ if(!$nocog) {
 
 if(!$nokegg) {
 	print "   KEGG table: $resultsdir/$output_all.funkegg\n";		
+	print outsyslog "   KEGG table: $resultsdir/$output_all.funkegg\n";		
 	open(outkegg,">$resultsdir/$output_all.funkegg");
 	print outkegg "# Created by $0 from data in $equivfile", scalar localtime,"\n";
 	print outkegg "KEGG\tTotal";
@@ -631,6 +654,7 @@ if(!$nokegg) {
 if($opt_db) {
 	foreach my $extdbname(keys %allext) {
 		print "   $extdbname table: $resultsdir/$output_all.fun$extdbname\n";		
+		print outsyslog "   $extdbname table: $resultsdir/$output_all.fun$extdbname\n";		
 		open(outopt,">$resultsdir/$output_all.fun$extdbname");
 		print outopt "# Created by $0 from data in $opt_db", scalar localtime,"\n";
 		print outopt "$extdbname\tTotal";
@@ -650,12 +674,17 @@ if($opt_db) {
 
 print "   Mapping statistics: $resultsdir/$output_counts\n";
 print "   Condensed annotations for mapped reads: $resultsdir/$output_all\n";
+print outsyslog "   Mapping statistics: $resultsdir/$output_counts\n";
+print outsyslog "   Condensed annotations for mapped reads: $resultsdir/$output_all\n";
 
 $currtime=timediff();
 print CYAN "\n[",$currtime->pretty,"]: DONE! Have fun!\n"; print RESET;
+print outsyslog "\n[",$currtime->pretty,"]: DONE! Have fun!\n";
 close outmet;
 print "For citation purposes, you can find a summary of methods in the file $methodsfile\n";
 print RESET;
+print outsyslog "\nNormal termination, all good apparently\n";
+close outsyslog;
 
 
 sub run_blastx {
