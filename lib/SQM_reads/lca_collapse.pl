@@ -84,9 +84,9 @@ print "  Creating $wrankfile file\n";
 print syslogfile "  Creating $wrankfile file: $catcommand\n";
 system $catcommand;
 
-my $wrankfile="$resultpath/$thisfile.fun3.blastx.tax_noidfilter.wranks";
+my $wrankfile="$resultpath/$thisfile.fun3.blastx.tax_nofilter.wranks";
 my $catcommand="cat ";
-for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.noidfilter.wranks "; }
+for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.nofilter.wranks "; }
 $catcommand.=" > $wrankfile";
 print "  Creating $wrankfile file\n";
 print syslogfile "  Creating $wrankfile file: $catcommand\n";
@@ -139,7 +139,7 @@ sub current_thread {
 	my $threadnum=shift;
 	print syslogfile "Starting thread $threadnum\n";
 	open(outc,">$tempdir/fun3tax\_$threadnum.wranks") || die "Can't open $tempdir/fun3tax\_$threadnum.wranks for writing\n";
-	open(outcnof,">$tempdir/fun3tax\_$threadnum.noidfilter.wranks") || die "Can't open $tempdir/fun3tax\_$threadnum.noidfilter.wranks for writing\n";
+	open(outcnof,">$tempdir/fun3tax\_$threadnum.nofilter.wranks") || die "Can't open $tempdir/fun3tax\_$threadnum.nofilter.wranks for writing\n";
 
 	#-- Prepare the LCA database (containing the acc -> tax correspondence)
 

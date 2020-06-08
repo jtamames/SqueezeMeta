@@ -301,13 +301,13 @@ foreach my $thissample(keys %allsamples) {
 		#-- Run consensus annotation of reads
 
 		print "  Running consensus annotation: Output in $thissampledir/readconsensus.txt\n";
-		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $consensusfile idfilter";
+		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $consensusfile idfilter $installpath $databasepath";
 		print outsyslog "  Running consensus annotation: Output in $thissampledir/readconsensus.txt: $command\n";
 		# print "$command\n";
 		system($command);
 	        my $noidfilter_consensus=$consensusfile;
-		$noidfilter_consensus=~s/\.wranks/\_noidfilter\.wranks/;
-		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $noidfilter_consensus noidfilter";
+		$noidfilter_consensus=~s/\.wranks/\_nofilter\.wranks/;
+		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $noidfilter_consensus noidfilter $installpath $databasepath";
 		print outsyslog "  Running consensus annotation wit no id filters: Output in $noidfilter_consensus: $command\n";
 		system($command);
 

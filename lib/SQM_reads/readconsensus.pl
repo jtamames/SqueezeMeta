@@ -10,6 +10,8 @@ $|=1;
 my $projectdir=$ARGV[0];	#-- directory for the file
 my $input=$ARGV[1];		#-- wranks file
 my $filter=$ARGV[2];		#-- With/without idfilters
+my $installpath=$ARGV[3];
+my $databasepath=$ARGV[4];
 
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranksabb=('k','p','c','o','f','g','s');
@@ -19,9 +21,7 @@ my $minconsperc_asig9=0.7;      #-- STEP9: Ratio genes for the taxon/sum(genes a
 my $minconsperc_total9=0.1;     #-- STEP9: Ratio genes for the taxon/number of genes. Therefore it considers all (assigned+unassigned) genes
 
 my @k=split(/\//,$projectdir);
-my $installpath = "/media/disk5/tamames/SqueezeMeta";
 my $extdatapath  = "$installpath/data";
-my $databasepath = "/media/disk7/fer/SqueezeMeta/db";
 
 
 #-- Reading taxonomic infomation (extracted from NCBI's taxonomy)
@@ -87,8 +87,8 @@ if($filter eq "idfilter") {
 	$outputshort="$projectdir/readconsensus.txt";
 	}
 else {
-	$outputlong="$projectdir/readconsensus\_noidfilter.log";
-	$outputshort="$projectdir/readconsensus\_noidfilter.txt";
+	$outputlong="$projectdir/readconsensus\_nofilter.log";
+	$outputshort="$projectdir/readconsensus\_nofilter.txt";
 	}
 
 print "  Output in $outputshort\n";
