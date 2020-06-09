@@ -9,7 +9,7 @@ Description: SqueezeMeta is a versatile pipeline for the automated analysis of m
 Author: Fernando Puente-Sánchez, Natalia García-García
 Maintainer: Fernando Puente-Sánchez <fpuente@cnb.csic.es>
 Depends: R (>= 3.2.0)
-Imports: reshape2, ggplot2
+Imports: reshape2, ggplot2, pathview, data.table
 Suggests: vegan, DESeq2
 License: GPLv3
 Encoding: UTF-8
