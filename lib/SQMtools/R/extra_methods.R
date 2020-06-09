@@ -1,8 +1,17 @@
-read.namedvector = function(file)
+read.namedvector = function(file, engine = 'data.frame')
     {
-    ta = read.table(file, header=T, row.names=1, as.is=T)
-    res = ta[,1]
-    names(res) = rownames(ta)
+    if(!engine %in% c('data.frame', 'data.table')) { stop('Engine must be "data.frame" or "data.table"') }
+    if(engine == 'data.frame')
+        {
+        ta = read.table(file, header=T, row.names=1, as.is=T)
+        res = ta[,1]
+        names(res) = rownames(ta)
+    } else if (engine == 'data.table')
+        {
+        ta = data.table::fread(file, sep='\t')
+	res = unlist(ta[,2])
+        names(res) = unlist(ta[,1])
+        }
     return(res)
     }
 

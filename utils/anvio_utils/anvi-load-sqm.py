@@ -86,7 +86,7 @@ def run_command(command, stdout = None, stderr = None):
     exitcode = subprocess.call(map(str, command), stdout = stdout, stderr = stderr)
     #print(exitcode)
     if exitcode != 0:
-        print('There must be some problem with "{}".\nIt\'s better to stop and check it'.format(' '.join(command)))
+        print('There must be some problem with "{}".\nIt\'s better to stop and check it'.format(' '.join(map(str, command))))
         exit(-1)
 
 #FUNS:

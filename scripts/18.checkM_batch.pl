@@ -47,7 +47,9 @@ while(<infile1>) {
 	chomp;
 	next if !$_;
 	my @t=split(/\t/,$_);
-	$tax{$t[1]}=$t[2];
+	my $nctax=$t[1];
+        $nctax=~s/ \<.*//;
+        $tax{$nctax}=$t[2];
 	}
 close infile1;
 
