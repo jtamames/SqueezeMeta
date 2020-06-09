@@ -87,7 +87,7 @@ system $catcommand;
 
 my $wrankfile="$resultpath/$outname\_nofilter.wranks";
 my $catcommand="cat ";
-for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.noidfilter.wranks "; }
+for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.nofilter.wranks "; }
 $catcommand.=" > $wrankfile";
 print "  Creating $wrankfile file\n";
 system $catcommand;

@@ -12,6 +12,8 @@ plotTaxonomy(
   tax = NULL,
   others = T,
   ignore_unclassified = F,
+  collapse_unclassified = F,
+  no_partial_classifications = F,
   rescale = F,
   color = NULL,
   base_size = 11,
@@ -31,7 +33,9 @@ plotTaxonomy(
 
 \item{others}{logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).}
 
-\item{ignore_unclassified}{logical. Don't include unclassified contigs in the plot (default \code{FALSE}).}
+\item{ignore_unclassified}{logical. Don't include unclassified reads in the plot (default \code{FALSE}).}
+
+\item{no_partial_classifications}{logical. Treat reads not fully classified at the requested level (e.g. "Unclassified bacteroidetes" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).}
 
 \item{rescale}{logical. Re-scale results to percentages (default \code{FALSE}).}
 

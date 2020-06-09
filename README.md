@@ -3,6 +3,7 @@
 # SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
 - Find the SqueezeMeta paper at: https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full 
+- We also have a preprint showing how to analyse the output of SqueezeMeta at: https://www.biorxiv.org/content/10.1101/2020.04.23.057133v1.full
 - Make sure to [check the wiki!](https://github.com/jtamames/SqueezeMeta/wiki)
 
 ## 1. What is SqueezeMeta?
@@ -57,7 +58,7 @@ Detailed information about the different steps of the pipeline can be found in t
 
 ## 2. Installation
 
-The easiest way to install SqueezeMeta is by using conda.
+SqueezeMeta is intended to be run in a x86_64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda.
 
 `conda create -n SqueezeMeta -c bioconda -c fpusan squeezemeta`
 
@@ -81,7 +82,7 @@ The script *download_databases.pl* can be run to download a pre-formatted versio
 
 `/path/to/SqueezeMeta/utils/install_utils/preparing_databases/download_databases.pl /download/path`
 
-, where `/download/path` is the destination folder. This is the recommended option.
+, where `/download/path` is the destination folder. This is the recommended option, but the files are hosted in our institutional server, which can at times be unreachable.
 
 Alternatively, the script *make_databases.pl* can be run to download from source and format the latest version of the databases.
 
@@ -134,7 +135,7 @@ The command for running SqueezeMeta has the following syntax:
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
-* *--euk*: Drop identity filters for eukaryotic annotation (Default: no) 
+* *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details.
 * *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
 * *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  

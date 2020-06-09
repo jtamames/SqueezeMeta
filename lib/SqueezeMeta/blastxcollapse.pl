@@ -57,7 +57,7 @@ open(syslogfile,">>$syslogfile");
 
 #-- Split Diamond file
 
-splitfiles();
+splitfiles($numthreads);
 
 #-- Launch threads
 
@@ -84,6 +84,7 @@ system("rm $tempdir/wc");
 close syslogfile;
 
 sub splitfiles {
+	my $numthreads=shift;
         # print "  Splitting Diamond file\n";
         print syslogfile "  Splitting Diamond file\n";
         system("wc -l $blastfile > $tempdir/wc");

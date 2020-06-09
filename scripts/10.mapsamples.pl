@@ -213,7 +213,7 @@ sub sqm_counter {
 	print "  Counting with sqm_counter\n";
 	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
 	my(%genesincontigs,%accum,%long_gen);
-	my $countreads;
+	my($countreads,$lastread);
 	open(infile2,$gff_file) || die "Can't open $gff_file for writing\n";
 	while(<infile2>) {
 		chomp;
@@ -239,7 +239,9 @@ sub sqm_counter {
 		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@SQ/));
 		my @k=split(/\t/,$_);
 		my $readid=$k[0];
+		next if($k[0] eq $lastread);       #-- Minimap2 can output more than one alignment per read
 		next if($k[2]=~/\*/);
+		$lastread=$readid;
 		my $cigar=$k[5];
 		next if($cigar eq "*");
 		# print "\n$_\n";
@@ -340,6 +342,7 @@ sub contigcov {
 
 	#-- Count length of contigs and bases mapped from the sam file
 
+	my($thisr,$lastr);
 	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
 	while(<infile4>) {
 		chomp;
@@ -357,6 +360,9 @@ sub contigcov {
 
 		else {
 			if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+				$thisr=$t[0];
+				next if($thisr eq $lastr);
+				$lastr=$thisr;
 				$readcount{$t[2]}{reads}++;
 				$readcount{$t[2]}{lon}+=length $t[9];
 				$mappedreads++;

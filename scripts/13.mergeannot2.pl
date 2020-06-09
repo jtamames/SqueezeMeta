@@ -570,45 +570,47 @@ while(<infile12>) {
 
 		#-- We start writing the table while reading mapcount, to avoid storing that many data in memory
 
-		my($cogprint,$keggprint,$optprint);
+		my($cogprint,$keggprint,$optprint,$string);
 		my $ctg=$lastorf;
 		$ctg=~s/\_\d+\-\d+$//;
-		my $funcogm=$orfdata{$lastorf}{cog};
-		my $funkeggm=$orfdata{$lastorf}{kegg};
-		if($orfdata{$lastorf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
-		if($orfdata{$lastorf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
-		printf outfile1 "$lastorf\t$ctg\t$orfdata{$lastorf}{molecule}\t$orfdata{$lastorf}{method}\t$orfdata{$lastorf}{lengthnt}\t$orfdata{$lastorf}{length}\t%.2f\t$orfdata{$lastorf}{name}\t$orfdata{$lastorf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$lastorf}{pfam}",$orfdata{$lastorf}{gc};
-		if($opt_db) { 
-			foreach my $topt(sort keys %optlist) { 
-				my $funoptdb=$orfdata{$lastorf}{$topt};
-				if($orfdata{$lastorf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
-				print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
+		if($ingff{$lastorf}) {
+			my $funcogm=$orfdata{$lastorf}{cog};
+			my $funkeggm=$orfdata{$lastorf}{kegg};
+			if($orfdata{$lastorf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
+			if($orfdata{$lastorf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
+			printf outfile1 "$lastorf\t$ctg\t$orfdata{$lastorf}{molecule}\t$orfdata{$lastorf}{method}\t$orfdata{$lastorf}{lengthnt}\t$orfdata{$lastorf}{length}\t%.2f\t$orfdata{$lastorf}{name}\t$orfdata{$lastorf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$lastorf}{pfam}",$orfdata{$lastorf}{gc};
+			if($opt_db) { 
+				foreach my $topt(sort keys %optlist) { 
+					my $funoptdb=$orfdata{$lastorf}{$topt};
+					if($orfdata{$lastorf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
+					print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
+					}
 				}
-			}
 	
-		#-- Abundance values, looping for samples
+			#-- Abundance values, looping for samples
 		
-		foreach my $tsam(keys %samples) {
-			my $sdat=$tempstore{$tsam}{tpm} || "0"; print outfile1 "\t$sdat";
-			}
-		foreach my $tsam(keys %samples) {
-			my $sdat=$tempstore{$tsam}{coverage} || "0"; print outfile1 "\t$sdat";
-			}
-		foreach my $tsam(keys %samples) {
-			my $sdat=$tempstore{$tsam}{rawreads} || "0"; print outfile1 "\t$sdat";
-			}
-		foreach my $tsam(keys %samples) {
-			my $sdat=$tempstore{$tsam}{rawbases} || "0"; print outfile1 "\t$sdat";
-			}
+			foreach my $tsam(keys %samples) {
+				my $sdat=$tempstore{$tsam}{tpm} || "0"; print outfile1 "\t$sdat";
+				}
+			foreach my $tsam(keys %samples) {
+				my $sdat=$tempstore{$tsam}{coverage} || "0"; print outfile1 "\t$sdat";
+				}
+			foreach my $tsam(keys %samples) {
+				my $sdat=$tempstore{$tsam}{rawreads} || "0"; print outfile1 "\t$sdat";
+				}
+			foreach my $tsam(keys %samples) {
+				my $sdat=$tempstore{$tsam}{rawbases} || "0"; print outfile1 "\t$sdat";
+				}
 	
-		#-- Diamond hits
+			#-- Diamond hits
 		
-		if($blasthits{$lastorf}) { print outfile1 "\t$blasthits{$lastorf}"; } else { print outfile1 "\t0"; } 
+			if($blasthits{$lastorf}) { print outfile1 "\t$blasthits{$lastorf}"; } else { print outfile1 "\t0"; } 
 
-		#-- aa sequences (if requested)
+			#-- aa sequences (if requested)
 
-		if($seqsinfile13) { print outfile1 "\t$orfdata{$lastorf}{aaseq}"; }
-		print outfile1 "\n";
+			if($seqsinfile13) { print outfile1 "\t$orfdata{$lastorf}{aaseq}"; }
+			print outfile1 "\n";
+			}
 		$lastorf=$orf;
 		%tempstore=();
 		$tempstore{$idfile}{rawreads}=$rawreads;

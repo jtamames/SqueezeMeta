@@ -125,8 +125,8 @@ foreach my $thissample(sort keys %samplefiles) {
 	if($assembler=~/spades/i) { 
 		system("rm -r $datapath/spades > /dev/null 2>&1"); 
 		$assemblyname="$datapath/spades/$thissample.contigs.fasta";
-		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -t $numthreads -o $datapath/spades >> $syslogfile  2>&1"; }
-		else { $command="$spades_soft $assembler_options --meta --s1 $par1name -m 400 -t $numthreads -o $datapath/spades > /dev/null 2>&1"; } #-- Support for single reads
+		if(-e $par2name) { $command="$spades_soft --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile  2>&1"; }
+		else { $command="$spades_soft --meta --s1 $par1name -m 400 $assembler_options -t $numthreads -o $datapath/spades > /dev/null 2>&1"; } #-- Support for single reads
 		print "  Running Spades (Li et al 2015, Bioinformatics 31(10):1674-6) for $thissample\n";
 		print outsyslog "Running Spades for $thissample: $command\n";
 		my $ecode = system $command;
@@ -144,10 +144,11 @@ foreach my $thissample(sort keys %samplefiles) {
 			my %mem=get_mem_info;
 			my $ram=$mem{"MemAvailable"};
 			$canumem=sprintf('%.1f',$ram/1000000);
+			$canumem*=0.8;
 			print "AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem. You can override this setting using the -canumem option\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ram bytes)\n";
 			}
- 		$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw $par1name >> $syslogfile 2>&1";
+ 		$command="$canu_soft -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads $assembler_options -nanopore-raw $par1name >> $syslogfile 2>&1";
                 print "  Running canu (Koren et al 2017, Genome Res 27(5):722-36) for $thissample\n";
 		print outsyslog "Running canu for $thissample: $command\n";
 		my $ecode = system $command;
@@ -163,14 +164,11 @@ foreach my $thissample(sort keys %samplefiles) {
 	$contigsfna="$interdir/01.$project.$thissample.fasta";	#-- Contig file from assembly
 	$contigslen="$interdir/01.$project.$thissample.lon";
 	$command="$prinseq_soft -fasta $assemblyname -min_len $mincontiglen -out_good $tempdir/prinseq; mv $tempdir/prinseq.fasta $contigsfna.prov";
-	if($mincontiglen>200) {
-		print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen\n";
-		print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n";
-		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
-		if($mincontiglen>200) { print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n"; }
-		}
-	else { system("mv $assemblyname $contigsfna.prov"); }
+	print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen\n";
+	print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n";
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+	if($mincontiglen>200) { print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n"; }
 
 	#-- Now we need to rename the contigs for minimus2, otherwise there will be contigs with same names in different assemblies
 
