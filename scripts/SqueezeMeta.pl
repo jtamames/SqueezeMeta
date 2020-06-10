@@ -201,17 +201,6 @@ foreach my $chsam(keys %pairsample) {
 	if($pairsample{$chsam}!~/pair1/) { print RED; print "Sample $chsam has not pair1 in the samples file. Please check\n"; print RESET;  die; }
 	}
 
-open(infile0,$equivfile) || die;        #-- Deleting \r in samples file for windows compatibility
-	open(outfile0,">$mappingfile") || die;
-	while(<infile0>) {
-                $_=~s/\r//g;
-                print outfile0 $_;
-                }
-close outfile0;
-close infile0;
-# system("cp $mappingfile $equivfile");
-
-
 my $currtime=timediff();
 print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 print "Run started ",scalar localtime," in $mode mode\n";
@@ -229,7 +218,7 @@ if($mode=~/sequential/i) {
 	#-- Reading the sample file given by the -s option, to locate the sample files
 
 	# print "Now reading samples\n";
-	open(infile1,$mappingfile) or do { print RED; print "Can't open samples file (-s) in $mappingfile. Please check if that is the correct file, it is present in that location, and you have reading permissions\n"; print RESET;  die; };
+	open(infile1,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present in that location, and you have reading permissions\n"; print RESET;  die; };
 	while(<infile1>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -354,6 +343,16 @@ if($mode=~/sequential/i) {
 			}
  			 else { print RED; print "Can't find read file $file (Sample $sample). Please check if it exists\n"; print RESET; die; }
 
+	open(infile0,$equivfile) || die;	#-- Deleting \r in samples file for windows compatibility
+	open(outfile0,">$mappingfile") || die;
+	while(<infile0>) {
+		$_=~s/\r//g;
+		($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+		if($sample eq $thissample) { print outfile0 $_; } # Generate a samples file containing only fastqs from this sample.
+		}
+	close outfile0;
+	close infile0;
+	# system("cp $equivfile $mappingfile");
 	system("cp $scriptdir/parameters.pl $projectdir");
 
 	
@@ -522,7 +521,7 @@ sub moving {
 	#-- Reading samples from the file specified with -s option
 	
 	my(%allsamples,%ident,%noassembly);
-	open(infile4,$mappingfile) or do { print RED; print "Can't open samples file (-s) in $mappingfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET; die; };
+	open(infile4,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET; die; };
 	while(<infile4>) {
  		chomp;
  		next if(!$_ || ($_=~/^\#/));
@@ -548,6 +547,15 @@ sub moving {
 	if($numsamples==1) { print "$numsamples sample found\n"; }
 	else { print "$numsamples samples found: @nmg\n\n"; }
 
+	open(infile0,$equivfile) || die;	#-- Deleting \r in samples file for windows compatibility
+	open(outfile0,">$mappingfile") || die;  
+	while(<infile0>) {
+		$_=~s/\r//g;
+		print outfile0 $_;
+		}
+	close outfile0;
+	close infile0;
+	# system("cp $equivfile $mappingfile");
 	system("cp $scriptdir/parameters.pl $projectdir");
 
 	#-- For coassembly mode, we merge all individual files for each pair
