@@ -230,7 +230,8 @@ Alternatively, `-m sequential` or `-m merged` can be used.
 ## 9. Working with Oxford Nanopore MinION and PacBio reads
 Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
 We also include the canu assembler, which is specially tailored to work with long, noisy reads. It can be selected by including the -a *canu* flag when calling SqueezeMeta.
-As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads.
+As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads. 
+As an alternative to assembly, we also provide the sqm_longreads.pl script, which will predict and annotate ORFs within individual long reads.
 
 
 ## 10. Working in a low-memory environment
