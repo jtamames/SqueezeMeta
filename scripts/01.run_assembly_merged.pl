@@ -61,8 +61,8 @@ foreach my $thissample(sort keys %samplefiles) {
 	my($seqformat,$gzformat,$numfiles,$cat1,$cat2);
 	foreach my $thisfile(sort keys %{ $samplefiles{$thissample} }) {
 		if($thisfile=~/gz$/) { $gzformat=".gz";  }	
-		if($thisfile=~/fasta/) { $seqformat="fasta";  }
-		elsif($thisfile=~/fastq/) { $seqformat="fastq";  }	
+		if($thisfile=~/fasta|fa$/) { $seqformat="fasta";  }
+		elsif($thisfile=~/fastq|fq$/) { $seqformat="fastq";  }	
 		if($ident{$thisfile} eq "pair1") { $par1name="$tempdir/par1.$seqformat$gzformat"; $cat1.="$datapath/raw_fastq/$thisfile "; $numfiles++; }
 		elsif($ident{$thisfile} eq "pair2") { $par2name="$tempdir/par2.$seqformat$gzformat"; $cat2.="$datapath/raw_fastq/$thisfile "; }
 		}
