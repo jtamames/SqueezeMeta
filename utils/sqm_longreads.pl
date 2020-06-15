@@ -255,8 +255,7 @@ foreach my $thissample(keys %allsamples) {
 		$collapsedmerged=~s/\.m8/\.merged\.m8/;
 		my $ntseqs="$thissampledir/$thissample.nt.fasta";
 		my $wrankfile="$thissampledir/$thissample.fun3.blastx.tax.wranks";
-		my $wrankfile_noeukfilter="$thissampledir/$thissample.fun3.blastx.tax.noeukfilter.wranks";
-		my $wrankfile_nofilter="$thissampledir/$thissample.fun3.blastx.tax.nofilter.wranks";
+		my $wrankfile_nofilter="$thissampledir/$thissample.fun3.blastx.tax_nofilter.wranks";
 		if($nodiamond) { print "   (Skipping Diamond search for taxa because of --nodiamond flag)\n"; } 
 		else { 
 			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
@@ -283,7 +282,6 @@ foreach my $thissample(keys %allsamples) {
 			$rblast{$h[0]}=1;
 			}
 		close inf;
-		my $consensusfile=$wrankfile;
 		open(infiletax,$wrankfile) || die "Cannot open file $wrankfile\n";
 		while(<infiletax>) {
 			chomp;
@@ -293,8 +291,7 @@ foreach my $thissample(keys %allsamples) {
 			}
 		close infiletax;
 		if($euknofilter) {     #-- Drops the filters for eukaryotes
-			$consensusfile=$wrankfile_noeukfilter;
-			open(infiletax,$wrankfile_noeukfilter) || die "Cannot open file $wrankfile_noeukfilter\n";
+			open(infiletax,$wrankfile_nofilter) || die "Cannot open file $wrankfile_nofilter\n";
 			while(<infiletax>) {
 				chomp;
 				next if(!$_ || ($_=~/^\#/));
@@ -307,14 +304,9 @@ foreach my $thissample(keys %allsamples) {
 		#-- Run consensus annotation of reads
 
 		print "  Running consensus annotation: Output in $thissampledir/readconsensus.txt\n";
-		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $consensusfile idfilter $installpath $databasepath";
+		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissample $thissampledir $euknofilter $installpath $databasepath";
 		print outsyslog "  Running consensus annotation: Output in $thissampledir/readconsensus.txt: $command\n";
 		# print "$command\n";
-		system($command);
-	        my $noidfilter_consensus=$consensusfile;
-		$noidfilter_consensus=~s/\.wranks/\_nofilter\.wranks/;
-		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissampledir $noidfilter_consensus noidfilter $installpath $databasepath";
-		print outsyslog "  Running consensus annotation wit no id filters: Output in $noidfilter_consensus: $command\n";
 		system($command);
 
 	#---- Functional annotation
