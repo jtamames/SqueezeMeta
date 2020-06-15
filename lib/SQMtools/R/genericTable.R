@@ -12,7 +12,7 @@ generic.table = function(x)
         colnames(x)[ncol(x)] = 'rn'
         rownames(x) = x$rn
         class(x) = c('generic.data.table', class(x))
-    }else if ('data,frame' %in% class(x))
+    }else if ('data.frame' %in% class(x))
         {
         class(x) = c('generic.data.frame', class(x))
         }
@@ -20,14 +20,8 @@ generic.table = function(x)
     }
 
 
-as.data.table.generic.data.table = function(x)
-    {
-    res = x
-    class(res) = class(res)[class(res) != 'generic.data.table']
-    return(res)
-    }
-
-
+#' @export
+#' @noRd
 `[.generic.data.table` = function(x,i,j, drop = T)
     {
     # add support para indexados negativos
@@ -56,7 +50,6 @@ as.data.table.generic.data.table = function(x)
     else if(typeof(j) == 'logical') { j = c(j, TRUE) }
 
     sj = 'j'
-
 
     expression = sprintf('x[%s,%s, with=FALSE]', si, sj)
     res = eval(parse(text=expression))
@@ -95,6 +88,26 @@ dimnames.generic.data.table = function(x)
 
 #' @export
 #' @noRd
+as.data.frame.generic.data.table = function(x)
+    {
+    res = data.table:::as.data.frame.data.table(x)
+    rownames(res) = res$rn
+    res = res[,colnames(res) != 'rn']
+    return(res)
+    }
+
+
+# We don't export it since having an "as.data.table" method breaks it during install (works with any other name). Anyways the native "as.data.table" from the data.table package should work.
+as.data.table.generic.data.table = function(x)
+    {
+    res = x
+    class(res) = class(res)[class(res) != 'generic.data.table']
+    return(res)
+    }
+
+
+#' @export
+#' @noRd
 as.matrix.generic.data.table = function(x)
     {
     `[` = data.table:::`[.data.table`
@@ -102,6 +115,7 @@ as.matrix.generic.data.table = function(x)
     rownames(res) = rownames(x)
     return(res)
     }
+
 
 #' @export
 #' @noRd
