@@ -14,7 +14,7 @@ use lib ".";
 
 #-- Restarts an interrupted pipeline
 
-my $version="1.1.1";
+my $version="1.2.0";
 my $start_run = time();
 
 my($rpoint,$hel); 

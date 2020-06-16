@@ -36,7 +36,7 @@ my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
 
-my $version="0.1.0, Sept 2019";
+my $version="1.2.0, Jun 2020";
 my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
@@ -535,4 +535,5 @@ sub timediff {
 	my $timesp = Time::Seconds->new( $run_time );
 	return $timesp;
 }
+
 

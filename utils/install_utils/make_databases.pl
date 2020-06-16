@@ -42,12 +42,6 @@ print "\nDownloading and unpacking test data...\n\n";
 system("wget -U '' -P $download_dir http://wwwuser.cnb.csic.es/~squeezem/test.tar.gz; tar -xvzf $download_dir/test.tar.gz -C $download_dir; rm $download_dir/test.tar.gz");
 
 
-### Download rdp classifier.
-print("Downloading and unpacking RDP classifier...\n");
-system("wget -U '' -P $libpath http://wwwuser.cnb.csic.es/~squeezem/classifier.tar.gz; tar -xvzf $libpath/classifier.tar.gz -C $libpath; rm $libpath/classifier.tar.gz");
-system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar ."); # Add symlink
-
-
 ### Download general db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 print "Downloading and unpacking general database tarball...\n";
 system("wget -U '' -P $download_dir http://wwwuser.cnb.csic.es/~squeezem/db.tar.gz; tar -xvzf $download_dir/db.tar.gz -C $download_dir; rm $download_dir/db.tar.gz");
@@ -111,23 +105,6 @@ my $timestamp = scalar localtime;
 my $time_command = "echo \"Finished database creatin at > $database_dir";
 system("echo  \"Finished database creation on $timestamp.\" > $database_dir/DB_BUILD_DATE");
 
-### Update configuration files to reflect new db path.
-print("\nUpdating configuration...\n");
 
-my $checkm_manifest = "{\"dataRoot\": \"$database_dir\", \"remoteManifestURL\": \"https://data.ace.uq.edu.au/public/CheckM_databases/\", \"manifestType\": \"CheckM\", \"localManifestName\": \".dmanifest\", \"remoteManifestName\": \".dmanifest\"}\n";
-
-open(outfile1, ">$installpath/lib/checkm/DATA_CONFIG") || die;
-print outfile1 $checkm_manifest;
-close outfile1;
-
-open(outfile2,">$installpath/scripts/SqueezeMeta_conf.pl") || die;
-open(infile1, "$installpath/scripts/SqueezeMeta_conf_original.pl") || die;
-while(<infile1>) {
-	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath = \"$database_dir\";\n"; }
-	else { print outfile2 $_; }
-	}
-close infile1;
-close outfile2;
-
-print("Done\n");
-
+### Finish configuration.
+system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir");

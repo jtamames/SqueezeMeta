@@ -20,12 +20,14 @@ while(<infile1>) {
 	next if !$_;
 	my @k=split(/\;/,$_);
 	my @f=split(/\:/,$k[0]);
-	my $specie=$f[2];
-        $specie=~s/\[|\]//g;
-	for(my $pos=1; $pos<=$#k; $pos++) {
-		@p=split(/\:/,$k[$pos]);
-		$tax{$specie}{$p[0]}=$p[2];
-		# print "$specie\t$pos\t$k[$pos]\t$p[0]\t$p[2]\n";
+	for(my $pos=0; $pos<=$#k; $pos++) {
+		my @f=split(/\:/,$k[$pos]);
+		my $specie=$f[2];
+		for(my $pos2=$pos+1; $pos2<=$#k; $pos2++) {
+			@p=split(/\:/,$k[$pos2]);
+			$tax{$specie}{$p[0]}=$p[2];
+			# print "$specie\t$pos\t$k[$pos]\t$p[0]\t$p[2]\n";
+			}
 		}
 	}
 close infile1;
