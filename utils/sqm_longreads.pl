@@ -38,7 +38,7 @@ my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
 
-my $version="0.1.0, Apr 2020";
+my $version="1.2.0, Apr 2020";
 my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
