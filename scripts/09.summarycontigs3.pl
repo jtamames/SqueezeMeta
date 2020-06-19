@@ -23,7 +23,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$euknofilter,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9);
+our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$euknofilter,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9,$syslogfile);
 
 #-- Some local configuration variables
 
@@ -36,6 +36,7 @@ my $input;
 if($doublepass) { $input="$fun3tax_blastx.wranks"; } else { $input="$fun3tax.wranks"; }
 my $outputlong=$allorfs;
 my $outputshort=$alllog;
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 #-- Reading taxonomic infomation (extracted from NCBI's taxonomy)
 
@@ -130,6 +131,7 @@ close infile0;
 
 my %taxlist;
 print "  Reading $input\n";
+print syslogfile "  Reading taxa for genes from $input\n";
 open(infile3,$input) || die "Can't open $input\n";
 while(<infile3>) {		#-- Looping on the ORFs
 	my $contigid;
@@ -160,6 +162,7 @@ close infile3;
 if($euknofilter) {	#-- Remove filters for Eukaryotes
 	my $eukinput=$input;
 	$eukinput=~s/\.wranks/\.noidfilter\.wranks/;
+	print syslogfile "  Reading results without eukaryotic filter from $eukinput\n";
 	open(infile3,$eukinput) || die "Can't open $eukinput\n";
 	while(<infile3>) {		#-- Looping on the ORFs
 		my $contigid;
@@ -193,6 +196,7 @@ if($euknofilter) {	#-- Remove filters for Eukaryotes
 #-- Preparing output files
 
 print "  Writing output to $outputshort\n";
+print syslogfile "  Writing output to $outputlong and $outputshort\n";
 open(outfile1,">$outputlong") || die "Can't open $outputlong for writing\n";
 open(outfile2,">$outputshort") || die "Can't open $outputshort for writing\n";
 print outfile1 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, euknofilter=$euknofilter, ",scalar localtime,"\n";
@@ -301,3 +305,4 @@ foreach my $contig(keys %allcontigs) {
                                  }
 close outfile1;
 close outfile2;
+close syslogfile;

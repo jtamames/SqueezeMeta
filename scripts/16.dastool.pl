@@ -65,14 +65,18 @@ print "done\n";
 
 if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta files from it
 	my $gmet=$methods;
-	print "Only one binning result: Copying $gmet results and skipping DAS Tool\n";
-	print outsyslog "Only one binning result: Copying $gmet results and skipping DAS Tool\n";
+	print "Only one binning result ($methods): Copying $gmet results and skipping DAS Tool\n";
+	print outsyslog "Only one binning result ($methods): Copying $gmet results and skipping DAS Tool\n";
 	my $bindir=$bindirs{$gmet};
-	system("mkdir $resultpath/DAS/$project\_DASTool\_bins");
+	my $command="mkdir $resultpath/DAS/$project\_DASTool\_bins";
+	system $command;
+	print outsyslog "$command\n";
 	my $command="cp $bindir/*fasta $resultpath/DAS/$project\_DASTool\_bins";
 	system $command;
+	print outsyslog "$command\n";
 	my $command="cp $bindir/*fa $resultpath/DAS/$project\_DASTool\_bins";
 	system $command;
+	print outsyslog "$command\n";
 	}
 
 else { 				#-- Otherwise, run DAS tool to combine results

@@ -181,7 +181,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- And then we call the counting
 	
 	 system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
-	 print outsyslog "Calling sqm_counter\n";
+	 print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
 	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
 }
 if($warnmes) { 
@@ -203,7 +203,9 @@ system("rm $bowtieref.*");	#-- Deleting bowtie references
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
 	
 my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
-system($command);	
+print outsyslog "Sorting mapcount table: $command\n";
+system($command);
+	
 
 
 
