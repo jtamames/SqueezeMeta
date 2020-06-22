@@ -542,8 +542,9 @@ sub moving {
 
 	my @nmg=keys %allsamples;
 	$numsamples=$#nmg+1;
-	print outfile3 "Samples:$numsamples\nMode:$mode\n";
+	print outfile3 "Samples:$numsamples\nMode:$mode\n0\n";
 	print outfile4 "Samples:$numsamples\nMode:$mode\n";
+
 	if($numsamples==1) { print "$numsamples sample found\n"; }
 	else { print "$numsamples samples found: @nmg\n\n"; }
 

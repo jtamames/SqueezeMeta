@@ -270,7 +270,10 @@ sub query {
 	
 	foreach my $k(@ranks) {	
 		print "   $k\n" if $verbose;
+		my $maxp=0;
 		foreach my $t(sort { $accum{$k}{$a}<=>$accum{$k}{$b}; } keys %{ $accum{$k} }) {
+			if($t && ($accum{$k}{$t}==$maxp)) { $lasttax=""; next; }    #-- Equality of hits, don´t choose any
+			if($t) { $maxp=$accum{$k}{$t}; }
 			print "      $t $accum{$k}{$t}\n" if $verbose;
 			if(($accum{$k}{$t}>=$required) && ($accum{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { 	#-- REQUIREMENTS FOR VALID LCA
 				print "$k -> $t\n" if $verbose;

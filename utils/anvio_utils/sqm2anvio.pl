@@ -198,7 +198,9 @@ if($samkeep) {
 	foreach my $sam(@samfiles) {
 		(my $bam = $sam) =~ s/\.sam/-RAW.bam/;
                 $bam =~ s/$project\.//;
-        	system("$installpath/bin/samtools view -b $samdir/$sam > $outdir/bam/$bam"); }
+        	my $ecode = system("$installpath/bin/samtools view -b $samdir/$sam > $outdir/bam/$bam");
+		if($ecode!=0) { die "Error running samtools"; }
+		}
 	}
 
 print "Created anvio gene file (import with anvi-gene-contigs-database): $outdir/$genes_out\n";

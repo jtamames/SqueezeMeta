@@ -36,7 +36,7 @@ my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
 
-my $version="0.1.0, Sept 2019";
+my $version="1.2.0, Jun 2020";
 my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
@@ -229,9 +229,9 @@ foreach my $thissample(keys %allsamples) {
 		my $numhits=($#y)+1;
 		print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\n";
 			
-		my $lca_command="perl $auxdir/lca_reads.pl $outfile";
+		my $lca_command="perl $auxdir/lca_reads.pl $outfile $numthreads";
 		$currtime=timediff();
-		print CYAN "[",$currtime->pretty,"]: Running LCA\n";
+		print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
 		system($lca_command);
 		open(infiletax,$outfile_tax) || die;
 		while(<infiletax>) {
@@ -261,14 +261,14 @@ foreach my $thissample(keys %allsamples) {
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
 			else { 
-				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n";
+				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
 				system($blastx_command); 
 				print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
 			}
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
 			$currtime=timediff();
-			print CYAN "[",$currtime->pretty,"]: Running fun3\n";
+			print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
 			system($func_command);
 			open(infilecog,$outfile_cog) || die;
 			while(<infilecog>) {
@@ -289,14 +289,14 @@ foreach my $thissample(keys %allsamples) {
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
 			else { 
-				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n";
+				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n"; print RESET;
 				system($blastx_command); 
 				print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
 			}
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 			$currtime=timediff();
-			print CYAN "[",$currtime->pretty,"]: Running fun3\n";
+			print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
 			system($func_command);
 			open(infilekegg,$outfile_kegg) || die;
 			while(<infilekegg>) {
@@ -321,14 +321,14 @@ foreach my $thissample(keys %allsamples) {
 				#print "Running BlastX: $blastx_command\n";
 				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
 				else { 
-					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n";
+					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
 					system($blastx_command); 
 					print outmet "$extdbname, ";
 				}
 				my $outfile_opt="$thissampledir/$thisfile.$extdbname";
 				my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
 				$currtime=timediff();
-				print CYAN "[",$currtime->pretty,"]: Running fun3\n";
+				print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
 				system($func_command);
 				open(infileopt,$outfile_opt) || die;
 				while(<infileopt>) {
@@ -535,4 +535,5 @@ sub timediff {
 	my $timesp = Time::Seconds->new( $run_time );
 	return $timesp;
 }
+
 

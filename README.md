@@ -3,6 +3,7 @@
 # SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
 - Find the SqueezeMeta paper at: https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full 
+- We also have a preprint showing how to analyse the output of SqueezeMeta at: https://www.biorxiv.org/content/10.1101/2020.04.23.057133v1.full
 - Make sure to [check the wiki!](https://github.com/jtamames/SqueezeMeta/wiki)
 
 ## 1. What is SqueezeMeta?
@@ -57,7 +58,7 @@ Detailed information about the different steps of the pipeline can be found in t
 
 ## 2. Installation
 
-The easiest way to install SqueezeMeta is by using conda.
+SqueezeMeta is intended to be run in a x86_64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda.
 
 `conda create -n SqueezeMeta -c bioconda -c fpusan squeezemeta`
 
@@ -81,7 +82,7 @@ The script *download_databases.pl* can be run to download a pre-formatted versio
 
 `/path/to/SqueezeMeta/utils/install_utils/preparing_databases/download_databases.pl /download/path`
 
-, where `/download/path` is the destination folder. This is the recommended option.
+, where `/download/path` is the destination folder. This is the recommended option, but the files are hosted in our institutional server, which can at times be unreachable.
 
 Alternatively, the script *make_databases.pl* can be run to download from source and format the latest version of the databases.
 
@@ -134,7 +135,7 @@ The command for running SqueezeMeta has the following syntax:
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
-* *--euk*: Drop identity filters for eukaryotic annotation (Default: no) 
+* *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details.
 * *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
 * *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
@@ -229,7 +230,8 @@ Alternatively, `-m sequential` or `-m merged` can be used.
 ## 9. Working with Oxford Nanopore MinION and PacBio reads
 Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
 We also include the canu assembler, which is specially tailored to work with long, noisy reads. It can be selected by including the -a *canu* flag when calling SqueezeMeta.
-As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads.
+As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads. 
+As an alternative to assembly, we also provide the sqm_longreads.pl script, which will predict and annotate ORFs within individual long reads.
 
 
 ## 10. Working in a low-memory environment
@@ -260,9 +262,11 @@ We also include utility scripts for generating [itol](https://itol.embl.de/) and
 ## 13. Alternative analysis modes
 In addition to the main SqueezeMeta pipeline, we provide two extra modes that enable the analysis of individual reads.
 
-**1) SQM_reads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs. This can be useful when the assembly quality is low, or when looking for low abundance functions that might not have enough coverage to be assembled.
+**1) sqm_reads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs. This can be useful when the assembly quality is low, or when looking for low abundance functions that might not have enough coverage to be assembled.
 
-**2) SQM_hmm_reads.pl**: This script provides a wrapper to the [Short-Pair](https://sourceforge.net/projects/short-pair/) software, which allows to screen the reads for particular functions using an ultra-sensitive HMM algorithm.
+**2) sqm_longreads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs, assuming that more than one ORF can be found in the same read (e.g. as happens in PacBio or MinION reads).
+
+**3) sqm_hmm_reads.pl**: This script provides a wrapper to the [Short-Pair](https://sourceforge.net/projects/short-pair/) software, which allows to screen the reads for particular functions using an ultra-sensitive HMM algorithm.
 
 
 ## 14. License and third-party software

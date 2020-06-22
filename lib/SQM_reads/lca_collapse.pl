@@ -15,18 +15,15 @@ use threads;
 
 
 my $pwd=cwd();
-my $projectdir=$ARGV[0];
-if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
-do "$projectdir/SqueezeMeta_conf.pl";
-our($projectname);
-my $project=$projectname;
+my($infile,$outdir,$scriptdir,$thisfile,$numthreads)=@ARGV;
 
-do "$projectdir/parameters.pl";
+do "$scriptdir/SqueezeMeta_conf.pl";
+do "$scriptdir/parameters.pl";
 
-our($datapath,$resultpath,$databasepath,$numthreads,$tempdir,$syslogfile,$taxdiamond,$lca_db,$fun3tax,$fun3tax_blastx,$evalue,$scoreratio6,$diffiden6,$flex6,$minhits6,$noidfilter6);
 
-my $infile=$ARGV[1];
+our($datapath,$resultpath,$databasepath,$tempdir,$syslogfile,$taxdiamond,$lca_db,$fun3tax,$fun3tax_blastx,$evalue,$scoreratio6,$diffiden6,$flex6,$minhits6,$noidfilter6);
+
+$resultpath=$outdir;
 
 my @ranks=('species','genus','family','order','class','phylum','superkingdom');
 my %idenrank=('species',85,'genus',60,'family',55,'order',50,'class',46,'phylum',42,'superkingdom',40);
@@ -40,7 +37,7 @@ tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 tie %accumnofilter,"Tie::IxHash";
 
-$syslogfile="$projectdir/syslog";
+$syslogfile="$outdir/syslog";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 #-- Reads the taxonomic tree (parsed from NCBI's taxonomy in the parents.txt file)
@@ -60,6 +57,8 @@ while(<infile1>) {
 	chop $parents{$tax}{noranks};
 	}
 close infile1;
+$tempdir="$outdir/temp";
+system("mkdir $tempdir");
 
 #-- Split Diamond file
 
@@ -77,7 +76,7 @@ for($threadnum=1; $threadnum<=$numthreads; $threadnum++) {
 print "\n";
 $_->join() for threads->list();
 
-my $wrankfile="$resultpath/08.$project.fun3.blastx.tax.wranks";
+my $wrankfile="$resultpath/$thisfile.fun3.blastx.tax.wranks";
 my $catcommand="cat ";
 for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.wranks "; }
 $catcommand.=" > $wrankfile";
@@ -85,9 +84,9 @@ print "  Creating $wrankfile file\n";
 print syslogfile "  Creating $wrankfile file: $catcommand\n";
 system $catcommand;
 
-my $wrankfile="$resultpath/08.$project.fun3.blastx.tax_noidfilter.wranks";
+my $wrankfile="$resultpath/$thisfile.fun3.blastx.tax_nofilter.wranks";
 my $catcommand="cat ";
-for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.noidfilter.wranks "; }
+for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.nofilter.wranks "; }
 $catcommand.=" > $wrankfile";
 print "  Creating $wrankfile file\n";
 print syslogfile "  Creating $wrankfile file: $catcommand\n";
@@ -106,12 +105,12 @@ sub splitfiles {
         chomp $wc;
         $wc=~s/\s+.*//;    #-- Number of lines in the diamond result
         my $splitlines=int($wc/$numthreads);
-        print syslogfile "Total lines in Diamond: $wc; Allocating $splitlines in $numthreads threads\n";
+        # print syslogfile "Total lines in Diamond: $wc; Allocating $splitlines in $numthreads threads\n";
 
         my $nextp=$splitlines;
         my ($filelines,$splitorf);
         my $numfile=1;
-        print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
+        # print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
         open(outfiletemp,">$tempdir/diamond_lca.$numfile.m8");
         open(infile2,$infile) || die "Can't open Diamond file $infile\n";
         while(<infile2>) {
@@ -122,7 +121,7 @@ sub splitfiles {
                 elsif($f[0] ne $splitorf) {
                         close outfiletemp;
                         $numfile++;
-                        print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
+                        # print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
                         open(outfiletemp,">$tempdir/diamond_lca.$numfile.m8");
                         print outfiletemp $_;
                         $nextp+=$splitlines;
@@ -140,7 +139,7 @@ sub current_thread {
 	my $threadnum=shift;
 	print syslogfile "Starting thread $threadnum\n";
 	open(outc,">$tempdir/fun3tax\_$threadnum.wranks") || die "Can't open $tempdir/fun3tax\_$threadnum.wranks for writing\n";
-	open(outcnof,">$tempdir/fun3tax\_$threadnum.noidfilter.wranks") || die "Can't open $tempdir/fun3tax\_$threadnum.noidfilter.wranks for writing\n";
+	open(outcnof,">$tempdir/fun3tax\_$threadnum.nofilter.wranks") || die "Can't open $tempdir/fun3tax\_$threadnum.nofilter.wranks for writing\n";
 
 	#-- Prepare the LCA database (containing the acc -> tax correspondence)
 
@@ -177,6 +176,7 @@ sub current_thread {
 	close infile2;
 	close outc;
 	close outcnof;
+	close outsyslog;
 	print "  Tax assignment done! Result stored in file $fun3tax\_$threadnum.wranks\n" if $verbose;
 }
 
@@ -231,7 +231,11 @@ sub query {
 				$accumnofilter{$rank}{$tax}++; 		#-- Not considering identity filters for ranks
 				}
 			#if(($list[8]) && ($giden{$list[0]}>=$idenrank{'superkingdom'})) { $validhits++;  }			#-- Count the number of valid hits
-			if(($list[2])) { $validhitsnofilter++; $validhits++; }			#-- Count the number of valid hits
+			if(($list[2])) { 
+				$validhitsnofilter++; 
+				if($giden{$list[0]}>=$idenrank{'superkingdom'}) { $validhits++; }		#-- Count the number of valid hits 
+				}			
+			
 			}
 		}
 	my($required,$minreqhits);

@@ -36,7 +36,7 @@ while(<infile1>) {
 			$specname=~s/\s+$//;
 			$specname=~s/\s+/ /g;
 			 }
-		elsif($wd[0] eq "Candidatus") { $specname="$wd[0] $wd[1] $wd[2]"; } 
+		elsif($k=~/Candidatus/) { $specname="$wd[0] $wd[1] $wd[2]"; } 
 		else  { $specname="$wd[0] $wd[1]"; }  
 		$accum{$specname}++;
 		}

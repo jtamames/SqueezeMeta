@@ -47,7 +47,9 @@ while(<infile1>) {
 	chomp;
 	next if !$_;
 	my @t=split(/\t/,$_);
-	$tax{$t[1]}=$t[2];
+	my $nctax=$t[1];
+	$nctax=~s/ \<.*//;
+	$tax{$nctax}=$t[2];
 	}
 close infile1;
 
@@ -112,7 +114,7 @@ foreach my $m(@files) {
 				if($ftax!~/\_/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\_/,$ftax); }
 				$ntax=~s/unclassified //gi;
 				$ntax=~s/ \<.*\>//gi; 
-				if($tax{$ntax} && ($rank ne "n") && ($rank ne "s") && ($branks{$rank})) { 
+				if(($tax{$ntax}) && ($rank ne "n") && ($rank ne "s") && ($branks{$rank})) { 
 				push( @{ $alltaxa{$thisfile} },"$branks{$rank}\_$ntax");
 				#   print "$m\t$ntax\t$tax{$ntax}\n";
 				}
