@@ -23,15 +23,17 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,$nobins,$contigtable,%bindirs,%dasdir);
+our($datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,$nobins,$contigtable,$syslogfile,%bindirs,%dasdir);
 
 my(%contig,%allsamples);
 tie %allsamples,"Tie::IxHash";
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 	#-- Reading taxonomic assignment and disparity for the contigs
 
 open(infile1,$alllog) || warn "Can't open contiglog file $alllog\n";
 print "  Reading taxa for contigs information...";
+print syslogfile "  Reading taxa for contigs information from $alllog\n";
 while(<infile1>) { 
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -44,6 +46,7 @@ close infile1;
 	#-- Reading GC content and length of the contigs
 	
 print "done!\n  Reading GC & length... ";
+print syslogfile "  Reading GC & length from $contigsfna\n";
 open(infile2,$contigsfna) || warn "Can't open fasta file $contigsfna\n";
 my($thisname,$contigname,$seq);
 while(<infile2>) {
@@ -71,6 +74,7 @@ if($contigname) {
 	#-- Reading number of genes for the contigs
 
 print "done!\n  Reading number of genes... ";
+print syslogfile "  Reading number of genes from $aafile\n";
 open(infile3,$aafile) || warn "Can't open aa file $aafile\n";
 while(<infile3>) {
 	chomp;
@@ -86,6 +90,7 @@ close infile3;
   #-- Reading contig coverages 
   
 print "done!\n  Reading coverages... ";
+print syslogfile "  Reading coverages from $contigcov\n";
 open(infile4,$contigcov) || die "Can't open $contigcov\n";
 while(<infile4>) {
 	chomp;
@@ -103,6 +108,7 @@ close infile4;
 
 if(!$nobins) {				#-- Skip this step if no bins were requested  
 	print "done!\n  Reading bins... ";
+	print syslogfile "  Reading bins from $contigsinbins\n";
 	open(infile5,$contigsinbins); # File will be missing if running in sequential mode
 	while(<infile5>) {
 		chomp;
@@ -116,6 +122,7 @@ if(!$nobins) {				#-- Skip this step if no bins were requested
 	#-- CREATING CONTIG TABLE
 	
 print "done!\n  Creating contig table...";
+print syslogfile "  Creating contig table in $contigtable\n";
 open(outfile1,">$contigtable") || die "Can't open $contigtable for writing\n";
 
 	#-- Headers
@@ -168,6 +175,7 @@ foreach my $ctg(@sortedcontigs) {
 	print outfile1 "\n";
 }
 close outfile1;
+close syslogfile;
 
 print "done!\n";
 print "============\nCONTIG TABLE CREATED: $contigtable\n============\n\n";
