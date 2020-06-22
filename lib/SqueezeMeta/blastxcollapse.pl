@@ -46,7 +46,6 @@ GetOptions (
 	    );
 	    
 my $tempdir=$blastfile;
-print "***$blastfile**$numthreads**\n";
 my @g=split(/\//,$blastfile);
 pop @g;
 my $tempdir=join("/",@g);
