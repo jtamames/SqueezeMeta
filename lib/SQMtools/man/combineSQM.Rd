@@ -30,7 +30,7 @@ combineSQM(
 A SQM object
 }
 \description{
-Combine an arbitrary number of SQM objects into a single SQM object.
+Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object.
 }
 \examples{
 data(Hadza)

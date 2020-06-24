@@ -30,6 +30,8 @@ from collections import defaultdict
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
+data_dir = '{}/../data'.format(utils_home)
+
 from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS 
 
 
@@ -60,7 +62,7 @@ def main(args):
         customMethods = [method for method in methods if method not in ('kegg', 'cog', 'pfam', 'wranks')]
 
         # Parse ORF table.
-        sampleNames, orfs, kegg, cog, pfam, custom = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.trusted_functions, args.ignore_unclassified, customMethods)
+        sampleNames, orfs, kegg, cog, pfam, custom = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.trusted_functions, args.ignore_unclassified, customMethods, data_dir)
 
         # Round aggregated functional abundances.
         # We can have non-integer abundances bc of the way we split counts in ORFs with multiple KEGGs.
