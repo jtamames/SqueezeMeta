@@ -1066,7 +1066,7 @@ sub pipeline {
 
 	if(!$nobins) {	       
 		if($rpoint<=21) {
-			if(!$DAS_Tool_empty){
+			if((!$DAS_Tool_empty) && (!$nokegg)) {
 				my $scriptname="21.minpath.pl";
 				print outfile3 "21\t$scriptname\n";
 				$currtime=timediff();
