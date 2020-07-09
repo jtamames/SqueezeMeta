@@ -186,6 +186,8 @@ while(<infile5>) {
 		$pos=~s/\,/-/;
 		$pos=~s/c//;
 		my($pos1,$pos2)=split(/\-/,$pos);
+		if($pos1<0) { $pos1=0; }
+		if($pos2<0) { $pos2=0; }		
 		my $dire="+";
 		if($pos1>$pos2) { $pos="$pos2-$pos1"; my $tpo=$pos1; $pos1=$pos2; $pos2=$tpo; $dire="-"; }
 		my $genname="$incontig\_$pos";
