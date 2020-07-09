@@ -215,8 +215,9 @@ foreach my $thissample(keys %allsamples) {
 		if($fastafile=~/gz$/) { system("gunzip $fastafile"); $fastafile=~s/\.gz$//; }
                 my $fastaname=$fastafile;
 		$fastaname=~s/fastq$/fasta/;
-		if($fastafile=~/fastq$/) {
+		if($fastafile=~/fastq$|fq$/) {
 			$fastaname=~s/fastq$/fasta/;
+			$fastaname=~s/fq$/fasta/;
 			open(outfasta,">$fastaname") || die;
 			my($nline,$header,$seqline);
 			open(infastq,$fastafile) || die;

@@ -78,7 +78,6 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nodiamond" => \$nodiamond,   
-		     "nodiamond" => \$nodiamond,   
 		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
@@ -190,10 +189,22 @@ foreach my $thissample(keys %allsamples) {
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		print "   File: $thisfile\n";
 		my $idenf=$allsamples{$thissample}{$thisfile};
-		if($thisfile=~/fastq.gz/) { system("zcat $rawseqs/$thisfile | wc > rc.txt"); }
-		elsif($thisfile=~/fastq/) { system("wc $rawseqs/$thisfile > rc.txt"); }
-		elsif($thisfile=~/fasta.gz/) { system("zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"); }
-		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $rawseqs/$thisfile > rc.txt"); }
+		my($seqformat,$seqcompress);
+		if($thisfile=~/\.fq\.|\.fq$|\.fastq\.|\.fastq$/) { $seqformat="fastq"; }
+		elsif($thisfile=~/\.fa\.|\.fa$|\.fasta\.|\.fasta$/) { $seqformat="fasta"; }
+		else { die "Unrecognized file format (must be fq, fastq, fa or fasta)\n"; }
+		if($thisfile=~/\.gz$/) { $seqcompress="gz"; }
+		my $command;
+		if($seqformat eq "fastq") {
+			if($seqcompress) { $command="zcat $rawseqs/$thisfile | wc > rc.txt"; }
+			else { $command="wc $rawseqs/$thisfile > rc.txt"; }
+			}
+		else {
+			if($seqcompress) { $command="zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"; }
+			else { $command="grep -c \"^>\" $rawseqs/$thisfile > rc.txt"; }
+			}
+		system($command);
+		# print "$seqformat; Counting reads: $command\n";
 		open(inw,"rc.txt");
 		my $line=<inw>;
 		$line=~s/^\s+//g;
