@@ -231,6 +231,7 @@ while(<infile6>) {
 	}
 	else { $seq.=$_; }
 }
+if($current) { print outfile7 ">$current\n$seq\n"; }
 close infile6;
 close outfile7;
 close outfile8;
