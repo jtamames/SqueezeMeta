@@ -154,7 +154,11 @@ while(<infile3>) {		#-- Looping on the ORFs
 	#-- Stores rank and taxa for all the ORFs in the contig
 
 	foreach my $uc(@tf) { 
-		my ($rank,$tax)=split(/\_/,$uc);
+		my($rank,$tax);
+		if($uc=~/^(.)/) { $rank=$1; }
+		$tax=$uc;
+		$tax=~s/^..//;
+		# my ($rank,$tax)=split(/\_/,$uc);
 		if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
 		}
 	}
