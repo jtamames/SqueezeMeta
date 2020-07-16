@@ -117,6 +117,11 @@ def main(args):
 
     namesInfo = {}
 
+    hasKEGG = True
+    hasCOG = True
+    hasPFAM = not args.sqmreads
+
+
     for projPath in projPaths:
         projName = projPath.strip('/').split('/')[-1]
         ### Validate projects.
@@ -179,27 +184,44 @@ def main(args):
         parse_table('{}/results/tables/{}.genus.prokfilter.abund.tsv'.format(projPath, projName), prok_genus)
         parse_table('{}/results/tables/{}.species.prokfilter.abund.tsv'.format(projPath, projName), prok_species)
 
-        parse_table('{}/results/tables/{}.KO.abund.tsv'.format(projPath, projName), KOabund)
-        if not args.sqmreads:
-            parse_table('{}/results/tables/{}.KO.copyNumber.tsv'.format(projPath, projName), KOcopy)
-            parse_table('{}/results/tables/{}.KO.tpm.tsv'.format(projPath, projName), KOtpm)
+        
+        if not isfile('{}/results/tables/{}.KO.abund.tsv'.format(projPath, projName)): # assuming sqm2tables and sqmreads2tables properly handle projects with the nokegg/nocog/nopfam flags.
+            print('Project at {}/{} is missing KEGG annotations, so they will be not included in the combined tables'.format(projPath, projName))
+            hasKEGG = False
+        else:
+            parse_table('{}/results/tables/{}.KO.abund.tsv'.format(projPath, projName), KOabund)
+            if not args.sqmreads:
+                parse_table('{}/results/tables/{}.KO.copyNumber.tsv'.format(projPath, projName), KOcopy)
+                parse_table('{}/results/tables/{}.KO.tpm.tsv'.format(projPath, projName), KOtpm)
 
-        parse_table('{}/results/tables/{}.COG.abund.tsv'.format(projPath, projName), COGabund)
-        if not args.sqmreads:
-            parse_table('{}/results/tables/{}.COG.copyNumber.tsv'.format(projPath, projName), COGcopy)
-            parse_table('{}/results/tables/{}.COG.tpm.tsv'.format(projPath, projName), COGtpm)
+
+        if not isfile('{}/results/tables/{}.COG.abund.tsv'.format(projPath, projName)):
+            print('Project at {}/{} is missing COG annotations, so they will be not included in the combined tables'.format(projPath, projName))
+            hasCOG = False
+        else:
+            parse_table('{}/results/tables/{}.COG.abund.tsv'.format(projPath, projName), COGabund)
+            if not args.sqmreads:
+                parse_table('{}/results/tables/{}.COG.copyNumber.tsv'.format(projPath, projName), COGcopy)
+                parse_table('{}/results/tables/{}.COG.tpm.tsv'.format(projPath, projName), COGtpm)
+
 
         if not args.sqmreads:
-            parse_table('{}/results/tables/{}.PFAM.abund.tsv'.format(projPath, projName), PFAMabund)
-            parse_table('{}/results/tables/{}.PFAM.copyNumber.tsv'.format(projPath, projName), PFAMcopy)
-            parse_table('{}/results/tables/{}.PFAM.tpm.tsv'.format(projPath, projName), PFAMtpm)
+            if not isfile('{}/results/tables/{}.PFAM.abund.tsv'.format(projPath, projName)):
+                print('Project at {}/{} is missing PFAM annotations, so they will be not included in the combined tables'.format(projPath, projName))
+                hasPFAM = False
+            else:
+                parse_table('{}/results/tables/{}.PFAM.abund.tsv'.format(projPath, projName), PFAMabund)
+                parse_table('{}/results/tables/{}.PFAM.copyNumber.tsv'.format(projPath, projName), PFAMcopy)
+                parse_table('{}/results/tables/{}.PFAM.tpm.tsv'.format(projPath, projName), PFAMtpm)
 
         for method in custom_thissample: # Add custom annotation methods!
             for counts, f in custom_thissample[method].items():
                 parse_table('{}/results/tables/{}'.format(projPath, f), customFunMethods[method][counts])
 
         # Add function names and hierarchy paths.
-        allMethods = ['KO', 'COG']
+        allMethods = []
+        if hasKEGG: allMethods.append('KO')
+        if hasCOG:  allMethods.append('COG')
         allMethods.extend(customFunMethods.keys())
         for method in allMethods:
             if method not in namesInfo:
@@ -234,17 +256,19 @@ def main(args):
     write_feature_dict(sampleNames, prok_genus, prefix + 'genus.prokfilter.abund.tsv')
     write_feature_dict(sampleNames, prok_species, prefix + 'species.prokfilter.abund.tsv')
 
-    write_feature_dict(sampleNames, KOabund, prefix + 'KO.abund.tsv')
-    if not args.sqmreads: 
-        write_feature_dict(sampleNames, KOcopy, prefix + 'KO.copyNumber.tsv')
-        write_feature_dict(sampleNames, KOtpm, prefix + 'KO.tpm.tsv')
+    if hasKEGG:
+        write_feature_dict(sampleNames, KOabund, prefix + 'KO.abund.tsv')
+        if not args.sqmreads: 
+            write_feature_dict(sampleNames, KOcopy, prefix + 'KO.copyNumber.tsv')
+            write_feature_dict(sampleNames, KOtpm, prefix + 'KO.tpm.tsv')
 
-    write_feature_dict(sampleNames, COGabund, prefix + 'COG.abund.tsv')
-    if not args.sqmreads:
-        write_feature_dict(sampleNames, COGcopy, prefix + 'COG.copyNumber.tsv')
-        write_feature_dict(sampleNames, COGtpm, prefix + 'COG.tpm.tsv')
+    if hasCOG:
+        write_feature_dict(sampleNames, COGabund, prefix + 'COG.abund.tsv')
+        if not args.sqmreads:
+            write_feature_dict(sampleNames, COGcopy, prefix + 'COG.copyNumber.tsv')
+            write_feature_dict(sampleNames, COGtpm, prefix + 'COG.tpm.tsv')
 
-    if not args.sqmreads:
+    if not args.sqmreads and hasPFAM:
         write_feature_dict(sampleNames, PFAMabund, prefix + 'PFAM.abund.tsv')
         write_feature_dict(sampleNames, PFAMcopy, prefix + 'PFAM.copyNumber.tsv')
         write_feature_dict(sampleNames, PFAMtpm, prefix + 'PFAM.tpm.tsv')
@@ -256,7 +280,9 @@ def main(args):
 
 
     # Combine function names and hierarchy paths.
-    allMethods = ['KO', 'COG']
+    allMethods = []
+    if hasKEGG: allMethods.append('KO')
+    if hasCOG:  allMethods.append('COG')
     allMethods.extend(customFunMethods.keys())
     for method in allMethods:
         columns = ['Name', 'Path'] if method in ('KO', 'COG') else ['Name']

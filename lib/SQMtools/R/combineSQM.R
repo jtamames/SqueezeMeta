@@ -1,6 +1,6 @@
 #' Combine several SQM objects
 #'
-#' Combine an arbitrary number of SQM objects into a single SQM object.
+#' Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object.
 #' @param ... an arbitrary number of SQM objects
 #' @param tax_source character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}). If the objects being combined contain a subset of taxa or bins, this parameter can be set to \code{TRUE}.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
@@ -31,7 +31,10 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
 
     if(class(SQM1) != 'SQM' | class(SQM2) != 'SQM') { stop('This function only accepts SQM objects') }
 
-    stopifnot(identical(colnames(SQM1$orfs$table), colnames(SQM2$orfs$table)))
+    if (!identical(colnames(SQM1$orfs$table), colnames(SQM2$orfs$table)))
+        {
+        stop("The input objects do not seem to come from the same SQM project")
+        }
     combSQM = SQM1
 
     ### ORFs

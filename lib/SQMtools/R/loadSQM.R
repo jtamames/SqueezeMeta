@@ -204,49 +204,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     #SQM$orfs$abund               = SQM$orfs$abund[rownames(SQM$orfs$table),,drop=F]
     #SQM$orfs$tpm                 = SQM$orfs$tpm[rownames(SQM$orfs$table),,drop=F]
     #SQM$orfs$seqs                = SQM$orfs$seqs[rownames(SQM$orfs$table)[rownames(SQM$orfs$table) %in% names(SQM$orfs$seqs)]]
-   
-    # Load KEGG/COG/others names and paths as misc data
-    KEGGids                      = SQM$orfs$table[,'KEGG ID']
-    KEGGids                      = gsub('*', '', KEGGids, fixed=T)
-    KEGGnames                    = SQM$orfs$table[,'KEGGFUN']
-    KEGGnames                    = KEGGnames[KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    SQM$misc$KEGG_names          = KEGGnames
-    names(SQM$misc$KEGG_names)   = KEGGids  [KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    SQM$misc$KEGG_names          = SQM$misc$KEGG_names[unique(names(SQM$misc$KEGG_names))]
-    KEGGpaths                    = SQM$orfs$table[,'KEGGPATH']
-    KEGGpaths                    = KEGGpaths[KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    SQM$misc$KEGG_paths          = KEGGpaths
-    names(SQM$misc$KEGG_paths)   = KEGGids  [KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    SQM$misc$KEGG_paths          = SQM$misc$KEGG_paths[unique(names(SQM$misc$KEGG_paths))]
-
-    COGids                       = SQM$orfs$table[,'COG ID']
-    COGids                       = gsub('*', '', COGids, fixed=T)
-    COGnames                     = SQM$orfs$table[,'COGFUN']
-    COGnames                     = COGnames[COGids!='' & !grepl(';', COGids, fixed=T)]
-    SQM$misc$COG_names           = COGnames
-    names(SQM$misc$COG_names)    = COGids  [COGids!='' & !grepl(';', COGids, fixed=T)]
-    SQM$misc$COG_names           = SQM$misc$COG_names[unique(names(SQM$misc$COG_names))]
-    COGpaths                     = SQM$orfs$table[,'COGPATH']
-    COGpaths                     = COGpaths[COGids!='' & !grepl(';', COGids, fixed=T)]
-    SQM$misc$COG_paths           = COGpaths
-    names(SQM$misc$COG_paths)    = COGids  [COGids!='' & !grepl(';', COGids, fixed=T)]
-    SQM$misc$COG_paths           = SQM$misc$COG_paths[unique(names(SQM$misc$COG_names))]
-
-    result_files                 = strsplit(list.files(sprintf('%s/results', project_path)), '.', fixed=T)
-    external_annotation_results  = result_files[sapply(result_files, FUN=function(x) length(x)>2 & x[3]=='fun3' & !x[4] %in% c('kegg', 'cog', 'pfam', 'tax'))]
-    SQM$misc$ext_annot_sources   = sapply(external_annotation_results, FUN=function(x) x[4])
-    for(method in SQM$misc$ext_annot_sources)
-        {
-        ids = SQM$orfs$table[,method]
-        ids = gsub('*', '', ids, fixed=T)
-        names = SQM$orfs$table[,sprintf('%s NAME', method)]
-        names = names[ids!=''] # We assume that there are not multiple annotations like in KEGG or COG. # names[ids!='' & !grepl(';', ids, fixed=T)]
-        field = sprintf('%s_names', method)
-        SQM$misc[[field]] = names
-        names(SQM$misc[[field]]) = ids[ids!=''] #  We assume that there are not multiple annotations like in KEGG or COG. # ids[ids!='' & !grepl(';', ids, fixed=T)]
-        SQM$misc[[field]] = SQM$misc[[field]][unique(names(SQM$misc[[field]]))]
-        }
-
 
     cat('Loading contigs\n')
     SQM$contigs                   = list()
@@ -405,6 +362,11 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
 
 
     cat('Loading functions\n')
+
+    result_files                 = strsplit(list.files(sprintf('%s/results', project_path)), '.', fixed=T)
+    external_annotation_results  = result_files[sapply(result_files, FUN=function(x) length(x)>2 & x[3]=='fun3' & !x[4] %in% c('kegg', 'cog', 'pfam', 'tax'))]
+    SQM$misc$ext_annot_sources   = sapply(external_annotation_results, FUN=function(x) x[4])
+ 
     SQM$functions                  = list()
     ### KEGG
     SQM$functions$KEGG             = list()
@@ -417,6 +379,12 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$KEGG$tpm                 = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.tpm.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+	funinfo                                = read.table(sprintf('%s/results/tables/%s.KO.names.tsv', project_path, project_name),
+                                                            header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+	SQM$misc$KEGG_names                    = funinfo[,1]
+	names(SQM$misc$KEGG_names)             = rownames(funinfo)
+        SQM$misc$KEGG_paths                    = funinfo[,2]
+        names(SQM$misc$KEGG_paths)             = rownames(funinfo)
     }else
         {
         warning('    There are no KEGG results in your project. Skipping...')
@@ -436,6 +404,13 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$COG$tpm                  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.tpm.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        funinfo                                = read.table(sprintf('%s/results/tables/%s.COG.names.tsv', project_path, project_name),
+                                                            header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+        SQM$misc$COG_names                     = funinfo[,1]
+        names(SQM$misc$COG_names)              = rownames(funinfo)
+        SQM$misc$COG_paths                     = funinfo[,2]
+        names(SQM$misc$COG_paths)              = rownames(funinfo)
+
     }else
         {
         warning('    There are no COG results in your project. Skipping...')
@@ -474,6 +449,11 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions[[method]]$tpm        = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.tpm.tsv', project_path, project_name, method),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+	funinfo                            = read.table(sprintf('%s/results/tables/%s.%s.names.tsv', project_path, project_name, method),
+                                                                header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+	field                              = sprintf('%s_names', method)
+	SQM$misc[[field]]                  = funinfo[,1]
+        names(SQM$misc[[field]])           = rownames(funinfo)	
         }
 
     ### COPY NUMBERS
