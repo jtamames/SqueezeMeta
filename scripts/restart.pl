@@ -333,7 +333,7 @@ my $DAS_Tool_empty=0;
 	
 	if(($rpoint<=12)) {
 		my $scriptname="12.funcover.pl";
-		if((!$nocog) || (!$nokegg) || (!$nopfam)) {
+		if((!$nocog) || (!$nokegg) || ($opt_db)) {
 		print outfile1 "12\t$scriptname\n";
 		$currtime=timediff();
 		print outfile2 "\n[",$currtime->pretty,"]: STEP12 -> $scriptname\n";
@@ -509,7 +509,7 @@ my $DAS_Tool_empty=0;
 
 	if(!$nobins) {	       
   		if($rpoint<=21) {
-			if(!$DAS_Tool_empty){
+			if((!$DAS_Tool_empty) && (!$nokegg)) {
 				my $scriptname="21.minpath.pl";
 				print outfile1 "21\t$scriptname\n";
 				$currtime=timediff();

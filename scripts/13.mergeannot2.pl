@@ -229,7 +229,7 @@ while(<infile3>) {
 	if($_=~/^\>([^ ]+)/) {		#-- If we are reading a new ORF, store the data for the last one
 		if($aaseq) { 
 			$orfdata{$thisorf}{aaseq}=$aaseq; 
-			$orfdata{$thisorf}{length}=(length $aaseq)+1; 
+			$orfdata{$thisorf}{length}=(length $aaseq); 
 			$orfdata{$thisorf}{molecule}="CDS";
 			$orfdata{$thisorf}{method}="Prodigal";
 			}
@@ -242,7 +242,7 @@ close infile3;
 
 if($aaseq) { 
 	$orfdata{$thisorf}{aaseq}=$aaseq; 
-	$orfdata{$thisorf}{length}=(length $aaseq)+1; 
+	$orfdata{$thisorf}{length}=(length $aaseq); 
 	$orfdata{$thisorf}{molecule}="CDS";
 	$orfdata{$thisorf}{method}="Prodigal";
 	}
@@ -262,7 +262,7 @@ foreach my $thisntfile(@ntfiles) {
 		chomp;
 		if($_=~/^\>([^ ]+)/) {		#-- If we are reading a new ORF, store the data for the last one
 			if($ntseq) { 
-				$orfdata{$thisorf}{lengthnt}=(length $ntseq)+1; 
+				$orfdata{$thisorf}{lengthnt}=(length $ntseq); 
 				}
 			$thisorf=$1;
 			$ntseq="";
@@ -272,12 +272,12 @@ foreach my $thisntfile(@ntfiles) {
 	close infile3;
 
 	if($ntseq) {
-        	$orfdata{$thisorf}{lengthnt}=(length $ntseq)+1;
+        	$orfdata{$thisorf}{lengthnt}=(length $ntseq);
         	}
 	}
 	
 if($ntseq) { 
-	$orfdata{$thisorf}{lengthnt}=(length $ntseq)+1; 
+	$orfdata{$thisorf}{lengthnt}=(length $ntseq); 
 	}
 
 
@@ -294,7 +294,7 @@ while(<infile4>) {
 		my @mt=split(/\t/,$_);
 		if($rnaseq) { 
 			$orfdata{$thisrna}{ntseq}=$rnaseq;
-			$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
+			$orfdata{$thisrna}{lengthnt}=(length $rnaseq);
 			$orfdata{$thisorf}{length}="NA";
 			$orfdata{$thisrna}{molecule}="rRNA";
 			$orfdata{$thisrna}{method}="barrnap";
@@ -311,7 +311,7 @@ while(<infile4>) {
 close infile4;
 if($rnaseq) { 
 	$orfdata{$thisrna}{ntseq}=$rnaseq; 
-	$orfdata{$thisrna}{lengthnt}=(length $rnaseq)+1;
+	$orfdata{$thisrna}{lengthnt}=(length $rnaseq);
 	$orfdata{$thisrna}{molecule}="rRNA";
 	$orfdata{$thisrna}{length}="NA";
 	$orfdata{$thisrna}{method}="barrnap";
