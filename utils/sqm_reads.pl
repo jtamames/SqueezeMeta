@@ -212,7 +212,7 @@ foreach my $thissample(keys %allsamples) {
 		my $numseqs=$l[0];
 		close inw;
 		chomp $numseqs;
-		if($thisfile=~/fastq/) { $numseqs/=4; }
+		if($seqformat eq "fastq") { $numseqs/=4; }
 		system("rm rc.txt");
 		$totalseqs{$thisfile}++;
 		$currtime=timediff();
