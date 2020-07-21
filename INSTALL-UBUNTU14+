@@ -19,7 +19,7 @@ sudo apt-get install r-base-core
 
 
 ### System libraries.
-sudo apt-get install git sqlite3 libxml2-dev libcurl4-openssl-dev
+sudo apt-get install git sqlite3 libxml2-dev libcurl4-openssl-dev tree
 
 
 ### Perl modules.

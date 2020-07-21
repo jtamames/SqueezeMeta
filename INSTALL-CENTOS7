@@ -3,7 +3,7 @@ sudo yum -y install epel-release
 
 
 ### Install git and system libraries
-sudo yum -y install gcc ncurses-devel git zlib-devel bzip2-devel xz-devel libxml2-devel libcurl-devel openssl-devel
+sudo yum -y install gcc ncurses-devel git zlib-devel bzip2-devel xz-devel libxml2-devel libcurl-devel openssl-devel tree
 
 
 ### Install Ruby.
