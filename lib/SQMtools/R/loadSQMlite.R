@@ -237,12 +237,8 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
         }	
         SQM$misc$ext_annot_sources = funMethods[!funMethods %in% c('KO', 'COG', 'PFAM')]
 
-    ### Check whether the tables come from a SQM longreads project.
-    if(!identical(colSums(SQM$taxa$superkingdom$abund), colSums(SQM$functions[[1]]$abund)))
-        {
-        cat('Column sums are not the same in the taxonomy and function tables. This is ok as long as the project was generated with sqm_longreads.pl\n')
-	SQM$total_orfs = colSums(SQM$functions[[1]]$abund)
-        }
+    SQM$total_orfs = colSums(SQM$functions[[1]]$abund) # This number of counts is not the same as the number of reads in the taxonomy, as a single read can span more than one gene.
+        
     ### Finish.
     SQM$misc$samples = colnames(SQM$tax$superkingdom$abund) # This should contain all samples, user is responsible for inconsistencies in the data.
     class(SQM)       = 'SQMlite'
