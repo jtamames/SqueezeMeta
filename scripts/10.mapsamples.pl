@@ -75,7 +75,7 @@ if($mapper eq "bowtie") {
         	print("  Creating reference from contigs\n");
                 my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
 		print outsyslog "Creating Bowtie reference: $bowtie_command\n";
-               # system($bowtie_command);
+                system($bowtie_command);
                 }
         }
 elsif($mapper eq "bwa") {
@@ -137,7 +137,7 @@ foreach my $thissample(keys %allsamples) {
 	print "  Getting raw reads\n";
 	# print "$command\n";
 	print outsyslog "Getting raw reads for $thissample: $command\n";
-	# system $command; 
+	system $command; 
 	
 	#-- Now we start mapping reads against contigs
 	
@@ -169,10 +169,10 @@ foreach my $thissample(keys %allsamples) {
                                   
 	# print "$command\n";
 	print outsyslog "Aligning with $mapper: $command\n";
-	# system($command);
+	system($command);
         my $ecode = 0;
-	#if(-e $outsam) {} else { $ecode = system $command; }
-        #if($ecode!=0)     { die "An error occurred during mapping!"; }
+	if(-e $outsam) {} else { $ecode = system $command; }
+        if($ecode!=0)     { die "An error occurred during mapping!"; }
 
 	#-- Calculating contig coverage/RPKM
 
