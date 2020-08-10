@@ -49,7 +49,7 @@ close infile1;
 if(-e $bincov) { system("rm $bincov"); }
 open(outfile1,">>$bincov") || die "Can't open $bincov for writing\n";
 print outfile1 "#--Created by $0,",scalar localtime,"\n";
-print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tSample\n";
+print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tTPM\tSample\n";
 
 if(-e $contigsinbins) { system("rm $contigsinbins"); }
 open(outfile2,">>$contigsinbins") || die "Can't open $contigsinbins for writing\n";
