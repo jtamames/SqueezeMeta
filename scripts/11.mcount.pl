@@ -69,8 +69,8 @@ while(<infile3>) {
 	next if(!$_ || ($_=~/^\#/));
 	my @f=split(/\t/,$_);
 	my $sample=$f[$#f];
-	$abund{$f[0]}{$sample}=$f[5];
-	$abundreads{$f[0]}{$sample}=$f[4];
+	$abund{$f[0]}{$sample}=$f[6];
+	$abundreads{$f[0]}{$sample}=$f[5];
 	$samples{$sample}=1; 
 	my $node=$f[0];
 	my $tlong=$lon{$node};
