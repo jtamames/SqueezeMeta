@@ -223,6 +223,7 @@ if($mode=~/sequential/i) {
 	while(<infile1>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
+		$_=~s/\r//g;
 		($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 		$allsamples{$sample}{$file}=1;
 		$ident{$sample}{$file}=$iden;
@@ -525,6 +526,7 @@ sub moving {
 	while(<infile4>) {
  		chomp;
  		next if(!$_ || ($_=~/^\#/));
+		$_=~s/\r//g;			#-- Deleting \r in samples file for windows compatibility
 		my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 		$allsamples{$sample}=1;
 		$ident{$file}=$iden;
