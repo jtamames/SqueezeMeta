@@ -445,7 +445,7 @@ my $DAS_Tool_empty=0;
 				my($wsize,$rest)=split(/\s+/,$wc);
 				if($wsize<1) { error_out(17,$scriptname,$bintax); }
 			}
-		else{ print("Skipping BIN TAX ASSIGNMENT: DAS_Tool did not predict bins.\n"); }
+		else{ print RED; print("Skipping BIN TAX ASSIGNMENT: DAS_Tool did not predict bins.\n"); print RESET; }
 		}
 
     #-------------------------------- STEP18: Checking of bins for completeness and contamination (checkM)		
@@ -466,7 +466,7 @@ my $DAS_Tool_empty=0;
 					if($wsize<4) { error_out(18,$scriptname,$checkmfile); }
 				}
 			}
-			else{ print("Skipping CHECKM: DAS_Tool did not predict bins.\n"); }
+			else{ print RED; print("Skipping CHECKM: DAS_Tool did not predict bins.\n"); print RESET; }
 		}
 
 			
@@ -485,7 +485,7 @@ my $DAS_Tool_empty=0;
 				my($wsize,$rest)=split(/\s+/,$wc);
 				if($wsize<3) { error_out(19,$scriptname,$bintable); }
 			}
-			else{ print("Skipping BIN TABLE CREATION: DAS_Tool did not predict bins.\n") ; }
+			else{ print RED; print("Skipping BIN TABLE CREATION: (You already know: DAS_Tool did not predict bins.)\n") ; print RESET; }
 		}
 	}
 

@@ -1015,7 +1015,7 @@ sub pipeline {
 				my($wsize,$rest)=split(/\s+/,$wc);
 				if($wsize<1) { error_out(17,$scriptname,$bintax); }
 			}
-			else{ print RED; print "Skipping BIN TAX ASSIGNMENT: DAS_Tool did not predict bins.\n"; print RESET; die; }
+			else{ print RED; print "Skipping BIN TAX ASSIGNMENT: DAS_Tool did not predict bins.\n"; print RESET; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 		}
 
@@ -1039,7 +1039,7 @@ sub pipeline {
 					if($wsize<4) { error_out(18,$scriptname,$checkmfile); }
 					}
 			}
-			else { print RED; print"Skipping CHECKM: DAS_Tool did not predict bins.\n"; print RESET; }
+			else { print RED; print "Skipping CHECKM: DAS_Tool did not predict bins.\n"; print RESET; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 		}
 
@@ -1061,7 +1061,7 @@ sub pipeline {
 				if($wsize<3) { error_out(19,$scriptname,$bintable); }
 				if($longtrace) { print " (Now we have a BIN TABLE)\n"; }
 			}
-			else{ print RED; print "Skipping BIN TABLE CREATION: DAS_Tool did not predict bins.\n"; print RESET; }
+			else{ print RED; print "Skipping BIN TABLE CREATION: (You already know: DAS_Tool did not predict bins.)\n"; print RESET; }
 		}
 		close(outfile4); open(outfile4,">>$syslogfile");
 	 }
