@@ -36,6 +36,7 @@ my $input;
 if($doublepass) { $input="$fun3tax_blastx.wranks"; } else { $input="$fun3tax.wranks"; }
 my $outputlong=$allorfs;
 my $outputshort=$alllog;
+my $outputall="$interdir/09.$projectname.contiglog_allranks";
 open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 #-- Reading taxonomic infomation (extracted from NCBI's taxonomy)
@@ -153,7 +154,11 @@ while(<infile3>) {		#-- Looping on the ORFs
 	#-- Stores rank and taxa for all the ORFs in the contig
 
 	foreach my $uc(@tf) { 
-		my ($rank,$tax)=split(/\_/,$uc);
+		my($rank,$tax);
+		if($uc=~/^(.)/) { $rank=$1; }
+		$tax=$uc;
+		$tax=~s/^..//;
+		# my ($rank,$tax)=split(/\_/,$uc);
 		if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
 		}
 	}
@@ -199,13 +204,16 @@ print "  Writing output to $outputshort\n";
 print syslogfile "  Writing output to $outputlong and $outputshort\n";
 open(outfile1,">$outputlong") || die "Can't open $outputlong for writing\n";
 open(outfile2,">$outputshort") || die "Can't open $outputshort for writing\n";
+open(outfile3,">$outputall") || die "Can't open $outputall for writing\n";
 print outfile1 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, euknofilter=$euknofilter, ",scalar localtime,"\n";
 print outfile2 "#- Created by $0 with data from $input, mingenes=$mingenes9, minconsperc_asig=$minconsperc_asig9, minconsperc_total=$minconsperc_total9, euknofilter=$euknofilter,",scalar localtime,"\n";
+print outfile3 "#- Created by $0 with data from $input, euknofilter=$euknofilter,",scalar localtime,"\n";
+print outfile3 "# Contig\tRank\tPerc_assigned\tPerc_total\tGene number\tDisparity\tTax\n";
 
 foreach my $contig(keys %allcontigs) {
 	my ($sep,$lasttax,$strg,$cattax,$fulltax,$lasttax)="";
 	my ($consensus,$schim,$chimerism)=0;
-	my(%consensus,%chimeracheck)=();
+	my(%consensus,%chimeracheck,%consensusall)=();
 	my $totalcount=$numorfs{$contig}; 
 	next if(!$totalcount);	
 	print outfile1 "$contig\t$totalcount genes\n";
@@ -245,6 +253,8 @@ foreach my $contig(keys %allcontigs) {
 		# if($contig eq "k119_42524") {  printf "  $mtax $rank $accumtax{$mtax} $totalas $totalcount %.2f %.2f\n",$percas,$perctotal; }	      
 
 		#-- And if it does, we also calculate the disparity index of the contig for this rank
+
+		# print "$contig\t$rank\t$mtax\t$percas\t$perctotal\t$totalcount\n";
 
 		if(($percas>=$minconsperc_asig9) && ($perctotal>=$minconsperc_total9) && ($totalcount>=$mingenes9) && ($times>$times2)) { 
 	
@@ -289,10 +299,16 @@ foreach my $contig(keys %allcontigs) {
 			$strg=$rank;
 			$schim=$chimerism;
 			$consensus=1;
-			}	
+			}
+		$consensusall{$rank}{tax}=$mtax; 
+		$consensusall{$rank}{percas}=$percas; 
+		$consensusall{$rank}{perctotal}=$perctotal;
+		$consensusall{$rank}{totalcount}=$totalcount;
+		$consensusall{$rank}{disparity}=$chimerism;
+		
 								      
 		# if($totalas!=$times) { print "***$contig $totalas $times\n"; }
-		last if(!$consensus{$rank});	#-- And exit if there is no consensus for this rank
+		# last if(!$consensus{$rank});	#-- And exit if there is no consensus for this rank
 		}
 
 	#-- Finally, write the output
@@ -302,7 +318,16 @@ foreach my $contig(keys %allcontigs) {
 	$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
 	# printf outfile2 "$contig\t$fulltax\t$strg\tDisparity: %.3f\tGenes: $numorfs{$contig}\n",$chimerism;
 	printf outfile2 "$contig\t$abb\t$strg\tDisparity: %.3f\tGenes: $numorfs{$contig}\n",$chimerism;
-                                 }
+	foreach my $rank(@ranksabb) {
+		my $ttax=$consensusall{$rank}{tax};
+		if($ttax) { 
+			my $abb=$parents{$ttax}{wranks};	
+			$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
+			printf outfile3 "$contig\t$rank\t%.1f\t%.1f\t$consensusall{$rank}{totalcount}\t%.1f\t$abb\n",$consensusall{$rank}{percas},$consensusall{$rank}{perctotal},$consensusall{$rank}{disparity};
+			}
+		}
+	}
 close outfile1;
 close outfile2;
+close outfile3;
 close syslogfile;
