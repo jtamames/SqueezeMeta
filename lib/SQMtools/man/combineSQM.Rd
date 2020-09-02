@@ -30,7 +30,7 @@ combineSQM(
 A SQM object
 }
 \description{
-Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object.
+Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link[combineSQMlite]{combineSQMlite}}.
 }
 \examples{
 data(Hadza)
@@ -42,5 +42,5 @@ proteo.amins = subsetFun(proteo, "Amino acid metabolism")
 bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=F)
 }
 \seealso{
-\code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}
+\code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}, \code{\link[combineSQMlite]{combineSQMlite}}
 }
