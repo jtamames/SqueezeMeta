@@ -5,13 +5,14 @@
 #' @return A SQMlite object
 #' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}, \code{\link[combineSQM]{combineSQM}}
 #' @examples
-#' \dontrun
+#' \dontrun{
 #' data(Hadza)
 #' # Load data coming from a different run
 #' other = loadSQMlite("/path/to/other/project/tables") # e.g. if the project was run using sqm_reads
 #' # (We could also use loadSQM to load the data as long as the data comes from a SqueezeMeta run)
 #' combined = combineSQMlite(Hadza, other)
 #' plotTaxonomy(combined, 'family') # Now we can plot together the samples from Hadza and the second project.
+#' }
 #' @export
 combineSQMlite = function(...)
     {

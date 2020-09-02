@@ -16,13 +16,14 @@ A SQMlite object
 Combine an arbitrary number of SQM or SQMlite objects into a single SQMlite object. This function accepts objects originating from different projects (i.e. different SqueezeMeta runs).
 }
 \examples{
-\dontrun
+\dontrun{
 data(Hadza)
 # Load data coming from a different run
 other = loadSQMlite("/path/to/other/project/tables") # e.g. if the project was run using sqm_reads
 # (We could also use loadSQM to load the data as long as the data comes from a SqueezeMeta run)
 combined = combineSQMlite(Hadza, other)
 plotTaxonomy(combined, 'family') # Now we can plot together the samples from Hadza and the second project.
+}
 }
 \seealso{
 \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}, \code{\link[combineSQM]{combineSQM}}
