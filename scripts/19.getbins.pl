@@ -52,7 +52,7 @@ if(-e $bincov) { system("rm $bincov"); }
 print syslogfile "  Creating bin coverage table in $bincov\n";
 open(outfile1,">>$bincov") || die "Can't open $bincov for writing\n";
 print outfile1 "#--Created by $0,",scalar localtime,"\n";
-print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tSample\n";
+print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tTPM\tSample\n";
 
 if(-e $contigsinbins) { system("rm $contigsinbins"); }
 print syslogfile "  Creating contigs in bins table in $contigsinbins\n";

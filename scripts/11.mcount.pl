@@ -74,8 +74,8 @@ while(<infile3>) {
 	next if(!$_ || ($_=~/^\#/));
 	my @f=split(/\t/,$_);
 	my $sample=$f[$#f];
-	$abund{$f[0]}{$sample}=$f[5];
-	$abundreads{$f[0]}{$sample}=$f[4];
+	$abund{$f[0]}{$sample}=$f[6];
+	$abundreads{$f[0]}{$sample}=$f[5];
 	$samples{$sample}=1; 
 	my $node=$f[0];
 	my $tlong=$lon{$node};
@@ -122,7 +122,7 @@ close infile4;
 print outsyslog "Writing output to $mcountfile\n"; 
 open(outfile1,">$mcountfile") || die "Can't open $mcountfile for writing\n";
 print outfile1 "Rank\tTaxon\tAccumulated contig size";
-foreach my $samp(sort keys %samples) { print outfile1 "\t$samp bases\t$samp reads"; }
+foreach my $samp(sort keys %samples) { print outfile1 "\t$samp reads\t$samp bases"; }
 print outfile1 "\n";
 foreach my $kk(sort { $accum{$b}<=>$accum{$a}; } keys %accum) { 
 	my $k=$kk;
