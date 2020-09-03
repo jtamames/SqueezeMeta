@@ -11,7 +11,7 @@ summary.SQMlite = function(SQM)
     res$project_name = SQM$misc$project_name
 
     res$nReads = colSums(SQM$taxa$superkingdom$abund)
-    res$nORFs = SQM$total_orfs
+    res$nORFs  = colSums(SQM$functions[[1]]$abund)
     res$taxa   = list()
 
     sk = rownames(SQM$taxa$superkingdom$abund)

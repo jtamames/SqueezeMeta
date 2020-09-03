@@ -73,6 +73,11 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
     if(count=='percent') { mat = 100 * t(t(SQM$functions$KEGG$abund) / colSums(SQM$functions$KEGG$abund))
     } else { mat = SQM$functions$KEGG[[count]] }
 
+    if(ncol(mat) > 24)
+        {
+        warning('We\'ve found that pathview fails when trying to display more than 24 different items, so unless you are grouping your samples with fold_change_groups this will likely not work')
+        cat('We\'ve found that pathview fails when trying to display more than 24 different items, so unless you are grouping your samples with fold_change_groups this will likely not work\n')
+        }
     ### Do stuff.
     if(!is.null(samples)) { mat = mat[,samples] }
 
