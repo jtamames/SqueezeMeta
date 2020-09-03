@@ -143,11 +143,6 @@ while(<infile3>) {		#-- Looping on the ORFs
 	my @tf=split(/\;/,$atax);		#-- This contains rank:taxon pairs for the ORF
 	my @id=split(/\_/,$node);
 	# @id=split(/\|/,$node);
-	
-	#-- Different nomenclature for contigs in spades and other assemblers
-	
-	if($id[0]=~/NODE/) { $contigid="$id[0]\_$id[1]"; } else { $contigid="$id[0]"; }	
-
 	$contigid=$node;
 	$contigid=~s/\_\d+\-\d+$//;
 	$contigid=~s/\|\d+$//; 		#-- This is the contig name the current ORF belongs to
@@ -159,6 +154,7 @@ while(<infile3>) {		#-- Looping on the ORFs
 		$tax=$uc;
 		$tax=~s/^..//;
 		# my ($rank,$tax)=split(/\_/,$uc);
+		# print "--> $contigid $rank $node $tax\n";
 		if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
 		}
 	}
@@ -210,7 +206,7 @@ print outfile2 "#- Created by $0 with data from $input, mingenes=$mingenes9, min
 print outfile3 "#- Created by $0 with data from $input, euknofilter=$euknofilter,",scalar localtime,"\n";
 print outfile3 "# Contig\tRank\tPerc_assigned\tPerc_total\tGene number\tDisparity\tTax\n";
 
-foreach my $contig(keys %allcontigs) {
+foreach my $contig(keys %allcontigs) { 
 	my ($sep,$lasttax,$strg,$cattax,$fulltax,$lasttax)="";
 	my ($consensus,$schim,$chimerism)=0;
 	my(%consensus,%chimeracheck,%consensusall)=();

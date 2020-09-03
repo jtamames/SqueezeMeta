@@ -80,7 +80,7 @@ foreach my $kingdom(keys %king) {
 	#-- Concatenate all RNA files, and mask the contigs for not predicting these RNAs as proteins (in upcoming gene prediction)
 
 	open(outfile2,">>$rnafile") || die "Can't open $rnafile for writing\n";
-	open(outfile3,">contigs.prov") || die "Can't open contigs.prov for writing\n";
+	open(outfile3,">$tempdir/contigs.prov") || die "Can't open contigs.prov for writing\n";
 	open(infile2,$targetfile) || die "Can't open $targetfile\n";
 	my($seq,$current)="";
 	while(<infile2>) {
@@ -111,7 +111,7 @@ foreach my $kingdom(keys %king) {
 	close infile2;
 	close outfile2;
 	close outfile3;
-	system("mv contigs.prov $targetfile");
+	system("mv $tempdir/contigs.prov $targetfile");
 }
 print "\n";
 close outfile4;

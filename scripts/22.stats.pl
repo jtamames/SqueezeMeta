@@ -209,11 +209,12 @@ if(!$nobins) {
 
 	#-- Date of the start of the run
 
+my $startdate;
 open(infile6,"$projectdir/syslog") || warn "Can't open syslog file in $projectdir/syslog\n";
-$_=<infile6>;
-my $startdate=<infile6>;
-$startdate.=<infile6>;
-chomp $startdate;
+while(<infile6>) {
+	chomp;
+	if($_=~/^Run started/) { $startdate=$_; }
+	}
 close infile6; 
 		
 

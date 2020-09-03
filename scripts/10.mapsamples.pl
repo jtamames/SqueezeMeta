@@ -189,9 +189,9 @@ if($warnmes) {
 	if($mincontiglen>200) { 
 		print outfile1 "# Notice also that you set the minimum contig length to $mincontiglen. In this way you are removing the contigs shorter than that size. This can be, at least partially, the cause of this low mapping percentage\n";
 		print outfile1 "# It is likely that redoing the analysis with the default minimum contig length (200) can solve this problem\n";
-		print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl fr this purpose (But you will lose the binnning results)\n";
+		print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n";
 		}
-	else { print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl for this purpose (but you will lose the binning information)\n"; }
+	else { print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n"; }
 	}
 
 close outfile1;

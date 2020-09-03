@@ -160,7 +160,7 @@ foreach my $m(@files) {
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 
-		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > $syslogfile";
+		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > $syslogfile 2>&1";
 		print outsyslog "$command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }

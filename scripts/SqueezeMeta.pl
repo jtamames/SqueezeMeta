@@ -218,7 +218,7 @@ if($mode=~/sequential/i) {
 
 	#-- Reading the sample file given by the -s option, to locate the sample files
 
-	# print "Now reading samples\n";
+	print "Reading samples from $equivfile\n";
 	open(infile1,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present in that location, and you have reading permissions\n"; print RESET;  die; };
 	while(<infile1>) {
 		chomp;
@@ -486,7 +486,7 @@ else {
 
 	print "Reading configuration from $projectdir/SqueezeMeta_conf.pl\n";
 	do "$projectdir/SqueezeMeta_conf.pl" or do { print RED; print "Can't write in directory $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; };
-	print("$mappingfile\n");
+	print "Reading samples from $mappingfile\n";
 
 	open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 	print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
