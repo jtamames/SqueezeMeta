@@ -11,6 +11,7 @@ plotTaxonomy(
   N = 15,
   tax = NULL,
   others = T,
+  samples = NULL,
   ignore_unclassified = F,
   collapse_unclassified = F,
   no_partial_classifications = F,
@@ -32,6 +33,8 @@ plotTaxonomy(
 \item{tax}{character. Custom taxa to plot. If provided, it will override \code{N} (default \code{NULL}).}
 
 \item{others}{logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).}
+
+\item{samples}{character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).}
 
 \item{ignore_unclassified}{logical. Don't include unclassified reads in the plot (default \code{FALSE}).}
 

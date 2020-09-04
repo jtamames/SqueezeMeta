@@ -58,3 +58,18 @@ SQMtoSQMlite = function(SQM) # untested and unused
     class(SQMlite)      = 'SQMlite'
     return(SQMlite)
     }
+
+
+check.samples = function(SQM, samples)
+    {
+    if(!is.null(samples))
+        {
+        missing_samples = setdiff(samples, SQM$misc$samples)
+        if(length(missing_samples) > 0)
+            {
+            str = paste(missing_samples, collapse = '", "')
+            stop(sprintf('Samples "%s" are not present in this SQM object', str))
+            }
+        }
+    }
+
