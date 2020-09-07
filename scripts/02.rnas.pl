@@ -80,7 +80,7 @@ foreach my $kingdom(keys %king) {
 	#-- Concatenate all RNA files, and mask the contigs for not predicting these RNAs as proteins (in upcoming gene prediction)
 
 	open(outfile2,">>$rnafile") || die "Can't open $rnafile for writing\n";
-	open(outfile3,">contigs.prov") || die "Can't open contigs.prov for writing\n";
+	open(outfile3,">$tempdir/contigs.prov") || die "Can't open contigs.prov for writing\n";
 	open(infile2,$targetfile) || die "Can't open $targetfile\n";
 	my($seq,$current)="";
 	while(<infile2>) {
@@ -111,7 +111,7 @@ foreach my $kingdom(keys %king) {
 	close infile2;
 	close outfile2;
 	close outfile3;
-	system("mv contigs.prov $targetfile");
+	system("mv $tempdir/contigs.prov $targetfile");
 }
 print "\n";
 close outfile4;
@@ -122,7 +122,7 @@ print outmet "RNAs were predicted using Barrnap (Seeman 2014, Bioinformatics 30,
 
 $command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f filterbyconf";
 print outsyslog "Running RDP classifier: $command\n";
-print "  Running RDP classifier (Wang et al 2007, Appl Environ Mictrobiol 73, 5261-7)\n";
+print "  Running RDP classifier (Wang et al 2007, Appl Environ Microbiol 73, 5261-7)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "16S rRNA sequences were taxonomically classified using the RDP classifier (Wang et al 2007, Appl Environ Microbiol 73, 5261-7)\n";
@@ -183,11 +183,13 @@ while(<infile5>) {
 		my($pos,$rest)=split(/\t/,$fields[2]);
 		$pos=~s/\[//;
 		$pos=~s/\]//;
-		$pos=~s/\,/-/;
 		$pos=~s/c//;
-		my($pos1,$pos2)=split(/\-/,$pos);
+		my($pos1,$pos2)=split(/\,/,$pos);
+		if($pos1<0) { $pos1=1; }
+		if($pos2<0) { $pos2=1; }		
 		my $dire="+";
 		if($pos1>$pos2) { $pos="$pos2-$pos1"; my $tpo=$pos1; $pos1=$pos2; $pos2=$tpo; $dire="-"; }
+		else { $pos="$pos1-$pos2"; }
 		my $genname="$incontig\_$pos";
 		print outfile6 "$genname\t$fields[1]\n";
 		$trnas{$incontig}{$pos}=1;
@@ -202,7 +204,7 @@ close outfile7;
 		
 	#-- Masking with 'N's
 	
-open(outfile7,">contigs.prov") || die "Can't open contigs.prov for writing\n";
+open(outfile7,">$tempdir/contigs.prov") || die "Can't open contigs.prov for writing\n";
 
 open(outfile8,">$resultpath/02.$project.trnas.fasta") || die "Can't open trna file for writing\n";
 open(infile6,$targetfile) || die "Can't open $targetfile\n";
@@ -229,12 +231,22 @@ while(<infile6>) {
 	}
 	else { $seq.=$_; }
 }
+if($current) {	#-- Last entry
+	foreach my $rns(sort keys %{ $trnas{$current} }) {
+		my($init,$end)=split(/\-/,$rns);
+		my $longr=($end-$init)+1;
+		my $replace=('N' x $longr);
+		my $rnaseq=substr($seq,$init-1,$longr,$replace);
+		print outfile8 ">$current\_$rns\n$rnaseq\n";
+		}
+	print outfile7 ">$current\n$seq\n"; 	
+	}
 close infile6;
 close outfile7;
 close outfile8;
 close outmet;
 
-system("mv contigs.prov $targetfile");
+system("mv $tempdir/contigs.prov $targetfile");
 		
 #-- Creating the RNAs gff file
 

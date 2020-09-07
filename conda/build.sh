@@ -21,3 +21,8 @@ mv $PREFIX/lib/perl5/auto $PREFIX/lib/site_perl/5.26.2/
 mv $PREFIX/lib/perl5/x86_64-linux-thread-multi/auto/Linux $PREFIX/lib/site_perl/5.26.2/x86_64-linux-thread-multi/auto/
 rm -r $PREFIX/lib/perl5/
 #cpanm Term::ANSIColor -L $PREFIX # Apparently this is already installed
+# Override PERL5LIB to priorize conda libraries
+echo "export PERL5LIB=\$CONDA_PREFIX/lib/site_perl/5.26.2/:\$CONDA_PREFIX/lib/site_perl/5.26.2/x86_64-linux-thread-multi/:\$CONDA_PREFIX/lib/5.26.2/:\$CONDA_PREFIX/lib/5.26.2/x86_64-linux-thread-multi/:\$PERL5LIB" > $PREFIX/etc/conda/activate.d/activate-perl.sh
+echo "export PERL5LIB=\`echo \$PERL5LIB | sed -e \"s,\$CONDA_PREFIX.*\:,,\"\`" > $PREFIX/etc/conda/deactivate.d/deactivate-perl.sh
+chmod +x $PREFIX/etc/conda/activate.d/activate-perl.sh
+chmod +x $PREFIX/etc/conda/deactivate.d/deactivate-perl.sh

@@ -128,7 +128,7 @@ close outfile1;
 
 	#-- Running metabat2
 
-my $command="$metabat_soft -t 8 -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
+my $command="$metabat_soft -t $numthreads -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
 print outsyslog "Running metabat2 : $command\n";
 print "  Running metabat2 (Kang et al 2019, PeerJ 7, e7359)\n";
 my $ecode = system $command;

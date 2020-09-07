@@ -74,8 +74,8 @@ else {
 	elsif($assembler=~/spades/i) { 
 		system("rm -r $datapath/spades > /dev/null 2>&1"); 
 		$outassembly="$datapath/spades/contigs.fasta";
-		if(-e $par2name) { $command="$spades_soft $assembler_options --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades >> $syslogfile 2>&1"; }
-		else { $command="$spades_soft $assembler_options --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 -t $numthreads -o $datapath/spades >> $syslogfile"; } #-- Support for single reads
+		if(-e $par2name) { $command="$spades_soft  --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile 2>&1"; }
+		else { $command="$spades_soft --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile"; } #-- Support for single reads
 		print outmet "Assembly was done using SPAdes (Bankevich et al 2012, J Comp Biol 19(5):455-77)\n";
 		}
 	elsif($assembler=~/canu/i) {
@@ -88,10 +88,10 @@ else {
 			my $ramstr=sprintf('%.2f',$ram);
 			$canumem=sprintf('%.0f',int($ram));
 			$canumem*=0.8;
-			print "  AVAILABLE (free) RAM memory: $ramstr Gb. We will set canu to use $canumem Gb (80%).\n  You can override this setting using the -canumem option when calling SqueezeMeta.pl\n";
+			print "  AVAILABLE (free) RAM memory: $ramstr Gb. We will set canu to use $canumem Gb.\n  You can override this setting using the -canumem option when calling SqueezeMeta.pl\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ramstr Gb)\n";
 			}
-     	   	$command="$canu_soft $assembler_options -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads -nanopore-raw  $par1name > $syslogfile 2>&1; "; 
+     	   	$command="$canu_soft  -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads $assembler_options -nanopore-raw  $par1name > $syslogfile 2>&1; "; 
 	   	$command.="mv $datapath/canu/$project.contigs.fasta $outassembly"; 
  		print outmet "Assembly was done using Canu (Koren et al 2017, Genome Res 27(5):722-36)\n";
      	  }
@@ -116,7 +116,8 @@ else {
 
 #-- Run prinseq_lite for removing short contigs
 
-if($mincontiglen>200) {
+if($extassembly) { system("cp $outassembly $contigsfna"); }
+else {
 	$command="$prinseq_soft -fasta $outassembly -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
 	print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
 	print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n  ";
@@ -124,8 +125,6 @@ if($mincontiglen>200) {
 	if($ecode!=0) { die "Error running command:    $command"; }
 	print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 	}
-elsif($extassembly) { system("cp $outassembly $contigsfna"); }
-else { system("mv $outassembly $contigsfna"); }
 
 #-- Run prinseq_lite for statistics
 

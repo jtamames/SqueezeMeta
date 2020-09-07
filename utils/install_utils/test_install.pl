@@ -33,6 +33,11 @@ our $warnings;
 #print("Checking for gcc\n");
 #check_command("gcc --help", "ERROR: The GCC compiler can not be found in this environment!!");
 
+print("\n");
+print("Checking the OS\n");
+my $os = "$^O";
+if($os eq "linux") { print("\t$os OK\n"); } else { die("The \"$os\" OS was detected, but SqueezeMeta only runs on Linux!!\n\n"); }
+
 
 print("\n");
 print("Checking that ruby is installed\n");

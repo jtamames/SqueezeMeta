@@ -183,7 +183,6 @@ while(<infile6>) {
 	my $mapbases=$k[3];
 	# print "$k[0] $cfun_kegg $cfun_cog $sample $longorfs{$k[0]}\n";
 	$totalbases{$sample}+=$mapbases;
-	# next if((!$cfun_kegg) && (!$cfun_cog));
 	next if($taxreq && (!$validid{$k[0]}));
 	$allsamples{$sample}++;
 	if($mapbases) {

@@ -2,7 +2,7 @@
 
 
 use strict;
-use Getopt::Long qw(:config gnu_getopt gnu_compat);
+use Getopt::Long; #qw(:config gnu_getopt gnu_compat);
 use Data::Dumper;
 use threads;
 
@@ -44,7 +44,7 @@ GetOptions (
 	    "i|no-identical"      => \$flgs->{'no-identical'},
 	    "s|show-bitscore"      => \$flgs->{'show-bitscore'}
 	    );
-	    
+$blastfile = pop @ARGV;
 my $tempdir=$blastfile;
 my @g=split(/\//,$blastfile);
 pop @g;
@@ -77,12 +77,13 @@ for(my $h=1; $h<=$numthreads; $h++) {
 	}
 
 print syslogfile "  Removing temporaty collapsed files in $tempdir\n";
-#system("rm $tempdir/collapsed.*.m8");
-#system("rm $tempdir/diamond_collapse.*.m8");
-
-
+system("rm $tempdir/collapsed.*.m8");
+system("rm $tempdir/diamond_collapse.*.m8");
+system("rm $tempdir/wc");
+close syslogfile;
 
 sub splitfiles {
+	my $numthreads=shift;
         # print "  Splitting Diamond file\n";
 	my $numthreads=shift;
         print syslogfile "  Splitting Diamond file\n";
@@ -98,7 +99,7 @@ sub splitfiles {
         my $nextp=$splitlines;
         my ($filelines,$splitorf);
         my $numfile=1;
-        print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
+        # print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
         open(outfiletemp,">$tempdir/diamond_collapse.$numfile.m8");
         open(infile2,$blastfile) || die "Can't open Diamond file $blastfile\n";
         while(<infile2>) {

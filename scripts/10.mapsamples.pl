@@ -128,11 +128,11 @@ foreach my $thissample(keys %allsamples) {
 	else { $par1name="$projectname.$thissample.current_1"; }
 	if($pair2[0]=~/gz/) { $par2name="$projectname.$thissample.current_2.gz"; }
 	else { $par2name="$projectname.$thissample.current_2";}
-	my $a1=join(" ",@pair1);					
-	$command="cat $a1 > $tempdir/$par1name; ";	
+	my $a1=join(" ",@pair1);	
+	if($#pair1>0) {	$command="cat $a1 > $tempdir/$par1name; "; } else { $command="cp $a1 $tempdir/$par1name; "; }	
 	if($#pair2>=0) { 
 		my $a2=join(" ",@pair2);	
-		$command.="cat $a2 > $tempdir/$par2name;";	
+		if($#pair2>0) {	$command.="cat $a2 > $tempdir/$par2name; "; } else { $command.="cp $a2 $tempdir/$par2name; "; }	
 		}
 	print "  Getting raw reads\n";
 	# print "$command\n";
@@ -171,8 +171,8 @@ foreach my $thissample(keys %allsamples) {
 	print outsyslog "Aligning with $mapper: $command\n";
 	system($command);
         my $ecode = 0;
-	#if(-e $outsam) {} else { $ecode = system $command; }
-        #if($ecode!=0)     { die "An error occurred during mapping!"; }
+	if(-e $outsam) {} else { $ecode = system $command; }
+        if($ecode!=0)     { die "An error occurred during mapping!"; }
 
 	#-- Calculating contig coverage/RPKM
 
@@ -181,7 +181,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- And then we call the counting
 	
 	 system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
-	 print outsyslog "Calling sqm_counter\n";
+	 print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
 	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
 }
 if($warnmes) { 
@@ -189,9 +189,9 @@ if($warnmes) {
 	if($mincontiglen>200) { 
 		print outfile1 "# Notice also that you set the minimum contig length to $mincontiglen. In this way you are removing the contigs shorter than that size. This can be, at least partially, the cause of this low mapping percentage\n";
 		print outfile1 "# It is likely that redoing the analysis with the default minimum contig length (200) can solve this problem\n";
-		print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl fr this purpose (But you will lose the binnning results)\n";
+		print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n";
 		}
-	else { print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl for this purpose (but you will lose the binning information)\n"; }
+	else { print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n"; }
 	}
 
 close outfile1;
@@ -203,6 +203,7 @@ system("rm $bowtieref.*");	#-- Deleting bowtie references
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
 	
 my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+print outsyslog "Sorting mapcount table: $command\n";
 system($command);	
 
 
@@ -239,17 +240,20 @@ sub sqm_counter {
 		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@/));
 		my @k=split(/\t/,$_);
 		my $readid=$k[0];
-		next if($readid eq $lastread);       #-- Minimap2 can output more than one alignment per read
-		next if($k[2]=~/\*/);
+		next if(($k[0] eq $lastread) && ($mapper=~/minimap2/));       #-- Minimap2 can output more than one alignment per read
+		$countreads++;
+		if($countreads%1000000==0) { 
+			my $million=int($countreads/1000000);
+			print "  $million","M reads counted\r"; 
+			}
 		$lastread=$readid;
 		my $cigar=$k[5];
+		next if($k[2]=~/\*/);
 		next if($cigar eq "*");
 		# print "\n$_\n";
 		my $initread=$k[3];                     
 		my $incontig=$k[2];
 		my $endread=$initread;
-		$countreads++;
-		if($countreads%1000000==0) { print "  $countreads reads counted\r"; }
 		#-- Calculation of the length match end using CIGAR string
 
 		while($cigar=~/^(\d+)([IDMNSHPX])/) {
@@ -267,7 +271,7 @@ sub sqm_counter {
 			# print "  $incontig*$initread-$endread*$initgen-$endgen*\n"; 
 			if((($initread>=$initgen) && ($initread<=$endgen)) && (($endread>=$initgen) && ($endread<=$endgen))) {   #-- Read is fully contained in the gene
 				$basesingen=$endread-$initread;
-				if($verbose) { print "Read contenido: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
+				if($verbose) { print "Read within gene: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				# print outfile2 "$readid\t$genname\t$basesingen\n";
 				$accum{$genname}{reads}++;
 				$accum{$genname}{bases}+=$basesingen;
@@ -275,19 +279,19 @@ sub sqm_counter {
 			elsif(($initread>=$initgen) && ($initread<=$endgen)) {   #-- Read starts within this gene
 				$basesingen=$endgen-$initread;
 				# print outfile2 "$readid\t$genname\t$basesingen\n";
-				if($verbose) {  print "Inicio read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
+				if($verbose) {  print "Start of read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				$accum{$genname}{reads}++;
 				$accum{$genname}{bases}+=$basesingen;
 				}
  			elsif(($endread>=$initgen) && ($endread<=$endgen)) {   #-- Read ends within this gene
 				$basesingen=$endread-$initgen;
-				if($verbose) {  print "Final read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
+				if($verbose) {  print "End of read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				# print outfile2 "$readid\t$genname\t$basesingen\n";
 				$accum{$genname}{bases}+=$basesingen;
 				$accum{$genname}{reads}++;
 				}
 			elsif(($initread<=$initgen) && ($endread>=$endgen)) {  #-- Gen is fully contained in the read
-				if($verbose) {  print "Gen contenido: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
+				if($verbose) {  print "Gene within read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				$basesingen=$endgen-$initgen;
 				# print outfile2 "$readid\t$genname\t$basesingen\n";
 				$accum{$genname}{reads}++;
@@ -363,6 +367,9 @@ sub contigcov {
 			next if($thisr eq $lastr);
 			$lastr=$thisr;
 			if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+				$thisr=$t[0];
+				next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
+				$lastr=$thisr;
 				$readcount{$t[2]}{reads}++;
 				$readcount{$t[2]}{lon}+=length $t[9];
 				$mappedreads++;

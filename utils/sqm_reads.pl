@@ -36,7 +36,7 @@ my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
 
-my $version="0.1.0, Sept 2019";
+my $version="1.2.0, Jun 2020";
 my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
@@ -77,7 +77,6 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "e|evalue=f" => \$evalue,   
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
-		     "nodiamond" => \$nodiamond,   
 		     "nodiamond" => \$nodiamond,   
 		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
@@ -190,10 +189,22 @@ foreach my $thissample(keys %allsamples) {
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		print "   File: $thisfile\n";
 		my $idenf=$allsamples{$thissample}{$thisfile};
-		if($thisfile=~/fastq.gz/) { system("zcat $rawseqs/$thisfile | wc > rc.txt"); }
-		elsif($thisfile=~/fastq/) { system("wc $rawseqs/$thisfile > rc.txt"); }
-		elsif($thisfile=~/fasta.gz/) { system("zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"); }
-		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $rawseqs/$thisfile > rc.txt"); }
+		my($seqformat,$seqcompress);
+		if($thisfile=~/\.fq\.|\.fq$|\.fastq\.|\.fastq$/) { $seqformat="fastq"; }
+		elsif($thisfile=~/\.fa\.|\.fa$|\.fasta\.|\.fasta$/) { $seqformat="fasta"; }
+		else { die "Unrecognized file format (must be fq, fastq, fa or fasta)\n"; }
+		if($thisfile=~/\.gz$/) { $seqcompress="gz"; }
+		my $command;
+		if($seqformat eq "fastq") {
+			if($seqcompress) { $command="zcat $rawseqs/$thisfile | wc > rc.txt"; }
+			else { $command="wc $rawseqs/$thisfile > rc.txt"; }
+			}
+		else {
+			if($seqcompress) { $command="zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"; }
+			else { $command="grep -c \"^>\" $rawseqs/$thisfile > rc.txt"; }
+			}
+		system($command);
+		# print "$seqformat; Counting reads: $command\n";
 		open(inw,"rc.txt");
 		my $line=<inw>;
 		$line=~s/^\s+//g;
@@ -201,7 +212,7 @@ foreach my $thissample(keys %allsamples) {
 		my $numseqs=$l[0];
 		close inw;
 		chomp $numseqs;
-		if($thisfile=~/fastq/) { $numseqs/=4; }
+		if($seqformat eq "fastq") { $numseqs/=4; }
 		system("rm rc.txt");
 		$totalseqs{$thisfile}++;
 		$currtime=timediff();
@@ -535,4 +546,5 @@ sub timediff {
 	my $timesp = Time::Seconds->new( $run_time );
 	return $timesp;
 }
+
 

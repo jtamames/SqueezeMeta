@@ -21,6 +21,8 @@ do "$projectdir/parameters.pl";
 our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction21,%bindirs,%dasdir);
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file in $syslogfile for writing\n";
+
 print " Running MinPath (Ye and Doak 2009, PLoS Comput Biol 5(8), e1000465)\n";
 open(infile1,"$extdatapath/metacyc_pathways_onto.txt") || die "Can't open $extdatapath/metacyc_pathways_onto.txt\n";
 while(<infile1>) { 
@@ -121,6 +123,7 @@ sub outres {
 	}
  
 sub metacyc {
+	my $ff=1;
 	foreach my $kbin(sort keys %ecs) {
 		my $outec="$tempdir/$kbin.minpath.temp";
 		open(outfile1,">$outec") || die "Can't open $outec for writing\n";
@@ -135,7 +138,8 @@ sub metacyc {
 		close outfile1; 
 		print "  Running MinPath for metacyc: $kbin         \r";
 		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
-		print outsyslog "Running MinPath for metacyc ($kbin): $command \n";
+		if($ff) { print outsyslog "Running MinPath for metacyc ($kbin): $command \n"; } else { print outsyslog "$kbin "; }
+		$ff=0;
 		my $ecode = system $command;
  		if($ecode!=0) {
 			print "  WARNING: Error running command:    $command\n";
@@ -176,9 +180,11 @@ sub metacyc {
 		close outfile4;     
 		}
 	print "\n";				 
+	print outsyslog "\n";
 	}
 
 sub kegg {
+	my $ff=1;
 	foreach my $kbin(sort keys %kegg) {
 		my $outkegg="$tempdir/$kbin.minpath.temp.kegg";
 		my($binmethod,$rest)=split(/\./,$kbin);
@@ -194,7 +200,8 @@ sub kegg {
 		close outfile3;	
 		print "  Running MinPath for kegg: $kbin         \r";
 		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $outdir/$kbin.kegg.details > /dev/null";
-		print outsyslog "Running MinPath for kegg ($kbin): $command \n";
+		if($ff) { print outsyslog "Running MinPath for kegg ($kbin): $command \n"; } else { print outsyslog "$kbin "; }
+		$ff=0;
 		my $ecode = system $command;
  		if($ecode!=0) {
 			print "  WARNING: Error running command:    $command\n";
@@ -237,6 +244,7 @@ sub kegg {
 		close outfile4;     
 		}
 	print "\n";
+	print outsyslog "\n";
 	}				 
 
 

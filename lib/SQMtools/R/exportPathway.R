@@ -56,25 +56,21 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
     if(!is.null(color_bins) & !is.numeric(color_bins)) { stop('color_bins must be numeric') }
     color_bins = ceiling(color_bins) # Make sure it is a positive integer.
 
-    if(!is.null(samples))
-        {
-	missing_samples = setdiff(samples, SQM$misc$samples)
-        if(length(missing_samples) > 0)
-            {
-            str = paste(missing_samples, collapse = '", "')
-	    stop(sprintf('Samples "%s" are not present in this SQM object', str))
-	    }
-        }
-   
+    check.samples(SQM, samples)
+ 
     if(count %in% c('percent', 'copy_number')) { pseudocount = 0.001 } else { pseudocount = 1 }
  
-
     ### Select data matrix.
     if(count=='percent') { mat = 100 * t(t(SQM$functions$KEGG$abund) / colSums(SQM$functions$KEGG$abund))
     } else { mat = SQM$functions$KEGG[[count]] }
 
+    if(ncol(mat) > 24)
+        {
+        warning('We\'ve found that pathview fails when trying to display more than 24 different items, so unless you are grouping your samples with fold_change_groups this will likely not work')
+        cat('We\'ve found that pathview fails when trying to display more than 24 different items, so unless you are grouping your samples with fold_change_groups this will likely not work\n')
+        }
     ### Do stuff.
-    if(!is.null(samples)) { mat = mat[,samples] }
+    if(!is.null(samples)) { mat = mat[,samples,drop=F] }
 
     if(!is.null(sample_colors))
         {
