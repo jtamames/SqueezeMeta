@@ -1,6 +1,6 @@
 #' Combine several SQM objects
 #'
-#' Combine an arbitrary number of SQM objects into a single SQM object.
+#' Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link[combineSQMlite]{combineSQMlite}}.
 #' @param ... an arbitrary number of SQM objects
 #' @param tax_source character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}). If the objects being combined contain a subset of taxa or bins, this parameter can be set to \code{TRUE}.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
@@ -8,7 +8,7 @@
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{TRUE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object with the highest RecA/RadA coverages. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected bins or contigs}. If any SQM objects that are being combined contain a functional subset rather than a contig/bins subset, this parameter should be set to \code{FALSE}.
 #' @return A SQM object
-#' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}
+#' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}, \code{\link[combineSQMlite]{combineSQMlite}}
 #' @examples
 #' data(Hadza)
 #' # Select Carbohydrate metabolism ORFs in Bacteroidetes, and Amino acid metabolism ORFs in Proteobacteria
@@ -31,7 +31,10 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
 
     if(class(SQM1) != 'SQM' | class(SQM2) != 'SQM') { stop('This function only accepts SQM objects') }
 
-    stopifnot(identical(colnames(SQM1$orfs$table), colnames(SQM2$orfs$table)))
+    if (!identical(colnames(SQM1$orfs$table), colnames(SQM2$orfs$table)))
+        {
+        stop('The input objects do not seem to come from the same SQM project')
+        }
     combSQM = SQM1
 
     ### ORFs

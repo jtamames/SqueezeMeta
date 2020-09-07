@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 
 #-- Part of SqueezeMeta distribution. 01/05/2018 Original version, (c) Javier Tamames, CNB-CSIC
-#-- Runs assembly programs (currently megahit or spades) for several metagenomes that will be merged in the next step (merged mode).
-#-- Uses prinseq to filter out contigs by length (excluding small ones).
+#-- Creates final statistics for the run
 
 use strict;
 use Cwd;
@@ -210,11 +209,12 @@ if(!$nobins) {
 
 	#-- Date of the start of the run
 
+my $startdate;
 open(infile6,"$projectdir/syslog") || warn "Can't open syslog file in $projectdir/syslog\n";
-$_=<infile6>;
-my $startdate=<infile6>;
-$startdate.=<infile6>;
-chomp $startdate;
+while(<infile6>) {
+	chomp;
+	if($_=~/^Run started/) { $startdate=$_; }
+	}
 close infile6; 
 		
 

@@ -43,7 +43,7 @@ tie %provhits,"Tie::IxHash";
 tie %accum,"Tie::IxHash";
 tie %accumnofilter,"Tie::IxHash";
 
-open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 #-- Reads the taxonomic tree (parsed from NCBI's taxonomy in the parents.txt file)
 
@@ -95,6 +95,7 @@ print syslogfile "  Creating $fun3tax.noidfilter.wranks file: $catcommand\n";
 system $catcommand;
 print syslogfile "  Removing temporaty diamond files in $tempdir\n";
 # system("rm $tempdir/diamond_lca.*.m8");
+close syslogfile;
  
 
 sub splitfiles {
@@ -107,11 +108,11 @@ sub splitfiles {
 	chomp $wc;
 	$wc=~s/\s+.*//;    #-- Number of lines in the diamond result
 	my $splitlines=int($wc/$numthreads);
-	print syslogfile "Total lines in Diamond: $wc; Allocating $splitlines in $numthreads threads\n";
+	print syslogfile "  Total lines in Diamond: $wc; Allocating $splitlines in $numthreads threads\n";
 	my $nextp=$splitlines;
 	my ($filelines,$splitorf);
 	my $numfile=1;
-	print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n";
+	print syslogfile "  Opening file $numfile in line $filelines (estimated in $nextp)\n";
 	open(outfiletemp,">$tempdir/diamond_lca.$numfile.m8");
 	open(infile2,$infile) || die "Can't open Diamond file $infile\n"; 
 	while(<infile2>) {
@@ -122,7 +123,7 @@ sub splitfiles {
 		elsif($f[0] ne $splitorf) { 
 			close outfiletemp;
 			$numfile++;
-			print syslogfile "Opening file $numfile in line $filelines (estimated in $nextp)\n"; 
+			print syslogfile "  Opening file $numfile in line $filelines (estimated in $nextp)\n"; 
 			open(outfiletemp,">$tempdir/diamond_lca.$numfile.m8");
 			print outfiletemp $_;
 			$nextp+=$splitlines;
@@ -138,7 +139,7 @@ sub current_thread {
 #-- Preparing the output files
 
 my $threadnum=shift;
-print syslogfile "Starting thread $threadnum\n";
+print syslogfile "  Starting thread $threadnum\n";
 
 #-- Prepare the LCA database (containing the acc -> tax correspondence)
 

@@ -1,0 +1,15 @@
+.onAttach = function(...)
+    {
+    packageStartupMessage('')
+    packageStartupMessage(sprintf('This is SQMtools version %s', .__NAMESPACE__.$spec['version']))
+    packageStartupMessage('')
+    packageStartupMessage('SQMtools is an open source software package distributed under GNU General')
+    packageStartupMessage('Public License version 3 (GPLv3). Details of GPLv3 is available at')
+    packageStartupMessage('http://www.gnu.org/licenses/gpl-3.0.html. If using it in publications')
+    packageStartupMessage('or products, please cite:')
+    packageStartupMessage('')
+    packageStartupMessage('Puente-Sánchez F., García-García N. and Tamames J., SQMtools: automated')
+    packageStartupMessage('processing and visual analysis of ’omics data with R and anvi’o.')
+    packageStartupMessage('BMC Bioinformatics 21, 358 (2020). doi: 10.1186/s12859-020-03703-2.')
+    packageStartupMessage('')
+    }

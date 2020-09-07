@@ -19,7 +19,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile);
+our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile,$numthreads);
 my %skip;
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
@@ -110,7 +110,7 @@ close outfile1;
 
 	#-- Running metabat2
 
-my $command="$metabat_soft -t 8 -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
+my $command="$metabat_soft -t $numthreads -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
 print outsyslog "Running metabat2 : $command\n";
 print "  Running metabat2 (Kang et al 2019, PeerJ 7, e7359)\n";
 my $ecode = system $command;

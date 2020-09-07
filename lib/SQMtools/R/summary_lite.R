@@ -11,6 +11,7 @@ summary.SQMlite = function(SQM)
     res$project_name = SQM$misc$project_name
 
     res$nReads = colSums(SQM$taxa$superkingdom$abund)
+    res$nORFs  = colSums(SQM$functions[[1]]$abund)
     res$taxa   = list()
 
     sk = rownames(SQM$taxa$superkingdom$abund)
@@ -97,7 +98,8 @@ print.summary.SQMlite = function(summ)
     cat( sprintf('\tBASE PROJECT NAME: %s\n', summ$project_name) )
     cat('\n')
     cat( sprintf('\t\t%s\n'            , paste(summ$samples                        , collapse='\t')) )
-    cat( sprintf('\tTOTAL READS\t%s\n' , paste(summ$nReads                         , collapse='\t')) )
+    cat( sprintf('\tTOTAL READS\t%s\n' , paste(summ$nReads                         , collapse='\t')) )    
+    cat( sprintf('\tTOTAL ORFs\t%s\n' , paste(summ$nORFs                           , collapse='\t')) )
     cat('\n\t----------------------------------------------------------\n\n')
     cat('\tTAXONOMY:\n\n')
     cat('\tClassified reads:\n')
@@ -121,7 +123,7 @@ print.summary.SQMlite = function(summ)
     cat( sprintf('\tSpecies\t%s\n'     , paste(summ$taxa$species$most_abundant     , collapse='\t')) )
     cat('\n\t----------------------------------------------------------\n\n')
     cat('\tFUNCTIONS:\n')
-    cat('\tClassified reads:\n')
+    cat('\tClassified ORFs:\n')
     cat( sprintf('\t\t%s\n'            , paste(summ$samples                        , collapse='\t')) )
     for(method in names(summ$functions))
         {
@@ -148,6 +150,7 @@ most_abundant_row = function(table, ignore_unclassified=T)
     if(ignore_unclassified) { table = table[!grepl('Unclassified', rownames(table)),,drop=F] }
     colMaxsIdx = apply(table, 2, which.max)
     res = rownames(table)[colMaxsIdx]
+    if(is.null(res)) { res = rep('Unclassified', ncol(table)) }
     names(res) = colnames(table)
     return(res)
     }

@@ -9,7 +9,8 @@ plotFunctions(
   fun_level = "KEGG",
   count = "tpm",
   N = 25,
-  fun = c(),
+  fun = NULL,
+  samples = NULL,
   ignore_unclassified = T,
   gradient_col = c("ghostwhite", "dodgerblue4"),
   base_size = 11
@@ -25,6 +26,8 @@ plotFunctions(
 \item{N}{integer Plot the \code{N} most abundant functions (default \code{25}).}
 
 \item{fun}{character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).}
+
+\item{samples}{character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).}
 
 \item{ignore_unclassified}{logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).}
 

@@ -94,6 +94,7 @@ else {
 		}
 	close infile0;
 	close outfile0;
+	system("rm $finalcontigs.prov");
 			
 
 	#-- Remove files from temp

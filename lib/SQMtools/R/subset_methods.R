@@ -2,7 +2,8 @@
 #'
 #' Create a SQM object containing only the ORFs with a given function, and the contigs and bins that contain them.
 #' @param SQM SQM object to be subsetted.
-#' @param fun character, pattern to search for in the different functional classifications.
+#' @param fun character. Pattern to search for in the different functional classifications.
+#' @param columns character. Restrict the search to the provided column names from \code{SQM$orfs$table}. If not provided the search will be performed in all the columns containing functional information (default \code{NULL}).
 #' @param ignore_case logical Make pattern matching case-insensitive (default \code{TRUE}).
 #' @param fixed logical. If \code{TRUE}, pattern is a string to be matched as is. If \code{FALSE} the pattern is treated as a regular expression (default \code{FALSE}).
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
@@ -15,41 +16,23 @@
 #' data(Hadza)
 #' Hadza.iron = subsetFun(Hadza, "iron")
 #' Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
+#' # Search for multiple patterns using regular expressions
+#' Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=F)
 #' @export
-subsetFun = function(SQM, fun, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
+subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
 
-    searchSpace = paste(SQM$orfs$table[,'Gene name'],
-                        SQM$orfs$table[,'KEGG ID'],
-                        SQM$orfs$table[,'KEGGFUN'],
-                        SQM$orfs$table[,'KEGGPATH'],
-                        SQM$orfs$table[,'COG ID'],
-                        SQM$orfs$table[,'COGFUN'],
-                        SQM$orfs$table[,'COGPATH'],
-                        SQM$orfs$table[,'PFAM'])
-
-    for(method in SQM$misc$ext_annot_sources)
-        {
-        name = sprintf('%s NAME', method)
-        searchSpace = paste(searchSpace, SQM$orfs$table[,method], SQM$orfs$table[,name])
+    if(is.null(columns))
+        { columns = c('Gene name', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM')
+        for(method in SQM$misc$ext_annot_sources) { columns = c(columns, method, sprintf('%s NAME', method)) }
         }
 
-    goodORFs = grepl(fun, searchSpace, ignore.case = ignore_case, fixed=fixed)
+    goodRows = rep(FALSE, nrow(SQM$orfs$table))
+    for(col in columns) { goodRows = goodRows | grepl(fun, SQM$orfs$table[,col], ignore.case = ignore_case, fixed=fixed) }
 
+    goodORFs = rownames(SQM$orfs$table)[goodRows]
 
-    # In the old code below, multi-pattern greps with AND had to be ALL TRUE in at least one table field.
-    # The code above creates a single query string per gene, so the different patterns can be TRUE in different fields, and multi-pattern grep will still be TRUE.
-    #goodORFs = rownames(SQM$orfs$table)[
-    #                                    grepl(fun, SQM$orfs$table[,'Gene name'], ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'KEGG ID']  , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'KEGGFUN']  , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'KEGGPATH'] , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'COG ID']   , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'COGFUN']   , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'COGPATH']  , ignore.case=ignore_case, fixed=fixed) | 
-    #                                    grepl(fun, SQM$orfs$table[,'PFAM']     , ignore.case=ignore_case, fixed=fixed)
-    #                                   ]
     return ( subsetORFs(SQM, goodORFs, tax_source = 'orfs',
                         trusted_functions_only = trusted_functions_only,
                         ignore_unclassified_functions=ignore_unclassified_functions,
