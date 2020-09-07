@@ -100,7 +100,7 @@ else {
                 $outassembly="$datapath/flye/contigs.fasta";
                 $command="$flye_soft $assembler_options -o $datapath/flye --plasmids --meta --genome-size 2.6g --threads $numthreads --nano-raw $par1name > $syslogfile 2>&1; "; 
                 $command.="mv $datapath/flye/assembly.fasta $outassembly";
-                print outmet "Assembly was done using Flye (Kolmogorov et al 2019, Nature Biotech 37, 540–546)\n";
+                print outmet "Assembly was done using Flye (Kolmogorov et al 2019, Nature Biotech 37, 540-546)\n";
           }
 
 
