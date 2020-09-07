@@ -502,14 +502,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         }
 
 
-    ### Check whether the tables come from a SQM longreads project.
-    if(any(colSums(SQM$taxa$superkingdom$abund) < colSums(SQM$functions[[1]]$abund)))
-        {
-        cat('Column sums in the taxonomy tables are lower than in the function tables. This is ok as long as the project was generated from long reads.\n')
-	SQM$longreads = TRUE
-        }
-
-
     cat('Loading total reads\n')
     lines           = readLines(sprintf('%s/results/10.%s.mappingstat', project_path, project_name))
     evilLines       = (substr(lines,1,1) == '#' & substr(lines,1,8) != '# Sample') | substr(lines,1,1) == ''

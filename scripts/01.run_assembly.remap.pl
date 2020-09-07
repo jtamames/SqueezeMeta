@@ -83,15 +83,15 @@ else {
 		else { $command="$spades_soft --meta --s1 $par1name  -m 400 -k 21,33,55,77,99,127 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile"; } #-- Support for single reads
 		print outmet "Assembly was done using SPAdes (Bankevich et al 2012, J Comp Biol 19(5):455-77)\n";
 		}
-        elsif($assembler=~/canu/i) {
+	elsif($assembler=~/canu/i) {
                 system("rm -r $datapath/canu/* > /dev/null 2>&1");
-                $outassembly="$datapath/canu/contigs.fasta";
-                if($canumem eq "NF") {
-                        print "  Setting available memory for Canu\n";
-                        my %mem=get_mem_info;
-                        my $ram=$mem{"MemAvailable"}/(1024*1024);
-                        my $ramstr=sprintf('%.2f',$ram);
-                        $canumem=sprintf('%.0f',int($ram));
+		$outassembly="$datapath/canu/contigs.fasta";
+		if($canumem eq "NF") {
+			print "  Setting available memory for Canu\n";
+			my %mem=get_mem_info;
+			my $ram=$mem{"MemAvailable"}/(1024*1024);
+			my $ramstr=sprintf('%.2f',$ram);
+			$canumem=sprintf('%.0f',int($ram));
 			print "  AVAILABLE (free) RAM memory: $ramstr Gb. We will set canu to use $canumem Gb.\n  You can override this setting using the -canumem option when calling SqueezeMeta.pl\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ramstr Gb)\n";
 			}
@@ -101,20 +101,7 @@ else {
      	  }
 
 
-	        elsif($assembler=~/flye/i) {
-                system("rm -r $datapath/flye > /dev/null 2>&1");
-                $outassembly="$datapath/flye/assembly.fasta";
-                print outmet "Assembly was done using Flye (Kolmogorov et al 2019, Nat Biotech 37:540–546)\n";
-                $command="/home/tamames/Flye/bin/flye -o $datapath/flye --plasmids --meta --genome-size 5m --threads $numthreads --nano-raw $par1name >> $syslogfile";
-                }
-        elsif($assembler=~/raven/i) {
-                system("rm -r $datapath/raven > /dev/null 2>&1");
-                system("mkdir $datapath/raven > /dev/null 2>&1");
-                $outassembly="$datapath/raven/contigs.fasta";
-                print outmet "Assembly was done using Raven (Vaser and Sikic 2019, BioRxiv 10.1101/656306\n";
-                $command="/home/tamames/raven/build/bin/raven --graphical-fragment-assembly $datapath/raven/graph.gfa --threads $numthreads $par1name > $outassembly";
-                }
-        elsif($assembler) { die "Unrecognized assembler\n"; }
+	else { die "Unrecognized assembler\n"; }
 	
 	#-- Run assembly
 
@@ -241,7 +228,6 @@ foreach my $thissample(keys %allsamples) {
 	#-- Now we start mapping reads against contigs
 	
 	print "  Aligning to reference with $mapper\n";
-	system("mkdir $samdir");
 	if($keepsam10) { $outsam="$samdir/$projectname.$thissample.sam"; } else { $outsam="$samdir/$projectname.$thissample.current.sam"; }
 	
 	#-- Support for single reads
@@ -279,7 +265,7 @@ system("cp $provcontigs $provcontigs.old");
 		if($k[2]=~/\*/) { 
 			print outsingletons ">$k[0]\n$k[9]\n";
 			$cocount++;
-                	my $newcontigname="$assembler\_$cocount $readid";
+                	my $newcontigname="$assembler\_$cocount";
                 	print outfile1 ">$newcontigname\n$k[9]\n";
 			}
 		}

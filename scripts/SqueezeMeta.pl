@@ -66,7 +66,7 @@ Arguments:
    -cleaning_options [options]: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
    
  Assembly: 
-   -a: assembler <megahit,spades,canu,flye,raven> (Default: megahit)
+   -a: assembler <megahit,spades,canu> (Default: megahit)
    -assembly_options [options]: Options for required assembler
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).

@@ -14,7 +14,6 @@ summary.SQM = function(SQM)
     res$reads_in_orfs        = colSums(SQM$orfs$abund)
     res$original_reads       = SQM$total_reads
     res$percent_in_orfs      = 100 * res$reads_in_orfs / res$original_reads
-    if(!is.null(SQM$longreads)) { res$longreads = TRUE }
 
     res$contigs = list()
     res$contigs$nContigs     = nrow(SQM$contigs$table)
@@ -85,15 +84,9 @@ print.summary.SQM = function(summ)
     cat('\n\t----------------------------------------------------------\n\n')
     cat('\tREADS:\n\n')
     cat( sprintf('\t\t%s\n'               , paste(summ$samples                  , collapse='\t')) )
-    if(!is.null(summ$longreads)){
-        cat( sprintf('\tInput reads\t%s\n'     , paste(summ$original_reads               , collapse='\t')) )
-        cat( sprintf('\tTotal ORF counts\t%s\n', paste(summ$reads_in_orfs                , collapse='\t')) )
-	cat( sprintf('\tORFs per read\t%s\n'   , paste(round(summ$percent_in_orfs/100, 1), collapse='\t')) )
-    } else{
-        cat( sprintf('\tMapping to ORFs\t%s\n', paste(summ$reads_in_orfs            , collapse='\t')) )
-        cat( sprintf('\tInput reads\t%s\n'    , paste(summ$original_reads           , collapse='\t')) )
-        cat( sprintf('\tPercent\t%s\n'        , paste(round(summ$percent_in_orfs, 1), collapse='\t')) )
-    }
+    cat( sprintf('\tMapping to ORFs\t%s\n', paste(summ$reads_in_orfs            , collapse='\t')) )
+    cat( sprintf('\tInput reads\t%s\n'    , paste(summ$original_reads           , collapse='\t')) )
+    cat( sprintf('\tPercent\t%s\n'        , paste(round(summ$percent_in_orfs, 1), collapse='\t')) )
     cat('\n\t----------------------------------------------------------\n\n')
     cat('\tCONTIGS:\n')
     cat( sprintf('\tNumber of contigs:\t%s\n'    , summ$contigs$nContigs    ) ) 
