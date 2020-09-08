@@ -53,6 +53,7 @@ $allorfs         = "$tempdir/09.$projectname.allorfs";          #-- From summary
 $alllog          = "$interdir/09.$projectname.contiglog";       #-- From summary_contigs.pl, contiglog file (formerly alllog file)
 $mapcountfile    = "$interdir/10.$projectname.mapcount";        #-- From mapsamples.pl, rpkm and coverage counts for all samples
 $contigcov       = "$interdir/10.$projectname.contigcov";       #-- From mapbamsamples.pl, coverages of  for all samples
+$mappingstat     = "$resultpath/10.$projectname.mappingstat";   #-- From mapsamples.pl, mapping statistics for all samples
 $mcountfile      = "$resultpath/11.$projectname.mcount";        #-- From mcount.pl, abundances of all taxa
 $mergedfile      = "$resultpath/13.$projectname.orftable";      #-- Gene table file
 $bintax          = "$interdir/17.$projectname.bintax";          #-- From addtax2.pl

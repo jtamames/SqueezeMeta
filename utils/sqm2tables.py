@@ -13,7 +13,7 @@ USAGE: sqm2tables.py [-h] project_path output_dir
 OPTIONS:
     --trusted-functions: Include only ORFs with highly trusted KEGG and
         COG assignments in aggregated functional tables
-    --ignore-unclassified: Ignore ORFs without assigned functions in
+    --ignore-unclassified: Ignore reads without assigned functions in
         TPM calculation
     --sqm2anvio: Write the required files for sqm2anvio
     --force-overwrite: Write results even if the output directory
@@ -32,7 +32,7 @@ utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
 data_dir = '{}/../data'.format(utils_home)
 
-from utils import parse_conf_file, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS 
+from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS 
 
 
 def main(args):
@@ -52,8 +52,10 @@ def main(args):
             print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
             exit(1)
 
-    ### Calculate tables and write results.
     prefix = args.output_dir + '/' + perlVars['$projectname'] + '.'
+
+    ### Load total reads and bases
+    total_reads, total_bases = parse_mappingstat(perlVars['$mappingstat'])
     
     ### Functions
     if not args.sqm2anvio:
@@ -62,7 +64,8 @@ def main(args):
         customMethods = [method for method in methods if method not in ('kegg', 'cog', 'pfam', 'wranks')]
 
         # Parse ORF table.
-        sampleNames, orfs, kegg, cog, pfam, custom = parse_orf_table(perlVars['$mergedfile'], nokegg, nocog, nopfam, args.trusted_functions, args.ignore_unclassified, customMethods, data_dir)
+        sampleNames, orfs, kegg, cog, pfam, custom = parse_orf_table(perlVars['$mergedfile'], total_reads, total_bases, nokegg, nocog, nopfam,
+                                                                     args.trusted_functions, args.ignore_unclassified, customMethods, data_dir)
 
         # Round aggregated functional abundances.
         # We can have non-integer abundances bc of the way we split counts in ORFs with multiple KEGGs.
@@ -156,10 +159,12 @@ def main(args):
 
         for idx, rank in enumerate(TAXRANKS):
             tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter_wranks, idx)
+            tax_abunds_orfs['Unmapped'] = total_reads - sum(tax_abunds_orfs.values())
             write_row_dict(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.tsv'.format(rank))
             #write_row_dict(sampleNames, normalize_abunds(tax_abunds_orfs, 100), prefix + '{}.prokfilter.percent.tsv'.format(rank))
 
             tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
+            tax_abunds_contigs['Unmapped'] = total_reads - sum(tax_abunds_contigs.values())
             write_row_dict(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
             #write_row_dict(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 

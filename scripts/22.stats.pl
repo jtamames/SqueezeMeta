@@ -21,7 +21,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
+our($datapath,$tempdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mappingstat,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
 
 my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
@@ -46,8 +46,7 @@ if($opt_db) {
 my @ranks=('k','p','c','o','f','g','s');
 my %equirank=('k','superkingdom','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 my($totalbases,$totalreads);
-my $mapfile="$resultpath/10.$project.mappingstat";
-open(infile1,$mapfile) || die "Can't open $mapfile\n";
+open(infile1,$mappingstat) || die "Can't open $mappingstat\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
