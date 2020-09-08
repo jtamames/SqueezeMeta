@@ -121,7 +121,7 @@ as.matrix.generic.data.table = function(x)
 #' @noRd
 rbind.generic.data.table = function(...)
     {
-    res = data.table:::rbind.data.table(...)
+    res = data.table:::rbindlist(list(...))
     rownames(res) = res$rn
     class(res) = c('generic.data.table', class(res))
     return(res)
