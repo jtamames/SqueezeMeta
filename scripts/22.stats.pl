@@ -47,7 +47,7 @@ my @ranks=('k','p','c','o','f','g','s');
 my %equirank=('k','superkingdom','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 my($totalbases,$totalreads);
 my $mapfile="$resultpath/10.$project.mappingstat";
-open(infile1,$mapfile) || die "Can't open $mapfile\n";
+open(infile1,$mapfile) || warn "Can't open $mapfile\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -64,8 +64,8 @@ close infile1;
 my(%contigs,%contax);
 my $command="$prinseq_soft -stats_info -stats_assembly -stats_len -fasta $contigsfna > $tempdir/stats.txt";
 my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
-open(infile2,"$tempdir/stats.txt") || die "Can't open $tempdir/stats.txt\n";
+if($ecode!=0) { warn "Error running command:    $command"; }
+open(infile2,"$tempdir/stats.txt") || warn "Can't open $tempdir/stats.txt\n";
 while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -81,7 +81,7 @@ close infile2;
 
 	#-- Statistics on contigs (disparity, assignment..)
 
-open(infile3,$contigtable) || die "Can't open $contigtable\n";
+open(infile3,$contigtable) || warn "Can't open $contigtable\n";
 while(<infile3>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -104,7 +104,7 @@ close infile3;
 my $header;
 my @head;
 my %genes;
-open(infile4,$mergedfile) || die "Can't open $mergedfile\n";
+open(infile4,$mergedfile) || warn "Can't open $mergedfile\n";
 while(<infile4>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -153,7 +153,7 @@ while(<infile4>) {
 	}
 close infile4;
 
-open(infile4,$mcountfile)  || die "Can't open $mcountfile\n";
+open(infile4,$mcountfile)  || warn "Can't open $mcountfile\n";
 my $cheader=<infile4>;
 chomp $cheader;
 my @chead=split(/\t/,$cheader);
@@ -178,7 +178,7 @@ my %bins;
 if(!$nobins) {
 	my $header;
 	if(-e $bintable) {
-		open(infile5,$bintable) || die "Can't open $bintable\n";
+		open(infile5,$bintable) || warn "Can't open $bintable\n";
 		while(<infile5>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
