@@ -12,7 +12,7 @@ our $AUTHOR = "SQM";
 our $PROGRAM = $0;
 
 ## Defaults:
-my $blastfile=pop @ARGV;
+my $blastfile;
 my $min_identity = 20;
 my $min_alilong = 0;
 my $min_overlap = 0.8;
@@ -83,8 +83,7 @@ system("rm $tempdir/wc");
 close syslogfile;
 
 sub splitfiles {
-	my $numthreads=shift;
-        # print "  Splitting Diamond file\n";
+       # print "  Splitting Diamond file\n";
 	my $numthreads=shift;
         print syslogfile "  Splitting Diamond file\n";
         system("wc -l $blastfile > $tempdir/wc");
