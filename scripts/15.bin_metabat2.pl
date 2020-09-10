@@ -19,7 +19,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$interdir,$singletons,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile);
+our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$interdir,$singletons,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile,$numthreads);
 my %skip;
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
