@@ -627,6 +627,20 @@ sub pipeline {
 		if($ecode!=0)	{ error_out(1,$scriptname); }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
+		if($singletons) {
+			my $scriptname="01.remap.pl";
+               		print outfile3 "1\t$scriptname\n";
+                	$currtime=timediff();
+                	print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
+                	print BLUE "[",$currtime->pretty,"]: STEP1 ->  ADDING SINGLETONS: $scriptname ($assembler)\n"; print RESET;
+                	if($longtrace) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
+                	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+                	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n"; print RESET; die; }
+                	my $wc=qx(wc -l $contigsfna);
+                	my($wsize,$rest)=split(/\s+/,$wc);
+                	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; print RESET; die; }
+		}
+
 		if($wsize<2)	{ error_out(1,$scriptname,$contigsfna); }
 	}
 
@@ -659,6 +673,19 @@ sub pipeline {
                 if($ecode!=0)   { error_out(1.5,$scriptname); }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
+		if($singletons) {
+			my $scriptname="01.remap.pl";
+               		print outfile3 "1\t$scriptname\n";
+                	$currtime=timediff();
+                	print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
+                	print BLUE "[",$currtime->pretty,"]: STEP1 ->  ADDING SINGLETONS: $scriptname\n"; print RESET;
+                	if($longtrace) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
+                	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+                	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname\n"; print RESET; die; }
+                	my $wc=qx(wc -l $contigsfna);
+                	my($wsize,$rest)=split(/\s+/,$wc);
+                	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname. File $contigsfna is empty!\n"; print RESET; die; }
+		}
 		if($wsize<2)         { error_out(1.5,$scriptname,$contigsfna); }
 	}
 	
