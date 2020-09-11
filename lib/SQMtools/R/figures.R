@@ -126,6 +126,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' @param N integer Plot the \code{N} most abundant functions (default \code{25}).
 #' @param fun character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
+#' @param ignore_unmapped logical. Don't include unmapped ORFs in the plot (default \code{TRUE}).
 #' @param ignore_unclassified logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).
 #' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
 #' @param base_size numeric. Base font size (default \code{11}).
@@ -135,7 +136,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
-plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
+plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unmapped = T, ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!fun_level %in% names(SQM$functions))
@@ -174,17 +175,44 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
         {
         percents = 100 * t(t(SQM[['functions']][[fun_level]][['abund']]) / colSums(SQM[['functions']][[fun_level]][['abund']]))
         data = as.data.frame(percents)
-    }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
+        }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
     data = mostAbundant(data, N = N, items = fun)
-    # remove unclassified functions (only possible when not custom items)
-    # if N include unclassified function, add one more function
-    if (ignore_unclassified & is.null(fun) & 'Unclassified' %in% rownames(data) & N != 0)
+
+    # Verify whether there are Unclassified or Unmapped
+    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) { ignore_unmapped = F }
+    if(ignore_unclassified & !('Unclassified' %in% rownames(data))) { ignore_unclassified = F }
+    
+    # remove unmapped functions (only possible when not custom items)
+    # if N include unmapped function, add one more function
+    if (ignore_unmapped & !(ignore_unclassified) & is.null(fun) & N != 0)
         {
         if(count == 'percent') { data = as.data.frame(percents)
         } else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
         data = mostAbundant(data, N = (N + 1), items = fun)
-        data = data[rownames(data) != 'Unclassified', , drop = F]
+        data = data[rownames(data) != 'Unmapped', , drop = F] # Remove 'Unmapped'
         }
+
+    # remove unclassified functions (only possible when not custom items)
+    # if N include unclassified function, add one more function
+    if (ignore_unclassified & !(ignore_unmapped) & is.null(fun) & N != 0)
+        {
+        if(count == 'percent') { data = as.data.frame(percents)
+        }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
+        data = mostAbundant(data, N = (N + 1), items = fun)
+        data = data[rownames(data) != 'Unclassified', , drop = F] # Remove 'Unclassified'
+        }
+
+    # remove unmapped and unclassified functions (only possible when not custom items)
+    # if N include unmapped and unclassified functions, add two more functions
+    if (ignore_unclassified & ignore_unmapped & is.null(fun) & N != 0)
+        {
+         if(count == 'percent') { data = as.data.frame(percents)
+         }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
+         data = mostAbundant(data, N = (N + 2), items = fun)
+         data = data[rownames(data) != 'Unmapped', , drop = F]
+         data = data[rownames(data) != 'Unclassified', , drop = F]
+        }
+
     # Add KEGG & COG names
     if (fun_level %in% c('COG', 'KEGG'))
         {
@@ -194,9 +222,15 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
         item_name = sapply(item_name, FUN = function(x) paste(strwrap(x, width = 50), collapse = '\n'))
         rownames(data) = item_name
         }
+    # Put unclassified and unmapped at the bottom
     if('Unclassified' %in% rownames(data)) # Put unclassified at the bottom.
         {
         niceOrder = c(rownames(data)[rownames(data)!='Unclassified'], 'Unclassified')
+        data = data[niceOrder,]
+        }
+    if('Unmapped' %in% rownames(data)) # Put unmapped at the bottom.
+        {
+        niceOrder = c(rownames(data)[rownames(data)!='Unmapped'], 'Unmapped')
         data = data[niceOrder,]
         }
     nice_label = c(abund='Raw abundance', percent = 'Percentage', bases='Bases', tpm='TPM', copy_number='Copy number')[count]
@@ -220,6 +254,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' @param N integer Plot the \code{N} most abundant taxa (default \code{15}).
 #' @param tax character. Custom taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).
+#' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{FALSE}).
 #' @param ignore_unclassified logical. Don't include unclassified reads in the plot (default \code{FALSE}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
 #' @param no_partial_classifications logical. Treat reads not fully classified at the requested level (e.g. "Unclassified bacteroidetes" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).
@@ -235,7 +270,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, "family")
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, ignore_unclassified = F, collapse_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, ignore_unmapped = F, ignore_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
@@ -271,16 +306,43 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
     # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df
     data = as.data.frame(data0)
     data = mostAbundant(data, N = N, items = tax, others = others, rescale = rescale)
+
+    # Verify whether there are Unclassified or Unmapped
+    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = F}
+    if(ignore_unclassified & !('Unclassified' %in% rownames(data))) {ignore_unclassified = F}
+   
+    # remove unmapped taxa (only possible when not custom items)
+    # if N include unmmaped taxa, add one more taxa
+    if (ignore_unmapped & !(ignore_unclassified) & is.null(tax)  & N != 0 )
+    { # We overwrite data from scratch!
+        data = as.data.frame(data0) # Pick one more taxa
+        data = mostAbundant(data, N = N + 1, items = tax, others = others, rescale = F) # Create the data table again
+        data = data[rownames(data) != 'Unmapped', , drop = F] # Remove 'unmapped'
+        data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
+    }
+    
     # remove unclassified taxa (only possible when not custom items)
     # if N include unclassified taxa, add one more taxa
-    if (ignore_unclassified & is.null(tax) & 'Unclassified' %in% rownames(data) & N != 0)
-        { # We overwrite data from scratch!
+    if (ignore_unclassified & !(ignore_unmapped) & is.null(tax) & N != 0 )
+    { # We overwrite data from scratch!
         data = as.data.frame(data0) # Pick one more taxa
         data = mostAbundant(data, N = N + 1, items = tax, others = others, rescale = F) # Create the data table again
         data = data[rownames(data) != 'Unclassified', , drop = F] # Remove 'Unclassified'
         data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
     }
     
+    # remove unmapped and unclassified taxa (only possible when not custom items)
+    # if N include unmmaped and unclassified taxa, add two more taxa
+    if (ignore_unclassified & ignore_unmapped & is.null(tax) & N != 0 )
+    { # We overwrite data from scratch!
+        data = as.data.frame(data0) # Pick two more taxa
+        data = mostAbundant(data, N = N + 2, items = tax, others = others, rescale = F) # Create the data table again
+        data = data[rownames(data) != 'Unclassified', , drop = F] # Remove 'Unclassified'
+        data = data[rownames(data) != 'Unmapped', , drop = F] # Remove 'Unmapped'
+        data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
+    }
+
+
     #print(data)
     defaultColors = c(
         '#97B065', '#B93838', '#83AAF0', '#E2AA48', '#A9A3D2',
@@ -308,7 +370,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
     } else
         {
         # Use default colors from the beginning. User does not care about colors
-        if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'Unclassified'),,drop=F])]
+        if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'Unclassified', 'Unmapped'),,drop=F])]
         }else{ color = NULL }
         }
  
@@ -322,6 +384,14 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         {
         if(!is.null(color)) { color = c(color, 'azure3') }
         niceOrder = c(rownames(data)[rownames(data)!='Unclassified'], 'Unclassified')
+        data = data[niceOrder,,drop=F]
+        }
+
+    # Add unmapped color and put Unmapped at the bottom
+    if('Unmapped' %in% rownames(data))
+        {
+        if(!is.null(color)) { color = c(color, 'azure4') }
+        niceOrder = c(rownames(data)[rownames(data)!='Unmapped'], 'Unmapped')
         data = data[niceOrder,,drop=F]
         }
 
