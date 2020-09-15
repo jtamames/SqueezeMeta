@@ -8,9 +8,9 @@ generic.table = function(x)
     {
     if('data.table' %in% class(x))
         {
-        data.table::setcolorder(x, c(colnames(x)[colnames(x) != colnames(x)[1]], colnames(x)[1])) # Put the first column (row names) at the end note that this happens in place!
-        colnames(x)[ncol(x)] = 'rn'
-        rownames(x) = x$rn
+        rowns = x[[1]]
+        x = x[,-1]
+        rownames(x) = rowns
         class(x) = c('generic.data.table', class(x))
     }else if ('data.frame' %in% class(x))
         {
@@ -24,8 +24,7 @@ generic.table = function(x)
 #' @noRd
 `[.generic.data.table` = function(x,i,j, drop = T)
     {
-    # add support para indexados negativos
-
+    
     class(x) = class(x)[class(x) != 'generic.data.table']
 
     if(missing(i))
@@ -35,26 +34,24 @@ generic.table = function(x)
         names = rownames(x)
     }else
         {
-        if(typeof(i) == 'character') { i = data.table::chmatch(i, x$rn) } # turn into indices and keep the order of i
+        if(typeof(i) == 'character') { names = i; i = data.table::chmatch(i, rownames(x)); # turn into indices and keep the order of i
+        } else { names = rownames(x)[i] }
         si = 'i'
-        names = x[i,'rn']
         }
 
     if(missing(j)) { j = 1:(ncol(x)) }
+
+
     else if(typeof(j) %in% c('numeric', 'integer', 'double'))
         {
-        if(max(abs(j)) > (ncol(x)-1)) { stop('Undefined columns selected') }
-        if(max(j) > 0) { j = c(j, ncol(x)) }
+        if(max(abs(j)) > (ncol(x))) { stop('Undefined columns selected') }
         }
-    else if(typeof(j) == 'character') { j = c(j, 'rn') }
-    else if(typeof(j) == 'logical') { j = c(j, TRUE) }
 
     sj = 'j'
 
-    expression = sprintf('x[%s,%s, with=FALSE]', si, sj)
+    expression = sprintf('x[%s,%s, with=FALSE,drop=%s]', si, sj, drop)
     res = eval(parse(text=expression))
-    if (ncol(res) == 2 & drop == TRUE) { res = unlist(res[,1]); names(res) = NULL
-    } else { rownames(res) = names; class(res) = c('generic.data.table', class(res));  }
+    if(!is.null(dim(res))){ rownames(res) = names; class(res) = c('generic.data.table', class(res));  }
     return (res)
     }
 
@@ -63,18 +60,7 @@ generic.table = function(x)
 #' @noRd
 print.generic.data.table = function(x)
     {
-    `[` = data.table:::`[.data.table` # is this needed?
-    res = x[,1:ncol(x),drop=F]
-    rownames(res) = rownames(x)
-    print.data.frame(res)
-    }
-
-
-#' @export
-#' @noRd
-dim.generic.data.table = function(x)
-    {
-    return(data.table:::dim.data.table(x) - c(0,1))
+    print.data.frame(x)
     }
 
 
@@ -82,19 +68,9 @@ dim.generic.data.table = function(x)
 #' @noRd
 dimnames.generic.data.table = function(x)
     {
-    return(list(row.names(x), names(x)[-(ncol(x)+1)]))
+    return(list(row.names(x), names(x)))
     }
 
-
-#' @export
-#' @noRd
-as.data.frame.generic.data.table = function(x)
-    {
-    res = data.table:::as.data.frame.data.table(x)
-    rownames(res) = res$rn
-    res = res[,colnames(res) != 'rn']
-    return(res)
-    }
 
 
 # We don't export it since having an "as.data.table" method breaks it during install (works with any other name). Anyways the native "as.data.table" from the data.table package should work.
@@ -108,10 +84,19 @@ as.data.table.generic.data.table = function(x)
 
 #' @export
 #' @noRd
+as.data.frame.generic.data.table = function(x)
+    {
+    res = data.table:::as.data.frame.data.table(x)
+    rownames(res) = rownames(x)
+    return(res)
+    }
+
+
+#' @export
+#' @noRd
 as.matrix.generic.data.table = function(x)
     {
-    `[` = data.table:::`[.data.table`
-    res = data.table:::as.matrix.data.table(x[,-(ncol(x)+1)])
+    res = data.table:::as.matrix.data.table(x)
     rownames(res) = rownames(x)
     return(res)
     }
@@ -122,7 +107,7 @@ as.matrix.generic.data.table = function(x)
 rbind.generic.data.table = function(...)
     {
     res = data.table:::rbindlist(list(...))
-    rownames(res) = res$rn
+    rownames(res) = sapply(list(...), rownames)
     class(res) = c('generic.data.table', class(res))
     return(res)
     }
@@ -132,31 +117,11 @@ rbind.generic.data.table = function(...)
 #' @noRd
 cbind.generic.data.table = function(...)
     {
-    inter = Reduce(intersect, lapply(list(...), FUN=rownames))
-    uni = Reduce(union, lapply(list(...), FUN=rownames))
-    stopifnot(identical(inter, uni))
-    res = data.table:::cbind.data.table(...)
-    rn = res[,ncol(res),with=F]
-    res = res[,colnames(res)!='rn',with=F]
-    res$rn = rn
-    rownames(res) = res$rn
+    inter = Reduce(intersect, lapply(list(...), rownames))
+    uni = Reduce(union, lapply(list(...), rownames))
+    if(!identical(inter, uni)) { stop('The input tables do not have the same row names') }
+    res = data.table:::cbind(...) # This will not work until data.table reintroduces cbind or adds cbindlist!
+    rownames(res) = rownames(list(...)[[1]])
     class(res) = c('generic.data.table', class(res))
     return(res)
     }
-
-
-#' @export
-#' @noRd
-colnames = function(x) UseMethod("colnames") # For making a non-generic R function generic and add a custom class method without breaking stuff
-
-
-#' @export
-#' @noRd
-colnames.generic.data.table = function(x) dimnames(x)[[2]] # https://gist.github.com/datalove/88f5a24758b2d8356e32
-
-
-#' @export
-#' @noRd
-colnames.default = base::colnames
-
-

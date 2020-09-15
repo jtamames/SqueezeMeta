@@ -175,8 +175,10 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     cat('    abundances...\n')
     SQM$orfs$abund               = as.matrix(SQM$orfs$table[,grepl('Raw read count', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$abund)     = gsub('Raw read count ', '', colnames(SQM$orfs$abund), fixed=T)
+    storage.mode(SQM$orfs$abund) = 'numeric'
     SQM$orfs$bases               = as.matrix(SQM$orfs$table[,grepl('Raw base count', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$bases)     = gsub('Raw base count ', '', colnames(SQM$orfs$abund), fixed=T)
+    storage.mode(SQM$orfs$bases) = 'numeric'
     SQM$orfs$cov                 = as.matrix(SQM$orfs$table[,grepl('Coverage', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$cov)       = gsub('Coverage ', '', colnames(SQM$orfs$cov), fixed=T)
     SQM$orfs$tpm                 = as.matrix(SQM$orfs$table[,grepl('TPM', colnames(SQM$orfs$table)),drop=F])
@@ -198,12 +200,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         rownames(SQM$orfs$tax)   = unlist(ta[,1])
         }
     SQM$orfs$tax                 = SQM$orfs$tax[rownames(SQM$orfs$table),]
-    # Remove orfs with no nt length (which should be fixed at some point). The tax table contains the correct number of orfs.
-    # THIS SHOULD NOT BE NEEDED ANYMORE
-    #SQM$orfs$table               = SQM$orfs$table[rownames(SQM$orfs$table) %in% rownames(SQM$orfs$tax),]
-    #SQM$orfs$abund               = SQM$orfs$abund[rownames(SQM$orfs$table),,drop=F]
-    #SQM$orfs$tpm                 = SQM$orfs$tpm[rownames(SQM$orfs$table),,drop=F]
-    #SQM$orfs$seqs                = SQM$orfs$seqs[rownames(SQM$orfs$table)[rownames(SQM$orfs$table) %in% names(SQM$orfs$seqs)]]
 
     cat('Loading contigs\n')
     SQM$contigs                   = list()
@@ -219,7 +215,9 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         }
     SQM$contigs$table             = generic.table(SQM$contigs$table)
     cat('    abundances...\n')
-    SQM$contigs$abund             = as.matrix(SQM$contigs$table[,grepl('Raw read count', colnames(SQM$contigs$table)),drop=F])
+    abunds                        = as.matrix(SQM$contigs$table[,grepl('Raw read count', colnames(SQM$contigs$table)),drop=F])
+    storage.mode(abunds)          = 'numeric'
+    SQM$contigs$abund             = abunds
     colnames(SQM$contigs$abund)   = gsub('Raw read count ', '', colnames(SQM$contigs$abund), fixed=T)
     SQM$contigs$cov               = as.matrix(SQM$contigs$table[,grepl('Coverage', colnames(SQM$contigs$table)),drop=F])
     colnames(SQM$contigs$cov)     = gsub('Coverage ', '', colnames(SQM$contigs$cov), fixed=T)
