@@ -38,7 +38,7 @@ our $installpath = abs_path("$scriptdir/..");
 ###
 
 our $pwd=cwd();
-our($nocog,$nokegg,$nopfam,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,$doublepass)="0";
+our($nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,,$consensus,$doublepass)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$projectdir,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test);
 our($databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
@@ -70,6 +70,7 @@ Arguments:
    -assembly_options [options]: Options for required assembler
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
+   --sg|--singletons: Add unassembled reads to the contig file, as if they were contigs  
    
  Mapping: 
    -map: mapping software <bowtie, bwa, minimap2-ont, minimap2-pb, minimap2-sr> (Default: bowtie) 
@@ -79,6 +80,7 @@ Arguments:
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
    --euk: Drop identity filters for eukaryotic annotation  (Default: no)
+   -consensus <value>: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
    --D|--doublepass: First pass looking for genes using gene prediction, second pass using BlastX  (Default: no)
    -extdb <database file>: List of user-provided databases
    -b|-block-size <block size>: block size for diamond against the nr database (Default: 8)
@@ -94,7 +96,7 @@ Arguments:
    --lowmem: run on less than 16Gb of memory (Default:no)
 
  Other:
-   --minion: Run on MinION reads (use canu and minimap2) (Default: no)
+   --minion: Run on MinION reads (assembler: canu; mapper: minimap2-ont; consensus: 20) (Default: no)
    -test <step>: Running in test mode, stops AFTER the given step number
    
  Information:
@@ -116,6 +118,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "s|samples=s" => \$equivfile,
                      "extassembly=s" => \$extassembly,
                      "f|seq=s" => \$rawfastq, 
+                     "sg|singletons" => \$singletons,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nopfam" => \$nopfam,  
@@ -124,6 +127,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nobins" => \$nobins,   
 		     "nomaxbin" => \$nomaxbin,   
 		     "nometabat" => \$nometabat,  
+		     "consensus" => \$consensus,
 		     "D|doublepass" => \$doublepass, 
 		     "b|block_size=i" => \$blocksize,
 		     "e|evalue=f" => \$evalue,   
@@ -145,6 +149,7 @@ if(!$mincontiglen) { $mincontiglen=200; }
 if(!$assembler) { $assembler="megahit"; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$blocksize) { $blocksize="NF"; }
+if(!$singletons) { $singletons=0; }
 if(!$nocog) { $nocog=0; }
 if(!$nokegg) { $nokegg=0; }
 if(!$nopfam) { $nopfam=0; }
@@ -155,6 +160,7 @@ if(!$nomaxbin) { $nomaxbin=0; }
 if(!$nometabat) { $nometabat=0; }
 if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
 if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
+if($consensus) { $consensus/=100; }
 
 $mode=~tr/A-Z/a-z/;
 if($opt_db) { $opt_db = abs_path($opt_db); }
@@ -239,8 +245,7 @@ if($mode=~/sequential/i) {
 	print "$numsamples metagenomes found: @nmg";
 	print "\n\n";
 
-	open(outfile1,">$pwd/global_progress") or do { print RED; print "Can't write in directory $pwd\n"; print RESET; die; }; 	#-- An index indicating where are we and which parts of the method finished already. For the global process
-	open(outfile2,">$pwd/global_syslog") || do { print RED; print "Can't write in directory $pwd\n"; print RESET; die; }; 		 #-- A log file for the global proccess
+	open(outfile2,">$pwd/syslog") || do { print RED; print "Can't write in directory $pwd\n"; print RESET; die; }; 		 #-- A log file for the global proccess
 	print outfile2 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 	print outfile2 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
 	print outfile2 "Command: $commandline\n"; 
@@ -256,7 +261,6 @@ if($mode=~/sequential/i) {
 		my $projectdir="$pwd/$thissample";
 		if (-d $projectdir) { print RED; print "Project name $projectdir already exists. Please remove it or change the project name\n"; print RESET; die; } else { system("mkdir $projectdir"); }
 		print "Working with $thissample\n";
-		print outfile1 ">$thissample\n";
 	
 		open(outfile3,">$projectdir/progress") or do { print RED; print "Can't write in directory $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; };  #-- An index indicating where are we and which parts of the method finished already. For the global process
 		open(outfile4,">$projectdir/syslog")  or do { print RED; print "Can't write in directory $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; }; 	#-- A log file for the global proccess
@@ -296,6 +300,7 @@ if($mode=~/sequential/i) {
 			next if !$_;
 			if   ($_=~/^\$projectname/)     { print outfile5 "\$projectname = \"$projectname\";\n";         }
 			elsif($_=~/^\$blocksize/)       { print outfile5 "\$blocksize       = $blocksize;\n";           }
+			elsif($_=~/^\$singletons/)      { print outfile5 "\$singletons      = $singletons;\n";          }
 			elsif($_=~/^\$nocog/)           { print outfile5 "\$nocog           = $nocog;\n";               }
 			elsif($_=~/^\$nokegg/)          { print outfile5 "\$nokegg          = $nokegg;\n";              }
 			elsif($_=~/^\$nopfam/)          { print outfile5 "\$nopfam          = $nopfam;\n";              }
@@ -308,6 +313,8 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $cleaning;\n";            }
 			elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$cleaningoptions\";\n"; }
 			else { print outfile5 "$_\n"; }
+			if($consensus) { print outfile5 "\$consensus=$consensus;\n"; }
+			elsif($minion) { print outfile5 "\$consensus=0.2;\n"; }
 		}
 	 	close infile2; 
 
@@ -461,6 +468,7 @@ else {
 	while(<infile3>) {
 		if   ($_=~/^\$projectname/)               { print outfile6 "\$projectname = \"$projectname\";\n";                     }
 		elsif($_=~/^\$blocksize/)                 { print outfile6 "\$blocksize       = $blocksize;\n";                       }
+		elsif($_=~/^\$singletons/)                { print outfile6 "\$singletons      = $singletons;\n";                      }
 		elsif($_=~/^\$nocog/)                     { print outfile6 "\$nocog           = $nocog;\n";                           }
 		elsif($_=~/^\$nokegg/)                    { print outfile6 "\$nokegg          = $nokegg;\n";                          }
 		elsif($_=~/^\$nopfam/)                    { print outfile6 "\$nopfam          = $nopfam;\n";                          }
@@ -474,6 +482,8 @@ else {
 		elsif($_=~/^\$cleaningoptions/)           { print outfile6 "\$cleaningoptions = \"$cleaningoptions\";\n";             }
 		elsif($_=~/^\%bindirs/) { print outfile6 "\%bindirs = (\"metabat2\",\"\$resultpath/metabat2\",\"maxbin\",\"\$resultpath/maxbin\");\n"; }
 		else { print outfile6 $_; }
+		if($consensus) { print outfile6 "\$consensus=$consensus;\n"; }
+		elsif($minion) { print outfile6 "\$consensus=0.2;\n"; }
 	 }
 	close infile3;
 
@@ -620,6 +630,20 @@ sub pipeline {
 		if($ecode!=0)	{ error_out(1,$scriptname); }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
+		if($singletons) {
+			my $scriptname="01.remap.pl";
+               		print outfile3 "1\t$scriptname\n";
+                	$currtime=timediff();
+                	print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
+                	print BLUE "[",$currtime->pretty,"]: STEP1 ->  ADDING SINGLETONS: $scriptname ($assembler)\n"; print RESET;
+                	if($longtrace) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
+                	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+                	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n"; print RESET; die; }
+                	my $wc=qx(wc -l $contigsfna);
+                	my($wsize,$rest)=split(/\s+/,$wc);
+                	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; print RESET; die; }
+		}
+
 		if($wsize<2)	{ error_out(1,$scriptname,$contigsfna); }
 	}
 
@@ -652,6 +676,19 @@ sub pipeline {
                 if($ecode!=0)   { error_out(1.5,$scriptname); }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
+		if($singletons) {
+			my $scriptname="01.remap.pl";
+               		print outfile3 "1\t$scriptname\n";
+                	$currtime=timediff();
+                	print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
+                	print BLUE "[",$currtime->pretty,"]: STEP1 ->  ADDING SINGLETONS: $scriptname\n"; print RESET;
+                	if($longtrace) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
+                	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+                	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname\n"; print RESET; die; }
+                	my $wc=qx(wc -l $contigsfna);
+                	my($wsize,$rest)=split(/\s+/,$wc);
+                	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname. File $contigsfna is empty!\n"; print RESET; die; }
+		}
 		if($wsize<2)         { error_out(1.5,$scriptname,$contigsfna); }
 	}
 	
@@ -668,6 +705,20 @@ sub pipeline {
 		if($ecode!=0)        { error_out(1,$scriptname); }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
+
+	if($singletons) {
+		my $scriptname="01.remap.pl";
+                print outfile3 "1\t$scriptname\n";
+                $currtime=timediff();
+                print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
+                print BLUE "[",$currtime->pretty,"]: STEP1 ->  ADDING SINGLETONS: $scriptname ($assembler)\n"; print RESET;
+                if($longtrace) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
+                my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+                if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n"; print RESET; die; }
+                my $wc=qx(wc -l $contigsfna);
+                my($wsize,$rest)=split(/\s+/,$wc);
+                if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; print RESET; die; }
+		}
 		if($wsize<2)	{ error_out(1,$scriptname,$contigsfna); }
 	}
 	close(outfile4); open(outfile4,">>$syslogfile");		
@@ -1135,7 +1186,7 @@ sub pipeline {
 	$currtime=timediff();
 	print "\nDeleting temporary files in $tempdir\n";
 	print outfile4 "\nDeleting temporary files in $tempdir\n";
-	system("rm -r $tempdir/*");
+	# system("rm -r $tempdir/*");
 	if(-e "$datapath/megahit/final.contigs.fa") { system("rm -r $datapath/megahit/intermediate_contigs; rm $datapath/megahit/final.contigs.fa"); } 
 	print outfile4 "\n[",$currtime->pretty,"]: FINISHED -> Have fun!\n";
 	print BLUE "[",$currtime->pretty,"]: FINISHED -> Have fun!\n"; print RESET;

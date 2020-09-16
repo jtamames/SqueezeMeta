@@ -237,7 +237,7 @@ sub sqm_counter {
 	open(infile3,$samfile) || die "Can't open sam file $samfile\n"; ;
 	while(<infile3>) { 
 		chomp;
-		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@SQ/));
+		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@/));
 		my @k=split(/\t/,$_);
 		my $readid=$k[0];
 		next if(($k[0] eq $lastread) && ($mapper=~/minimap2/));       #-- Minimap2 can output more than one alignment per read
@@ -363,6 +363,9 @@ sub contigcov {
 		#-- And the mapped reads to sum base coverage
 
 		else {
+			$thisr=$t[0];
+			next if($thisr eq $lastr);
+			$lastr=$thisr;
 			if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
 				$thisr=$t[0];
 				next if(($thisr eq $lastr) && ($mapper=~/minimap2/));

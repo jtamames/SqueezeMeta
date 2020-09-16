@@ -140,7 +140,7 @@ foreach my $m(@files) {
 		#-- Use already existing tax profile or create it
 	
 		if(-e $marker) {} else { 
-			my $command="$checkm_soft taxon_set $rank $tax $marker > $syslogfile 2>&1";
+			my $command="$checkm_soft taxon_set $rank $tax $marker >> $syslogfile 2>&1";
 			print outsyslog "$command\n";
                         my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
@@ -155,12 +155,12 @@ foreach my $m(@files) {
 		$fastafile=~s/.*\///;
 		# print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
 		# system("$checkm_soft analyze -t $numthreads -x $bins{$thisfile} $marker $bindir $checktemp > /dev/null");
-		my $command = "$checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > $syslogfile 2>&1";
+		my $command = "$checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp >> $syslogfile 2>&1";
 		print outsyslog "$command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 
-		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > $syslogfile 2>&1";
+		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc >> $syslogfile 2>&1";
 		print outsyslog "$command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }

@@ -25,7 +25,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile);
+our($datapath,$assembler,$outassembly,$mappingfile,$extassembly,$tempdir,$interdir,$megahit_soft,$flye_soft,$assembler_options,$numthreads,$spades_soft,$canu_soft,$canumem,$prinseq_soft,$trimmomatic_soft,$mincontiglen,$resultpath,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$singletons,$scriptdir,$methodsfile,$syslogfile);
 
 #-- Read all the samples and store file names
 
@@ -70,7 +70,7 @@ foreach my $thissample(sort keys %samplefiles) {
 	$command="cat $cat1 > $par1name";
 	# print "$command\n";
 	print outsyslog "Merging read files: $command\n";
-	system $command;		
+	system $command;
 	if($cat2) {		#-- Support for single reads
 		$command="cat $cat2 > $par2name";
 		# print "$command\n";
@@ -134,6 +134,22 @@ foreach my $thissample(sort keys %samplefiles) {
 		system("mv $datapath/spades/contigs.fasta $assemblyname");
 	}
  
+       #-- For flye
+
+	if($assembler=~/flye/i) {
+                system("rm -r $datapath/flye > /dev/null 2>&1");
+                $outassembly="$datapath/flye/contigs.fasta";
+		$assemblyname="$datapath/flye/$thissample.contigs.fasta";
+                $command="$flye_soft $assembler_options -o $datapath/flye --plasmids --meta --genome-size 2g --min-overlap 1000 --threads $numthreads --nano-raw $par1name > $syslogfile 2>&1; "; 
+                $command.="mv $datapath/flye/assembly.fasta $outassembly";
+                print outsyslog "Running Flye for $thissample: $command\n";
+                print outmet "Assembly was done using Flye (Kolmogorov et al 2019, Nature Biotech 37, 540–546)\n";
+                my $ecode = system $command;
+                if($ecode!=0) { die "Error running command:    $command"; }
+                system("mv $outassembly $assemblyname");
+          }
+
+
        #-- For canu
 
         if($assembler=~/canu/i) {
@@ -221,6 +237,7 @@ if($contigname) { my $len=length $seq; print outfile2 "$contigname\t$len\n"; }
 close outfile2;
 
 print "  Contigs for sample $thissample stored in $contigsfna\n";
+
 
 }                              #-- End of current sample
 
