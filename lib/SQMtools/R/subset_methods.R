@@ -24,7 +24,7 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_f
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
 
     if(is.null(columns))
-        { columns = c('Gene name', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM')
+        { columns = c('Gene name', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM')
         for(method in SQM$misc$ext_annot_sources) { columns = c(columns, method, sprintf('%s NAME', method)) }
         }
 
@@ -177,7 +177,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     if(length(orfs)==0) { stop('No ORFs were selected. Perhaps the subset query yielded no results?') }
     if(!tax_source %in% c('contigs', 'orfs')) { stop('tax_source must be "orfs" or "contigs"') }
-    
+   
     orfs    = rownames(SQM$orfs$table[orfs,]) # Make sure it will work if orfs is a bool vector too.
     contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
     bins    = unique( unlist(SQM$contigs$bins[contigs,]) )

@@ -39,7 +39,7 @@ our $installpath = abs_path("$scriptdir/..");
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,,$consensus,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$projectdir,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$projectdir,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test);
 our($databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
@@ -97,6 +97,7 @@ Arguments:
 
  Other:
    --minion: Run on MinION reads (assembler: canu; mapper: minimap2-ont; consensus: 20) (Default: no)
+   -test <step>: Running in test mode, stops AFTER the given step number
    
  Information:
    -v: Version number  
@@ -135,6 +136,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "cleaning" => \$cleaning,
 		     "cleaning_options=s" => \$cleaningoptions,
                      "minion" => \$minion,
+		     "test=i" => \$test,
 		     "v" => \$ver,
 		     "h" => \$hel
 		    );
@@ -210,6 +212,7 @@ foreach my $chsam(keys %pairsample) {
 
 my $currtime=timediff();
 print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
+if($test) { print GREEN "Running in test mode! I will stop after step $test\n\n"; print RESET; }
 print "Run started ",scalar localtime," in $mode mode\n";
 
 
@@ -722,7 +725,7 @@ sub pipeline {
 			
     #-------------------------------- STEP2: Run RNA prediction
 
-	if($rpoint<=2) {
+	if(($rpoint<=2) && ((!$test) || ($test>=2))) {
 		if($longtrace) { print " At this point, we already have contigs\n"; }
 		my $scriptname="02.rnas.pl";
 		print outfile3 "2\t$scriptname\n";
@@ -741,7 +744,7 @@ sub pipeline {
 			
     #-------------------------------- STEP3: Run gene prediction
 
-	if($rpoint<=3) {
+	if(($rpoint<=3) && ((!$test) || ($test>=3))) { 
 		my $scriptname="03.run_prodigal.pl";
  		print outfile3 "3\t$scriptname\n";
  		$currtime=timediff();
@@ -758,7 +761,7 @@ sub pipeline {
 			
     #-------------------------------- STEP4: Run Diamond for taxa and functions
 
-	if($rpoint<=4) {
+	if(($rpoint<=4) && ((!$test) || ($test>=4))) {
 		if($longtrace) { print " At this point, we already have ORFs\n"; }
 		my $scriptname="04.rundiamond.pl";
 		print outfile3 "4\t$scriptname\n";
@@ -776,7 +779,7 @@ sub pipeline {
 			
     #-------------------------------- STEP5: Run hmmer for PFAM annotation
 
-	if($rpoint<=5) {
+	if(($rpoint<=5) && ((!$test) || ($test>=5))) {
 		if(!$nopfam) {
 			my $scriptname="05.run_hmmer.pl";
 			print outfile3 "5\t$scriptname\n";
@@ -795,7 +798,7 @@ sub pipeline {
 			
     #-------------------------------- STEP6: LCA algorithm for taxa annotation
 
-	if($rpoint<=6) {
+	if(($rpoint<=6) && ((!$test) || ($test>=6))) {
 		my $scriptname="06.lca.pl";
 		print outfile3 "6\t$scriptname\n";
 		$currtime=timediff();
@@ -812,7 +815,7 @@ sub pipeline {
 			
     #-------------------------------- STEP7: fun3 for COGs, KEGG and PFAM annotation
 
-	if($rpoint<=7) {
+	if(($rpoint<=7) && ((!$test) || ($test>=7))) {
 		my $scriptname="07.fun3assign.pl";
 		if((!$nocog) || (!$nokegg) || (!$nopfam) || ($opt_db)) {
 			print outfile3 "7\t$scriptname\n";
@@ -853,7 +856,7 @@ sub pipeline {
 			
     #-------------------------------- STEP8: Blastx on the unannotated parts of the contigs
 	
-	if($rpoint<=8) {
+	if(($rpoint<=8) && ((!$test) || ($test>=8))) {
 		if($doublepass) {
 			my $scriptname="08.blastx.pl";
 			# print " DOUBLEPASS: Now starting blastx analysis\n";
@@ -875,7 +878,7 @@ sub pipeline {
     #-------------------------------- STEP9: Taxonomic annotation for the contigs (consensus of gene annotations)
 
 
-	if($rpoint<=9) {
+	if(($rpoint<=9) && ((!$test) || ($test>=9))) {
 		my $scriptname="09.summarycontigs3.pl";
 		print outfile3 "9\t$scriptname\n";
 		$currtime=timediff();
@@ -892,7 +895,7 @@ sub pipeline {
 			
     #-------------------------------- STEP10: Mapping of reads onto contigs for abundance calculations
 	
-	if($rpoint<=10) {
+	if(($rpoint<=10) && ((!$test) || ($test>=10))) {
 		my $scriptname="10.mapsamples.pl";
 		print outfile3 "10\t$scriptname\n";
 		$currtime=timediff();
@@ -909,7 +912,7 @@ sub pipeline {
 			
     #-------------------------------- STEP11: Count of taxa abundances
 	
-	if($rpoint<=11) {
+	if(($rpoint<=11) && ((!$test) || ($test>=11))) {
 		my $scriptname="11.mcount.pl";
 		print outfile3 "11\t$scriptname\n";
 		$currtime=timediff();
@@ -926,7 +929,7 @@ sub pipeline {
 			
     #-------------------------------- STEP12: Count of function abundances
 	
-	if(($rpoint<=12)) {
+	if(($rpoint<=12) && ((!$test) || ($test>=12))) {
 		my $scriptname="12.funcover.pl";
 		if((!$nocog) || (!$nokegg) || ($opt_db)) {
 		print outfile3 "12\t$scriptname\n";
@@ -949,7 +952,7 @@ sub pipeline {
 			
     #-------------------------------- STEP13: Generation of the gene table
 		
-	if($rpoint<=13) {
+	if(($rpoint<=13) && ((!$test) || ($test>=13))) {
 		my $scriptname="13.mergeannot2.pl";
 		print outfile3 "13\t$scriptname\n";
 		$currtime=timediff();
@@ -969,7 +972,7 @@ sub pipeline {
 	
 	 if(!$nobins) {	     
 	 	if($longtrace) { print " (Now we will start creating bins for separating individual organisms in the community)\n"; }  
-		if(($rpoint<=14) && (!$nomaxbin)) {
+		if(($rpoint<=14) && (!$nomaxbin) && ((!$test) || ($test>=14))) {
 			my $scriptname="14.bin_maxbin.pl";
 			print outfile3 "14\t$scriptname\n";
 			$currtime=timediff();
@@ -995,7 +998,7 @@ sub pipeline {
 			
     #-------------------------------- STEP15: Running Metabat (only for merged or coassembly modes)		
 	
-		if(($rpoint<=15) && (!$nometabat)) {
+		if(($rpoint<=15) && (!$nometabat) && ((!$test) || ($test>=15))) {
 			my $scriptname="15.bin_metabat2.pl";
 			print outfile3 "15\t$scriptname\n";
 			$currtime=timediff();
@@ -1021,7 +1024,7 @@ sub pipeline {
  
     #-------------------------------- STEP16: DAS Tool merging of binning results	
 	
-		if(($rpoint<=16)) {
+		if(($rpoint<=16) && ((!$test) || ($test>=16))) {
 			my $scriptname="16.dastool.pl";
 			print outfile3 "16\t$scriptname\n";
 			$currtime=timediff();
@@ -1052,7 +1055,7 @@ sub pipeline {
 			
     #-------------------------------- STEP17: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
-		if($rpoint<=17) {
+		if(($rpoint<=17) && ((!$test) || ($test>=17))) {
 			if(!$DAS_Tool_empty){
 				my $scriptname="17.addtax2.pl";
 				print outfile3 "17\t$scriptname\n";
@@ -1073,7 +1076,7 @@ sub pipeline {
 			
     #-------------------------------- STEP18: Checking of bins for completeness and contamination (checkM)		
 	
-		if($rpoint<=18) {
+		if(($rpoint<=18) && ((!$test) || ($test>=18))) {
 			if(!$DAS_Tool_empty){
 				my $scriptname="18.checkM_batch.pl";
 				print outfile3 "18\t$scriptname\n";
@@ -1097,7 +1100,7 @@ sub pipeline {
 			
     #-------------------------------- STEP19: Make bin table		
 	
-		if($rpoint<=19) {
+		if(($rpoint<=19) && ((!$test) || ($test>=19))) {
 			if(!$DAS_Tool_empty){
 				my $scriptname="19.getbins.pl";
 				print outfile3 "19\t$scriptname\n";
@@ -1119,7 +1122,7 @@ sub pipeline {
 
     #-------------------------------- STEP20: Make contig table		
 
-	if($rpoint<=20) {
+	if(($rpoint<=20) && ((!$test) || ($test>=20))) {
 		my $scriptname="20.getcontigs.pl";
 		print outfile3 "20\t$scriptname\n";
 		$currtime=timediff();
@@ -1138,7 +1141,7 @@ sub pipeline {
     #-------------------------------- STEP21: Pathways in bins          
 
 	if(!$nobins) {	       
-		if($rpoint<=21) {
+		if(($rpoint<=21) && ($test && ($test>=21))) {
 			if((!$DAS_Tool_empty) && (!$nokegg)) {
 				my $scriptname="21.minpath.pl";
 				print outfile3 "21\t$scriptname\n";

@@ -23,7 +23,7 @@ do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
+our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
     $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
@@ -99,10 +99,10 @@ elsif($mapper=~/minimap/i) {
 #if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
 #if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
-open(outfile1,">$resultpath/10.$projectname.mappingstat") || die "Can't open $resultpath/10.$project.mappingstat for writing\n";	#-- File containing mapping statistics
+open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
-open(outfile3,">$mapcountfile") || die "Can't open $mapcountfile for writing\n";
+open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
 print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
 
@@ -215,7 +215,7 @@ sub sqm_counter {
 	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
 	my(%genesincontigs,%accum,%long_gen);
 	my($countreads,$lastread);
-	open(infile2,$gff_file) || die "Can't open $gff_file for writing\n";
+	open(infile2,$gff_file) || die "Can't open gff file $gff_file for writing\n";
 	while(<infile2>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -342,7 +342,7 @@ sub contigcov {
 	my($thissample,$outsam)=@_;
 	my(%lencontig,%readcount)=();
 	my($mappedreads,$totalreadcount,$totalreadlength)=0;
-	open(outfile4,">>$contigcov") || die "Can't open $contigcov for writing\n";
+	open(outfile4,">>$contigcov") || die "Can't open contigcov file $contigcov for writing\n";
 
 	#-- Count length of contigs and bases mapped from the sam file
 
