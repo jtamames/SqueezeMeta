@@ -27,7 +27,6 @@ our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$
     $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
-my $mappingstat="$resultpath/10.$projectname.mappingstat";
 
 my $fastqdir="$datapath/raw_fastq";
 my $samdir="$datapath/sam";
