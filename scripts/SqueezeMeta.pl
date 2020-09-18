@@ -66,7 +66,7 @@ Arguments:
    -cleaning_options [options]: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
    
  Assembly: 
-   -a: assembler <megahit,spades,canu> (Default: megahit)
+   -a: assembler <megahit,spades,canu, flye> (Default: megahit)
    -assembly_options [options]: Options for required assembler
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
@@ -183,6 +183,7 @@ if(($mode!~/sequential$/i) && (!$projectdir)) { $dietext.="MISSING ARGUMENT: -p:
 if(($mode=~/sequential$/i) && ($projectdir)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
 if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
 if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
+if($assembler!~/megahit|spades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }
 
@@ -705,23 +706,22 @@ sub pipeline {
 		if($ecode!=0)        { error_out(1,$scriptname); }
 		my $wc=qx(wc -l $contigsfna);
 		my($wsize,$rest)=split(/\s+/,$wc);
-
-	if($singletons) {
-		my $scriptname="01.remap.pl";
-                print outfile3 "1\t$scriptname\n";
-                $currtime=timediff();
-                print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
-                print BLUE "[",$currtime->pretty,"]: STEP1 ->  ADDING SINGLETONS: $scriptname ($assembler)\n"; print RESET;
-                if($longtrace) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
-                my $ecode = system("perl $scriptdir/$scriptname $projectdir");
-                if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n"; print RESET; die; }
-                my $wc=qx(wc -l $contigsfna);
-                my($wsize,$rest)=split(/\s+/,$wc);
-                if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; print RESET; die; }
+                if($wsize<2)    { error_out(1,$scriptname,$contigsfna); }
+		if($singletons) {
+			my $scriptname="01.remap.pl";
+                	print outfile3 "1\t$scriptname\n";
+                	$currtime=timediff();
+                	print outfile4 "[",$currtime->pretty,"]: STEP1 -> $scriptname\n";
+                	print BLUE "[",$currtime->pretty,"]: STEP1 ->  ADDING SINGLETONS: $scriptname ($assembler)\n"; print RESET;
+                	if($longtrace) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
+                	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+                	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname ($assembler)\n"; print RESET; die; }
+                	my $wc=qx(wc -l $contigsfna);
+                	my($wsize,$rest)=split(/\s+/,$wc);		
+			if($wsize<2)	{ error_out(1,$scriptname,$contigsfna); }
+			}
 		}
-		if($wsize<2)	{ error_out(1,$scriptname,$contigsfna); }
-	}
-	close(outfile4); open(outfile4,">>$syslogfile");		
+	close(outfile4); open(outfile4,">>$syslogfile");
 			
     #-------------------------------- STEP2: Run RNA prediction
 

@@ -26,14 +26,11 @@ our($datapath,$nocog,$nokegg,$nopfam,$opt_db,$cogdiamond,$fun3cog,$evalue,$minid
 open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 print "  Functional assignment for";
-if(!$nocog) { print " COGS"; }
-if(!$nokegg) { print " KEGG"; }
-if(!$nopfam) { print " PFAM"; }
-print "\n";
 
 #----------------------------------- COG assignment -------------------------------------
 
 if(!$nocog) {
+	print " COGS";
 	if($blastx) { 
 		$cogdiamond="$tempdir/08.$project.fun3.blastx.cog.m8";
 		$fun3cog="$tempdir/08.$project.fun3.blastx.cog";
@@ -119,6 +116,7 @@ if(!$nocog) {
 #----------------------------------- KEGG assignment -------------------------------------
 
 if(!$nokegg) {
+	print " KEGG";
 	if($blastx) { 
 		$keggdiamond="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		$fun3kegg="$tempdir/08.$project.fun3.blastx.kegg";
@@ -209,7 +207,7 @@ if($opt_db) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		print "                            $dbname\n";
+		print " $dbname";
 		my $optdbdiamond="$interdir/04.$project.$dbname.diamond";
 		my $optdbresult="$resultpath/07.$project.fun3.$dbname";
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
@@ -300,6 +298,7 @@ if(!$nopfam) {
 
 	#-- Read the Pfam data for the pfam.dat file
 
+	print " PFAM";
 	my(%pfamname,%hits);
 	open(infile3,$pfamlist) || die "Can't open $pfamlist\n";
 	while(<infile3>) {
@@ -338,4 +337,5 @@ if(!$nopfam) {
 	print syslogfile "  Output in $fun3pfam\n";	
 	}		#-- END of Pfam assignment
 
+print "\n";
 close syslogfile;
