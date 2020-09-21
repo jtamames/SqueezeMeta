@@ -1,0 +1,26 @@
+mat	A	0.88837
+mat	C	0.84933
+mat	T	0.88804
+mat	G	0.84354
+mis	C->G	0.02182
+mis	A->T	0.00686
+mis	T->A	0.00697
+mis	A->G	0.01796
+mis	C->T	0.02111
+mis	T->C	0.01629
+mis	G->A	0.02185
+mis	G->T	0.02049
+mis	C->A	0.02145
+mis	G->C	0.02310
+mis	T->G	0.01666
+mis	A->C	0.01530
+del	A	0.07152
+del	C	0.08629
+del	T	0.07204
+del	G	0.09101
+ins	A	0.01743
+ins	C	0.01750
+ins	T	0.01745
+ins	G	0.01832
+noins		0.92931
+

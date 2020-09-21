@@ -28,7 +28,7 @@ our $installpath = abs_path("$utilsdir/..");
 if(-s "$installpath/scripts/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $installpath/scriptsls \n"; }
 do "$installpath/scripts/SqueezeMeta_conf.pl";
 
-our($scriptdir,$databasepath,$cdhit_soft,$rdpclassifier_soft);
+our($scriptdir,$databasepath,$cdhit_soft,$rdpclassifier_soft, $mothur_soft, $mothur_r, $mothur_t);
 
 my $numthreads=4;
 my $seqidtres=0.98;
@@ -334,7 +334,7 @@ sub mothur {
 	#-- Running Mothur classifier
 	
 	my $mothur_outfile="$outputdir/16S.mothur.out";
-	my $command="mothur \"#classify.seqs(fasta=$outputcdhit, taxonomy=silva.nr_v132.tax, reference =silva.nr_v132.align, cutoff=50, processors = $numthreads)\"  > /dev/null 2>&1";
+	my $command="$mothur_soft \"#classify.seqs(fasta=$outputcdhit, taxonomy=$mothur_t, reference=$mothur_r, cutoff=50, processors = $numthreads)\"  > /dev/null 2>&1";
 	print BOLD "Running mothur classifier"; print RESET; print " (Schloss et al, Appl Environ Microbiol, 2009. 75(23):7537-41)\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
