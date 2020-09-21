@@ -10,6 +10,25 @@ use Term::ANSIColor qw(:constants);
 use Getopt::Long;
 
 my $pwd=cwd();
+use File::Basename;
+use Cwd 'abs_path';
+
+our $utilsdir;
+if(-l __FILE__)
+	{
+	my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $utilsdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+	{
+	$utilsdir = abs_path(dirname(__FILE__));
+	}
+our $installpath = abs_path("$utilsdir/..");
+if(-s "$installpath/scripts/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $installpath/scriptsls \n"; }
+do "$installpath/scripts/SqueezeMeta_conf.pl";
+
+our($scriptdir,$databasepath,$cdhit_soft,$rdpclassifier_soft);
 
 my $numthreads=4;
 my $seqidtres=0.98;
@@ -18,6 +37,10 @@ my $covertarget=5;		#-- Required coverage
 my $classifier="mothur";		#-- Can be rdp or mothur
 my $outputdir="cover";
 my ($fileseqs,$hel);
+my $datafile="$installpath/data/sizeandcopies.txt";
+my $parentsfile="$databasepath/LCA_tax/parents.txt";
+my($ecode);
+
 
 my $helptext = <<END_MESSAGE;
 Usage: cover.pl -i <input file> [options]
@@ -59,12 +82,6 @@ if(-e $outputdir) {} else { system("mkdir $outputdir"); }
 print BOLD "\nCOVER is part of SqueezeMeta - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349; Tamames et al, Environ Microbiol Rep. 4:335-41 (2012). doi: 10.1111/j.1758-2229.2012.00338.x\n\n"; print RESET;
 print "Looking for coverage $covertarget","x for $cover_rank","th OTU, classifying with $classifier\n\n";
 
-my $installpath = "/media/disk5/tamames/SqueezeMeta";
-my $databasepath="/media/disk7/fer/SqueezeMeta/db";
-my $rdpclassifier_soft="java -jar $installpath/bin/classifier.jar";
-my $cdhit_soft="$installpath/bin/cd-hit-est";
-my $datafile="/media/disk5/tamames/sizeandcopies.txt";
-my($ecode);
 
 my $outfile="$outputdir/cover.out";
 open(out,">$outfile") || die;
@@ -100,7 +117,7 @@ my $singletons;
 #-- Reading taxonomy
 
 my %parents=('Bacteria','superkingdom:Bacteria','Archaea','superkingdom:Archaea','Eukaryota','superkingdom:Eukaryota');
-open(infile3,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
+open(infile3,$parentsfile) || die "Can't open parents file $parentsfile\n";
 while(<infile3>) {
 	chomp;
 	next if !$_;
@@ -128,7 +145,7 @@ close in;
 
 print BOLD "Running cd-hit-est"; print RESET; print " (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 my $outputcdhit="$outputdir/$fileseqs.cdhit";
-my $command_cdhit = " $cdhit_soft -T $numthreads -c $seqidtres -M 0 -r 1 -l 100 -d 1000 -i $fileseqs -o $outputcdhit > $outputdir/cdhit.log";  
+my $command_cdhit = "$cdhit_soft -T $numthreads -c $seqidtres -M 0 -r 1 -l 100 -d 1000 -i $fileseqs -o $outputcdhit > $outputdir/cdhit.log";  
 $ecode = system $command_cdhit;
 if($ecode!=0) { die "Error running command:    $command_cdhit"; }
 print "  Results created in $outputcdhit\n";
