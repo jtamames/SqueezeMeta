@@ -1,4 +1,4 @@
-# Created by msize.pl, Mon Aug 10 14:32:32 2020, whith data from /media/disk5/tamames/prokaryotes.csv, /media/disk5/tamames/rnadb.txt and /media/disk5/tamames/parents.txt
+# Created by msize.pl, Mon Aug 10 14:32:32 2020, whith data from prokaryotes.csv, rnadb.txt and parents.txt
 #Tax	Av size	Av copies	#Sizes	#Copies
 class:Acidimicrobiia	3.56793	2	3	1
 class:Acidithiobacillia	3.09636722222222	2	6	4
