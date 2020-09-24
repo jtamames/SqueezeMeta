@@ -8,9 +8,9 @@
 build
 dist
 
-bin/flye-modules
-bin/flye-minimap2
-bin/flye-samtools
+#bin/flye-modules
+#bin/flye-minimap2
+#bin/flye-samtools
 
 lib/minimap2/minimap2
 
