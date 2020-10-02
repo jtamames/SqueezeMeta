@@ -32,7 +32,7 @@ utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
 data_dir = '{}/../data'.format(utils_home)
 
-from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS 
+from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
 
 
 def main(args):
@@ -158,13 +158,14 @@ def main(args):
             write_row_dict(TAXRANKS, bin_tax, prefix + 'bin.tax.tsv')
 
         for idx, rank in enumerate(TAXRANKS):
+            unmapped_str = ';'.join([rs+'_Unmapped' for i, rs in enumerate(TAXRANKS_SHORT) if i <= idx])
             tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter_wranks, idx)
-            tax_abunds_orfs['Unmapped'] = total_reads - sum(tax_abunds_orfs.values())
+            tax_abunds_orfs[unmapped_str] = total_reads - sum(tax_abunds_orfs.values())
             write_row_dict(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.tsv'.format(rank))
             #write_row_dict(sampleNames, normalize_abunds(tax_abunds_orfs, 100), prefix + '{}.prokfilter.percent.tsv'.format(rank))
 
             tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
-            tax_abunds_contigs['Unmapped'] = total_reads - sum(tax_abunds_contigs.values())
+            tax_abunds_contigs[unmapped_str] = total_reads - sum(tax_abunds_contigs.values())
             write_row_dict(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
             #write_row_dict(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 
