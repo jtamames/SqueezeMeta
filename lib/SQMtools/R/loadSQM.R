@@ -199,7 +199,12 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         SQM$orfs$tax             = as.matrix(ta[,-1])
         rownames(SQM$orfs$tax)   = unlist(ta[,1])
         }
-    SQM$orfs$tax                 = SQM$orfs$tax[rownames(SQM$orfs$table),]
+    #SQM$orfs$tax                 = SQM$orfs$tax[rownames(SQM$orfs$table),]
+    # THIS SHOULD NOT BE NEEDED ANYMORE (BUT ALAS IT IS! >_<)
+    SQM$orfs$table               = SQM$orfs$table[rownames(SQM$orfs$table) %in% rownames(SQM$orfs$tax),]
+    SQM$orfs$abund               = SQM$orfs$abund[rownames(SQM$orfs$table),,drop=F]
+    SQM$orfs$tpm                 = SQM$orfs$tpm[rownames(SQM$orfs$table),,drop=F]
+    SQM$orfs$seqs                = SQM$orfs$seqs[rownames(SQM$orfs$table)[rownames(SQM$orfs$table) %in% names(SQM$orfs$seqs)]]
 
     cat('Loading contigs\n')
     SQM$contigs                   = list()
