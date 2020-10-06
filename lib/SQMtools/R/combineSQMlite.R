@@ -57,19 +57,19 @@ combineSQMlite_ = function(SQM1, SQM2)
     combSQM$misc$tax_names_long = list()
     for(rank in names(SQM1$misc$tax_names_long))
         {
-        combSQM$misc$tax_names_long[[rank]] = unique(c(SQM1$misc$tax_names_long[[rank]], SQM2$misc$tax_names_long[[rank]]))
+        combSQM$misc$tax_names_long[[rank]] = named.unique(c(SQM1$misc$tax_names_long[[rank]], SQM2$misc$tax_names_long[[rank]]))
 	}
-    combSQM$misc$tax_names_short = unique(c(SQM1$misc$tax_names_short, SQM2$misc$tax_names_short))
-    combSQM$misc$KEGG_names = unique(c(SQM1$misc$KEGG_names, SQM2$misc$KEGG_names))
-    combSQM$misc$KEGG_paths = unique(c(SQM1$misc$KEGG_paths, SQM2$misc$KEGG_paths))
-    combSQM$misc$COG_names  = unique(c(SQM1$misc$COG_names, SQM2$misc$COG_names))
-    combSQM$misc$COG_paths  = unique(c(SQM1$misc$COG_paths, SQM2$misc$COG_paths))
+    combSQM$misc$tax_names_short = named.unique(c(SQM1$misc$tax_names_short, SQM2$misc$tax_names_short))
+    combSQM$misc$KEGG_names = named.unique(c(SQM1$misc$KEGG_names, SQM2$misc$KEGG_names))
+    combSQM$misc$KEGG_paths = named.unique(c(SQM1$misc$KEGG_paths, SQM2$misc$KEGG_paths))
+    combSQM$misc$COG_names  = named.unique(c(SQM1$misc$COG_names, SQM2$misc$COG_names))
+    combSQM$misc$COG_paths  = named.unique(c(SQM1$misc$COG_paths, SQM2$misc$COG_paths))
 
     combSQM$ext_annot_sources = intersect(SQM1$misc$ext_annot_sources, SQM2$misc$ext_annot_sources)
     for(method in combSQM$ext_annot_sources)
         {
         fieldn = sprintf('%s_names', method)
-        combSQM$misc[[fieldn]] = unique(c(SQM1$misc[[fieldn]], SQM2$misc[[fieldn]]))
+        combSQM$misc[[fieldn]] = named.unique(c(SQM1$misc[[fieldn]], SQM2$misc[[fieldn]]))
         }
 
     ### Combine total reads
