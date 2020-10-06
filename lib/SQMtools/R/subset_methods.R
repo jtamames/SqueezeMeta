@@ -227,10 +227,13 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     subSQM$functions$KEGG$abund       = KEGG$abund
     subSQM$functions$KEGG$bases       = KEGG$bases
+    subSQM$functions$KEGG$cov         = KEGG$cov
     subSQM$functions$COG$abund        = COG$abund
     subSQM$functions$COG$bases        = COG$bases
+    subSQM$functions$COG$cov          = COG$cov
     subSQM$functions$PFAM$abund       = PFAM$abund
     subSQM$functions$PFAM$bases       = PFAM$bases
+    subSQM$functions$PFAM$cov         = PFAM$cov
 
     ext_annots = list()
     for(method in subSQM$misc$ext_annot_sources)
@@ -238,6 +241,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         ext_annots[[method]]          = aggregate.fun(subSQM, method, trusted_functions_only, ignore_unclassified_functions)
         subSQM$functions[[method]]$abund = ext_annots[[method]]$abund
         subSQM$functions[[method]]$bases = ext_annots[[method]]$bases
+        subSQM$functions[[method]]$cov   = ext_annots[[method]]$cov
         }
 
     if(rescale_tpm)

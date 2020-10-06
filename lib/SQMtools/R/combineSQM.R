@@ -117,10 +117,13 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
 
     combSQM$functions$KEGG$abund       = KEGG$abund
     combSQM$functions$KEGG$bases       = KEGG$bases
+    combSQM$functions$KEGG$cov         = KEGG$cov
     combSQM$functions$COG$abund        = COG$abund
     combSQM$functions$COG$bases        = COG$bases
+    combSQM$functions$COG$cov          = COG$cov
     combSQM$functions$PFAM$abund       = PFAM$abund
     combSQM$functions$PFAM$bases       = PFAM$bases
+    combSQM$functions$PFAM$cov         = PFAM$cov
 
     ext_annots = list()
     for(method in combSQM$misc$ext_annot_sources)
@@ -128,6 +131,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         ext_annots[[method]]             = aggregate.fun(combSQM, method, trusted_functions_only, ignore_unclassified_functions)
         combSQM$functions[[method]]$abund = ext_annots[[method]]$abund
         combSQM$functions[[method]]$bases = ext_annots[[method]]$bases
+        combSQM$functions[[method]]$cov   = ext_annots[[method]]$cov
         }
 
     if(rescale_tpm)
