@@ -174,7 +174,7 @@ if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
 
 
 my($dietext,$finaltrace);
-if($ver) { exit; }
+if($ver) { print "$version\n"; exit; }
 if($hel) { die "$helptext\n"; } 
 if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
@@ -366,9 +366,28 @@ if($mode=~/sequential/i) {
 		}
 	close outfile0;
 	close infile0;
-	# system("cp $equivfile $mappingfile");
-	system("cp $scriptdir/parameters.pl $projectdir");
 
+	#-- Adjusting parameters.pl file for custom identity and evalue
+
+	# system("cp $equivfile $mappingfile");
+	if((!$miniden) && (!$evalue)) { system("cp $scriptdir/parameters.pl $projectdir"); }
+	else {
+		open(outpar,">$projectdir/parameters.pl") || die "Cannot create new parameter file in $projectdir/parameters.pl\n"; 
+		open(inpar,"$scriptdir/parameters.pl") || die "Cannot open parameter file in $scriptdir/parameters.pl\n"; 
+		while(<inpar>) {
+			if($miniden && ($_=~/^\$miniden.*?\=(\d+)/)) { 
+				$_=~s/$1/$miniden/;
+				print outpar $_;
+				}
+			elsif($evalue && ($_=~/^\$evalue.*?\=([^;]+)/)) { 
+				$_=~s/$1/$evalue/;
+				print outpar $_;
+				}
+			else { print outpar $_; }
+			}
+		close inpar;
+		close outpar;
+		}
 	
 		}
 
@@ -573,8 +592,28 @@ sub moving {
 		}
 	close outfile0;
 	close infile0;
+	
+	#-- Adjusting parameters.pl file for custom identity and evalue
+	
 	# system("cp $equivfile $mappingfile");
-	system("cp $scriptdir/parameters.pl $projectdir");
+	if((!$miniden) && (!$evalue)) { system("cp $scriptdir/parameters.pl $projectdir"); }
+	else {
+		open(outpar,">$projectdir/parameters.pl") || die "Cannot create new parameter file in $projectdir/parameters.pl\n"; 
+		open(inpar,"$scriptdir/parameters.pl") || die "Cannot open parameter file in $scriptdir/parameters.pl\n"; 
+		while(<inpar>) {
+			if($miniden && ($_=~/^\$miniden.*?\=(\d+)/)) { 
+				$_=~s/$1/$miniden/;
+				print outpar $_;
+				}
+			elsif($evalue && ($_=~/^\$evalue.*?\=([^;]+)/)) { 
+				$_=~s/$1/$evalue/;
+				print outpar $_;
+				}
+			else { print outpar $_; }
+			}
+		close inpar;
+		close outpar;
+		}
 
 	#-- For coassembly mode, we merge all individual files for each pair
 
