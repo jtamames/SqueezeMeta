@@ -93,6 +93,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 if(!$numthreads) { $numthreads=12; }
 if(!$evalue) { $evalue=0.001; }
 if(!$miniden) { $miniden=30; }         #-- Minimum identity for the hit
+if(!$euknofilter) { $euknofilter="0"; }
 my $querycover=0;	#-- Minimum coverage of hit in query
 	
 print BOLD "\nSqueezeMeta on Long Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
