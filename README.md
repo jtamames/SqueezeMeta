@@ -299,6 +299,8 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [pullseq](https://github.com/bcthomas/pullseq)
 * [Short-Pair](https://sourceforge.net/projects/short-pair/)
 * [SAMtools](http://samtools.sourceforge.net/)
+* [Mothur](https://mothur.org/)
+* [Flye](https://github.com/fenderglass/Flye)
 
 
 ## 15. About

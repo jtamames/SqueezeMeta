@@ -231,7 +231,7 @@ def parse_orf_table(orf_table, total_reads, total_bases, nokegg, nocog, nopfam, 
         cog['tpm']  = tpm(cog)
     if not nopfam:
         pfam['tpm'] = tpm(pfam)
-    for method in custom.values():
+    for mdic in custom.values():
         mdic['tpm'] = tpm(mdic)
 
     # If RecA/RadA is present (it should!), calculate copy numbers.
@@ -240,8 +240,8 @@ def parse_orf_table(orf_table, total_reads, total_bases, nokegg, nocog, nopfam, 
         kegg['copyNumber'] = {k: cov/RecA for k, cov in kegg['coverages'].items()}
         cog['copyNumber']  = {k: cov/RecA for k, cov in cog['coverages'].items() }
         pfam['copyNumber'] = {k: cov/RecA for k, cov in pfam['coverages'].items()}
-        for method in custom_methods:
-            custom[method]['copyNumber'] = {k: cov/RecA for k, cov in custom[method]['coverages'].items()}
+        for mdic in custom.values():
+            mdic['copyNumber'] = {k: cov/RecA for k, cov in mdic['coverages'].items()}
     else:
         print('COG0468 (RecA/RadA) was not present in your data. This is weird, as RecA should be universal, so you probably just skipped COG annotation. Skipping copy number calculation...')
 

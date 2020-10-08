@@ -32,7 +32,7 @@ utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
 data_dir = '{}/../data'.format(utils_home)
 
-from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS 
+from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
 
 
 def main(args):
@@ -79,6 +79,7 @@ def main(args):
             write_row_dict(['Name', 'Path'], kegg['info'], prefix + 'KO.names.tsv')
             write_row_dict(sampleNames, kegg['abundances'], prefix + 'KO.abund.tsv')
             write_row_dict(sampleNames, kegg['bases'], prefix + 'KO.bases.tsv')
+            write_row_dict(sampleNames, kegg['coverages'], prefix + 'KO.cov.tsv')
             write_row_dict(sampleNames, kegg['tpm'], prefix + 'KO.tpm.tsv')
             if 'copyNumber' in kegg:
                 write_row_dict(sampleNames, kegg['copyNumber'], prefix + 'KO.copyNumber.tsv')
@@ -86,6 +87,7 @@ def main(args):
             write_row_dict(['Name', 'Path'], cog['info'], prefix + 'COG.names.tsv')
             write_row_dict(sampleNames, cog['abundances'], prefix + 'COG.abund.tsv')
             write_row_dict(sampleNames, cog['bases'], prefix + 'COG.bases.tsv')
+            write_row_dict(sampleNames, cog['coverages'], prefix + 'COG.cov.tsv')
             write_row_dict(sampleNames, cog['tpm'], prefix + 'COG.tpm.tsv')
             if 'copyNumber' in cog:
                 write_row_dict(sampleNames, cog['copyNumber'], prefix + 'COG.copyNumber.tsv')
@@ -93,6 +95,7 @@ def main(args):
         if not nopfam:
             write_row_dict(sampleNames, pfam['abundances'], prefix + 'PFAM.abund.tsv')
             write_row_dict(sampleNames, pfam['bases'], prefix + 'PFAM.bases.tsv')
+            write_row_dict(sampleNames, pfam['coverages'], prefix + 'PFAM.cov.tsv')
             write_row_dict(sampleNames, pfam['tpm'], prefix + 'PFAM.tpm.tsv')
             if 'copyNumber' in pfam:
                 write_row_dict(sampleNames, pfam['copyNumber'], prefix + 'PFAM.copyNumber.tsv')
@@ -100,6 +103,7 @@ def main(args):
             write_row_dict(['Name'], d['info'], prefix + method + '.names.tsv')
             write_row_dict(sampleNames, d['abundances'], prefix + method + '.abund.tsv')
             write_row_dict(sampleNames, d['bases'], prefix + method + '.bases.tsv')
+            write_row_dict(sampleNames, d['coverages'], prefix + method + '.cov.tsv')
             write_row_dict(sampleNames, d['tpm'], prefix + method + '.tpm.tsv')
             if 'copyNumber' in d:
                 write_row_dict(sampleNames, d['copyNumber'], prefix + method + '.copyNumber.tsv')
@@ -158,13 +162,14 @@ def main(args):
             write_row_dict(TAXRANKS, bin_tax, prefix + 'bin.tax.tsv')
 
         for idx, rank in enumerate(TAXRANKS):
+            unmapped_str = ';'.join([rs+'_Unmapped' for i, rs in enumerate(TAXRANKS_SHORT) if i <= idx])
             tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter_wranks, idx)
-            tax_abunds_orfs['Unmapped'] = total_reads - sum(tax_abunds_orfs.values())
+            tax_abunds_orfs[unmapped_str] = total_reads - sum(tax_abunds_orfs.values())
             write_row_dict(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.tsv'.format(rank))
             #write_row_dict(sampleNames, normalize_abunds(tax_abunds_orfs, 100), prefix + '{}.prokfilter.percent.tsv'.format(rank))
 
             tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
-            tax_abunds_contigs['Unmapped'] = total_reads - sum(tax_abunds_contigs.values())
+            tax_abunds_contigs[unmapped_str] = total_reads - sum(tax_abunds_contigs.values())
             write_row_dict(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
             #write_row_dict(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
 

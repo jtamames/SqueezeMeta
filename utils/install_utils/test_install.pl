@@ -40,6 +40,11 @@ if($os eq "linux") { print("\t$os OK\n"); } else { die("The \"$os\" OS was detec
 
 
 print("\n");
+print("Checking that tree is installed\n");
+check_command("tree --help", "ERROR: The tree program can not be found in this environment!!");
+
+
+print("\n");
 print("Checking that ruby is installed\n");
 check_command("ruby -h", "ERROR: The ruby interpreter can not be found in this environment!!");
 

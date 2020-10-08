@@ -74,7 +74,8 @@ $kegg_db   = "$databasepath/keggdb";
 $lca_db    = "$databasepath/LCA_tax/taxid.db";
 $bowtieref = "$datapath/$projectname.bowtie";   #-- Contigs formatted for Bowtie
 $pfam_db   = "$databasepath/Pfam-A.hmm";
-
+$mothur_r  = "$databasepath/silva.nr_v132.align";
+$mothur_t  = "$databasepath/silva.nr_v132.tax";
 
 #-- Variables
 
@@ -113,8 +114,9 @@ $minimus2_soft      = "$installpath/bin/AMOS/minimus2";
 $checkm_soft        = "PATH=$installpath/bin:$installpath/bin/pplacer:$installpath/bin/hmmer:\$PATH $installpath/bin/checkm";
 $minpath_soft       = "python3 $installpath/bin/MinPath1.4.py";
 $canu_soft          = "$installpath/bin/canu/canu";
-$flye_soft          = "/home/tamames/Flye/bin/flye";
+$flye_soft          = "$installpath/bin/Flye-2.8.1/bin/flye";
 $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "LD_LIBRARY_PATH=$installpath/lib $installpath/bin/kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";
+$mothur_soft        = "$installpath/bin/mothur";

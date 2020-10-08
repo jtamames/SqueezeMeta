@@ -47,6 +47,12 @@ merge.numeric.matrices = function(m1, m2)
     }
 
 
+named.unique = function(v)
+    {
+    return(v[!duplicated(v)])
+    }
+
+
 SQMtoSQMlite = function(SQM) # untested and unused
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('This function only accepts SQM objects') }
