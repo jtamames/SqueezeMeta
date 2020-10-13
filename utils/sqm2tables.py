@@ -155,6 +155,8 @@ def main(args):
         for idx, rank in enumerate(TAXRANKS):
             tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter_wranks, idx)
             write_row_dict(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.tsv'.format(rank))
+            tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_nofilter_wranks, idx)
+            write_row_dict(sampleNames, tax_abunds_orfs, prefix + '{}.nofilter.abund.tsv'.format(rank))
             #write_row_dict(sampleNames, normalize_abunds(tax_abunds_orfs, 100), prefix + '{}.prokfilter.percent.tsv'.format(rank))
 
             tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
