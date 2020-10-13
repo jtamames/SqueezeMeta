@@ -119,7 +119,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     
     if(!tax_mode %in% c('allfilter', 'prokfilter', 'nofilter'))
         {
-        stop('tax_mode must be either "allfilter" (apply minimum identity threshold for all taxa) or "prokfilter" (don\'t apply thresholds to Eukaryotes)')
+        stop('tax_mode must be either "allfilter" (apply minimum identity threshold for all taxa), "prokfilter" (don\'t apply thresholds to Eukaryotes) or "nofilter" (don\'t apply thresholds at all).')
         }
 
     if(!engine %in% c('data.frame', 'data.table'))
