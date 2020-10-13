@@ -26,6 +26,8 @@ from pandas import DataFrame
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
+data_dir = ('{}/../data'.format(utils_home))
+
 from utils import parse_tax_string
 
 TAXFILTERS = ('nofilter', 'allfilter', 'prokfilter')
@@ -177,29 +179,59 @@ def main(args):
             dict_to_write[sample]['Unclassified'] += (total_reads - classified_reads)
         DataFrame.from_dict(dict_to_write).fillna(0).to_csv('{}/{}.{}.abund.tsv'.format(args.output_dir, output_prefix, method_name), sep='\t')
 
-    # Write function names and hierarchy paths.
+
+    # Write function names and hierarchy paths for kegg/cog.
     for method in found_methods:
+        if method not in ('kegg', 'cogs'):
+            continue
+        method_name = FUNMETHODS[method]
+        function_info = 'keggfun2.txt' if method == 'kegg' else 'coglist.txt'
+        with open('{}/{}'.format(data_dir, function_info)) as infile, open('{}/{}.{}.names.tsv'.format(args.output_dir, output_prefix, method_name), 'w') as outfile:
+            infile.readline() # Burn headers.
+            info = {}
+            for line in infile:
+                if method == 'kegg':
+                    fun_id, gene_name, fun_name, path = line.strip().split('\t')
+                else:
+                    line = line.strip().split('\t')
+                    if len(line) == 3:
+                        fun_id, fun_name, path = line
+                    else: # UGH!
+                        fun_id, fun_name = line
+                        path = '{} (path not available)',format(fun_id)
+                info[fun_id] = (fun_name, path)
+            allFuns = sorted({fun for sample in fun_dict[method] for fun in fun_dict[method][sample]})
+            outfile.write('\tName\tPath\n')
+            for fun in allFuns:
+                if fun == 'Unclassified':
+                    continue
+                if fun in info:
+                    outfile.write('{}\t{}\t{}\n'.format(fun, info[fun][0], info[fun][1]))
+                else:
+                    outfile.write('{}\t{} (name not available)\t{} (path not available)\n'.format(fun, fun, fun))
+            outfile.write('Unclassified\tUnclassified\tUnclassified\n')
+        
+
+    # Write function names for extra methods.
+    for method in found_methods:
+        if method in ('kegg', 'cogs'):
+            continue
         method_name = FUNMETHODS[method]
         written = set()
-        if method == 'cogs':
-            method = 'cog' # "cogs" is used within each sample directory, but the summary uses just "cog".
+        if method in ('kegg', 'cogs'):
+            continue
         with open('{}/{}.out.allreads.fun{}'.format(args.project_path, project_name, method)) as infile, \
              open('{}/{}.{}.names.tsv'.format(args.output_dir, output_prefix, method_name), 'w') as outfile:
             infile.readline() # Burn headers.
             infile.readline()
-            if method in ('kegg', 'cog'):
-                outfile.write('\tName\tPath\n')
-            else:
-                outfile.write('\tName\n')
+            outfile.write('\tName\n')
             for line in infile:
                 line = line.strip('\n').split('\t') # Explicitly strip just '\n' so I don't remove tabs when there are empty fields.
                 ID = line[0]
                 if ID not in written:
                     written.add(ID)
-                    if method in ('kegg', 'cog'):
-                        outfile.write('{}\t{}\t{}\n'.format(ID, line[-2], line[-1]))
-                    else:
-                        outfile.write('{}\t{}\n'.format(ID, line[-1]))
+                    outfile.write('{}\t{}\n'.format(ID, line[-1]))
+            outfile.write('Unclassified\tUnclassified\n')
             
 
 

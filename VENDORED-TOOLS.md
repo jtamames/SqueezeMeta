@@ -62,3 +62,5 @@ SqueezeMeta redistributes the following third-party software:
   - Work within the SQM directory structure
   - Port to python3
 * [SAMtools](http://samtools.sourceforge.net/)
+* [Mothur](https://mothur.org/)
+* [Flye](https://github.com/fenderglass/Flye)

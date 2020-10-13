@@ -22,12 +22,13 @@ do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$databasepath,$interdir,$alllog,$bintax,$mincontigs17,$minconsperc_asig17,$minconsperc_total17,%bindirs,%dasdir);
+our($datapath,$databasepath,$interdir,$alllog,$bintax,$syslogfile,$mincontigs17,$minconsperc_asig17,$minconsperc_total17,%bindirs,%dasdir);
 
 	#-- Some configuration values for the algorithm
 	
 my $verbose=0;
 
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 # my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranks=('k','p','c','o','f','g','s');
 my(%tax,%taxlist);
@@ -53,6 +54,7 @@ close infile0;
 	#-- Read taxonomic assignments for contigs
 
 my $input=$alllog;
+print syslogfile "  Reading taxonomic assignments for contigs from $input\n";
 open(infile1,$input) || die "Can't open $input\n";
 while(<infile1>) {
 	chomp;
@@ -73,7 +75,8 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 	my $bindir=$dasdir{$binmethod};
 	print "  Looking for $binmethod bins in $bindir\n";
-
+	print syslogfile "  Looking for $binmethod bins in $bindir\n";
+	
 	#-- Reading bin directories
 
 	opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
@@ -225,7 +228,9 @@ foreach my $binmethod(sort keys %dasdir) {		#-- For the current binning method
 		close outfile2;
 
  	}
+	print syslogfile "  Output created in $bintax\n";
 }
 close outfile1;
+close syslogfile;
 
 

@@ -23,7 +23,7 @@ do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,
+our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
     $mapper, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
@@ -99,10 +99,10 @@ elsif($mapper=~/minimap/i) {
 #if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
 #if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
-open(outfile1,">$resultpath/10.$projectname.mappingstat") || die "Can't open $resultpath/10.$project.mappingstat for writing\n";	#-- File containing mapping statistics
+open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
-open(outfile3,">$mapcountfile") || die "Can't open $mapcountfile for writing\n";
+open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
 print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
 
@@ -181,7 +181,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- And then we call the counting
 	
 	 system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
-	 print outsyslog "Calling sqm_counter\n";
+	 print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
 	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
 }
 if($warnmes) { 
@@ -189,9 +189,9 @@ if($warnmes) {
 	if($mincontiglen>200) { 
 		print outfile1 "# Notice also that you set the minimum contig length to $mincontiglen. In this way you are removing the contigs shorter than that size. This can be, at least partially, the cause of this low mapping percentage\n";
 		print outfile1 "# It is likely that redoing the analysis with the default minimum contig length (200) can solve this problem\n";
-		print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl fr this purpose (But you will lose the binnning results)\n";
+		print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n";
 		}
-	else { print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl for this purpose (but you will lose the binning information)\n"; }
+	else { print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n"; }
 	}
 
 close outfile1;
@@ -203,6 +203,7 @@ system("rm $bowtieref.*");	#-- Deleting bowtie references
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
 	
 my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+print outsyslog "Sorting mapcount table: $command\n";
 system($command);	
 
 
@@ -214,7 +215,7 @@ sub sqm_counter {
 	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
 	my(%genesincontigs,%accum,%long_gen);
 	my($countreads,$lastread);
-	open(infile2,$gff_file) || die "Can't open $gff_file for writing\n";
+	open(infile2,$gff_file) || die "Can't open gff file $gff_file for writing\n";
 	while(<infile2>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -236,7 +237,7 @@ sub sqm_counter {
 	open(infile3,$samfile) || die "Can't open sam file $samfile\n"; ;
 	while(<infile3>) { 
 		chomp;
-		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@SQ/));
+		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@/));
 		my @k=split(/\t/,$_);
 		my $readid=$k[0];
 		next if(($k[0] eq $lastread) && ($mapper=~/minimap2/));       #-- Minimap2 can output more than one alignment per read
@@ -341,7 +342,7 @@ sub contigcov {
 	my($thissample,$outsam)=@_;
 	my(%lencontig,%readcount)=();
 	my($mappedreads,$totalreadcount,$totalreadlength)=0;
-	open(outfile4,">>$contigcov") || die "Can't open $contigcov for writing\n";
+	open(outfile4,">>$contigcov") || die "Can't open contigcov file $contigcov for writing\n";
 
 	#-- Count length of contigs and bases mapped from the sam file
 

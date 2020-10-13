@@ -21,7 +21,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode);
+our($datapath,$tempdir,$interdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode,$singletons,$mappingstat);
 
 my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
@@ -45,9 +45,8 @@ if($opt_db) {
 
 my @ranks=('k','p','c','o','f','g','s');
 my %equirank=('k','superkingdom','p','phylum','c','class','o','order','f','family','g','genus','s','species');
-my($totalbases,$totalreads);
-my $mapfile="$resultpath/10.$project.mappingstat";
-open(infile1,$mapfile) || die "Can't open $mapfile\n";
+my($totalbases,$totalreads,$singletoncount);
+open(infile1,$mappingstat) || warn "Can't open $mappingstat\n";
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -64,8 +63,8 @@ close infile1;
 my(%contigs,%contax);
 my $command="$prinseq_soft -stats_info -stats_assembly -stats_len -fasta $contigsfna > $tempdir/stats.txt";
 my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
-open(infile2,"$tempdir/stats.txt") || die "Can't open $tempdir/stats.txt\n";
+if($ecode!=0) { warn "Error running command:    $command"; }
+open(infile2,"$tempdir/stats.txt") || warn "Can't open $tempdir/stats.txt\n";
 while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -81,7 +80,7 @@ close infile2;
 
 	#-- Statistics on contigs (disparity, assignment..)
 
-open(infile3,$contigtable) || die "Can't open $contigtable\n";
+open(infile3,$contigtable) || warn "Can't open $contigtable\n";
 while(<infile3>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -99,18 +98,33 @@ while(<infile3>) {
 	}
 close infile3;
 
+my %singletonsample;
+if($singletons) {		#-- Count singleton raw reads
+	my $singletonlist="$interdir/01.$projectname.singletons";
+	open(infile0,$singletonlist) || die "Cannot open singleton list in $singletonlist\n";
+	while(<infile0>) {
+		chomp;
+		next if !$_;
+		my @y=split(/\t/,$_);
+		$singletonsample{$y[0]}=$y[1];
+		$singletoncount++;
+		}
+	close infile0;
+	}
+
 	#-- Statistics on genes (disparity, assignment..)
 		
 my $header;
 my @head;
 my %genes;
-open(infile4,$mergedfile) || die "Can't open $mergedfile\n";
+open(infile4,$mergedfile) || warn "Can't open $mergedfile\n";
 while(<infile4>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	if(!$header) { $header=$_; @head=split(/\t/,$header); next; }
 	$genes{totgenes}++;
 	my @k=split(/\t/,$_);
+	if($singletonsample{$k[1]}) { $genes{$singletonsample{$k[1]}}{singletons}++; $genes{total}{singletons}++; }
 	my $taxorf;
 	foreach(my $pos=0; $pos<=$#k; $pos++) {
 		my $f=$head[$pos];
@@ -153,7 +167,7 @@ while(<infile4>) {
 	}
 close infile4;
 
-open(infile4,$mcountfile)  || die "Can't open $mcountfile\n";
+open(infile4,$mcountfile)  || warn "Can't open $mcountfile\n";
 my $cheader=<infile4>;
 chomp $cheader;
 my @chead=split(/\t/,$cheader);
@@ -178,7 +192,7 @@ my %bins;
 if(!$nobins) {
 	my $header;
 	if(-e $bintable) {
-		open(infile5,$bintable) || die "Can't open $bintable\n";
+		open(infile5,$bintable) || warn "Can't open $bintable\n";
 		while(<infile5>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -209,11 +223,12 @@ if(!$nobins) {
 
 	#-- Date of the start of the run
 
+my $startdate;
 open(infile6,"$projectdir/syslog") || warn "Can't open syslog file in $projectdir/syslog\n";
-$_=<infile6>;
-my $startdate=<infile6>;
-$startdate.=<infile6>;
-chomp $startdate;
+while(<infile6>) {
+	chomp;
+	if($_=~/^Run started/) { $startdate=$_; }
+	}
 close infile6; 
 		
 
@@ -248,7 +263,13 @@ print outfile1 "\n";
 
 print outfile1 "\n#------------------- Statistics on contigs\n";
 print outfile1 "#\tAssembly\n";
-print outfile1 "Number of contigs\t$contigs{num}\nTotal length\t$contigs{bases}\nLongest contig\t$contigs{max}\nShortest contig\t$contigs{min}\n";
+print outfile1 "Number of contigs\t$contigs{num}\n";
+if($singletons) { 
+	my $conum=$contigs{num}-$singletoncount;
+	print outfile1 "Number of singletons\t$singletoncount\n";
+	print outfile1 "Contigs from assembly\t$conum\n";
+	}
+print outfile1 "Total length\t$contigs{bases}\nLongest contig\t$contigs{max}\nShortest contig\t$contigs{min}\n";
 print outfile1 "N50\t$contigs{N50}\nN90\t$contigs{N90}\n";
 foreach my $rk(@ranks) { 
 	my @ctk=keys %{ $contax{$rk} };
@@ -286,6 +307,11 @@ print outfile1 "\n";
 print outfile1 "Number of ORFs\t$genes{totgenes}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{totgenes}"; }
 print outfile1 "\n";
+if($singletons) {
+	print outfile1 "ORFs in singletons\t$genes{total}{singletons}";
+	foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{singletons}"; }
+	print outfile1 "\n";
+	}
 print outfile1 "Number of rRNAs\t$genes{rnas}";
 foreach my $sample(sort keys %sampledata) { print outfile1 "\t$genes{$sample}{rnas}"; }
 print outfile1 "\n";

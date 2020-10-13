@@ -53,6 +53,7 @@ $allorfs         = "$tempdir/09.$projectname.allorfs";          #-- From summary
 $alllog          = "$interdir/09.$projectname.contiglog";       #-- From summary_contigs.pl, contiglog file (formerly alllog file)
 $mapcountfile    = "$interdir/10.$projectname.mapcount";        #-- From mapsamples.pl, rpkm and coverage counts for all samples
 $contigcov       = "$interdir/10.$projectname.contigcov";       #-- From mapbamsamples.pl, coverages of  for all samples
+$mappingstat     = "$resultpath/10.$projectname.mappingstat";   #-- From mapsamples.pl, mapping statistics for all samples
 $mcountfile      = "$resultpath/11.$projectname.mcount";        #-- From mcount.pl, abundances of all taxa
 $mergedfile      = "$resultpath/13.$projectname.orftable";      #-- Gene table file
 $bintax          = "$interdir/17.$projectname.bintax";          #-- From addtax2.pl
@@ -73,7 +74,8 @@ $kegg_db   = "$databasepath/keggdb";
 $lca_db    = "$databasepath/LCA_tax/taxid.db";
 $bowtieref = "$datapath/$projectname.bowtie";   #-- Contigs formatted for Bowtie
 $pfam_db   = "$databasepath/Pfam-A.hmm";
-
+$mothur_r  = "$databasepath/silva.nr_v132.align";
+$mothur_t  = "$databasepath/silva.nr_v132.tax";
 
 #-- Variables
 
@@ -84,6 +86,7 @@ $nopfam          = 0;
 $euknofilter     = 0;
 $nobins          = 0;
 $doublepass      = 0;
+$singletons      = 0;
 $cleaning        = 0;
 $cleaningoptions = "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper          = "bowtie";
@@ -111,7 +114,9 @@ $minimus2_soft      = "$installpath/bin/AMOS/minimus2";
 $checkm_soft        = "PATH=$installpath/bin:$installpath/bin/pplacer:$installpath/bin/hmmer:\$PATH $installpath/bin/checkm";
 $minpath_soft       = "python3 $installpath/bin/MinPath1.4.py";
 $canu_soft          = "$installpath/bin/canu/canu";
+$flye_soft          = "$installpath/bin/Flye-2.8.1/bin/flye";
 $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "LD_LIBRARY_PATH=$installpath/lib $installpath/bin/kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";
+$mothur_soft        = "$installpath/bin/mothur";

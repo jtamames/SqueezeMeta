@@ -65,19 +65,23 @@ print "done\n";
 
 if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta files from it
 	my $gmet=$methods;
-	print "Only one binning result: Copying $gmet results and skipping DAS Tool\n";
-	print outsyslog "Only one binning result: Copying $gmet results and skipping DAS Tool\n";
+	print "Only one binning result ($methods): Copying $gmet results and skipping DAS Tool\n";
+	print outsyslog "Only one binning result ($methods): Copying $gmet results and skipping DAS Tool\n";
 	my $bindir=$bindirs{$gmet};
-	system("mkdir $resultpath/DAS/$project\_DASTool\_bins");
+	my $command="mkdir $resultpath/DAS/$project\_DASTool\_bins";
+	system $command;
+	print outsyslog "$command\n";
 	my $command="cp $bindir/*fasta $resultpath/DAS/$project\_DASTool\_bins";
 	system $command;
+	print outsyslog "$command\n";
 	my $command="cp $bindir/*fa $resultpath/DAS/$project\_DASTool\_bins";
 	system $command;
+	print outsyslog "$command\n";
 	}
 
 else { 				#-- Otherwise, run DAS tool to combine results
 	
-	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath";
+	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres16 --search_engine diamond -t $numthreads -o $resultpath/DAS/$project --db_directory $databasepath --debug";
  
 	print "Running DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43) for $methods\n";
 	print outsyslog "Running DAS Tool for $methods: $das_command\n";

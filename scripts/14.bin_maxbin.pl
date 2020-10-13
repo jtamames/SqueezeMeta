@@ -21,7 +21,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$interdir,$singletons,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
 my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
@@ -41,6 +41,21 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 #	}
 #close infile1;
 
+my %singletonlist;
+if($singletons) {		#-- Excluding singleton raw reads from binning
+	my $singletonlist="$interdir/01.$projectname.singletons";
+	print "  Excluding singleton reads from $singletonlist\n";
+	print outsyslog "  Excluding singleton reads from $singletonlist\n";
+	open(infile0,$singletonlist) || die "Cannot open singleton list in $singletonlist\n";
+	while(<infile0>) {
+		chomp;
+		next if !$_;
+		my @y=split(/\t/,$_);
+		$singletonlist{$y[0]}=1;
+		}
+	close infile0;
+	}
+
 print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
 open(infile0,$mappingfile) || die "Can't open $alllog\n";
 while(<infile0>) {
@@ -57,6 +72,7 @@ while(<infile1>) {
 	chomp;
 	next if !$_;
 	my @r=split(/\t/,$_);
+	next if $singletonlist{$r[0]};
 	my($chimlevel,$numgenes);
 	if($r[3]=~/Disparity\: (.*)/) { $chimlevel=$1; }
 	if($r[4]=~/Genes\: (.*)/) { $numgenes=$1; }
@@ -75,6 +91,7 @@ while(<infile1>) {
 	if($_=~/^\>([^ ]+)/) { 
 		my $tc=$1;
 		if($allcontigs{$tc}) { $ingood=1; } else { $ingood=0; } 
+		if($singletonlist{$tc}) { $ingood=0; }
 		}
 	if($ingood) { print outfile1 "$_\n"; }
 	}

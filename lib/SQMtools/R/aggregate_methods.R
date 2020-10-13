@@ -13,7 +13,7 @@ aggregate.taxa = function(SQM, rank, tax_source)
     {
     stopifnot(tax_source %in% c('contigs', 'orfs'))
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object')}
-    res = aggregate(SQM[[tax_source]][['abund']], by=list(SQM[[tax_source]][['tax']][,rank]), FUN=sum)
+    res = aggregate(data.table:::data.table(SQM[[tax_source]][['abund']]), by=list(SQM[[tax_source]][['tax']][,rank]), FUN=sum)
     rownames(res) = res[,1] # SQM$misc$tax_names_long[[rank]][res[,1]]
     res = res[,-1,drop=F]
     return(as.matrix(res))
@@ -39,31 +39,32 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
         }
     funs = gsub('*', '', funs, fixed=T)
 
-    abund                      = aggregate(SQM$orfs$abund, by=list(funs), FUN=sum)
+    
+    abund                      = aggregate(data.table:::data.table(SQM$orfs$abund), by=list(funs), FUN=sum)
     rownames(abund)            = abund[,1]
     abund                      = as.matrix(abund[,-1,drop=F])
 
-    bases                      = aggregate(SQM$orfs$bases, by=list(funs), FUN=sum)
+    bases                      = aggregate(data.table:::data.table(SQM$orfs$bases), by=list(funs), FUN=sum)
     rownames(bases)            = bases[,1]
     bases                      = as.matrix(bases[,-1,drop=F])
 
-    coverage                   = aggregate(SQM$orfs$cov  , by=list(funs), FUN=sum)
+    coverage                   = aggregate(data.table:::data.table(SQM$orfs$cov)  , by=list(funs), FUN=sum)
     rownames(coverage)         = coverage[,1]
     coverage                   = as.matrix(coverage[,-1,drop=F])
 
     lengths                    = replicate(ncol(SQM$orfs$abund), SQM$orfs$table[,'Length NT'])
-    if(is.null(dim(lengths)))  { lengths = matrix(lengths, nrow=1) } # The replicate function generates a vector if there is only one ORF. Avoid that.
+    if(is.null(dim(lengths)))  { lengths = data.table:::data.table(matrix(lengths, nrow=1)) } # The replicate function generates a vector if there is only one ORF. Avoid that.
     dimnames(lengths)          = dimnames(SQM$orfs$abund)
     lengths[SQM$orfs$abund==0] = 0 #Don't count its length if it's missing fron that sample.
     lengths                    = aggregate(lengths       , by=list(funs), FUN=sum)
     rownames(lengths)          = lengths[,1]
     lengths                    = as.matrix(lengths[,-1,drop=F])
 
-    copies                     = aggregate(SQM$orfs$abund>0, by=list(funs), FUN=sum) # aggregate 1 if present, 0 if absent
+    copies                     = aggregate(data.table:::data.table(SQM$orfs$abund>0), by=list(funs), FUN=sum) # aggregate 1 if present, 0 if absent
     rownames(copies)           = copies[,1]
     copies                     = as.matrix(copies[,-1,drop=F])
 
-    tpm                        = aggregate(SQM$orfs$tpm  , by=list(funs), FUN=sum)
+    tpm                        = aggregate(data.table:::data.table(SQM$orfs$tpm)  , by=list(funs), FUN=sum)
     rownames(tpm)              = tpm[,1]
     tpm                        = as.matrix(tpm[,-1,drop=F])
 

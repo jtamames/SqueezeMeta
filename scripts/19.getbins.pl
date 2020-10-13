@@ -23,13 +23,15 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$interdir,$bintable);
+our($datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$interdir,$bintable,$syslogfile);
 my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna,%rinsample);
 tie %allsamples,"Tie::IxHash";
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 	#-- Read 16S in contigs
 
 my $rnafile="$resultpath/02.$project.16S.txt";
+print syslogfile "  Reading 16S rRNA in contigs from $rnafile\n";
 open(infile1,$rnafile) || warn "Can't open $rnafile\n";
 while(<infile1>) {
 	chomp;
@@ -47,11 +49,13 @@ close infile1;
 	#-- Create the bin coverage table and the contigsinbins file
 
 if(-e $bincov) { system("rm $bincov"); }
+print syslogfile "  Creating bin coverage table in $bincov\n";
 open(outfile1,">>$bincov") || die "Can't open $bincov for writing\n";
 print outfile1 "#--Created by $0,",scalar localtime,"\n";
 print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tTPM\tSample\n";
 
 if(-e $contigsinbins) { system("rm $contigsinbins"); }
+print syslogfile "  Creating contigs in bins table in $contigsinbins\n";
 open(outfile2,">>$contigsinbins") || die "Can't open $contigsinbins for writing\n";
 print outfile2 "#--Created by $0,",scalar localtime,"\n";
 print outfile2 "# Contig\tMethod\tBin ID\n";
@@ -140,6 +144,7 @@ foreach my $binmethod(sort keys %dasdir) {
 	#-- Count coverages for the bins
 
 	print "\n  Calculating coverages\n";
+	print syslogfile "  Calculating coverages for bins from $contigcov\n";
 	open(infile5,$contigcov) || die "Can't open contig coverage file $contigcov\n";
 	while(<infile5>) { 
 		chomp;
@@ -186,6 +191,7 @@ foreach my $binmethod(sort keys %dasdir) {
 					   
 	my $outputfile=$bintable;
 	print "  Creating table in $outputfile\n";
+	print syslogfile "  Creating table in $outputfile\n";
 	open(outfile3,">$outputfile") || die "Can't open $outputfile for writing\n";
 	
 	#-- Headers
@@ -212,6 +218,7 @@ foreach my $binmethod(sort keys %dasdir) {
 close outfile3;
 close outfile1;
 close outfile2;
+close syslogfile;
 
 print "  Done!\n";
 print "=============\nBIN TABLE CREATED: $outputfile\n=============\n\n";

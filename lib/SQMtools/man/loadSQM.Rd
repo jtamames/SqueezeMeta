@@ -73,14 +73,17 @@ $bins               \tab \bold{$table}             \tab                      \ta
                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab species           \tab samples        \tab percentages        \cr
 \bold{$functions}   \tab \bold{$KEGG}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances (reads) \cr
                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances (bases) \cr
+                    \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab coverages          \cr
                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab tpm                \cr
                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab avg. copies        \cr
                     \tab \bold{$COG}               \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances (reads) \cr
                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances (bases) \cr
+                    \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab COG ids          \tab samples        \tab coverages          \cr
                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab tpm                \cr
                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab avg. copies        \cr
                     \tab \bold{$PFAM}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances (reads) \cr
                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances (bases) \cr
+                    \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab coverages          \cr
                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab tpm                \cr
                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab avg. copies        \cr
 \bold{$total_reads} \tab                           \tab                      \tab \emph{numeric vector}   \tab samples           \tab (n/a)          \tab total reads        \cr
@@ -100,7 +103,7 @@ $bins               \tab \bold{$table}             \tab                      \ta
                     \tab \bold{$COG_paths}         \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab COG hierarchy      \cr
                     \tab \bold{$ext_annot_sources} \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab external databases \cr
 }
-If external databases for functional classification were provided to SqueezeMeta via the \code{-extdb} argument, the corresponding abundance (reads and bases), tpm and copy number profiles will be present in \code{SQM$functions} (e.g. results for the CAZy database would be present in \code{SQM$functions$CAZy}). Additionally, the extended names of the features present in the external database will be present in \code{SQM$misc} (e.g. \code{SQM$misc$CAZy_names}).
+If external databases for functional classification were provided to SqueezeMeta via the \code{-extdb} argument, the corresponding abundance (reads and bases), coverages, tpm and copy number profiles will be present in \code{SQM$functions} (e.g. results for the CAZy database would be present in \code{SQM$functions$CAZy}). Additionally, the extended names of the features present in the external database will be present in \code{SQM$misc} (e.g. \code{SQM$misc$CAZy_names}).
 }
 }
 

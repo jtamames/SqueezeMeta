@@ -24,7 +24,7 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_f
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
 
     if(is.null(columns))
-        { columns = c('Gene name', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM')
+        { columns = c('Gene name', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM')
         for(method in SQM$misc$ext_annot_sources) { columns = c(columns, method, sprintf('%s NAME', method)) }
         }
 
@@ -177,7 +177,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     if(length(orfs)==0) { stop('No ORFs were selected. Perhaps the subset query yielded no results?') }
     if(!tax_source %in% c('contigs', 'orfs')) { stop('tax_source must be "orfs" or "contigs"') }
-    
+   
     orfs    = rownames(SQM$orfs$table[orfs,]) # Make sure it will work if orfs is a bool vector too.
     contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
     bins    = unique( unlist(SQM$contigs$bins[contigs,]) )
@@ -227,10 +227,13 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     subSQM$functions$KEGG$abund       = KEGG$abund
     subSQM$functions$KEGG$bases       = KEGG$bases
+    subSQM$functions$KEGG$cov         = KEGG$cov
     subSQM$functions$COG$abund        = COG$abund
     subSQM$functions$COG$bases        = COG$bases
+    subSQM$functions$COG$cov          = COG$cov
     subSQM$functions$PFAM$abund       = PFAM$abund
     subSQM$functions$PFAM$bases       = PFAM$bases
+    subSQM$functions$PFAM$cov         = PFAM$cov
 
     ext_annots = list()
     for(method in subSQM$misc$ext_annot_sources)
@@ -238,6 +241,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         ext_annots[[method]]          = aggregate.fun(subSQM, method, trusted_functions_only, ignore_unclassified_functions)
         subSQM$functions[[method]]$abund = ext_annots[[method]]$abund
         subSQM$functions[[method]]$bases = ext_annots[[method]]$bases
+        subSQM$functions[[method]]$cov   = ext_annots[[method]]$cov
         }
 
     if(rescale_tpm)

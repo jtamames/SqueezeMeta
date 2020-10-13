@@ -21,23 +21,21 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$nocog,$nokegg,$nopfam,$opt_db,$cogdiamond,$fun3cog,$evalue,$miniden,$keggdiamond,$fun3kegg,$pfamlist,$fun3pfam,$pfamhmmer,$resultpath,$tempdir,$interdir,$mindif7,$maxhits7,$minolap7);
+our($datapath,$nocog,$nokegg,$nopfam,$opt_db,$cogdiamond,$fun3cog,$evalue,$miniden,$keggdiamond,$fun3kegg,$pfamlist,$fun3pfam,$pfamhmmer,$resultpath,$tempdir,$interdir,$mindif7,$maxhits7,$minolap7,$syslogfile);
 
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 print "  Functional assignment for";
-if(!$nocog) { print " COGS"; }
-if(!$nokegg) { print " KEGG"; }
-if(!$nopfam) { print " PFAM"; }
-print "\n";
 
 #----------------------------------- COG assignment -------------------------------------
 
 if(!$nocog) {
+	print " COGS";
 	if($blastx) { 
 		$cogdiamond="$tempdir/08.$project.fun3.blastx.cog.m8";
 		$fun3cog="$tempdir/08.$project.fun3.blastx.cog";
 		}
-		
+	print syslogfile "  Reading COGs hits from $cogdiamond\n";	
 	open(infile1,$cogdiamond) || die "Can't open cog file $cogdiamond\n";
 	open(outfile1,">$fun3cog") || die "Can't open $fun3cog\n";
 	print outfile1 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
@@ -110,6 +108,7 @@ if(!$nocog) {
 		print outfile1 "$currorf\t$cog{$currorf}{besthit}\t$cog{$currorf}{bestaver}\n";
 		}
 	close outfile1;
+	print syslogfile "  Output in $fun3cog\n";	
 	
 	}		#-- END of COG assignment
 
@@ -117,10 +116,12 @@ if(!$nocog) {
 #----------------------------------- KEGG assignment -------------------------------------
 
 if(!$nokegg) {
+	print " KEGG";
 	if($blastx) { 
 		$keggdiamond="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		$fun3kegg="$tempdir/08.$project.fun3.blastx.kegg";
 		}
+	print syslogfile "  Reading COGs hits from $cogdiamond\n";	
 	open(infile2,$keggdiamond) || die "Can't open $keggdiamond\n";
 	open(outfile2,">$fun3kegg") || die "Can't open $fun3kegg\n";
 	print outfile2 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
@@ -194,6 +195,7 @@ if(!$nokegg) {
 		print outfile2 "$currorf\t$kegg{$currorf}{besthit}\t$kegg{$currorf}{bestaver}\n";
 		}
 	close outfile2;
+	print syslogfile "  Output in $fun3kegg\n";	
 	}		#-- END of COG assignment
 	    
 
@@ -205,11 +207,12 @@ if($opt_db) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		print "                            $dbname\n";
+		print " $dbname";
 		my $optdbdiamond="$interdir/04.$project.$dbname.diamond";
 		my $optdbresult="$resultpath/07.$project.fun3.$dbname";
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
-		
+		print syslogfile "  Reading $dbname hits from $optdbdiamond\n";	
+
 		open(infile1,$optdbdiamond) || die "Can't open opt_db file $optdbdiamond\n";
 		open(outfile1,">$optdbresult") || die "Can't open $optdbresult for writing\n";
 		print outfile1 "# Created by $0 for $dbname, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
@@ -282,6 +285,7 @@ if($opt_db) {
 			print outfile1 "$currorf\t$optdb{$currorf}{besthit}\t$optdb{$currorf}{bestaver}\n";
 			}
 		close outfile1;
+		print syslogfile "  Output in $optdbresult\n";	
 		}
 	close infile0;
 	}		#-- END of OPT DB assignment
@@ -294,6 +298,7 @@ if(!$nopfam) {
 
 	#-- Read the Pfam data for the pfam.dat file
 
+	print " PFAM";
 	my(%pfamname,%hits);
 	open(infile3,$pfamlist) || die "Can't open $pfamlist\n";
 	while(<infile3>) {
@@ -306,6 +311,7 @@ if(!$nopfam) {
 
 	#-- We start reading the hmmer results
 
+	print syslogfile "  Reading pfam hits from $pfamhmmer\n";	
 	open(outfile3,">$fun3pfam") || warn "Can't open $fun3pfam for writing\n";
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
 	open(infile4,$pfamhmmer) || die "Can't open $pfamhmmer\n";
@@ -328,4 +334,8 @@ if(!$nopfam) {
 		}
 			      
 	close outfile3;
+	print syslogfile "  Output in $fun3pfam\n";	
 	}		#-- END of Pfam assignment
+
+print "\n";
+close syslogfile;

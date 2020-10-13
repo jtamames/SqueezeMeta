@@ -83,8 +83,8 @@ system("rm $tempdir/wc");
 close syslogfile;
 
 sub splitfiles {
+       # print "  Splitting Diamond file\n";
 	my $numthreads=shift;
-        # print "  Splitting Diamond file\n";
         print syslogfile "  Splitting Diamond file\n";
         system("wc -l $blastfile > $tempdir/wc");
         open(intemp,"$tempdir/wc");

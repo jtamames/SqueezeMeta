@@ -20,12 +20,15 @@ do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$resultpath,$contigslen,$alllog,$taxlist,$contigcov,$mcountfile);
+our($datapath,$resultpath,$contigslen,$alllog,$taxlist,$contigcov,$mcountfile,$syslogfile);
 
 my(%lon,%taxa,%abund,%abundreads,%samples,%accum,%accumbases,%accumreads,%taxcorr,%cseen);
 
+open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+
 	#-- Read contig lengths
 
+print outsyslog "Reading contig length from $contigslen\n";
 open(infile1,$contigslen) || die "Can't open $contigslen for reading\n";
 while(<infile1>) {  
 	chomp;
@@ -37,6 +40,7 @@ close infile1;
 
 	#-- Read contiglog file to get taxonomic assignment for contigs
 
+print outsyslog "Reading contig taxa from $alllog\n";
 open(infile2,$alllog) || die "Can't open $alllog for writing\n";
 while(<infile2>) {
 	chomp;
@@ -63,6 +67,7 @@ foreach my $acg(keys %lon) {
 
 	#-- Read contigcov file to get abundances of each contig
 
+print outsyslog "Reading contig coverages from $contigcov\n";
 open(infile3,$contigcov) || die "Can't open $contigcov for writing\n";
 while(<infile3>) {
 	chomp;
@@ -113,7 +118,8 @@ while(<infile4>) {
 close infile4;
  
 	#-- Write the output file 
- 
+
+print outsyslog "Writing output to $mcountfile\n"; 
 open(outfile1,">$mcountfile") || die "Can't open $mcountfile for writing\n";
 print outfile1 "Rank\tTaxon\tAccumulated contig size";
 foreach my $samp(sort keys %samples) { print outfile1 "\t$samp reads\t$samp bases"; }
@@ -129,3 +135,4 @@ foreach my $kk(sort { $accum{$b}<=>$accum{$a}; } keys %accum) {
 	print outfile1 "\n";
 	}
 close outfile1;
+close outsyslog;
