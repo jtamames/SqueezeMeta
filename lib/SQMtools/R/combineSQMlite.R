@@ -65,7 +65,7 @@ combineSQMlite_ = function(SQM1, SQM2)
     combSQM$misc$COG_names  = named.unique(c(SQM1$misc$COG_names, SQM2$misc$COG_names))
     combSQM$misc$COG_paths  = named.unique(c(SQM1$misc$COG_paths, SQM2$misc$COG_paths))
 
-    combSQM$ext_annot_sources = intersect(SQM1$misc$ext_annot_sources, SQM2$misc$ext_annot_sources)
+    combSQM$misc$ext_annot_sources = intersect(SQM1$misc$ext_annot_sources, SQM2$misc$ext_annot_sources)
     for(method in combSQM$ext_annot_sources)
         {
         fieldn = sprintf('%s_names', method)
