@@ -196,6 +196,7 @@ print outcount "# Sample\tFile\tTotal Reads\tReads with hits\tTotal number of hi
 my(%cogaccum,%keggaccum,%rblast,%iblast,%store,%inputfile);
 my($thisfile,$numseqs);
 foreach my $thissample(keys %allsamples) {
+	%store=();
 	$sampnum++;
 	print BOLD "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; print RESET;
 	print outsyslog "\nSAMPLE $sampnum/$numsamples: $thissample\n\n"; 
@@ -273,7 +274,8 @@ foreach my $thissample(keys %allsamples) {
 			else { getseqs($collapsedmerged,$fastaname,$ntseqs); }
 			}
 
-		lca($collapsedmerged,$thissampledir,$scriptdir,$thissample,$numthreads);
+		if(-s $wrankfile>0) { print "  Tax annotations found in $wrankfile, not running it again\n"; }
+		else { lca($collapsedmerged,$thissampledir,$scriptdir,$thissample,$numthreads); }
 		open(outsyslog,">>$resultsdir/syslog");
 		my $numtotalhits;
 		open(inf,$collapsedmerged);
