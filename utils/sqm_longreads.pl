@@ -263,10 +263,14 @@ foreach my $thissample(keys %allsamples) {
 			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
 			print outsyslog "[",$currtime->pretty,"]: Running Diamond for taxa\n";
 			print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
-			run_blastx($fastafile,$blastxout);
-			collapse($blastxout,$collapsed);
-			merge($collapsed,$collapsedmerged);
-			getseqs($collapsedmerged,$fastaname,$ntseqs);
+			if(-s $blastxout>0) { print "  Diamond result found in $blastxout, not running it again\n"; }
+			else { run_blastx($fastafile,$blastxout); }
+			if(-s $collapsed>0) { print "  Diamond collapsed result found in $collapsed, not running it again\n"; }
+			else { collapse($blastxout,$collapsed); }
+			if(-s $collapsedmerged>0) { print "  Diamond collapsed and merged result found in $collapsedmerged, not running it again\n"; }
+			else { merge($collapsed,$collapsedmerged); }
+			if(-s $ntseqs>0) { print "  ORFs sequences found in $ntseqs, not running it again\n"; }
+			else { getseqs($collapsedmerged,$fastaname,$ntseqs); }
 			}
 
 		lca($collapsedmerged,$thissampledir,$scriptdir,$thissample,$numthreads);
