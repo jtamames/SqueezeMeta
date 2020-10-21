@@ -26,15 +26,16 @@ else
         }
 my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
+require "$libpath/install_utils/download_confirm.pl";
 ###
 
 
-system("rm $libpath/classifier.tar.gz");
+system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
 
 ###Download rdp classifier.
 print("Downloading and unpacking RDP classifier...\n");
-system("wget -U '' -P $libpath http://wwwuser.cnb.csic.es/~squeezem/classifier.tar.gz; tar -xvzf $libpath/classifier.tar.gz -C $libpath; rm $libpath/classifier.tar.gz");
-system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar ."); # Add symlink
+download_confirm("classifier.tar.gz", "classifier.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $libpath);
+system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar . > /dev/null 2>&1"); # Add symlink
 
 ###Update configuration files to reflect new db path.
 print("\nUpdating configuration...\n");

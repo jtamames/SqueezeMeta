@@ -31,25 +31,26 @@ else
         }
 my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
+require "$libpath/install_utils/download_confirm.pl";
 ###
 
 
-system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db.tar.gz $download_dir/kegg.dmnd.gz");
+system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db.tar.gz $download_dir/kegg.dmnd.gz > /dev/null 2>&1");
 
 
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 print "\nDownloading and unpacking test data...\n\n";
-system("wget -U '' -P $download_dir http://wwwuser.cnb.csic.es/~squeezem/test.tar.gz; tar -xvzf $download_dir/test.tar.gz -C $download_dir; rm $download_dir/test.tar.gz");
+download_confirm("test.tar.gz", "test.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
 
 
 ### Download general db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 print "Downloading and unpacking general database tarball...\n";
-system("wget -U '' -P $download_dir http://wwwuser.cnb.csic.es/~squeezem/db.tar.gz; tar -xvzf $download_dir/db.tar.gz -C $download_dir; rm $download_dir/db.tar.gz");
+download_confirm("db.tar.gz", "db.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
 
 
 ### Download and create kegg db.
 print "\nDownloading and creating kegg database...\n\n";
-system("wget -U '' -P $database_dir http://wwwuser.cnb.csic.es/~squeezem/kegg.db.gz; gunzip $database_dir/kegg.db.gz");
+download_confirm("kegg.db.gz", "kegg.db.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $database_dir);
 system("$installpath/bin/diamond makedb --in $database_dir/kegg.db -d $database_dir/keggdb -p 8");
 system("rm $database_dir/kegg.db");
 

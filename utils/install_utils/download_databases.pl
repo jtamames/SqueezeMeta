@@ -26,19 +26,19 @@ else
         }
 my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
+require "$libpath/install_utils/download_confirm.pl";
 ###
 
-system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/SqueezeMetaDB.tar.gz");
+system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/SqueezeMetaDB.tar.gz > /dev/null 2>&1");
 
 
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 print "\nDownloading and unpacking test data...\n\n";
-system("wget -U '' -P $download_dir http://wwwuser.cnb.csic.es/~squeezem/test.tar.gz; tar -xvzf $download_dir/test.tar.gz -C $download_dir; rm $download_dir/test.tar.gz");
-
+download_confirm("test.tar.gz", "test.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
 
 ### Download db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 print "Downloading and unpacking database tarball...\n";
-system("wget -U '' -P $download_dir http://silvani.cnb.csic.es/SqueezeMeta/SqueezeMetaDB.tar.gz; tar -xvzf $download_dir/SqueezeMetaDB.tar.gz -C $download_dir; rm $download_dir/SqueezeMetaDB.tar.gz");
+download_confirm("SqueezeMetaDB.tar.gz", "SqueezeMetaDB.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
 
 
 ### Finish configuration.
