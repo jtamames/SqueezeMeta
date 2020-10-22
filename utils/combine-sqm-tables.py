@@ -271,13 +271,13 @@ def main(args):
     write_feature_dict(sampleNames, prok_genus, prefix + 'genus.prokfilter.abund.tsv')
     write_feature_dict(sampleNames, prok_species, prefix + 'species.prokfilter.abund.tsv')
 
-    write_feature_dict(sampleNames, prok_superkingdom, prefix + 'superkingdom.nofilter.abund.tsv')
-    write_feature_dict(sampleNames, prok_phylum, prefix + 'phylum.nofilter.abund.tsv')
-    write_feature_dict(sampleNames, prok_class, prefix + 'class.nofilter.abund.tsv')
-    write_feature_dict(sampleNames, prok_order, prefix + 'order.nofilter.abund.tsv')
-    write_feature_dict(sampleNames, prok_family, prefix + 'family.nofilter.abund.tsv')
-    write_feature_dict(sampleNames, prok_genus, prefix + 'genus.nofilter.abund.tsv')
-    write_feature_dict(sampleNames, prok_species, prefix + 'species.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, no_superkingdom, prefix + 'superkingdom.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, no_phylum, prefix + 'phylum.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, no_class, prefix + 'class.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, no_order, prefix + 'order.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, no_family, prefix + 'family.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, no_genus, prefix + 'genus.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, no_species, prefix + 'species.nofilter.abund.tsv')
 
     if hasKEGG:
         write_feature_dict(sampleNames, KOabund, prefix + 'KO.abund.tsv')
