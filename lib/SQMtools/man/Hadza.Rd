@@ -4,7 +4,9 @@
 \name{Hadza}
 \alias{Hadza}
 \title{Hadza hunter-gatherer gut metagenomes}
-\format{A SQM object; see \code{\link[loadSQM]{loadSQM}}.}
+\format{
+A SQM object; see \code{\link[loadSQM]{loadSQM}}.
+}
 \source{
 \href{https://www.ncbi.nlm.nih.gov/sra/?term=SRR1927149}{SRR1927149}, \href{https://www.ncbi.nlm.nih.gov/sra/?term=SRR1929485}{SRR1929485}.
 }

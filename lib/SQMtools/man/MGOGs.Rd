@@ -4,7 +4,9 @@
 \name{MGOGs}
 \alias{MGOGs}
 \title{Single Copy Phylogenetic Marker Genes from Sunagawa's group (OGs)}
-\format{Character vector with the COG identifiers for 10 Single Copy Phylogenetic Marker Genes.}
+\format{
+Character vector with the COG identifiers for 10 Single Copy Phylogenetic Marker Genes.
+}
 \usage{
 data(MGOGs)
 }

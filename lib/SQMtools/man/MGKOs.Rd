@@ -4,7 +4,9 @@
 \name{MGKOs}
 \alias{MGKOs}
 \title{Single Copy Phylogenetic Marker Genes from Sunagawa's group (KOs)}
-\format{Character vector with the KEGG identifiers for 10 Single Copy Phylogenetic Marker Genes.}
+\format{
+Character vector with the KEGG identifiers for 10 Single Copy Phylogenetic Marker Genes.
+}
 \usage{
 data(MGKOs)
 }

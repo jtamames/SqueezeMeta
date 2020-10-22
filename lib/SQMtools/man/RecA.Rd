@@ -4,7 +4,9 @@
 \name{RecA}
 \alias{RecA}
 \title{RecA/RadA recombinase}
-\format{Character vector with the COG identifier for RecA/RadA.}
+\format{
+Character vector with the COG identifier for RecA/RadA.
+}
 \source{
 \href{http://eggnogdb.embl.de/#/app/results?seqid=P0A7G6&target_nogs=COG0468#COG0468_datamenu}{EggNOG Database}.
 }

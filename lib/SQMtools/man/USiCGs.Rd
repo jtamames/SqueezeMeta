@@ -4,7 +4,9 @@
 \name{USiCGs}
 \alias{USiCGs}
 \title{Universal Single-Copy Genes}
-\format{Character vector with the KEGG identifiers for 15 Universal Single Copy Genes.}
+\format{
+Character vector with the KEGG identifiers for 15 Universal Single Copy Genes.
+}
 \source{
 \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3798274/bin/pcbi.1003292.s016.xls}{Carr \emph{et al.}, 2013. Table S1}.
 }
