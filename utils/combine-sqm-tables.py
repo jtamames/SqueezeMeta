@@ -101,6 +101,14 @@ def main(args):
     prok_genus = {}
     prok_species = {}
 
+    no_superkingdom = {}
+    no_phylum = {}
+    no_class = {}
+    no_order = {}
+    no_family = {}
+    no_genus = {}
+    no_species = {}
+
     KOabund = {}
     KOcopy = {}
     KOtpm = {}
@@ -184,6 +192,13 @@ def main(args):
         parse_table('{}/results/tables/{}.genus.prokfilter.abund.tsv'.format(projPath, projName), prok_genus)
         parse_table('{}/results/tables/{}.species.prokfilter.abund.tsv'.format(projPath, projName), prok_species)
 
+        parse_table('{}/results/tables/{}.superkingdom.nofilter.abund.tsv'.format(projPath, projName), no_superkingdom)
+        parse_table('{}/results/tables/{}.phylum.nofilter.abund.tsv'.format(projPath, projName), no_phylum)
+        parse_table('{}/results/tables/{}.class.nofilter.abund.tsv'.format(projPath, projName), no_class)
+        parse_table('{}/results/tables/{}.order.nofilter.abund.tsv'.format(projPath, projName), no_order)
+        parse_table('{}/results/tables/{}.family.nofilter.abund.tsv'.format(projPath, projName), no_family)
+        parse_table('{}/results/tables/{}.genus.nofilter.abund.tsv'.format(projPath, projName), no_genus)
+        parse_table('{}/results/tables/{}.species.nofilter.abund.tsv'.format(projPath, projName), no_species)
         
         if not isfile('{}/results/tables/{}.KO.abund.tsv'.format(projPath, projName)): # assuming sqm2tables and sqmreads2tables properly handle projects with the nokegg/nocog/nopfam flags.
             print('Project at {}/{} is missing KEGG annotations, so they will be not included in the combined tables'.format(projPath, projName))
@@ -255,6 +270,14 @@ def main(args):
     write_feature_dict(sampleNames, prok_family, prefix + 'family.prokfilter.abund.tsv')
     write_feature_dict(sampleNames, prok_genus, prefix + 'genus.prokfilter.abund.tsv')
     write_feature_dict(sampleNames, prok_species, prefix + 'species.prokfilter.abund.tsv')
+
+    write_feature_dict(sampleNames, prok_superkingdom, prefix + 'superkingdom.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_phylum, prefix + 'phylum.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_class, prefix + 'class.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_order, prefix + 'order.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_family, prefix + 'family.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_genus, prefix + 'genus.nofilter.abund.tsv')
+    write_feature_dict(sampleNames, prok_species, prefix + 'species.nofilter.abund.tsv')
 
     if hasKEGG:
         write_feature_dict(sampleNames, KOabund, prefix + 'KO.abund.tsv')
