@@ -1181,7 +1181,7 @@ sub pipeline {
     #-------------------------------- STEP21: Pathways in bins          
 
 	if(!$nobins) {	       
-		if(($rpoint<=21) && ($test && ($test>=21))) {
+		if(($rpoint<=21) && ((!$test) || ($test>=21))) {
 			if((!$DAS_Tool_empty) && (!$nokegg)) {
 				my $scriptname="21.minpath.pl";
 				print outfile3 "21\t$scriptname\n";
