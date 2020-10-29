@@ -129,7 +129,9 @@ The command for running SqueezeMeta has the following syntax:
 * *-a* [megahit,spades,canu]: assembler (Default:megahit) 
 * *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). 
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
-* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
+* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
+* *--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
+
  
 *Annotation* 
 * *--nocog*: Skip COG assignment (Default: no) 
