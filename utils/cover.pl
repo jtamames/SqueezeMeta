@@ -144,8 +144,12 @@ close in;
 #-- Running cd-hit for making OTUs
 
 print BOLD "Running cd-hit-est"; print RESET; print " (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
-my $outputcdhit="$outputdir/$fileseqs.cdhit";
+my $filename=$fileseqs;
+my @filen=split(/\//,$filename);
+$filename=$filen[$#filen];
+my $outputcdhit="$outputdir/$filename.cdhit";
 my $command_cdhit = "$cdhit_soft -T $numthreads -c $seqidtres -M 0 -r 1 -l 100 -d 1000 -i $fileseqs -o $outputcdhit > $outputdir/cdhit.log";  
+# print "$command_cdhit\n";
 $ecode = system $command_cdhit;
 if($ecode!=0) { die "Error running command:    $command_cdhit"; }
 print "  Results created in $outputcdhit\n";
