@@ -115,7 +115,7 @@ foreach my $thissample(keys %allsamples) {
 	print "  Working with sample $nums: $thissample\n";
 	foreach my $ifile(sort keys %{ $allsamples{$thissample} }) {
 		if(!$formatseq) {
-			if($ifile=~/fasta/) { $formatseq="fasta"; }
+			if($ifile=~/fasta|fa$/) { $formatseq="fasta"; }
 			else { $formatseq="fastq"; }
 			}
 		
