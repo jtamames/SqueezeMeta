@@ -14,7 +14,7 @@ use Term::ANSIColor qw(:constants);
 use lib ".";
 use strict;
 
-my $version="1.2.0";
+my $version="1.3.0";
 my $start_run = time();
 
 my $longtrace=0;    #-- Reports an explanation msg for each of the steps
@@ -38,7 +38,7 @@ our $installpath = abs_path("$scriptdir/..");
 ###
 
 our $pwd=cwd();
-our($nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$lowmem,$minion,,$consensus,$doublepass)="0";
+our($nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$lowmem,$minion,,$consensus,$doublepass)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$projectdir,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test);
 our($databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
@@ -98,6 +98,7 @@ Arguments:
  Other:
    --minion: Run on MinION reads (assembler: canu; mapper: minimap2-ont; consensus: 20) (Default: no)
    -test <step>: Running in test mode, stops AFTER the given step number
+   --empty: Creates a empty directory structure and conf files, does not run the pipeline
    
  Information:
    -v: Version number  
@@ -137,6 +138,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "cleaning_options=s" => \$cleaningoptions,
                      "minion" => \$minion,
 		     "test=i" => \$test,
+		     "empty" => \$empty,
 		     "v" => \$ver,
 		     "h" => \$hel
 		    );
@@ -392,40 +394,43 @@ if($mode=~/sequential/i) {
 		}
 
 		#-- Preparing the files for the assembly, merging all files corresponding to each pair
-
- 		my($par1files,$par2files)=0;
-		my($par1name,$par2name);
- 		print "Now preparing files\n";
- 		my($ca1,$ca2)="";
- 		foreach my $afiles(sort keys %{ $ident{$thissample} }) {
- 			next if($noassembly{$afiles});
-  			my $gzfiles=$afiles;
-  			#if($gzfiles!~/gz$/) { $gzfiles.=".gz"; }
- 			if($ident{$thissample}{$afiles} eq "pair1") { $ca1.="$datapath/raw_fastq/$gzfiles "; $par1files++; } 
-			else { $ca2.="$datapath/raw_fastq/$gzfiles "; $par2files++; } 
-			if($gzfiles=~/gz$/) { $par1name="$datapath/raw_fastq/par1.fastq.gz"; $par2name="$datapath/raw_fastq/par2.fastq.gz"; }  # Fixed bug 30/10/2018 JT
-			else { $par1name="$datapath/raw_fastq/par1.fastq"; $par2name="$datapath/raw_fastq/par2.fastq"; }
-		}
-		if(!$par1files) { print RED; print "There must be at least one 'pair1' sequence file in your samples file $mappingfile, and there is none!\n"; print RESET; die;  }
-		if($par1files>1) { 
-			my $command="cat $ca1 > $par1name"; 
-			#print "$command\n"; 
-			system($command); 
-		} 
-		else {
-			#my $command="cp $ca1 $par1name"; 
-			my $command="ln -s $ca1 $par1name";
-			#print "$command\n";
-			system($command);
+		if(!$empty) {
+ 			my($par1files,$par2files)=0;
+			my($par1name,$par2name);
+ 			print "Now preparing files\n";
+ 			my($ca1,$ca2)="";
+ 			foreach my $afiles(sort keys %{ $ident{$thissample} }) {
+ 				next if($noassembly{$afiles});
+  				my $gzfiles=$afiles;
+  				#if($gzfiles!~/gz$/) { $gzfiles.=".gz"; }
+ 				if($ident{$thissample}{$afiles} eq "pair1") { $ca1.="$datapath/raw_fastq/$gzfiles "; $par1files++; } 
+				else { $ca2.="$datapath/raw_fastq/$gzfiles "; $par2files++; } 
+				if($gzfiles=~/gz$/) { $par1name="$datapath/raw_fastq/par1.fastq.gz"; $par2name="$datapath/raw_fastq/par2.fastq.gz"; }  # Fixed bug 30/10/2018 JT
+				else { $par1name="$datapath/raw_fastq/par1.fastq"; $par2name="$datapath/raw_fastq/par2.fastq"; }
+			}
+			if(!$par1files) { print RED; print "There must be at least one 'pair1' sequence file in your samples file $mappingfile, and there is none!\n"; print RESET; die;  }
+			if($par1files>1) { 
+				my $command="cat $ca1 > $par1name"; 
+				#print "$command\n"; 
+				system($command); 
+			} 
+			else {
+				#my $command="cp $ca1 $par1name"; 
+				my $command="ln -s $ca1 $par1name";
+				#print "$command\n";
+				system($command);
  
-		}
- 		if($par2files>1) { system("cat $ca2 > $par2name"); } 
-		elsif ($par2files==1) { system("ln -s $ca2 $par2name"); }    #-- Support for single reads
+			}
+ 			if($par2files>1) { system("cat $ca2 > $par2name"); } 
+			elsif ($par2files==1) { system("ln -s $ca2 $par2name"); }    #-- Support for single reads
 	
-		#else { system("cp $ca2 $par2name"); }
-		#-- CALL TO THE STANDARD PIPELINE
+			#else { system("cp $ca2 $par2name"); }
+			
+			#-- CALL TO THE STANDARD PIPELINE
 		
-		pipeline();
+			pipeline(); 
+		}
+		else { print "Directory structure and conf files created for $thissample\n"; }
 		
 		
  		close outfile4;		#-- Closing log file for the sample
@@ -534,15 +539,51 @@ else {
 	system ("mkdir $datapath/raw_fastq"); 
  	system ("mkdir $extpath"); 
 	system ("mkdir $interdir");
+
+	#--Creation of samples file
+
+        open(infile0,$equivfile) || die;        #-- Deleting \r in samples file for windows compatibility
+        open(outfile0,">$mappingfile") || die;
+        while(<infile0>) {
+                $_=~s/\r//g;
+                print outfile0 $_;
+                }
+        close outfile0;
+        close infile0;
+
+        #-- Adjusting parameters.pl file for custom identity and evalue
+
+        # system("cp $equivfile $mappingfile");
+        if((!$miniden) && (!$evalue)) { system("cp $scriptdir/parameters.pl $projectdir"); }
+        else {
+                open(outpar,">$projectdir/parameters.pl") || die "Cannot create new parameter file in $projectdir/parameters.pl\n";
+                open(inpar,"$scriptdir/parameters.pl") || die "Cannot open parameter file in $scriptdir/parameters.pl\n";
+                while(<inpar>) {
+                        if($miniden && ($_=~/^\$miniden.*?\=(\d+)/)) {
+                                $_=~s/$1/$miniden/;
+                                print outpar $_;
+                                }
+                        elsif($evalue && ($_=~/^\$evalue.*?\=([^;]+)/)) {
+                                $_=~s/$1/$evalue/;
+                                print outpar $_;
+                                }
+                        else { print outpar $_; }
+                        }
+                close inpar;
+                close outpar;
+                }
+
+	if(!$empty) {
  
-	#-- Preparing the files for the assembly
+		#-- Preparing the files for the assembly
 	   
-	moving();
+		moving();
 	
-	#-- CALL TO THE STANDARD PIPELINE
+		#-- CALL TO THE STANDARD PIPELINE
 	
-	pipeline();
-	
+		pipeline();
+		}
+	else { die "  Directory structure and conf files created. Exiting\n"; }
 	close outfile4;  #-- Closing log file for the sample
 	close outfile3;	  #-- Closing progress file for the sample
 
@@ -584,36 +625,6 @@ sub moving {
 	if($numsamples==1) { print "$numsamples sample found\n"; }
 	else { print "$numsamples samples found: @nmg\n\n"; }
 
-	open(infile0,$equivfile) || die;	#-- Deleting \r in samples file for windows compatibility
-	open(outfile0,">$mappingfile") || die;  
-	while(<infile0>) {
-		$_=~s/\r//g;
-		print outfile0 $_;
-		}
-	close outfile0;
-	close infile0;
-	
-	#-- Adjusting parameters.pl file for custom identity and evalue
-	
-	# system("cp $equivfile $mappingfile");
-	if((!$miniden) && (!$evalue)) { system("cp $scriptdir/parameters.pl $projectdir"); }
-	else {
-		open(outpar,">$projectdir/parameters.pl") || die "Cannot create new parameter file in $projectdir/parameters.pl\n"; 
-		open(inpar,"$scriptdir/parameters.pl") || die "Cannot open parameter file in $scriptdir/parameters.pl\n"; 
-		while(<inpar>) {
-			if($miniden && ($_=~/^\$miniden.*?\=(\d+)/)) { 
-				$_=~s/$1/$miniden/;
-				print outpar $_;
-				}
-			elsif($evalue && ($_=~/^\$evalue.*?\=([^;]+)/)) { 
-				$_=~s/$1/$evalue/;
-				print outpar $_;
-				}
-			else { print outpar $_; }
-			}
-		close inpar;
-		close outpar;
-		}
 
 	#-- For coassembly mode, we merge all individual files for each pair
 
