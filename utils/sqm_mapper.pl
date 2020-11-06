@@ -247,6 +247,7 @@ close outfile1;
 print "  Output in $mapcountfile\n";
 close outfile3;
 system("rm $bowtieref.*");	#-- Deleting bowtie references
+system("rm $tempdir/count.*");
 
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
 	
@@ -258,7 +259,7 @@ system($command);
 #----------------- sqm_counter counting 
 
 sub sqm_counter {
-	print "  Counting with sqm_counter\n";
+	print "  Counting with sqm_counter: Opening $numthreads threads\n";
 	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
 	my(%genesincontigs,%accum,%long_gen);
 	my($countreads,$lastread);
@@ -341,7 +342,7 @@ sub current_thread {
 	my %accum;
 	my $initline=$tolines*($thread-1);
 	my $endline=$tolines*($thread);
-	print "   Thread $thread opening $samfile\n";
+	# print "   Thread $thread opening $samfile\n";
 	open(infile3,$samfile) || die "Can't open sam file $samfile\n"; ;
 	while(<infile3>) { 
 		chomp;
