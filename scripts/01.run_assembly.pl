@@ -19,7 +19,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 
@@ -141,12 +141,13 @@ open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
 my $provcontigs="$tempdir/contigs.prov";
 open(outfile1,">$provcontigs") || die "Can't open $provcontigs for writing\n";
 my $cocount;
+if(!$contigid) { $contigid="$assembler"; }
 while(<infile1>) {
 	chomp;
 	next if !$_;
 	if($_=~/^\>/) {
 		$cocount++;
-		my $newcontigname="$assembler\_$cocount";
+		my $newcontigname="$contigid\_$cocount";
 		print outfile1 ">$newcontigname\n";
 		}
 	else { print outfile1 "$_\n"; }

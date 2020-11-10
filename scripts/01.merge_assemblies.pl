@@ -20,7 +20,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$tempdir,$scriptdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile,$singletons);
+our($resultpath,$interdir,$tempdir,$scriptdir,$cdhit_soft,$contigid,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile,$singletons);
 
 #-- Merges the assemblies in a single dataset
 
@@ -81,13 +81,14 @@ else {
 	#-- Renaming contigs
 
 	my $cocount;
+	if(!$contigid) { $contigid="Merged"; }
 	open(outfile0,">$finalcontigs") || die;
 	open(infile0,"$finalcontigs.prov") || die;
 	while(<infile0>) {
 		chomp;
 		if($_=~/^\>/) {
 			$cocount++;
-			my $newname="Merged\_$cocount";
+			my $newname="$contigid\_$cocount";
 			print outfile0 ">$newname\n"; 
 			}
 		else { print outfile0 "$_\n"; }

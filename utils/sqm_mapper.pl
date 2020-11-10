@@ -55,9 +55,7 @@ my $helpshort="Usage: SQM_mapper.pl -r <reference file> -s <samples file> -f <ra
 my $helptext = <<END_MESSAGE;
 Usage: SQM_mapper.pl -r <reference file> -g <GFF file> -s <samples file> -f <raw fastq dir> -o <output directory> [options]
 
-Arguments:
-
- Mandatory parameters:
+Mandatory parameters:
    -r|-reference: Reference (meta)genome (REQUIRED)
    -g: GFF file with ORF positions for the reference (REQUIRED)
    -f|-seq: Read files (fastq/fasta) directory (REQUIRED)
@@ -82,6 +80,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "h" => \$hel
 		    );
 
+if($hel) { print "$helptext\n"; die; }
 if(!$numthreads) { $numthreads=12; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$project) { $project="sqm"; }

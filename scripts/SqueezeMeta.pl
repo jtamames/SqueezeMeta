@@ -39,7 +39,7 @@ our $installpath = abs_path("$scriptdir/..");
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$lowmem,$minion,,$consensus,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$assembler,$extassembly,$mapper,$projectdir,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test);
 our($databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
@@ -71,6 +71,7 @@ Arguments:
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
    --sg|--singletons: Add unassembled reads to the contig file, as if they were contigs  
+   -contigid <string>: Nomenclature for contigs (Default: assembler´s name)
    
  Mapping: 
    -map: mapping software <bowtie, bwa, minimap2-ont, minimap2-pb, minimap2-sr> (Default: bowtie) 
@@ -113,7 +114,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "canumem=i" => \$canumem,
                      "m|mode=s" => \$mode,
                      "c|contiglen=i" => \$mincontiglen,
-                     "a=s" => \$assembler,
+                     "contigid=s" => \$contigid,  
+	             "a=s" => \$assembler,
                      "map=s" => \$mapper,
                      "p=s" => \$projectdir,
                      "s|samples=s" => \$equivfile,
@@ -327,6 +329,7 @@ if($mode=~/sequential/i) {
 		print outfile5 "\$mincontiglen       = $mincontiglen;\n";
 		print outfile5 "\$assembler          = \"$assembler\";\n";
 		print outfile5 "\$canumem            = $canumem;\n";
+		if($contigid) { print outfile5 "\$contigid            = \"$contigid\";\n"; }
 		if($assembler_options) { print outfile5 "\$assembler_options  = \"$assembler_options\";\n"; }
 		if($extassembly)       { print outfile5 "\$extassembly        = \"$extassembly\";\n";       }
 		if($opt_db)            { print outfile5 "\$opt_db             = \"$opt_db\";\n";            }
@@ -516,6 +519,7 @@ else {
 	print outfile6 "\n#-- Options\n\n";
 	print outfile6 "\$numthreads         = $numthreads;\n";
 	print outfile6 "\$mincontiglen       = $mincontiglen;\n";
+        if($contigid) { print outfile5 "\$contigid            = \"$contigid\";\n"; }
 	print outfile6 "\$assembler          = \"$assembler\";\n";
 	print outfile6 "\$canumem            = $canumem;\n";
 	if($assembler_options) { print outfile6 "\$assembler_options  = \"$assembler_options\";\n"; }

@@ -21,7 +21,7 @@ my $project=$projectname;
 #-- Configuration variables from conf file
 
 our($datapath,$assembler,$outassembly,$megahit_soft,$mappingfile,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile,$mincotiglen);
-our($bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft,$mapper,$bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+our($bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigid,$contigcov,$bowtie2_x_soft,$mapper,$bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 my $fastqdir="$datapath/raw_fastq";
@@ -157,6 +157,7 @@ foreach my $thissample(keys %allsamples) {
 	my $provcontigs="$tempdir/contigs.$nums.fasta";
 	my $singletonfile="$interdir/01.$projectname.singletons";
 	my $lastid;
+	if(!$contigid) { $contigid="$assembler"; }
 	# print "  Reading SAM in $outsam to create $provcontigs and $singletonfile\n";
 	open(outsingletons,">$provcontigs");
 	open(infilesam,$outsam) || die "Cannot open SAM file $outsam\n";
@@ -170,7 +171,7 @@ foreach my $thissample(keys %allsamples) {
 		if($k[2]=~/\*/) { 
 			$cocount++;
 			# print "   Contignumber $cocount\n";
-                	my $newcontigname="$assembler\_$cocount";
+                	my $newcontigname="$contigid\_$cocount";
                 	print outsingletons ">$newcontigname singleton $readid\n$k[9]\n";
 			$singletonlist{$newcontigname}="$thissample\t$readid";
 			}
