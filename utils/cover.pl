@@ -25,8 +25,8 @@ else
 	$utilsdir = abs_path(dirname(__FILE__));
 	}
 our $installpath = abs_path("$utilsdir/..");
-if(-s "$installpath/scripts/SqueezeMeta_conf_original.pl" <= 1) { die "Can't find SqueezeMeta_conf_original.pl in $installpath/scriptsls \n"; }
-do "$installpath/scripts/SqueezeMeta_conf_original.pl";
+if(-s "$installpath/scripts/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $installpath/scriptsls \n"; }
+do "$installpath/scripts/SqueezeMeta_conf.pl";
 
 our($scriptdir,$databasepath,$cdhit_soft,$rdpclassifier_soft, $mothur_soft, $mothur_r, $mothur_t);
 
@@ -79,7 +79,7 @@ $classifier=~tr/A-Z/a-z/;
 if(($classifier ne "rdp") && ($classifier ne "mothur")) { print BOLD "\nUnknown classifier $classifier\n\n"; print RESET; print "$helptext\n"; die; }
 if(-e $outputdir) {} else { system("mkdir $outputdir"); }
 
-print BOLD "\nCOVER is part of SqueezeMeta - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349; Tamames et al, Environ Microbiol Rep. 4:335-41 (2012). doi: 10.1111/j.1758-2229.2012.00338.x\n\n"; print RESET;
+print BOLD "\nCOVER is part of SqueezeMeta - (c) J. Tamames, F. Puente-SÃ¡nchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349; Tamames et al, Environ Microbiol Rep. 4:335-41 (2012). doi: 10.1111/j.1758-2229.2012.00338.x\n\n"; print RESET;
 print "Looking for coverage $covertarget","x for $cover_rank","th OTU, classifying with $classifier\n\n";
 
 
@@ -143,15 +143,20 @@ close in;
     
 #-- Running cd-hit for making OTUs
 
-print BOLD "Running cd-hit-est"; print RESET; print " (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 my $filename=$fileseqs;
 my @filen=split(/\//,$filename);
 $filename=$filen[$#filen];
 my $outputcdhit="$outputdir/$filename.cdhit";
-my $command_cdhit = "$cdhit_soft -T $numthreads -c $seqidtres -M 0 -r 1 -l 100 -d 1000 -i $fileseqs -o $outputcdhit > $outputdir/cdhit.log";  
-$ecode = system $command_cdhit;
-if($ecode!=0) { die "Error running command:    $command_cdhit"; }
-print "  Results created in $outputcdhit\n";
+if(-e $outputcdhit) { print "  cd-hit results found in $outputcdhit, skipping run\n"; }
+else {
+	print BOLD "Running cd-hit-est"; print RESET; print " (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
+	my $command_cdhit = "$cdhit_soft -T $numthreads -c $seqidtres -M 0 -r 1 -l 100 -d 1000 -i $fileseqs -o $outputcdhit > $outputdir/cdhit.log";  
+	# print "$command_cdhit\n";
+	$ecode = system $command_cdhit;
+	if($ecode!=0) { die "Error running command:    $command_cdhit"; }
+	print "  Results created in $outputcdhit\n";
+	}
+	
 my($rep,$incl,$totalseqs,$numotus,$singletons);
 open(incl,"$outputcdhit.clstr") || die;
 while(<incl>) {
@@ -188,10 +193,15 @@ else { die "Unknown classifier\n"; }
 #-- Adjust abundances by copy numbers
 
 my($totcounts,$uncl_num);
+my %totalabund;
 foreach my $ttax(sort keys %abund) {
 	my $ad=0;
 	my $fulltax=$taxa{$ttax};
 	my @r=split(/\;/,$fulltax);
+	foreach my $ltax(reverse @r) {
+		my($lrank,$lname)=split(/\:/,$ltax);
+		$totalabund{$lrank}{$lname}+=$abund{$ttax};
+		}
 	foreach my $ltax(reverse @r) {
 		my($lrank,$lname)=split(/\:/,$ltax);
 		if($datos{$lrank}{$lname}{copies}) {
@@ -212,6 +222,16 @@ foreach my $ttax(sort keys %abund) {
 	}
 
 map{ $corrabund{$_}/=$totcounts; } keys %corrabund;
+
+#-- Output with taxa abundances
+
+open(outt,">$outputdir/abundances.txt") || die;
+foreach my $tr(sort keys %totalabund) {
+	foreach my $tnam(sort { $totalabund{$tr}{$b}<=>$totalabund{$tr}{$a}; } keys %{ $totalabund{$tr} }) {
+		print outt "$tr\t$tnam\t$totalabund{$tr}{$tnam}\n";
+		}
+	}
+close outt;
 
 #-- Calculate sizes and the probability of picking a base from a genome (pi)
 
@@ -298,10 +318,12 @@ sub rdp {
 	my $rdp_outfile="$outputdir/16S.RDP.out";
 	my $command="$rdpclassifier_soft classify $outputcdhit -o $rdp_outfile -f filterbyconf";
 	print BOLD "Running RDP classifier"; print RESET; print "  (Wang et al 2007, Appl Environ Microbiol 73, 5261-7)\n";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
-	print "  Results created in $rdp_outfile\n";
-
+	if(-e $rdp_outfile) { print "  RDP results found in rdp_outfile, skipping run\n"; }
+	else {
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
+		print "  Results created in $rdp_outfile\n";
+		}
 
 	#-- Parsing the RDP results
 
@@ -339,14 +361,17 @@ sub mothur {
 	my $mothur_outfile="$outputdir/16S.mothur.out";
 	my $command="$mothur_soft \"#classify.seqs(fasta=$outputcdhit, taxonomy=$mothur_t, reference=$mothur_r, cutoff=50, processors = $numthreads)\"  > /dev/null 2>&1";
 	print BOLD "Running mothur classifier"; print RESET; print " (Schloss et al, Appl Environ Microbiol, 2009. 75(23):7537-41)\n";
-	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
-	my $motname=$outputcdhit;
-	$motname=~s/\.[^.]+$//;
-	$motname.=".nr_v132.wang.taxonomy";
-	system("mv $motname $mothur_outfile");
-	system("mv mothur.*logfile $outputdir");	
-	print "  Results created in $mothur_outfile\n";
+	if(-e $mothur_outfile) { print "  Mothur results found in $mothur_outfile, skipping run\n"; }
+	else {
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
+		my $motname=$outputcdhit;
+		$motname=~s/\.[^.]+$//;
+		$motname.=".nr_v132.wang.taxonomy";
+		system("mv $motname $mothur_outfile");
+		system("mv mothur.*logfile $outputdir");	
+		print "  Results created in $mothur_outfile\n";
+		}
 	
 	#-- Parsing the Mothur results
 
@@ -360,6 +385,7 @@ sub mothur {
 		$_=~s/\;$//;
 		my @f=split(/\t/,$_);
 		next if(!$f[0]);
+		my $oldname=$f[0];
 		$f[0]=~s/\_/\:/g;	#-- Mothur things (why do you change sequence names?)
 		my @r=split(/\;/,$f[1]);
 		my($lasttax,$phyl);
@@ -376,6 +402,7 @@ sub mothur {
 		if((($lasttax=~/^Gp/) || ($lasttax=~/^Subdivision/)) && (!$phyl) && ($_=~/Cyanobacteria/)) { $phyl="superkingdom:Bacteria;phylum:Cyanobacteria"; }
 		print outfile5 "$f[0]\t$rankg\t$phyl\n";
 		$taxa{$f[0]}=$phyl; 
+		$taxa{$oldname}=$phyl;
 		}
 	close infile4;
 	close outfile5;
