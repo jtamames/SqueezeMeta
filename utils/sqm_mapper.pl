@@ -43,7 +43,7 @@ print BOLD "\nSQM_mapper v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC
 
 	#-- Configuration variables from conf file
 
-my($mappingfile,$fastqdir,$gff_file,$mapper,$outdir,$reference,$hel,$project,$numthreads);
+my($mappingfile,$fastqdir,$gff_file,$mapper,$outdir,$reference,$hel,$project,$numthreads,$funfile);
 my $verbose=0;
 my $bowtie2_build_soft = "$installpath/bin/bowtie2/bowtie2-build";
 my $bowtie2_x_soft     = "$installpath/bin/bowtie2/bowtie2";
@@ -65,6 +65,7 @@ Mandatory parameters:
    -n|-name: Prefix name for the results (Default: sqm)
    -t: Number of threads (Default: 12)
    -m: Mapper to be used (Bowtie, BWA) (Default: Bowtie)
+   -fun: File containing functional annotations for the genes in the reference
    -h: this help
 
 END_MESSAGE
@@ -77,6 +78,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "o|outdir=s" => \$outdir,
 		     "r|reference=s"  => \$reference,
 		     "n|name=s"  => \$project,
+		     "fun=s" => \$funfile,
 		     "h" => \$hel
 		    );
 
@@ -151,13 +153,19 @@ elsif($mapper eq "bwa") {
 my $mappingstat="$outdir/$project.mappingstat";
 my $mapcountfile="$outdir/$project.mapcount";
 my $contigcov="$outdir/$project.contigcov";
+my $mapfunfile="$outdir/$project.mapcount.fun";
 
 open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
 open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
-print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
+print outfile3 "Gen\tTotal length\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
+if($funfile) {
+	open(outfilefun,">$mapfunfile") || die "Can't open mapcount file $mapcountfile for writing\n";
+	print outfilefun "# Created by $0 from $gff_file and $funfile, ",scalar localtime,"\n";
+	print outfilefun "Function\tSample\tCopy number\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\n";
+	}
 
 	#-- Now we start mapping the reads of each sample against the reference
 
@@ -238,14 +246,15 @@ foreach my $thissample(keys %allsamples) {
 	
 	 # system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
 	 print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
-	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
+	 sqm_counter($thissample,$outsam,$totalreads,$gff_file,$funfile); 
 	}
 
 close outfile1;
 
 print "  Output in $mapcountfile\n";
 close outfile3;
-system("rm $bowtieref.*");	#-- Deleting bowtie references
+close outfilefun;
+# system("rm $bowtieref.*");	#-- Deleting bowtie references
 system("rm $tempdir/count.*");
 
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
@@ -259,8 +268,8 @@ system($command);
 
 sub sqm_counter {
 	print "  Counting with sqm_counter: Opening $numthreads threads\n";
-	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
-	my(%genesincontigs,%accum,%long_gen);
+	my($thissample,$samfile,$totalreadcount,$gff_file,$funfile)=@_;
+	my(%genesincontigs,%accum,%accumfun,%long_gen,%fun,%funlong,%copynumber);
 	my($countreads,$lastread);
 	open(infile2,$gff_file) || die "Can't open gff file $gff_file for writing\n";
 	while(<infile2>) {
@@ -280,6 +289,26 @@ sub sqm_counter {
 		$long_gen{$genid}=$posend-$posinit+1;
 		}
 	close infile2;
+
+	#-- Read the function file (optional)
+	
+	if($funfile) {
+		if(-e $funfile) { 
+			print "  Reading functions from $funfile\n";
+			open(infile2,$funfile) || warn "WARNING: Cannot open function file $funfile!\n";
+ 			while(<infile2>) {
+				chomp;
+				next if(!$_ || ($_=~/^\#/));
+				my @l=split(/\t/,$_);
+				$fun{$l[0]}=$l[1];
+				$funlong{$l[1]}+=$long_gen{$l[0]};
+				$copynumber{$l[1]}++;
+				}
+			close infile2;
+			}
+		else { print RED "WARNING: Cannot open function file $funfile!\n"; }
+		}
+
 	
 	my($tolines,$thread);
 	$tolines=int($totalreadcount/$numthreads);
@@ -295,8 +324,11 @@ sub sqm_counter {
 		while(<intemp>) {
 			chomp;
 			my @li=split(/\t/,$_);
+			my $tfun=$fun{$li[0]};
 			$accum{$li[0]}{reads}+=$li[1];
 			$accum{$li[0]}{bases}+=$li[2];
+			$accumfun{$tfun}{reads}+=$li[1];
+			$accumfun{$tfun}{bases}+=$li[2];
 			}
 		close intemp;
 		}
@@ -327,6 +359,33 @@ sub sqm_counter {
 		printf outfile3 "$currentgene\t$longt\t$accum{$currentgene}{reads}\t$accum{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm;
 		}
 	close infilegff;
+	
+	#-- Now calculating for functions
+	
+	if(-e $funfile) {
+		my($accumrpkfun,$mapped);
+		my %rpkfun;
+		foreach my $print(sort keys %accumfun) { 
+			my $longt=$funlong{$print};
+			next if(!$longt);
+			my $averlong=$longt/$copynumber{$print};
+			$rpkfun{$print}=$accumfun{$print}{reads}/$averlong;
+			$accumrpkfun+=$rpkfun{$print};
+			$mapped+=$accumfun{$print}{reads};
+			}
+		$accumrpkfun/=1000000;
+		foreach my $currentgene(sort keys %accumfun) { 
+			my $longt=$funlong{$currentgene}; 
+			next if(!$longt); 
+			my $coverage=$accumfun{$currentgene}{bases}/$longt;
+			my $averlong=$longt/$copynumber{$currentgene};
+			my $rpkm=($accumfun{$currentgene}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
+			my $tpm=$rpkfun{$currentgene}/$accumrpkfun;
+			printf outfilefun "$currentgene\t$thissample\t$copynumber{$currentgene}\t$longt\t$accumfun{$currentgene}{reads}\t$accumfun{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\n",$rpkm,$coverage,$tpm;
+			# printf "$currentgene\t$longt\t$accumfun{$currentgene}{reads}\t$accumfun{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm;
+			}
+		}
+		
 	}	
 	
 sub current_thread {	
@@ -483,7 +542,6 @@ sub contigcov {
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
 		else { printf outfile4 "$rc\t%.2f\t%.1f\t%.1f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
 		}
-	close outfile4;	
 	return $totalreadcount;
 }
 

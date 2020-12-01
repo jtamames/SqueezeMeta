@@ -19,9 +19,9 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile);
 
-my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
+my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name,%extassemblies);
 
 if(-e "$datapath/raw_fastq/par1.fastq.gz") { $seqformat="fastq"; $par1name="$datapath/raw_fastq/par1.fastq.gz"; $par2name="$datapath/raw_fastq/par2.fastq.gz"; }
 elsif(-e "$datapath/raw_fastq/par1.fasta.gz") { $seqformat="fasta"; $par1name="$datapath/raw_fastq/par1.fasta.gz"; $par2name="$datapath/raw_fastq/par2.fasta.gz"; }
@@ -31,6 +31,22 @@ else { die "Can't find read files in $datapath/raw_fastq\n"; }
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+
+open(infile1,$mappingfile);  #-- To check for extassemblies in sequential mode
+while(<infile1>) {
+	chomp;
+	next if(!$_ || ($_=~/^\#/));
+	$_=~s/\r//g;
+	my($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+	if($mapreq) {
+		my @k=split(/\,\s?/,$mapreq);
+		foreach my $d(@k) {
+			$d=~s/\"//g;
+			if($d=~/extassembly\=(.*)/) { $extassemblies{$sample}=$1; }
+			}
+		}
+	}
+close infile1;
 
 #-- trimmomatic commands
 
@@ -60,6 +76,13 @@ if($extassembly) {
 	if(-e $extassembly) {} else { die "Can't find assembly file $extassembly\n"; }
 	$outassembly=$extassembly; 
 	}
+elsif($extassemblies{$projectname}) {
+	$extassembly=$extassemblies{$projectname};
+	print "  External assembly provided: $extassembly. Overriding assembly\n";
+	if(-e $extassembly) {} else { die "Can't find assembly file $extassembly\n"; }
+	$outassembly=$extassembly; 
+	}
+	
 else {
 
 	#-- Checks the assembler
