@@ -209,7 +209,7 @@ while(<infile1>) {
 	if($_=~/ /) { print RED; print "Please do not use blank spaces in the samples file\n"; print RESET;  die; }
 	if(($iden ne "pair1") && ($iden ne "pair2")) { print RED; print "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; print RESET;  die; }
 	if((!$sample) || (!$file) || (!$iden)) { print RED; print "Bad format in samples file $equivfile. Missing fields\n"; print RESET;  die; }
-	if(-e "$rawfastq/$file") {} else { print RED; print "Can't find sample file $rawfastq/$file for sample $sample in the samples file. Please check\n"; print RESET;  die; }
+	if(-e "$rawfastq/$file") {} elsif(!$empty) { print RED; print "Can't find sample file $rawfastq/$file for sample $sample in the samples file. Please check\n"; print RESET;  die; }
 }
 close infile1;
 foreach my $chsam(keys %pairsample) { 
@@ -397,10 +397,50 @@ if($mode=~/sequential/i) {
 		}
 
 		#-- Preparing the files for the assembly, merging all files corresponding to each pair
-		if(!$empty) {
+		if(!$empty) {		
  			my($par1files,$par2files)=0;
 			my($par1name,$par2name);
- 			print "Now preparing files\n";
+			my %prepsamples;
+ 			
+			#-- NOW FILTERING READS
+			
+			my $trimmomatic_command;
+			open(infile4,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET; die; };
+			if($cleaning) {
+				while(<infile4>) {
+ 					chomp;
+ 					next if(!$_ || ($_=~/^\#/));
+					$_=~s/\r//g;			#-- Deleting \r in samples file for windows compatibility
+					my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+					$prepsamples{$sample}{$iden}=$file;
+					}
+				close infile4;
+				foreach my $ts(sort keys %prepsamples) {
+					my $par1name="$datapath/raw_fastq/".$prepsamples{$ts}{pair1};
+					my $par2name="$datapath/raw_fastq/".$prepsamples{$ts}{pair2};
+					my $orig1=$par1name;
+					my $orig2=$par2name;
+					$orig1=~s/\.fastq/\.original.fastq/;
+					$orig1=~s/\.fasta/\.original.fasta/;
+					$orig2=~s/\.fastq/\.original.fastq/;
+					$orig2=~s/\.fasta/\.original.fasta/;
+					my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
+					system $tcommand; 
+					if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions > /dev/null 2>&1"; }
+					else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name $cleaningoptions > /dev/null 2>&1"; }
+	
+					if($cleaning) {
+						print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n  Parameters: $cleaningoptions\n";
+						print outfile4 "Running trimmomatic: $trimmomatic_command";
+						my $ecode = system $trimmomatic_command;
+						if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
+						print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
+						}
+					}
+				}
+
+			
+			print "Now preparing files\n";
  			my($ca1,$ca2)="";
  			foreach my $afiles(sort keys %{ $ident{$thissample} }) {
  				next if($noassembly{$afiles});
@@ -428,6 +468,8 @@ if($mode=~/sequential/i) {
 			elsif ($par2files==1) { system("ln -s $ca2 $par2name"); }    #-- Support for single reads
 	
 			#else { system("cp $ca2 $par2name"); }
+			
+		
 			
 			#-- CALL TO THE STANDARD PIPELINE
 		
@@ -600,7 +642,9 @@ sub moving {
 	
 	#-- Reading samples from the file specified with -s option
 	
-	my(%allsamples,%ident,%noassembly);
+	my(%allsamples,%ident,%prepsamples,%noassembly);
+
+
 	open(infile4,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET; die; };
 	while(<infile4>) {
  		chomp;
@@ -612,14 +656,50 @@ sub moving {
 		if(($mapreq) && ($mapreq=~/noassembly/i)) { $noassembly{$file}=1; }    #-- Files flagged for no assembly (but they will be mapped)
 		if(-e "$rawfastq/$file") { 
 			my $tufile="$datapath/raw_fastq/$file";
-			# system("cp $rawfastq/$file $tufile");
-			system("ln -s $rawfastq/$file $tufile");
-			print outfile4 "Linking files: ln -s $rawfastq/$file $tufile\n";
+			 system("cp $rawfastq/$file $tufile");
+			# system("ln -s $rawfastq/$file $tufile");
+			print outfile4 "Coppying files: cp $rawfastq/$file $tufile\n";
 			# if($tufile!~/\.gz$/) { system("gzip $datapath/raw_fastq/$file"); }
 		}
 		else { print RED; print "Can't find read file $file (Sample $sample)\n"; print RESET; die; }
 	}
 	close infile4;
+
+	my $trimmomatic_command;
+	open(infile4,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET; die; };
+	if($cleaning) {
+		while(<infile4>) {
+ 			chomp;
+ 			next if(!$_ || ($_=~/^\#/));
+			$_=~s/\r//g;			#-- Deleting \r in samples file for windows compatibility
+			my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+			$prepsamples{$sample}{$iden}=$file;
+			}
+		close infile4;
+		foreach my $ts(sort keys %prepsamples) {
+			my $par1name="$datapath/raw_fastq/".$prepsamples{$ts}{pair1};
+			my $par2name="$datapath/raw_fastq/".$prepsamples{$ts}{pair2};
+			my $orig1=$par1name;
+			my $orig2=$par2name;
+			$orig1=~s/\.fastq/\.original.fastq/;
+			$orig1=~s/\.fasta/\.original.fasta/;
+			$orig2=~s/\.fastq/\.original.fastq/;
+			$orig2=~s/\.fasta/\.original.fasta/;
+			my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
+			system $tcommand; 
+			if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions > /dev/null 2>&1"; }
+			else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name $cleaningoptions > /dev/null 2>&1"; }
+	
+			if($cleaning) {
+				print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n  Parameters: $cleaningoptions\n";
+				print outfile4 "Running trimmomatic: $trimmomatic_command";
+				my $ecode = system $trimmomatic_command;
+				if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
+				print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
+				}
+			}
+		}
+
 
 	my @nmg=keys %allsamples;
 	$numsamples=$#nmg+1;
@@ -646,8 +726,21 @@ sub moving {
   
 		if(!$par1files) { print RED; print "There must be at least one 'pair1' sequence file in your samples file $mappingfile, and there is none!\n"; print RESET; die; }
 		print outfile4 "Merging files for coassembly: ";
-		if($par1files>1) { system("cat $ca1 > $par1name"); print outfile4 "cat $ca1 > $par1name; "; } else { system("ln -s $ca1 $par1name"); print outfile4 "ln -s $ca1 $par1name; "; }
-		if($par2files>1) { system("cat $ca2 > $par2name"); print outfile4 "cat $ca2 > $par2name; "; } elsif($par2files==1) { system("ln -s $ca2 $par2name"); print outfile4 "ln -s $ca2 $par2name; "; }  #-- Support for single reads
+		if($par1files>1) { 
+			system("cat $ca1 > $par1name"); 
+			my $command="sed -e '/^\$/d' $par1name > $par1name.prov; cp $par1name.prov $par1name"; 
+			print "*$command*\n";
+			system($command);
+			print outfile4 "cat $ca1 > $par1name; "; 
+			} 
+		else { system("ln -s $ca1 $par1name"); print outfile4 "ln -s $ca1 $par1name; "; }
+		if($par2files>1) { 
+			system("cat $ca2 > $par2name"); 
+			my $command="sed -e '/^\$/d' $par2name > $par2name.prov; cp $par2name.prov $par2name"; 
+			system($command);
+			print outfile4 "cat $ca2 > $par2name; "; 
+			} 
+		elsif($par2files==1) { system("ln -s $ca2 $par2name"); print outfile4 "ln -s $ca2 $par2name; "; }  #-- Support for single reads
 		print outfile4 "\n";
 	}
 }               #-- END

@@ -48,28 +48,6 @@ while(<infile1>) {
 	}
 close infile1;
 
-#-- trimmomatic commands
-
-if($cleaning) {
-	my $orig1=$par1name;
-	my $orig2=$par2name;
-	$orig1=~s/\.fastq/\.original.fastq/;
-	$orig1=~s/\.fasta/\.original.fasta/;
-	$orig2=~s/\.fastq/\.original.fastq/;
-	$orig2=~s/\.fasta/\.original.fasta/;
-	my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
-	system $tcommand; 
-	if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions > /dev/null 2>&1"; }
-	else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $orig1 $par1name $cleaningoptions > /dev/null 2>&1"; }
-
-	if($cleaning) {
-		print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n";
-		print outsyslog "Running trimmomatic: $trimmomatic_command";
-		my $ecode = system $trimmomatic_command;
-		if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
-		print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
-		}
-	}
 
 if($extassembly) {
 	print "  External assembly provided: $extassembly. Overriding assembly\n";
