@@ -126,10 +126,12 @@ The command for running SqueezeMeta has the following syntax:
 * *-cleaning_options* [string]: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
  
 *Assembly*  
-* *-a* [megahit,spades,canu]: assembler (Default:megahit) 
+* *-a* [megahit,spades,canu,flye]: assembler (Default:megahit) 
 * *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). 
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
-* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
+* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
+* *--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
+
  
 *Annotation* 
 * *--nocog*: Skip COG assignment (Default: no) 
@@ -230,7 +232,7 @@ Alternatively, `-m sequential` or `-m merged` can be used.
 ## 9. Working with Oxford Nanopore MinION and PacBio reads
 Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
 We also include the canu assembler, which is specially tailored to work with long, noisy reads. It can be selected by including the -a *canu* flag when calling SqueezeMeta.
-As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads. 
+As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads. Since version 1.3 we also include flye as an optional assembler for long reads.
 As an alternative to assembly, we also provide the sqm_longreads.pl script, which will predict and annotate ORFs within individual long reads.
 
 

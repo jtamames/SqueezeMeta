@@ -79,7 +79,7 @@ $classifier=~tr/A-Z/a-z/;
 if(($classifier ne "rdp") && ($classifier ne "mothur")) { print BOLD "\nUnknown classifier $classifier\n\n"; print RESET; print "$helptext\n"; die; }
 if(-e $outputdir) {} else { system("mkdir $outputdir"); }
 
-print BOLD "\nCOVER is part of SqueezeMeta - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349; Tamames et al, Environ Microbiol Rep. 4:335-41 (2012). doi: 10.1111/j.1758-2229.2012.00338.x\n\n"; print RESET;
+print BOLD "\nCOVER is part of SqueezeMeta - (c) J. Tamames, F. Puente-SÃ¡nchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349; Tamames et al, Environ Microbiol Rep. 4:335-41 (2012). doi: 10.1111/j.1758-2229.2012.00338.x\n\n"; print RESET;
 print "Looking for coverage $covertarget","x for $cover_rank","th OTU, classifying with $classifier\n\n";
 
 
