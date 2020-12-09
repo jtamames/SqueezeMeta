@@ -412,7 +412,7 @@ if($mode=~/sequential/i) {
  					next if(!$_ || ($_=~/^\#/));
 					$_=~s/\r//g;			#-- Deleting \r in samples file for windows compatibility
 					my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-					$prepsamples{$sample}{$iden}=$file;
+					if($sample eq $thissample) { $prepsamples{$sample}{$iden}=$file; }
 					}
 				close infile4;
 				foreach my $ts(sort keys %prepsamples) {
