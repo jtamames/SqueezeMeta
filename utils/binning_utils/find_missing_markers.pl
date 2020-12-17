@@ -283,7 +283,7 @@ close outfile1;
 
 sub centroid {
 	my $bin=shift;
-	$bin=~s/\.fa$|\.fasta$//g;
+	$bin=~s/\.fa.*|\.fasta.*//g;
 	my(%cinbin,%tpm,%gc,%tpmsets,%intrad,@headerp,$headerp,$dimensions,$intradist,@e);
 	%centroid=();
 	open(infile5,$contigtable) || die;
