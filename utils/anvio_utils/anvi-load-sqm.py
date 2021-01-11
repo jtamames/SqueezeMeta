@@ -169,9 +169,12 @@ def create_contigsDB(project, contigs, genes, functions, tax_genes, tax_contigs,
     
     # Load contigs & genes with some parameters from anvio
     command = ['anvi-gen-contigs-database', '-f', contigs,'-n', project,'-o', '{}/CONTIGS.db'.format(outputDir),  '--external-gene-call', genes,'--ignore-internal-stop-codons']
-    run_command(command)
+    if version >= 7:
+        command.append('-T')
+        command.append(num_threads)
     if logfile:
         logfile.write('1. CONTIGS.DB has been created: {}\n'.format(' '.join(map(str,command))))
+    run_command(command)
     print('Contigs database is CONTIGS.db. Contigs and genes have been loaded')
     
     # Run if it's required the HMMS option from anvio
@@ -185,7 +188,7 @@ def create_contigsDB(project, contigs, genes, functions, tax_genes, tax_contigs,
     if run_scg_taxonomy and version >= 6:
         if not run_HMMS:
             print('Running HMMs (It is necessary to run run_scg_taxonomy (anvi-run-scg-taxonomy))')
-            command = ['anvi-run-hmms', '-c', '{}/CONTIGS.db'.format(outputDir), '--num-threads' , num_threads]
+            command = ['anvi-run-hmms', '-c', '{}/CONTIGS.db'.format(outputDir), '-T' , num_threads]
             run_command(command)
             if logfile:
                 logfile.write('1.1. HMMS has been run: {}\n'.format(' '.join(map(str,command))))
@@ -225,17 +228,21 @@ def create_contigsDB(project, contigs, genes, functions, tax_genes, tax_contigs,
                     if diamond_version_path != diamond_version_makedb:
                         print('The diamond version in path {} is different from the diamond version to make {}.dmnd {}. We note this, but we do not take any action.'.format(diamond_version_path, f_name, diamond_version_makedb))
                         print('If you run into an issue after ignoring these, you may consider to rebuild the databases using the diamond version that is in path.')
-                        print('To do that run \'anvi-setup-scg-databases --redo-databases\' command.')
+                        print('To do that run \'anvi-setup-scg-databases (anvio-6) or anvi-setup-scg-taxonomy (anvio-7) --redo-databases\' command.')
                         print('Check anvi\'o documentation for more help:\nhttp://merenlab.org/software/anvio/vignette/#anvi-setup-scg-databases')
                     if logfile:
                         logfile.write('1.2. A previous SCG DB will be used for running anvi-run-scg-taxonomy: {}/{}\n'.format(default_scgs_taxonomy_data_dir,'{}.dmnd'.format(f_name)))
                 else: # If one of the files is missing, run the command
                     print('We have noticed that SCG taxonomy databases required to run anvi-run-scg-taxonomy are missing.')
-                    print('We assume that this is due to it is the first time you run it in your anvi\'o environment, so we decided to run anvi-setup-scg-databases and build them automatically for you.')
+                    print('We assume that this is due to it is the first time you run it in your anvi\'o environment, so we decided to run anvi-setup-scg-databases (anvio-6) or anvi-setup-scg-taxonomy (anvio-7) and build them automatically for you.')
                     print('If you do not like this alternative, please, feel free to run this command on your own with your databases' )
                     print('Check anvi\'o documentation for more help:\nhttp://merenlab.org/software/anvio/vignette/#anvi-setup-scg-databases')
                     print('http://merenlab.org/software/anvio/vignette/#anvi-run-scg-taxonomy')
-                    command = ['anvi-setup-scg-databases', '-T', num_threads]
+                    #command = ['anvi-setup-scg-databases', '-T', num_threads]
+                    if version >= 6 and version < 7:
+                        command = ['anvi-setup-scg-databases', '-T', num_threads]
+                    elif version >= 7:
+                        command = ['anvi-setup-scg-taxonomy', '-T', num_threads]
                     run_command(map(str,command))
                     if logfile:
                         logfile.write('1.2. A new SCG DB created in {} will be used for running anvi-run-scg-taxonomy: {}\n'.format(default_scgs_taxonomy_data_dir, ' '.join(map(str,command))))
@@ -276,6 +283,9 @@ def create_profileDB(project, outputDir, min_contig_length, min_mean_coverage, n
         f_out = f_in.replace('-RAW','')
         # Order & Index bam file
         command = ['anvi-init-bam', f_in, '-o', f_out]
+        if version >= 7:
+            command.append('-T')
+            command.append(num_threads)
         run_command(command)
         if logfile:
             logfile.write('2.1 BAM {} | INITIALIZED BAM: {}\n'.format(f_in, ' '.join(map(str,command))))
