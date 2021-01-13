@@ -62,7 +62,8 @@ my $bin_out="$project_name\_anvio_bins.txt";
 open(infile1,$gff) || die "Cannot open gff file $gff\n";
 open(outfile1,">$outdir/$genes_out") || die "Cannot open gen outfile $outdir/$genes_out\n";
 open(outfile2,">$outdir/$equivalence_out") || die "Cannot open equivalence outfile $outdir/$equivalence_out\n";
-print outfile1 "gene_callers_id\tcontig\tstart\tstop\tdirection\tpartial\tcall_type\tsource\tversion\n";
+if ($anvio_version >= 7){ print outfile1 "gene_callers_id\tcontig\tstart\tstop\tdirection\tpartial\tcall_type\tsource\tversion\n"; }
+else { print outfile1 "gene_callers_id\tcontig\tstart\tstop\tdirection\tpartial\tsource\tversion\n"; }
 print outfile2 "anvio_ID\tSQM_ID\n";
 my $geneidx;
 while(<infile1>) {
