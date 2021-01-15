@@ -178,7 +178,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     if(length(orfs)==0) { stop('No ORFs were selected. Perhaps the subset query yielded no results?') }
     if(!tax_source %in% c('contigs', 'orfs')) { stop('tax_source must be "orfs" or "contigs"') }
    
-    orfs    = rownames(SQM$orfs$table[orfs,]) # Make sure it will work if orfs is a bool vector too.
+    orfs    = rownames(SQM$orfs$table[orfs,,drop=F]) # Make sure it will work if orfs is a bool vector too.
     contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
     bins    = unique( unlist(SQM$contigs$bins[contigs,]) )
     bins    = bins[bins!='No_bin']
