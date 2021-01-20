@@ -251,8 +251,17 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$PFAM$tpm     = PFAM$tpm_rescaled
         for(method in subSQM$misc$ext_annot_sources)
             {
-            subSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm_rescaled
+            subSQM$functions[[method]]$tpm      = ext_annots[[method]]$tpm_rescaled
             }
+        subSQM$orfs$tpm               = 1000000 * t(t(subSQM$orfs$tpm)   /colSums(subSQM$orfs$tpm)   )
+        subSQM$contigs$tpm            = 1000000 * t(t(subSQM$contigs$tpm)/colSums(subSQM$contigs$tpm))
+        subSQM$bins$tpm               = 1000000 * t(t(subSQM$bins$tpm)   /colSums(subSQM$bins$tpm)   )
+	for(method in names(subSQM$functions))
+            {
+            subSQM$misc$coding_fraction[[method]]        = rep(1, ncol(subSQM$orfs$tpm))
+	    names(subSQM$misc$coding_fraction[[method]]) = names(subSQM$orfs$tpm)
+            }
+
     }else
         {
         subSQM$functions$KEGG$tpm     = KEGG$tpm

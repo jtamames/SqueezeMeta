@@ -151,7 +151,7 @@ def parse_orf_table(orf_table, total_reads, total_bases, nokegg, nocog, nopfam, 
         # Calculate reads per kilobase.    
         fun_avgLengths = {fun: funDict['lengths'][fun] / funDict['copies'][fun] for fun in funDict['lengths']} # NaN appears if a fun has no copies in a sample.
         fun_avgLengths['Unmapped'] = sum(funDict['lengths'].values()) / sum(funDict['copies'].values()) # Just use the avg length of all functions for this.
-        fun_rpk = {fun: funDict['bases'][fun] / (fun_avgLengths[fun]/1000) for fun in funDict['bases']}
+        fun_rpk = {fun: funDict['abundances'][fun] / (fun_avgLengths[fun]/1000) for fun in funDict['abundances']}
         if ignore_unclassified_fun:
             fun_rpk = {fun: rpk for fun, rpk in fun_rpk.items() if fun not in ('Unclassified', 'Unmapped')}
 
