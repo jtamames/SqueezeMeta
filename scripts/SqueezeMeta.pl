@@ -728,16 +728,16 @@ sub moving {
 		print outfile4 "Merging files for coassembly: ";
 		if($par1files>1) { 
 			system("cat $ca1 > $par1name"); 
-			my $command="sed -e '/^\$/d' $par1name > $par1name.prov; cp $par1name.prov $par1name"; 
+			my $command="sed -e '/^$/d' $par1name > $par1name.prov; cp $par1name.prov $par1name"; 
 			print "*$command*\n";
-			system($command);
+			# system($command);
 			print outfile4 "cat $ca1 > $par1name; "; 
 			} 
 		else { system("ln -s $ca1 $par1name"); print outfile4 "ln -s $ca1 $par1name; "; }
 		if($par2files>1) { 
 			system("cat $ca2 > $par2name"); 
-			my $command="sed -e '/^\$/d' $par2name > $par2name.prov; cp $par2name.prov $par2name"; 
-			system($command);
+			my $command="sed -e '/^$/d' $par2name > $par2name.prov; cp $par2name.prov $par2name"; 
+			# system($command);
 			print outfile4 "cat $ca2 > $par2name; "; 
 			} 
 		elsif($par2files==1) { system("ln -s $ca2 $par2name"); print outfile4 "ln -s $ca2 $par2name; "; }  #-- Support for single reads

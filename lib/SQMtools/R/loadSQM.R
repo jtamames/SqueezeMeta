@@ -473,6 +473,13 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         names(SQM$misc[[field]])           = rownames(funinfo)	
         }
 
+    ### CODING FRACTION FOR CORRECTING TPMs
+    SQM$misc$coding_fraction               = list()
+    for(method in names(SQM$functions))
+        {
+        SQM$misc$coding_fraction[[method]] = 1 - (SQM$functions[[method]]$tpm['Unmapped',] / colSums(SQM$functions[[method]]$tpm))
+        }
+
     ### COPY NUMBERS
     if(file.exists(sprintf('%s/results/tables/%s.RecA.tsv', project_path, project_name)))
         {
