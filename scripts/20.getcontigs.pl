@@ -129,7 +129,7 @@ open(outfile1,">$contigtable") || die "Can't open $contigtable for writing\n";
 
 print outfile1 "#Created by $0, ",scalar localtime,"\n";
 print outfile1 "Contig ID\tTax\tDisparity\tGC perc\tLength\tNum genes\tBin ID";
-foreach my $countfile(keys %allsamples) { print outfile1 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile\tRaw read count $countfile"; }
+foreach my $countfile(keys %allsamples) { print outfile1 "\tCoverage $countfile\tTPM $countfile\tRaw read count $countfile"; }
 print outfile1 "\n";
 
 	#-- Contig data
@@ -171,7 +171,7 @@ foreach my $ctg(@sortedcontigs) {
 	#-- Output
 
 	printf outfile1 "$p\t$contig{$p}{tax}\t$contig{$p}{chimerism}\t%.2f\t$contig{$p}{len}\t$contig{$p}{numgenes}\t$binfield",$contig{$p}{gc}; 
-	foreach my $countfile(keys %allsamples) { printf outfile1 "\t%.3f\t%.3f\t%.3f\t%d",$contig{$p}{coverage}{$countfile},$contig{$p}{rpkm}{$countfile},$contig{$p}{tpm}{$countfile},$contig{$p}{raw}{$countfile}; }
+	foreach my $countfile(keys %allsamples) { printf outfile1 "\t%.3f\t%.3f\t%d",$contig{$p}{coverage}{$countfile},$contig{$p}{tpm}{$countfile},$contig{$p}{raw}{$countfile}; }
 	print outfile1 "\n";
 }
 close outfile1;
