@@ -729,7 +729,7 @@ sub moving {
 		if($par1files>1) { 
 			system("cat $ca1 > $par1name"); 
 			my $command="sed -e '/^$/d' $par1name > $par1name.prov; cp $par1name.prov $par1name"; 
-			print "*$command*\n";
+			#print "*$command*\n";
 			# system($command);
 			print outfile4 "cat $ca1 > $par1name; "; 
 			} 
