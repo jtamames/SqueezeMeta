@@ -58,6 +58,7 @@ Usage: SQM_mapper.pl -r <reference file> -g <GFF file> -s <samples file> -f <raw
 Mandatory parameters:
    -r|-reference: Reference (meta)genome (REQUIRED)
    -g: GFF file with ORF positions for the reference (REQUIRED)
+   -s: Samples file, same format than standard SqueezeMeta (REQUIRED)
    -f|-seq: Read files (fastq/fasta) directory (REQUIRED)
    -o|-outdir: Output directory (REQUIRED)
    
