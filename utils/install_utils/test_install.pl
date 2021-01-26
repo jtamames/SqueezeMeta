@@ -58,7 +58,7 @@ print("\n");
 print("Checking that all the required perl libraries are available in this environment\n");
 check_perl_library("Term::ANSIColor");
 check_perl_library("DBI");
-check_perl_library("DBD::SQLite::Constants");
+my $dbd_sqlite_error = check_perl_library("DBD::SQLite::Constants");
 check_perl_library("Time::Seconds");
 check_perl_library("Tie::IxHash");
 check_perl_library("Linux::MemInfo");
@@ -134,6 +134,11 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
 		$checkm_databasepath =~ s/\"//g;
 		if($checkm_databasepath ne $databasepath) { die("CRITICAL ERROR: the database path in the checkM manifest does not match with the database path in the SqueezeMeta_conf.pl file. This indicates a broken installation. If the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n");  }
 		else  { print("\tCheckM manifest OK\n"); }
+		if(!$dbd_sqlite_error) {
+			my $ecode = system("perl $installpath/lib/install_utils/test_sqlite_db.pl $databasepath >/dev/null 2>&1");
+			if($ecode) { die("CRITICAL ERROR: The LCA_tax/taxid.db database is not present in $databasepath, it is malformed, or there is other problem with your SQLite configuration"); }
+			else { print("\tLCA_tax DB OK\n"); }
+		}
 	}
 }
 
