@@ -94,6 +94,8 @@ Two directories will be generated after running either `make_databases.pl` or :`
 - `/download/path/db`, which contains the actual databases.
 - `/download/path/test`, which contains data for a test run of SqueezeMeta.
 
+If `download_databases.pl` or `make_databases.pl` you can instead run `make_databases_alt.pl` (same syntax as `make_databases.pl`) which will try to download the data from an alternative site.
+
 If the SqueezeMeta databases are already built in another location in the system, a different copy of SqueezeMeta can be configured to use them with
 
 `/path/to/SqueezeMeta/utils/install_utils/configure_nodb.pl /path/to/db`
