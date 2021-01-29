@@ -90,11 +90,11 @@ Alternatively, the script *make_databases.pl* can be run to download from source
 
 The databases occupy 200Gb, but we recommend having at least 350Gb free disk space during the building process.
 
-Two directories will be generated after running either `make_databases.pl` or :`download_databases.pl`.
+Two directories will be generated after running either `make_databases.pl` or `download_databases.pl`.
 - `/download/path/db`, which contains the actual databases.
 - `/download/path/test`, which contains data for a test run of SqueezeMeta.
 
-If `download_databases.pl` or `make_databases.pl` you can instead run `make_databases_alt.pl` (same syntax as `make_databases.pl`) which will try to download the data from an alternative site.
+If `download_databases.pl` or `make_databases.pl` can't find our server, you can instead run `make_databases_alt.pl` (same syntax as `make_databases.pl`) which will try to download the data from an alternative site.
 
 If the SqueezeMeta databases are already built in another location in the system, a different copy of SqueezeMeta can be configured to use them with
 
