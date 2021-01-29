@@ -14,8 +14,9 @@ use Cwd 'abs_path';
 $|=1;
 
 my $pwd=cwd();
-my $outdir=$ARGV[1];
 my $projectpath=$ARGV[0];
+my $outdir=$ARGV[1];
+my $anvio_version=$ARGV[2];
 if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
 do "$projectpath/SqueezeMeta_conf.pl";
@@ -25,7 +26,7 @@ my $project=$projectname;
 do "$projectpath/parameters.pl";
 
 
-if((!$project) or (!$outdir)) { die "Usage: sqm2anvio.pl <project name> <output dir>\n"; }
+if((!$project) or (!$outdir)) { die "Usage: sqm2anvio.pl <project name> <output dir> <anvio version>\n"; }
 
 
 #-- Configuration variables from conf file
@@ -35,7 +36,7 @@ our($resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$co
 our $scriptdir = abs_path(dirname(__FILE__));
 our $installpath = "$scriptdir/../..";
 
-my $version="1.1";
+my $version="1.2";
 my $gff;
 my(%genstore,%genindex);
 
@@ -61,7 +62,8 @@ my $bin_out="$project_name\_anvio_bins.txt";
 open(infile1,$gff) || die "Cannot open gff file $gff\n";
 open(outfile1,">$outdir/$genes_out") || die "Cannot open gen outfile $outdir/$genes_out\n";
 open(outfile2,">$outdir/$equivalence_out") || die "Cannot open equivalence outfile $outdir/$equivalence_out\n";
-print outfile1 "gene_callers_id\tcontig\tstart\tstop\tdirection\tpartial\tsource\tversion\n";
+if ($anvio_version >= 7){ print outfile1 "gene_callers_id\tcontig\tstart\tstop\tdirection\tpartial\tcall_type\tsource\tversion\n"; }
+else { print outfile1 "gene_callers_id\tcontig\tstart\tstop\tdirection\tpartial\tsource\tversion\n"; }
 print outfile2 "anvio_ID\tSQM_ID\n";
 my $geneidx;
 while(<infile1>) {
@@ -70,6 +72,7 @@ while(<infile1>) {
 	my @k=split(/\t/,$_);
 	my $contigid=$k[0];
 	my $source=$k[1];
+	my $type=$k[2];
 	my $ntlong=$k[4]-$k[3]+1;
 	my $initgen=$k[3]-1;
 	my $endgen=$k[4];	#-- Not -1 as it should be. This is weird and makes no sense, but anvio has its own way to index genes and wants it this way
@@ -85,7 +88,12 @@ while(<infile1>) {
 		print outfile2 "$geneidx\t$geneid\n";
 		}
 	if($k[8]=~/partial\=00/) { $partial=0; } else { $partial=1; } 
-	print outfile1 "$genindex{$geneid}\t$contigid\t$initgen\t$endgen\t$direction\t$partial\t$source\t$version\n";
+	my $call_type;
+	if($type eq 'CDS') { $call_type=1; }
+	elsif($type=~/RNA/) { $call_type=2; }
+	else { $call_type=3; } # Unknown (should not really be happening)
+	if ($anvio_version >= 7) { print outfile1 "$genindex{$geneid}\t$contigid\t$initgen\t$endgen\t$direction\t$partial\t$call_type\t$source\t$version\n"; }
+	else { print outfile1 "$genindex{$geneid}\t$contigid\t$initgen\t$endgen\t$direction\t$partial\t$source\t$version\n"; }
 	}
 close outfile1;
 close outfile2;
