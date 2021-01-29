@@ -40,19 +40,27 @@ system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db
 
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 print "\nDownloading and unpacking test data...\n\n";
-system("wget -P $download_dir -O $download_dir/test.tar.gz https://saco.csic.es/index.php/s/iGMbqx7ciGcbgrD/download");
+system("wget -P $download_dir -O $download_dir/test.tar.gz https://saco.csic.es/index.php/s/qo264F9BAbjmp3e/download");
 system("tar -xvzf $download_dir/test.tar.gz -C $download_dir; rm $download_dir/test.tar.gz");
 
 
 ### Download general db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 print "Downloading and unpacking general database tarball...\n";
-system("wget -P $download_dir -O $download_dir/db.tar.gz https://saco.csic.es/index.php/s/jDXX8tWRj5mgTtM/download");
+system("wget -P $download_dir -O $download_dir/db.tar.gz https://saco.csic.es/index.php/s/isXq28Ms5Zk9NjR/download");
 system("tar -xvzf $download_dir/db.tar.gz -C $download_dir; rm $download_dir/db.tar.gz");
+
+
+### Download and unpack silva databases
+print "Downloading and unpacking SILVA databases (https://www.arb-silva.de/silva-license-information)...\n";
+system("wget -P $database_dir -O $database_dir/silva.nr_v132.align.gz https://saco.csic.es/index.php/s/9M6QpbkqfscATf2/download");
+system("gunzip $database_dir/silva.nr_v132.align.gz");
+system("wget -P $database_dir -O $database_dir/silva.nr_v132.tax.gz https://saco.csic.es/index.php/s/HNnF5knj4YgM577/download");
+system("gunzip $database_dir/silva.nr_v132.tax.gz");
 
 
 ### Download and create kegg db.
 print "\nDownloading and creating kegg database...\n\n";
-system("wget -P $database_dir -O $database_dir/kegg.db.gz https://saco.csic.es/index.php/s/ijwB5rCZQeL7LR2/download");
+system("wget -P $database_dir -O $database_dir/kegg.db.gz https://saco.csic.es/index.php/s/AkiPW2k2wtwRNcY/download");
 system("gunzip $database_dir/kegg.db.gz");
 system("$installpath/bin/diamond makedb --in $database_dir/kegg.db -d $database_dir/keggdb -p 8");
 system("rm $database_dir/kegg.db");
