@@ -48,6 +48,12 @@ print "Downloading and unpacking general database tarball...\n";
 download_confirm("db.tar.gz", "db.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
 
 
+### Download and unpack silva databases
+print "Downloading and unpacking SILVA databases (https://www.arb-silva.de/silva-license-information)...\n";
+download_confirm("silva.nr_v132.align.gz", "silva.nr_v132.align.md5",  "http://silvani.cnb.csic.es/SqueezeMeta/", $database_dir);
+download_confirm("silva.nr_v132.tax.gz", "silva.nr_v132.tax.md5",  "http://silvani.cnb.csic.es/SqueezeMeta/", $database_dir);
+
+
 ### Download and create kegg db.
 print "\nDownloading and creating kegg database...\n\n";
 download_confirm("kegg.db.gz", "kegg.db.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $database_dir);

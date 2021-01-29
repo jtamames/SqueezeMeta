@@ -70,14 +70,14 @@ splitfiles();
 
 #-- Launch threads
 
-print "  Starting multithread LCA in $numthreads threads: ";
+print "  Starting multithread LCA in $numthreads threads\n";
 print syslogfile "  Starting multithread LCA in $numthreads threads\n";
 my $threadnum;
 for($threadnum=1; $threadnum<=$numthreads; $threadnum++) {
-print "$threadnum ";
+#print "$threadnum ";
 my $thr=threads->create(\&current_thread,$threadnum);
 }
-print "\n";
+#print "\n";
 $_->join() for threads->list();
 
 my $catcommand="cat ";
@@ -254,13 +254,14 @@ sub query {
                                 $accumnofilter{$rank}{$tax}++; 		#-- Not considering identity filters for ranks
 			}
 		if(($list[7]) && ($giden{$list[0]}>=$idenrank{'superkingdom'}))  { $validhits++; }			#-- Count the number of valid hits
-                if(($list[2])) { $validhitsnofilter++; }
+                if(($list[7])) { $validhitsnofilter++; }
 		}
 	}
 
 	#-- Now, if there are some results, we will find the LCA
 
 	my($minreqhits,$required);
+	# $validhitsnofilter=$validhits;
 	if($validhits==1) { $minreqhits=1; } else { $minreqhits=$minhits6; }
 	if($flex6<1) { $required=$validhits-($flex6*$validhits); } else { $required=$validhits-$flex6; }  
 	print "$lastorf Hits: $tothits; Valid: $validhits; Min: $minreqhits; Required: $required\n" if $verbose;
@@ -284,22 +285,23 @@ sub query {
 
 		last if($lasttax);		
  		}
-		if($noidfilter6) {
-			if($validhitsnofilter==1) { $minreqhits=1; } else { $minreqhits=$minhits6; }
-			if($flex6<1) { $required=$validhitsnofilter-($flex6*$validhitsnofilter); } else { $required=$validhitsnofilter-$flex6; }
-			print "NOFILTER $lastorf Hits: $tothits; Valid: $validhits; Min: $minreqhits; Required: $required\n" if $verbose;
-			$lasttaxnofilter="";			
-			foreach my $k(@ranks) {
-				print "   NOFILTER $k\n" if $verbose;
-				foreach my $t(keys %{ $accumnofilter{$k} }) {
-				print "      NOFILTER $t $accumnofilter{$k}{$t}\n" if $verbose;
-					if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { $lasttaxnofilter=$t; }
-					print "NOFILTER $k -> $t\n" if $verbose;
-					}
-
-				last if($lasttaxnofilter);
+		
+	if($noidfilter6) {
+		if($validhitsnofilter==1) { $minreqhits=1; } else { $minreqhits=$minhits6; }
+		if($flex6<1) { $required=$validhitsnofilter-($flex6*$validhitsnofilter); } else { $required=$validhitsnofilter-$flex6; }
+		print "NOFILTER $lastorf Hits: $tothits; Valid: $validhits; Min: $minreqhits; Required: $required\n" if $verbose;
+		$lasttaxnofilter="";			
+		foreach my $k(@ranks) {
+			print "   NOFILTER $k\n" if $verbose;
+			foreach my $t(keys %{ $accumnofilter{$k} }) {
+			print "      NOFILTER $t $accumnofilter{$k}{$t}\n" if $verbose;
+				if(($accumnofilter{$k}{$t}>=$required) && ($accumnofilter{$k}{$t}>=$minreqhits) && ($required>0) && ($parents{$t}{wranks})) { $lasttaxnofilter=$t; }
+				print "NOFILTER $k -> $t\n" if $verbose;
 				}
-			}		
+
+			last if($lasttaxnofilter);
+			}
+		}		
 		
 	# print outfile1 "$lastorf\t$parents{$lasttax}{noranks}\n";
 	my $abb=$parents{$lasttax}{wranks};

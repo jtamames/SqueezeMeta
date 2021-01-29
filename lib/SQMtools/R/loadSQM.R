@@ -239,11 +239,11 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     cat('    taxonomy...\n')
     if(engine == 'data.frame')
         {
-        SQM$contigs$tax           = as.matrix(read.table(sprintf('%s/results/tables/%s.contig.tax.tsv', project_path, project_name),
+        SQM$contigs$tax           = as.matrix(read.table(sprintf('%s/results/tables/%s.contig.tax.%s.tsv', project_path, project_name, tax_mode),
                                                          header=T, row.names=1, sep='\t'))
     }else if(engine == 'data.table')
         {
-        ta                        = data.table::fread(sprintf('%s/results/tables/%s.contig.tax.tsv', project_path, project_name), header=T, sep='\t')
+        ta                        = data.table::fread(sprintf('%s/results/tables/%s.contig.tax.%s.tsv', project_path, project_name, tax_mode), header=T, sep='\t')
         SQM$contigs$tax           = as.matrix(ta[,-1])
         rownames(SQM$contigs$tax) = unlist(ta[,1])
         }
@@ -471,6 +471,13 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
 	field                              = sprintf('%s_names', method)
 	SQM$misc[[field]]                  = funinfo[,1]
         names(SQM$misc[[field]])           = rownames(funinfo)	
+        }
+
+    ### CODING FRACTION FOR CORRECTING TPMs
+    SQM$misc$coding_fraction               = list()
+    for(method in names(SQM$functions))
+        {
+        SQM$misc$coding_fraction[[method]] = 1 - (SQM$functions[[method]]$tpm['Unmapped',] / colSums(SQM$functions[[method]]$tpm))
         }
 
     ### COPY NUMBERS

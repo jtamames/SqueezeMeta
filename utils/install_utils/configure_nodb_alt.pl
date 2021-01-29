@@ -34,7 +34,7 @@ system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
 
 ###Download rdp classifier.
 print("Downloading and unpacking RDP classifier...\n");
-system("wget -P $libpath -O $libpath/classifier.tar.gz https://saco.csic.es/index.php/s/b7nwkz9gaNCX38p/download");
+system("wget -P $libpath -O $libpath/classifier.tar.gz https://saco.csic.es/index.php/s/D46ieFfdFZirXK5/download");
 system("tar -xvzf $libpath/classifier.tar.gz -C $libpath; rm $libpath/classifier.tar.gz");
 system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar . > /dev/null 2>&1"); # Add symlink
 

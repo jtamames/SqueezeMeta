@@ -178,7 +178,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     if(length(orfs)==0) { stop('No ORFs were selected. Perhaps the subset query yielded no results?') }
     if(!tax_source %in% c('contigs', 'orfs')) { stop('tax_source must be "orfs" or "contigs"') }
    
-    orfs    = rownames(SQM$orfs$table[orfs,]) # Make sure it will work if orfs is a bool vector too.
+    orfs    = rownames(SQM$orfs$table[orfs,,drop=F]) # Make sure it will work if orfs is a bool vector too.
     contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
     bins    = unique( unlist(SQM$contigs$bins[contigs,]) )
     bins    = bins[bins!='No_bin']
@@ -251,8 +251,17 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$PFAM$tpm     = PFAM$tpm_rescaled
         for(method in subSQM$misc$ext_annot_sources)
             {
-            subSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm_rescaled
+            subSQM$functions[[method]]$tpm      = ext_annots[[method]]$tpm_rescaled
             }
+        subSQM$orfs$tpm               = 1000000 * t(t(subSQM$orfs$tpm)   /colSums(subSQM$orfs$tpm)   )
+        subSQM$contigs$tpm            = 1000000 * t(t(subSQM$contigs$tpm)/colSums(subSQM$contigs$tpm))
+        subSQM$bins$tpm               = 1000000 * t(t(subSQM$bins$tpm)   /colSums(subSQM$bins$tpm)   )
+	for(method in names(subSQM$functions))
+            {
+            subSQM$misc$coding_fraction[[method]]        = rep(1, ncol(subSQM$orfs$tpm))
+	    names(subSQM$misc$coding_fraction[[method]]) = names(subSQM$orfs$tpm)
+            }
+
     }else
         {
         subSQM$functions$KEGG$tpm     = KEGG$tpm
