@@ -46,17 +46,17 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 	#-- Read the sample's file names
 
-my (%allsamples,%allfiles);
+my %allsamples;
 tie %allsamples,"Tie::IxHash";
 open(infile1,$mappingfile) || die "Can't open mappingfile $mappingfile\n";
 print "  Reading mapping file from $mappingfile\n";
 while(<infile1>) {
 	chomp;
-	next if (!$_ || ($_=~/^\#/));
+	next if !$_;
 	my @t=split(/\t/,$_);
 	next if(($mode eq "sequential") && ($t[0] ne $projectname));
-	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; $allfiles{$t[0]}{$t[1]}=1; } 
-	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; $allfiles{$t[0]}{$t[1]}=1; }
+	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } 
+	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
 	}
 close infile1;
 
@@ -119,11 +119,6 @@ foreach my $thissample(keys %allsamples) {
 			if($ifile=~/fasta|fa$/) { $formatseq="fasta"; }
 			else { $formatseq="fastq"; }
 			}
-	foreach my $nfile(keys %{ $allfiles{$thissample} }) {
-		my $scp_command="scp silvani.cnb.csic.es:/media/Backup/disk1/marta/Malaspina_fastq_clean/$nfile $fastqdir"; 
-		if(-e "$fastqdir/$nfile") {} else { system $scp_command; }
-		}
-	
 		
 	#-- Get reads from samples
 		
@@ -192,8 +187,6 @@ foreach my $thissample(keys %allsamples) {
 	 system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
 	 print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
 	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
-	 system("rm $fastqdir/*");
-	system("rm $outsam");
 }
 if($warnmes) { 
 	print outfile1 "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
