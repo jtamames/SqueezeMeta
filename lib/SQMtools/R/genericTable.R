@@ -107,7 +107,7 @@ as.matrix.generic.data.table = function(x)
 rbind.generic.data.table = function(...)
     {
     res = data.table:::rbindlist(list(...))
-    rownames(res) = sapply(list(...), rownames)
+    rownames(res) = unlist(sapply(list(...), rownames))
     class(res) = c('generic.data.table', class(res))
     return(res)
     }
