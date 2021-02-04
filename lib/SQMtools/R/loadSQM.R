@@ -375,10 +375,10 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
  
     SQM$functions                  = list()
     ### KEGG
-    SQM$functions$KEGG             = list()
     if(file.exists(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name)))
         {
         has_KEGG                               = TRUE
+	SQM$functions$KEGG                     = list()
         SQM$functions$KEGG$abund               = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$KEGG$bases               = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.bases.tsv', project_path, project_name),
@@ -397,10 +397,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         {
         warning('    There are no KEGG results in your project. Skipping...')
         has_KEGG                               = FALSE
-        SQM$functions$KEGG$abund               = NULL # Just being needessly explicit here
-        SQM$functions$KEGG$bases               = NULL # Just being needessly explicit here
-        SQM$functions$KEGG$cov                 = NULL # Just being needessly explicit here
-        SQM$functions$KEGG$tpm                 = NULL # Just being needessly explicit here
         }
     ### COG              
     if(file.exists(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name)))
@@ -426,16 +422,12 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         {
         warning('    There are no COG results in your project. Skipping...')
         has_COG                            = FALSE
-        SQM$functions$COG$abund            = NULL # Just being needessly explicit here
-        SQM$functions$COG$bases            = NULL # Just being needessly explicit here
-        SQM$functions$COG$cov              = NULL # Just being needessly explicit here
-        SQM$functions$COG$tpm              = NULL # Just being needessly explicit here
         }
     ### PFAM
-    SQM$functions$PFAM                     = list()
     if(file.exists(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name)))
         {
         has_PFAM = TRUE
+        SQM$functions$PFAM                 = list()
         SQM$functions$PFAM$abund           = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$PFAM$bases           = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.bases.tsv', project_path, project_name),
@@ -448,10 +440,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         {
         warning('    There are no PFAM results in your project. Skipping...')
         has_PFAM                           = FALSE
-        SQM$functions$PFAM$abund           = NULL # Just being needlessly explicit here
-        SQM$functions$PFAM$bases           = NULL # Just being needlessly explicit here
-        SQM$functions$PFAM$cov             = NULL # Just being needlessly explicit here
-        SQM$functions$PFAM$tpm             = NULL # Just being needlessly explicit here
         }
 
     ### EXTERNAL ANNOTATION SOURCES
@@ -490,7 +478,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         }else
             {
-            SQM$functions$KEGG$copy_number = NULL # Just being explicit here
             }
         ### COG
         if(has_COG)
@@ -499,7 +486,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         }else
             {
-            SQM$functions$COG$copy_number  = NULL # Just being explicit here
             }
         ### PFAM
         if(has_PFAM)
@@ -508,7 +494,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         }else
             {
-            SQM$functions$PFAM$copy_number = NULL # Just being explicit here
             }
 	### EXTERNAL ANNOTATION SOURCES
 	for(method in SQM$misc$ext_annot_sources)

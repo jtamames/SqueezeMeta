@@ -199,11 +199,13 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$contigs$tpm                = SQM$contigs$tpm[contigs  ,,drop=F]
     subSQM$contigs$seqs               = SQM$contigs$seqs[contigs]
     subSQM$contigs$tax                = SQM$contigs$tax[contigs  ,,drop=F]
-    subSQM$contigs$bins               = SQM$contigs$bins[contigs ,,drop=F]
-
-    subSQM$bins$table                 = subSQM$bins$table[bins   ,,drop=F]
-    subSQM$bins$tpm                   = subSQM$bins$tpm[bins     ,,drop=F]
-    subSQM$bins$tax                   = subSQM$bins$tax[bins     ,,drop=F]
+    if('bins' %in% names(subSQM))
+        {
+        subSQM$contigs$bins           = SQM$contigs$bins[contigs ,,drop=F]
+        subSQM$bins$table             = subSQM$bins$table[bins   ,,drop=F]
+        subSQM$bins$tpm               = subSQM$bins$tpm[bins     ,,drop=F]
+        subSQM$bins$tax               = subSQM$bins$tax[bins     ,,drop=F]
+        }
 
     subSQM$taxa$superkingdom$abund    = aggregate.taxa(subSQM, 'superkingdom', tax_source)
     subSQM$taxa$phylum$abund          = aggregate.taxa(subSQM, 'phylum'      , tax_source)
@@ -221,19 +223,30 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$taxa$genus$percent         = 100 * t(t(subSQM$taxa$genus$abund)        / subSQM$total_reads) #colSums(subSQM$taxa$genus$abund))
     subSQM$taxa$species$percent       = 100 * t(t(subSQM$taxa$species$abund)      / subSQM$total_reads) #colSums(subSQM$taxa$species$abund))
 
-    KEGG                              = aggregate.fun(subSQM, 'KEGG', trusted_functions_only, ignore_unclassified_functions)
-    COG                               = aggregate.fun(subSQM, 'COG' , trusted_functions_only, ignore_unclassified_functions)
-    PFAM                              = aggregate.fun(subSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
+    if('KEGG' %in% names(subSQM$functions))
+        {
+        KEGG                          = aggregate.fun(subSQM, 'KEGG', trusted_functions_only, ignore_unclassified_functions)
+        subSQM$functions$KEGG$abund   = KEGG$abund
+        subSQM$functions$KEGG$bases   = KEGG$bases
+        subSQM$functions$KEGG$cov     = KEGG$cov
+        }
+    
+    if('COG' %in% names(subSQM$functions))
+        {
+        COG                           = aggregate.fun(subSQM, 'COG' , trusted_functions_only, ignore_unclassified_functions)
+        subSQM$functions$COG$abund    = COG$abund
+        subSQM$functions$COG$bases    = COG$bases
+        subSQM$functions$COG$cov      = COG$cov
+        }
 
-    subSQM$functions$KEGG$abund       = KEGG$abund
-    subSQM$functions$KEGG$bases       = KEGG$bases
-    subSQM$functions$KEGG$cov         = KEGG$cov
-    subSQM$functions$COG$abund        = COG$abund
-    subSQM$functions$COG$bases        = COG$bases
-    subSQM$functions$COG$cov          = COG$cov
-    subSQM$functions$PFAM$abund       = PFAM$abund
-    subSQM$functions$PFAM$bases       = PFAM$bases
-    subSQM$functions$PFAM$cov         = PFAM$cov
+
+    if('PFAM' %in% names(subSQM$functions))
+        {
+        PFAM                          = aggregate.fun(subSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
+        subSQM$functions$PFAM$abund   = PFAM$abund
+        subSQM$functions$PFAM$bases   = PFAM$bases
+        subSQM$functions$PFAM$cov     = PFAM$cov
+        }
 
     ext_annots = list()
     for(method in subSQM$misc$ext_annot_sources)
@@ -246,16 +259,20 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     if(rescale_tpm)
         {
-        subSQM$functions$KEGG$tpm     = KEGG$tpm_rescaled
-        subSQM$functions$COG$tpm      = COG$tpm_rescaled
-        subSQM$functions$PFAM$tpm     = PFAM$tpm_rescaled
+        if('KEGG' %in% names(subSQM$functions)) { subSQM$functions$KEGG$tpm = KEGG$tpm_rescaled }
+        if('COG'  %in% names(subSQM$functions)) { subSQM$functions$COG$tpm  = COG$tpm_rescaled  }
+        if('PFAM' %in% names(subSQM$functions)) { subSQM$functions$PFAM$tpm = PFAM$tpm_rescaled }
+
         for(method in subSQM$misc$ext_annot_sources)
             {
-            subSQM$functions[[method]]$tpm      = ext_annots[[method]]$tpm_rescaled
+            subSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm_rescaled
             }
         subSQM$orfs$tpm               = 1000000 * t(t(subSQM$orfs$tpm)   /colSums(subSQM$orfs$tpm)   )
         subSQM$contigs$tpm            = 1000000 * t(t(subSQM$contigs$tpm)/colSums(subSQM$contigs$tpm))
-        subSQM$bins$tpm               = 1000000 * t(t(subSQM$bins$tpm)   /colSums(subSQM$bins$tpm)   )
+        #if('bins' in names(subSQM)
+        #    {
+        #    subSQM$bins$tpm           = 1000000 * t(t(subSQM$bins$tpm)   /colSums(subSQM$bins$tpm)   )
+        #    }
 	for(method in names(subSQM$functions))
             {
             subSQM$misc$coding_fraction[[method]]        = rep(1, ncol(subSQM$orfs$tpm))
@@ -264,9 +281,9 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     }else
         {
-        subSQM$functions$KEGG$tpm     = KEGG$tpm
-        subSQM$functions$COG$tpm      = COG$tpm
-        subSQM$functions$PFAM$tpm     = PFAM$tpm
+        if('KEGG' %in% names(subSQM$functions)) { subSQM$functions$KEGG$tpm = KEGG$tpm }
+        if('COG'  %in% names(subSQM$functions)) { subSQM$functions$COG$tpm  = COG$tpm  }
+        if('PFAM' %in% names(subSQM$functions)) { subSQM$functions$PFAM$tpm = PFAM$tpm }
         for(method in subSQM$misc$ext_annot_sources)
             {
             subSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm
@@ -296,18 +313,14 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
            {
            RecA = SQM$misc$RecA_cov
            }
-        subSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA)
-        subSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA)
-        subSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA)
+        if('KEGG' %in% names(subSQM$functions)) { subSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA) }
+        if('COG'  %in% names(subSQM$functions)) { subSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA) }
+        if('PFAM' %in% names(subSQM$functions)) { subSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA) }
         for(method in subSQM$misc$ext_annot_sources)
             {
             subSQM$functions[[method]]$copy_number = t(t(ext_annots[[method]]$cov) / RecA)
             }
         subSQM$misc$RecA_cov              = RecA
-	# For consistency with load, just return an empty list if a given functional hierarchy is missing from the parent object.
-	if(is.null(SQM$functions$KEGG$abund)) { subSQM$functions$KEGG = list() }
-	if(is.null(SQM$functions$COG$abund) ) { subSQM$functions$COG  = list() }
-	if(is.null(SQM$functions$PFAM$abund)) { subSQM$functions$PFAM = list() }
         }
 
 
