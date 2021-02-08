@@ -244,4 +244,5 @@ close outsyslog;
 
 print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");
+system("rm $bowtieref.1.bt2; rm $bowtieref.bwt; rm $outsam");
 
