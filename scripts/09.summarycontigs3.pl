@@ -29,6 +29,9 @@ our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$all
 
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranksabb=('k','p','c','o','f','g','s');
+my %validranks;
+map{ $validranks{$_}=1; } @ranksabb;
+
 
 if($consensus) { $minconsperc_total9=$consensus; }  #-- Overrides the parameter if user-set or mode minion
 
@@ -92,7 +95,7 @@ if($doublepass) {
 	close infile2;
 	}
 
-open(infile2,$rnafile) || die "Can't open $rnafile\n";
+open(infile2,$rnafile) || warn "Can't open $rnafile\n";
 while(<infile2>) {
 	chomp;
 	next if($_!~/^\>/);
@@ -112,7 +115,7 @@ while(<infile0>) {
 	chomp;
 	next if !$_;
 	my ($tax,$par)=split(/\t/,$_);
-	$tax=~s/\[|\]//g;
+	#$tax=~s/\[|\]//g;
 	$parents{$tax}{wranks}=$par;
 	my @m=split(/\;/,$par);
 	foreach my $y(@m) {
@@ -157,11 +160,12 @@ foreach my $tfile(@taxfiles) {
 		#-- Stores rank and taxa for all the ORFs in the contig
 
 		foreach my $uc(@tf) { 
-			my($rank,$tax);
-			if($uc=~/^(.)/) { $rank=$1; }
-			$tax=$uc;
-			$tax=~s/^..//;
-			# my ($rank,$tax)=split(/\_/,$uc);
+			#my($rank,$tax);
+			#if($uc=~/^(.)/) { $rank=$1; }
+			#$tax=$uc;
+			#$tax=~s/^..//;
+			 my ($rank,$tax)=split(/\_/,$uc);
+			 next if(!$validranks{$rank});
 			# print "--> $contigid $rank $node $tax\n";
 			if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
 			}
