@@ -174,7 +174,10 @@ foreach my $tfile(@taxfiles) {
 
 	if($euknofilter) {	#-- Remove filters for Eukaryotes
 		my $eukinput=$input;
-		if($eukinput=~/noidfilter/) {	#-- Will only read the no id filter file for skipping filters for eukaryotes
+		$prefix=".noidfilter";
+		if($doublepass) { $eukinput="$fun3tax_blastx$prefix.wranks"; } else { $eukinput="$fun3tax$prefix.wranks"; }
+
+		#if($eukinput=~/noidfilter/) {	#-- Will only read the no id filter file for skipping filters for eukaryotes
 			# $eukinput=~s/\.wranks/\.noidfilter\.wranks/;
 			print syslogfile "  Reading results without eukaryotic filter from $eukinput\n";
 			open(infile3,$eukinput) || die "Can't open $eukinput\n";
@@ -204,7 +207,7 @@ foreach my $tfile(@taxfiles) {
 					}
 				}
 			close infile3;
-			}
+			# }
 		}
 
 
