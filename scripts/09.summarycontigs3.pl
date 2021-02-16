@@ -174,36 +174,37 @@ foreach my $tfile(@taxfiles) {
 
 	if($euknofilter) {	#-- Remove filters for Eukaryotes
 		my $eukinput=$input;
-		next if($eukinput!~/noidfilter/);	#-- Will only read the no id filter file for skipping filters for eukaryotes
-		# $eukinput=~s/\.wranks/\.noidfilter\.wranks/;
-		print syslogfile "  Reading results without eukaryotic filter from $eukinput\n";
-		open(infile3,$eukinput) || die "Can't open $eukinput\n";
-		while(<infile3>) {		#-- Looping on the ORFs
-			my $contigid;
-			chomp;
-			next if(!$_ || ($_=~/^\#/));
-			my($node,$atax)=split(/\t/,$_);		#-- $node contains ORF name
-			next if($atax!~/k\_Eukaryota/);
-			$atax=~s/\"//g;
-			my @tf=split(/\;/,$atax);		#-- This contains rank:taxon pairs for the ORF
-			my @id=split(/\_/,$node);
-			# @id=split(/\|/,$node);
+		if($eukinput=~/noidfilter/) {	#-- Will only read the no id filter file for skipping filters for eukaryotes
+			# $eukinput=~s/\.wranks/\.noidfilter\.wranks/;
+			print syslogfile "  Reading results without eukaryotic filter from $eukinput\n";
+			open(infile3,$eukinput) || die "Can't open $eukinput\n";
+			while(<infile3>) {		#-- Looping on the ORFs
+				my $contigid;
+				chomp;
+				next if(!$_ || ($_=~/^\#/));
+				my($node,$atax)=split(/\t/,$_);		#-- $node contains ORF name
+				next if($atax!~/k\_Eukaryota/);
+				$atax=~s/\"//g;
+				my @tf=split(/\;/,$atax);		#-- This contains rank:taxon pairs for the ORF
+				my @id=split(/\_/,$node);
+				# @id=split(/\|/,$node);
 	
-			#-- Different nomenclature for contigs in spades and other assemblers
+				#-- Different nomenclature for contigs in spades and other assemblers
 	
-			if($id[0]=~/NODE/) { $contigid="$id[0]\_$id[1]"; } else { $contigid="$id[0]"; }	
+				if($id[0]=~/NODE/) { $contigid="$id[0]\_$id[1]"; } else { $contigid="$id[0]"; }	
 
-			$contigid=$node;
-			$contigid=~s/\_\d+\-\d+$//;
-			$contigid=~s/\|\d+$//; 		#-- This is the contig name the current ORF belongs to
-			#-- Stores rank and taxa for all the ORFs in the contig
+				$contigid=$node;
+				$contigid=~s/\_\d+\-\d+$//;
+				$contigid=~s/\|\d+$//; 		#-- This is the contig name the current ORF belongs to
+				#-- Stores rank and taxa for all the ORFs in the contig
 
-			foreach my $uc(@tf) { 
-				my ($rank,$tax)=split(/\_/,$uc);
-				if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
+				foreach my $uc(@tf) { 
+					my ($rank,$tax)=split(/\_/,$uc);
+					if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
+					}
 				}
+			close infile3;
 			}
-		close infile3;
 		}
 
 
