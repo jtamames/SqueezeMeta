@@ -4,6 +4,7 @@
 
 - Find the SqueezeMeta paper at: https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full 
 - Find a second paper on how to analyse the output of SqueezeMeta at: https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-020-03703-2
+- Check some papers using SqueezeMeta: https://github.com/jtamames/SqueezeMeta/wiki/Some-papers-using-SqueezeMeta-(non-comprehensive-list)
 - Make sure to [check the wiki!](https://github.com/jtamames/SqueezeMeta/wiki)
 
 ## 1. What is SqueezeMeta?
