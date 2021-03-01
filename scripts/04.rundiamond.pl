@@ -23,7 +23,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($aafile,$numthreads,$diamond_soft,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile,$syslogfile);
+our($aafile,$numthreads,$databasepath, $diamond_soft,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile,$syslogfile);
 my $command;
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
@@ -50,6 +50,9 @@ print "  Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for";
 
 #-- nr database
 
+$command="cp $databasepath/DB_BUILD_DATE $interdir";
+my $ecode = system $command;
+if($ecode!=0) { warn "Error running command:     $command"; }
 $command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
 print " taxa";
 print outsyslog "Running Diamond for taxa: $command\n";
