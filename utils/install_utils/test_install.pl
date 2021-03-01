@@ -102,9 +102,9 @@ if(!$ecode) {
 }
 
 print("\n");
-print("Checking that SqueezeMeta is properly configured\n");
+print("Checking that SqueezeMeta is properly configured...");
 if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
-	print("\n");
+	print("\n\n");
 	warn("\tSqueezeMeta doesn't know where the databases are located!\n");
 	print("\n");
 	print("\tIf you didn't download them yet please run:\n");
@@ -124,6 +124,7 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
 } else {
 	do "$installpath/scripts/SqueezeMeta_conf.pl";
 	our $databasepath;
+	print(" checking database in $databasepath\n");
 	my $ecode = system("$installpath/bin/diamond dbinfo --db $databasepath/nr.dmnd >/dev/null 2>&1");
 	if($ecode) {
 		my $msg = "\tSqueezeMeta_conf.pl says that databases are located in $databasepath but we can't find nr.db there, or it is corrupted\n";
