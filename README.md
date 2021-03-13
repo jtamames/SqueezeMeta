@@ -129,7 +129,7 @@ The command for running SqueezeMeta has the following syntax:
 * *-cleaning_options* [string]: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
  
 *Assembly*  
-* *-a* [megahit,spades,canu,flye]: assembler (Default:megahit) 
+* *-a* [megahit,spades,rnaspades,canu,flye]: assembler (Default:megahit) 
 * *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). 
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
 * *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
