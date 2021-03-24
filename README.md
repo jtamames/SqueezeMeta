@@ -130,7 +130,7 @@ The command for running SqueezeMeta has the following syntax:
  
 *Assembly*  
 * *-a* [megahit,spades,rnaspades,canu,flye]: assembler (Default:megahit) 
-* *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). 
+* *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler)
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
 * *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
 * *--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
@@ -141,12 +141,13 @@ The command for running SqueezeMeta has the following syntax:
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
 * *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details.
-* *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
+* *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual
 * *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
 *Mapping* 
 * *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie) 
- 
+* *-mapping_options* [string]: Extra options for the mapper (refer to the manual of the specific mapper)
+
 *Binning* 
 * *--nobins*: Skip binning (Default: no) 
 * *--nomaxbin*: Skip MaxBin binning (Default: no) 
