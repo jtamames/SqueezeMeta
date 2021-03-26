@@ -11,9 +11,6 @@ K		55
 ;FIXME introduce isolate mode
 mode base
 
-;FIXME remove!
-run_mode false
-project_name    TOY_DATASET
 dataset         ./configs/debruijn/toy.info
 log_filename    log.properties
 
@@ -32,18 +29,22 @@ max_threads		8
 max_memory      120; in Gigabytes
 buffer_size     512; in Megabytes
 
-entry_point construction
+entry_point read_conversion
+;entry_point construction
 ;entry_point simplification
 ;entry_point hybrid_aligning
 ;entry_point late_pair_info_count
 ;entry_point distance_estimation
 ;entry_point repeat_resolving
 
+checkpoints none
 developer_mode true
 scaffold_correction_mode false
 
 ; enabled (1) or disabled (0) repeat resolution (former "paired_mode")
 rr_enable true
+; 0 for graph N50
+min_edge_length_for_is_count 0
 
 ;preserve raw paired index after distance estimation
 preserve_raw_paired_index false
@@ -77,10 +78,6 @@ paired_info_statistics false
 
 ; set it true to get statistics for pair information (over gaps), such as false positive/negative, perfect match, etc.
 paired_info_scaffolder false
-
-;FIXME is it always simple?
-estimation_mode simple
-; simple, weighted, extensive, smoothing
 
 ;the only option left from repeat resolving
 max_repeat_length 8000
@@ -123,10 +120,13 @@ gap_closer_enable   true
 gap_closer
 {
     minimal_intersection	10
-    before_simplify		true
-    in_simplify    		false
+
+    ;before_raw_simplify and before_simplify are mutually exclusive
+    before_raw_simplify    		true
+    before_simplify		false
     after_simplify 		true
     weight_threshold		2.0
+    max_dist_to_tip		5000
 }
 
 kmer_coverage_model {
@@ -145,18 +145,16 @@ lcer
 
 pacbio_processor
 {
+    internal_length_cutoff 200
 ;align and traverse.
-    pacbio_k 13
-    additional_debug_info false
     compression_cutoff 0.6
-    domination_cutoff 1.5
     path_limit_stretching 1.3
     path_limit_pressing 0.7
-    ignore_middle_alignment true
     max_path_in_dijkstra 15000
     max_vertex_in_dijkstra 2000
 ;gap_closer
     long_seq_limit 400
+    enable_gap_closing true
     pacbio_min_gap_quantity 2
     contigs_min_gap_quantity 1
     max_contigs_gap_length 10000
@@ -172,10 +170,7 @@ graph_read_corr
 
 bwa_aligner
 {
-    ;stupid naming since spades.py cannot change config normally
-    bwa_enable false
     debug false
-    path_to_bwa ./bin/bwa-spades
     min_contig_len 0
 }
 
@@ -183,3 +178,17 @@ bwa_aligner
 flanking_range 55
 series_analysis ""
 save_gp false
+
+ss_coverage_splitter {
+    enabled           false
+    bin_size          50
+    min_edge_len      200
+    min_edge_coverage 5
+    min_flanking_coverage 2
+    coverage_margin   5
+}
+
+time_tracer {
+  time_tracer_enabled true
+  granularity 500
+}

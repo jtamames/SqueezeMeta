@@ -16,6 +16,7 @@ simp
     ; bulge remover:
     br
     {
+        enabled true
         max_coverage            3
         max_relative_coverage       100000.     ; bulge_cov < this * not_bulge_cov
     }
@@ -41,29 +42,6 @@ simp
         max_coverage_coeff  5.0
     }
     
-    tec
-    {
-        max_ec_length_coefficient   55  ; max_ec_length = k + max_ec_length_coefficient
-        uniqueness_length       1500
-        plausibility_length     200
-    }
-    
-    ; topology and reliability based erroneous connection remover
-    trec
-    {
-        max_ec_length_coefficient   100 ; max_ec_length = k + max_ec_length_coefficient
-        uniqueness_length       1500
-        unreliable_coverage     2.5
-    }
-    
-    ; topology tip clipper:
-    ttc
-    {
-        length_coeff    3.5
-        plausibility_length 250
-        uniqueness_length   1500
-    }
-
     ; complex bulge remover
     cbr
     {
@@ -85,8 +63,6 @@ simp
 
     init_clean
     {
-        early_it_only   true
-
         activation_cov  -1.
         ier
         {
@@ -112,8 +88,7 @@ params {
     ; extension selection
     extension_options
     {
-        use_default_single_threshold false
-        single_threshold           0.001
+        single_threshold           0.3
         weight_threshold           0.6
     }
 
