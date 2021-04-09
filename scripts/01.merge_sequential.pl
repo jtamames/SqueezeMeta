@@ -201,7 +201,8 @@ sub parseafg {
 		else {
 			shift @m; shift @m;
 			# my $ts=$m[$#m];
-			 $ts=join("_",@m);
+			 # $ts=join("_",@m);
+			 $ts=$m[$#m];
 			}
 		$order{$inpos}=$ts;
 		$samples{$ts}=1;
