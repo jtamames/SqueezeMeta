@@ -260,8 +260,6 @@ SqueezeMeta comes with a variety of options to explore the results and generate 
 
 **2) Integration with the anvi'o analysis pipeline:** We provide a compatibility layer for loading SqueezeMeta results into the anvi'o analysis and visualization platform (http://merenlab.org/software/anvio/). This includes a built-in query language for selecting the contigs to be visualized in the anvi'o interactive interface. See examples [here](https://github.com/jtamames/SqueezeMeta/wiki/Loading-SQM-results-into-anvi'o).
 
-**3) MySQL database:** SqueezeMeta includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
-
 We also include utility scripts for generating [itol](https://itol.embl.de/) and [pavian](https://ccb.jhu.edu/software/pavian/) -compatible outputs.
 
 
