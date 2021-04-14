@@ -299,8 +299,8 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
     if(no_partial_classifications)
         {
         unclassified = grepl('[Uu]nclassified', rownames(data0))
-        unclassified_counts = colSums(data0[unclassified,])
-	data0 = rbind(data0[!unclassified,], 'Unclassified' = unclassified_counts)
+        unclassified_counts = colSums(data0[unclassified,,drop=F])
+	data0 = rbind(data0[!unclassified,,drop=F], 'Unclassified' = unclassified_counts)
         }
 
     # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df
