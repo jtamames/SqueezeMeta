@@ -259,7 +259,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         inBins                    = reshape2::dcast(inBins, X..Contig~Method, value.var="Bin.ID")
         rownames(inBins)          = inBins[,1]
         SQM$contigs$bins          = as.matrix(inBins[,-1,drop=F])
-        notInBins                 = setdiff(rownames(SQM$contigs$table), SQM$contigs$bins)
+        notInBins                 = setdiff(rownames(SQM$contigs$table), rownames(SQM$contigs$bins))
         notInBins                 = matrix(NA, nrow=length(notInBins), ncol=ncol(SQM$contigs$bins), dimnames=list(notInBins, colnames(SQM$contigs$bins)))
         SQM$contigs$bins          = rbind(SQM$contigs$bins, notInBins)
         SQM$contigs$bins          = SQM$contigs$bins[rownames(SQM$contigs$table),,drop=F]
