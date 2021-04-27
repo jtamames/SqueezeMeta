@@ -61,7 +61,7 @@ Detailed information about the different steps of the pipeline can be found in t
 
 SqueezeMeta is intended to be run in a x86_64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda.
 
-`conda create -n SqueezeMeta -c bioconda -c conda-forge -c fpusan squeezemeta`
+`conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
 
 This will create a new conda environment named SqueezeMeta, which must then be activated.
 
