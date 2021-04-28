@@ -68,6 +68,7 @@ check_perl_library("DBD::SQLite");
 check_perl_library("Data::Dumper");
 check_perl_library("Cwd"); # If this script is running then this is 100% present but meh...
 check_perl_library("XML::LibXML");
+check_perl_library("XML::Parser");
 check_perl_library("Term::ANSIColor");
 
 
