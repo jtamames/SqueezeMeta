@@ -114,6 +114,7 @@ def main(args):
         # Not super beautiful code. Just read the orf names and create a fake orf dict
         # since we need to know the names of all the orfs to create the taxonomy output.
         orfs = {'abundances': read_orf_names(perlVars['$mergedfile'])}
+        noCDSorfs = noCDScontigs = set()
 
     ### Taxonomy.
     fun_prefix = perlVars['$fun3tax_blastx'] if doublepass else perlVars['$fun3tax']
