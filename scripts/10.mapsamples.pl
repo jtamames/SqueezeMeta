@@ -24,7 +24,7 @@ do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
+our($installpath,$datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
     $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
@@ -180,13 +180,21 @@ foreach my $thissample(keys %allsamples) {
 
 	#-- Calculating contig coverage/RPKM
 
-	 my $totalreads=contigcov($thissample,$outsam);
+	my $totalreads=contigcov($thissample,$outsam);
 	
 	#-- And then we call the counting
 	
-	 system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
-	 print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
-	 sqm_counter($thissample,$outsam,$totalreads,$gff_file); 
+	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
+	print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
+	sqm_counter($thissample,$outsam,$totalreads,$gff_file);
+
+	#-- Transform to bam
+	
+	if(0) {
+		my $ecode = system("$installpath/bin/samtools view -b $outsam > $samdir/$projectname.$thissample.bam; rm $outsam");
+                if($ecode!=0) { die "Error running samtools"; }
+	}
+
 }
 if($warnmes) { 
 	print outfile1 "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
