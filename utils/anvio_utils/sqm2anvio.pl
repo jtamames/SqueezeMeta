@@ -206,7 +206,7 @@ if($samkeep) {
 	foreach my $sam(@samfiles) {
 		(my $bam = $sam) =~ s/\.sam/-RAW.bam/;
                 $bam =~ s/$project\.//;
-        	my $ecode = system("$installpath/bin/samtools view -b $samdir/$sam > $outdir/bam/$bam");
+        	my $ecode = system("LIBPATH=\$LIBPATH:$installpath/lib $installpath/bin/samtools $installpath/bin/samtools view -b $samdir/$sam > $outdir/bam/$bam");
 		if($ecode!=0) { die "Error running samtools"; }
 		}
 	}

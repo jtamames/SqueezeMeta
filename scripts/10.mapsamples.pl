@@ -191,7 +191,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- Transform to bam
 	
 	if(0) {
-		my $ecode = system("$installpath/bin/samtools view -b $outsam > $samdir/$projectname.$thissample.bam; rm $outsam");
+		my $ecode = system("LIBPATH=\$LIBPATH:$installpath/lib $installpath/bin/samtools view -b $outsam > $samdir/$projectname.$thissample.bam; rm $outsam");
                 if($ecode!=0) { die "Error running samtools"; }
 	}
 
