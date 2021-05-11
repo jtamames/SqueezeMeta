@@ -98,6 +98,7 @@ system "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db
 my $textrows = `wc -l $lca_dir/taxid_tree.txt`;
 my $dbrows = `echo 'SELECT count(*) FROM taxid;' | sqlite3 $lca_dir/taxid.db`;
 if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!" }
+system("md5sum $lca_dir/taxid.db > $lca_dir/taxid.md5");
 
 system "sqlite3 $lca_dir/parents.db < $libpath/install_utils/parents.sql";
 system "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/parents.db -cmd '.separator \"\\t\"'";

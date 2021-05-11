@@ -21,6 +21,8 @@ $|=1;
 my $databasedir=$ARGV[0];			        #-- THIS MUST POINT TO THE DATABASES DIRECTORY
 
 my $fastadb="$databasedir/nr.faa";			#-- Name of the fasta file to create
+my $dbfile="$databasedir/nr.dmnd";
+my $md5file="$databasedir/nr.md5";
 my $bindir="$installpath/bin";
 
 #-- Getting the raw files from NCBI. This can take long and need 100 Gb disk space
@@ -31,3 +33,4 @@ system $command;
 system("gunzip $databasedir/nr.gz && mv $databasedir/nr $fastadb");
 
 system("$bindir/diamond makedb --in $fastadb -d $databasedir/nr -p 8");
+system("md5sum $dbfile > $md5file");
