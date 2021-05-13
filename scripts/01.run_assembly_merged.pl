@@ -98,16 +98,20 @@ foreach my $thissample(sort keys %samplefiles) {
 
 	#-- For spades
 
-	if($assembler=~/spades/i) { 
+	if($assembler=~/spades/i) { # works for spades and rnaspades
 		system("rm -r $datapath/spades > /dev/null 2>&1"); 
 		$assemblyname="$datapath/spades/$thissample.contigs.fasta";
-		if(-e $par2name) { $command="$spades_soft --meta --pe1-1 $par1name --pe1-2 $par2name -m 400 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile  2>&1"; }
-		else { $command="$spades_soft --meta --s1 $par1name -m 400 $assembler_options -t $numthreads -o $datapath/spades > /dev/null 2>&1"; } #-- Support for single reads
+		my $command_start;
+		if($assembler eq 'spades') { $command_start="$spades_soft --meta"; }
+		elsif($assembler eq 'rnaspades') { $command_start="$spades_soft --rna" }
+		if(-e $par2name) { $command="$command_start --pe1-1 $par1name --pe1-2 $par2name -m 400 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile  2>&1"; }
+		else { $command="$command_start --s1 $par1name -m 400 $assembler_options -t $numthreads -o $datapath/spades > /dev/null 2>&1"; } #-- Support for single reads
 		print "  Running Spades (Li et al 2015, Bioinformatics 31(10):1674-6) for $thissample\n";
 		print outsyslog "Running Spades for $thissample: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
-		system("mv $datapath/spades/contigs.fasta $assemblyname");
+		if($assembler eq 'spades') { system("mv $datapath/spades/contigs.fasta $assemblyname"); }
+		elsif($assembler eq 'rnaspades') { system("mv $datapath/spades/transcripts.fasta $assemblyname"); }
 	}
  
        #-- For flye

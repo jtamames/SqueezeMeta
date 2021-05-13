@@ -25,13 +25,11 @@ params {
         cut_all false
     }
 
-    split_edge_length    99
     normalize_weight     true
     
     ; extension selection
     extension_options
     {
-        use_default_single_threshold true
         single_threshold           0.1
         weight_threshold           0.5
         priority_coeff             1.5
@@ -41,7 +39,6 @@ params {
 
     mate_pair_options
     {
-        use_default_single_threshold true
         single_threshold           30
         weight_threshold           0.5
         priority_coeff             1.5
@@ -53,7 +50,7 @@ params {
         enabled       true
         cutoff        2
         hard_cutoff   0
-        rel_cutoff    0.1
+        rel_cov_cutoff    0.0
         sum_threshold 3  
 
         cluster_info  true
@@ -89,8 +86,9 @@ params {
 
     simple_coverage_resolver {
         enabled false
-        coverage_delta 0.5
+        coverage_margin 2
         min_upper_coverage 5
+        max_coverage_variation 5
     }
 
 
@@ -168,6 +166,14 @@ long_reads {
         unique_edge_priority 10000.0
         min_significant_overlap 200
     }
+
+    rna_long_reads {
+        filtering   0.1
+        weight_priority    1.1
+        unique_edge_priority 2.0
+        min_significant_overlap 0
+    }
+
 
 }
 }

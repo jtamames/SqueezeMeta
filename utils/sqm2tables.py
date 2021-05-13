@@ -47,8 +47,8 @@ def main(args):
         customMethods = [method for method in methods if method not in ('kegg', 'cog', 'pfam', 'wranks')]
 
         # Parse ORF table.
-        sampleNames, orfs, kegg, cog, pfam, custom = parse_orf_table(perlVars['$mergedfile'], total_reads, total_bases, nokegg, nocog, nopfam,
-                                                                     args.trusted_functions, args.ignore_unclassified, customMethods, data_dir)
+        sampleNames, orfs, kegg, cog, pfam, custom, noCDSorfs, noCDScontigs = parse_orf_table(perlVars['$mergedfile'], total_reads, total_bases, nokegg, nocog, nopfam,
+                                                                                              args.trusted_functions, args.ignore_unclassified, customMethods, data_dir)
 
         # Round aggregated functional abundances.
         # We can have non-integer abundances bc of the way we split counts in ORFs with multiple KEGGs.
@@ -95,9 +95,11 @@ def main(args):
         # Not super beautiful code. Just read the orf names and create a fake orf dict
         # since we need to know the names of all the orfs to create the taxonomy output.
         orfs = {'abundances': read_orf_names(perlVars['$mergedfile'])}
+        noCDSorfs = noCDScontigs = set()
 
     ### Taxonomy.
     fun_prefix = perlVars['$fun3tax_blastx'] if doublepass else perlVars['$fun3tax']
+<<<<<<< HEAD
     orf_tax, orf_tax_wranks = parse_tax_table(fun_prefix + '.wranks')
     orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.noidfilter.wranks')
 
@@ -109,18 +111,42 @@ def main(args):
     
     def add_features(abunds, tax, tax_wranks, tax_nofilter, tax_nofilter_wranks):
         unclass_list, unclass_list_wranks = parse_tax_string('n_Unclassified')
+=======
+    orf_tax, orf_tax_wranks = parse_tax_table(fun_prefix + '.wranks', noCDS = noCDSorfs)
+    orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.noidfilter.wranks', noCDS = noCDSorfs)
+
+    contig_abunds, _, _ = parse_contig_table(perlVars['$contigtable'])
+    contig_tax, contig_tax_wranks = parse_contig_tax(perlVars['$interdir'] + '/09.' + perlVars['$projectname'] + '.contiglog', noCDS = noCDScontigs)
+    contig_tax_nofilter, contig_tax_nofilter_wranks = parse_contig_tax(perlVars['$interdir'] + '/09.' + perlVars['$projectname'] + '.contiglog.noidfilter', noCDS = noCDScontigs)
+    
+    # Add ORFs/contigs not present in the input tax file.
+    
+    def add_features(abunds, tax, tax_wranks, tax_nofilter, tax_nofilter_wranks, noCDS):
+>>>>>>> d2959e1bf20f845325100940d4f5f3d06bf9ade8
         for feat in abunds:
             if feat not in tax:
                 assert feat not in tax_wranks
                 assert feat not in tax_nofilter
                 assert feat not in tax_nofilter_wranks
+<<<<<<< HEAD
+=======
+                if feat in noCDS:
+                    unclass_list, unclass_list_wranks = parse_tax_string('n_No CDS', emptyClassString = 'No CDS')
+                else:
+                    unclass_list, unclass_list_wranks = parse_tax_string('n_Unclassified', emptyClassString = 'Unclassified')
+>>>>>>> d2959e1bf20f845325100940d4f5f3d06bf9ade8
                 tax[feat] = unclass_list
                 tax_wranks[feat] = unclass_list_wranks
                 tax_nofilter[feat] = unclass_list
                 tax_nofilter_wranks[feat] = unclass_list_wranks
 
+<<<<<<< HEAD
     add_features(orfs['abundances'], orf_tax, orf_tax_wranks, orf_tax_nofilter, orf_tax_nofilter_wranks)
     add_features(contig_abunds, contig_tax, contig_tax_wranks, contig_tax_nofilter, contig_tax_nofilter_wranks)
+=======
+    add_features(orfs['abundances'], orf_tax, orf_tax_wranks, orf_tax_nofilter, orf_tax_nofilter_wranks, noCDSorfs)
+    add_features(contig_abunds, contig_tax, contig_tax_wranks, contig_tax_nofilter, contig_tax_nofilter_wranks, noCDScontigs)
+>>>>>>> d2959e1bf20f845325100940d4f5f3d06bf9ade8
     
     orf_tax_prokfilter, orf_tax_prokfilter_wranks = {}, {}
     contig_tax_prokfilter, contig_tax_prokfilter_wranks = {}, {}
@@ -179,7 +205,11 @@ def main(args):
 
 
 def parse_args():
+<<<<<<< HEAD
     parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sanchez (CNB) 2019\n')
+=======
+    parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB-SLU) 2021\n')
+>>>>>>> d2959e1bf20f845325100940d4f5f3d06bf9ade8
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
     parser.add_argument('output_dir', type=str, help='Output directory')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')

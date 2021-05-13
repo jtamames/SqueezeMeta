@@ -26,6 +26,7 @@ our($bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfi
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 my $fastqdir="$datapath/raw_fastq";
 my $samdir="$datapath/sam";
+my $outsam;
 
 my $samcommand="mkdir $samdir > /dev/null 2>&1";
 system $samcommand;
@@ -93,7 +94,7 @@ while(<infile0>) {
 close infile0;
 
 foreach my $thissample(keys %allsamples) {
-	my($formatseq,$command,$outsam,$formatoption);
+	my($formatseq,$command,$formatoption);
 	$nums++;
 	my (@pair1,@pair2)=();
 	print "  Working with sample $nums: $thissample\n";
@@ -244,4 +245,5 @@ close outsyslog;
 
 print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");
+system("rm $bowtieref.1.bt2; rm $bowtieref.bwt; rm $outsam");
 

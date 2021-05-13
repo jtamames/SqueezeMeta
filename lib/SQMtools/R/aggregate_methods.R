@@ -84,7 +84,7 @@ aggregate.fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
     stopifnot(identical(rownames(abund), rownames(lengths)))
     stopifnot(identical(rownames(abund), rownames(copies)))
 
-    if(fun %in% c('KEGG', 'COG', 'PFAM'))
+    if(fun %in% c('KEGG', 'COG', 'PFAM', 'COGonly'))
         {
 	if(fun=='PFAM') { pattern = '];'
 	} else { pattern = ';' }	
