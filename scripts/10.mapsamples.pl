@@ -119,10 +119,6 @@ foreach my $thissample(keys %allsamples) {
 			if($ifile=~/fasta|fa$/) { $formatseq="fasta"; }
 			else { $formatseq="fastq"; }
 			}
-	foreach my $nfile(keys %{ $allfiles{$thissample} }) {
-		my $scp_command="scp silvani.cnb.csic.es:/media/Backup/disk1/marta/Malaspina_fastq_clean/$nfile $fastqdir"; 
-		if(-e "$fastqdir/$nfile") {} else { system $scp_command; }
-		}
 	
 		
 	#-- Get reads from samples

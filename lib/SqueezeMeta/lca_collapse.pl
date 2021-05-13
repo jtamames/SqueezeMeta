@@ -146,7 +146,9 @@ sub current_thread {
 
 	my $dbh = DBI->connect("dbi:SQLite:dbname=$lca_db","","",{ RaiseError => 1, sqlite_open_flags => SQLITE_OPEN_READONLY }) or die $DBI::errstr;
 	$dbh->sqlite_busy_timeout( 120 * 1000 );
-
+	#$dbh->exec('pragma synchronous = off;');
+	#$dbh->exec('pragma journal_mode=MEMORY;');
+	
 	my $currentfile="$tempdir/diamond_lca.$threadnum.m8";
 	open(infile2,$currentfile) || die "Cannot open $currentfile\n";
 	my $lastorf;

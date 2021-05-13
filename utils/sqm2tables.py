@@ -1,24 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-Part of the SqueezeMeta distribution. 25/03/2018 Original version,
-                            (c) Fernando Puente-Sánchez, CNB-CSIC.
-
-Generate tabular outputs from SqueezeMeta results.
-
-USAGE: sqm2tables.py [-h] project_path output_dir
-                     [--trusted-functions] [--ignore-unclassified]
-                     [--sqm2anvio] [--force-overwrite]
-
-OPTIONS:
-    --trusted-functions: Include only ORFs with highly trusted KEGG and
-        COG assignments in aggregated functional tables
-    --ignore-unclassified: Ignore reads without assigned functions in
-        TPM calculation
-    --sqm2anvio: Write the required files for sqm2anvio
-    --force-overwrite: Write results even if the output directory
-        already exists
-"""
 
 from os.path import abspath, dirname, realpath
 from os import mkdir, listdir
@@ -32,7 +13,7 @@ utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
 data_dir = '{}/../data'.format(utils_home)
 
-from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
+from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_contig_tax, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
 
 
 def main(args):
@@ -48,8 +29,10 @@ def main(args):
             raise
         elif args.sqm2anvio or args.force_overwrite: # We know what we are doing.
             pass
+        elif not any(f.endswith('.superkingdom.allfilter.abund.tsv') for f in listdir(args.output_dir)):
+            pass
         else:
-            print('\nThe directory {} already exists. Please remove it or use a different output name.\n'.format(args.output_dir))
+            print('\nThe directory {} already contains results. Please remove it or use a different output name.\n'.format(args.output_dir))
             exit(1)
 
     prefix = args.output_dir + '/' + perlVars['$projectname'] + '.'
@@ -118,35 +101,51 @@ def main(args):
     orf_tax, orf_tax_wranks = parse_tax_table(fun_prefix + '.wranks')
     orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.noidfilter.wranks')
 
-    # Add ORFs not present in the input tax file.
-    unclass_list, unclass_list_wranks = parse_tax_string('n_Unclassified')
-    for orf in orfs['abundances']:
-        if orf not in orf_tax:
-            assert orf not in orf_tax_wranks
-            assert orf not in orf_tax_nofilter
-            assert orf not in orf_tax_nofilter_wranks
-            orf_tax[orf] = unclass_list
-            orf_tax_wranks[orf] = unclass_list_wranks
-            orf_tax_nofilter[orf] = unclass_list
-            orf_tax_nofilter_wranks[orf] = unclass_list_wranks
+    contig_abunds, _, _ = parse_contig_table(perlVars['$contigtable'])
+    contig_tax, contig_tax_wranks = parse_contig_tax(perlVars['$interdir'] + '/09.' + perlVars['$projectname'] + '.contiglog')
+    contig_tax_nofilter, contig_tax_nofilter_wranks = parse_contig_tax(perlVars['$interdir'] + '/09.' + perlVars['$projectname'] + '.contiglog.noidfilter')
+    
+    # Add ORFs/contigs not present in the input tax file.
+    
+    def add_features(abunds, tax, tax_wranks, tax_nofilter, tax_nofilter_wranks):
+        unclass_list, unclass_list_wranks = parse_tax_string('n_Unclassified')
+        for feat in abunds:
+            if feat not in tax:
+                assert feat not in tax_wranks
+                assert feat not in tax_nofilter
+                assert feat not in tax_nofilter_wranks
+                tax[feat] = unclass_list
+                tax_wranks[feat] = unclass_list_wranks
+                tax_nofilter[feat] = unclass_list
+                tax_nofilter_wranks[feat] = unclass_list_wranks
 
+    add_features(orfs['abundances'], orf_tax, orf_tax_wranks, orf_tax_nofilter, orf_tax_nofilter_wranks)
+    add_features(contig_abunds, contig_tax, contig_tax_wranks, contig_tax_nofilter, contig_tax_nofilter_wranks)
     
     orf_tax_prokfilter, orf_tax_prokfilter_wranks = {}, {}
+    contig_tax_prokfilter, contig_tax_prokfilter_wranks = {}, {}
 
-    for orf in orf_tax:
-        tax = orf_tax[orf]
-        tax_nofilter = orf_tax_nofilter[orf]
-        if 'Bacteria' in (tax[0], tax_nofilter[0]) or 'Archaea' in (tax[0], tax_nofilter[0]): # We check both taxonomies.
-            orf_tax_prokfilter       [orf] = tax
-            orf_tax_prokfilter_wranks[orf] = orf_tax_wranks[orf]
-        else:
-            orf_tax_prokfilter       [orf] = tax_nofilter
-            orf_tax_prokfilter_wranks[orf] = orf_tax_nofilter_wranks[orf]
+    def calc_prokfilter(tax, tax_wranks, tax_nofilter, tax_nofilter_wranks, tax_prokfilter, tax_prokfilter_wranks):
+        for feat in tax:
+            tax_af = tax[feat]
+            tax_nf = tax_nofilter[feat]
+            if 'Bacteria' in (tax_af[0], tax_nf[0]) or 'Archaea' in (tax_af[0], tax_nf[0]): # We check both taxonomies.
+                tax_prokfilter       [feat] = tax_af
+                tax_prokfilter_wranks[feat] = tax_wranks[feat]
+            else:
+                tax_prokfilter       [feat] = tax_nf
+                tax_prokfilter_wranks[feat] = tax_nofilter_wranks[feat]
+
+    calc_prokfilter(orf_tax, orf_tax_wranks, orf_tax_nofilter, orf_tax_nofilter_wranks, orf_tax_prokfilter, orf_tax_prokfilter_wranks)
+    calc_prokfilter(contig_tax, contig_tax_wranks, contig_tax_nofilter, contig_tax_nofilter_wranks, contig_tax_prokfilter, contig_tax_prokfilter_wranks)
     
-    contig_abunds, contig_tax, contig_tax_wranks = parse_contig_table(perlVars['$contigtable'])
-
     write_row_dict(TAXRANKS, orf_tax, prefix + 'orf.tax.allfilter.tsv')
-    write_row_dict(TAXRANKS, contig_tax, prefix + 'contig.tax.tsv')
+    write_row_dict(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
+    write_row_dict(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
+    write_row_dict(TAXRANKS, contig_tax, prefix + 'contig.tax.allfilter.tsv')
+    write_row_dict(TAXRANKS, contig_tax_prokfilter, prefix + 'contig.tax.prokfilter.tsv')
+    write_row_dict(TAXRANKS, contig_tax_nofilter, prefix + 'contig.tax.nofilter.tsv')
+
 
     if not args.sqm2anvio:
         fna_blastx = perlVars['$fna_blastx'] if doublepass else None
@@ -163,23 +162,24 @@ def main(args):
 
         for idx, rank in enumerate(TAXRANKS):
             unmapped_str = ';'.join([rs+'_Unmapped' for i, rs in enumerate(TAXRANKS_SHORT) if i <= idx])
-            tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_prokfilter_wranks, idx)
-            tax_abunds_orfs[unmapped_str] = total_reads - sum(tax_abunds_orfs.values())
-            write_row_dict(sampleNames, tax_abunds_orfs, prefix + '{}.prokfilter.abund.tsv'.format(rank))
-            tax_abunds_orfs = aggregate_tax_abunds(orfs['abundances'], orf_tax_nofilter_wranks, idx)
-            tax_abunds_orfs[unmapped_str] = total_reads - sum(tax_abunds_orfs.values())
-            write_row_dict(sampleNames, tax_abunds_orfs, prefix + '{}.nofilter.abund.tsv'.format(rank))
-            #write_row_dict(sampleNames, normalize_abunds(tax_abunds_orfs, 100), prefix + '{}.prokfilter.percent.tsv'.format(rank))
 
             tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_wranks, idx)
             tax_abunds_contigs[unmapped_str] = total_reads - sum(tax_abunds_contigs.values())
             write_row_dict(sampleNames, tax_abunds_contigs, prefix + '{}.allfilter.abund.tsv'.format(rank))
-            #write_row_dict(sampleNames, normalize_abunds(tax_abunds_contigs, 100), prefix + '{}.allfilter.percent.tsv'.format(rank))
+
+            tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_prokfilter_wranks, idx)
+            tax_abunds_contigs[unmapped_str] = total_reads - sum(tax_abunds_contigs.values())
+            write_row_dict(sampleNames, tax_abunds_contigs, prefix + '{}.prokfilter.abund.tsv'.format(rank))
+
+            tax_abunds_contigs = aggregate_tax_abunds(contig_abunds, contig_tax_nofilter_wranks, idx)
+            tax_abunds_contigs[unmapped_str] = total_reads - sum(tax_abunds_contigs.values())
+            write_row_dict(sampleNames, tax_abunds_contigs, prefix + '{}.nofilter.abund.tsv'.format(rank))
+
 
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB) 2019\n')
+    parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sanchez (CNB) 2019\n')
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
     parser.add_argument('output_dir', type=str, help='Output directory')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
