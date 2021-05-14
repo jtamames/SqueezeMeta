@@ -29,7 +29,7 @@ END_MESSAGE
 
 my $result = GetOptions ("p=s" => \$project,
                      "taxon=s" => \$taxon,
-                     "classification=s" => \$funclass,
+                     "c|classification=s" => \$funclass,
 		     "h" => \$hel,
 		     "functions=s" => \$reqfunctions,
 		     "color=s" => \$colorreq,
@@ -66,7 +66,7 @@ my(%accumfun)=();
 my($cogpos,$keggpos,$taxpos,$funpos);
 my $funfile="$resultpath/13.$projectname.orftable";
 print "Reading functions in $funfile\n";
-open(infile1,$funfile) || die;
+open(infile1,$funfile) || die "Cannot open results in $funfile\n";
 $_=<infile1>;
 $_=<infile1>;
 my $headerf=$_; 
@@ -85,17 +85,19 @@ if($funclass=~/KEGG/i) {
 	if(!$keggpos) { die "No KEGG results in table $funfile!\n"; }
 	else{ $funpos=$keggpos; }
 	}
-print "Looking for $taxon\n";
+if($taxon) { print "Looking for $taxon\n"; }
+else { print "Looking for all taxa\n"; }
+
 while(<infile1>) {
 	chomp;
 	my @line=split(/\t/,$_);
 	next if !$_;
 	# print "$line[$taxpos]\n";
-	if($taxon && ($line[$taxpos]=~/$taxon/i)) { 
+	if((!$taxon) || ($taxon && ($line[$taxpos]=~/$taxon/i))) { 
 		my $tfun=$line[$funpos];
 		$tfun=~s/\*$//;     # <-- Add here treatment for besthit/bestaver
 		next if(!$tfun);
-		if(!$reqfunctions || ($requested{$tfun})) { $accumfun{$tfun}++; }
+		if((!$reqfunctions) || ($requested{$tfun})) { $accumfun{$tfun}++; }
 		}
 	}
 close infile;
@@ -110,7 +112,7 @@ foreach my $thisfun(sort keys %accumfun) {
 	print out "$thisfun $thiscolor\n";
 	}
 close out;
-print "Output results in $outfile. Now load these into iPath (https://pathways.embl.de)\n";
+print "Output results in $outfile. Now copy these into iPath (https://pathways.embl.de)\n";
 
 	
 		

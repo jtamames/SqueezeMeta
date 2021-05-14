@@ -48,8 +48,9 @@ my $helptext = <<END_MESSAGE;
 Usage: SQM_annot.pl -f <faa directory> -s <samples file> -o <output directory> [options]
 
 Mandatory parameters:
-   -f: Aminoacid sequences, fasta format (REQUIRED)
+   -f: Directory for sequence files (REQUIRED)
    -o: Output directory (REQUIRED)
+   -s: Samples file (REQUIRED)
 
  Options:
    -t: Number of threads (Default: 12)
