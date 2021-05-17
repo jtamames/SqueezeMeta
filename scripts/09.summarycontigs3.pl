@@ -32,7 +32,6 @@ my @ranksabb=('k','p','c','o','f','g','s');
 my %validranks;
 map{ $validranks{$_}=1; } @ranksabb;
 
-
 if($consensus) { $minconsperc_total9=$consensus; }  #-- Overrides the parameter if user-set or mode minion
 
 open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
@@ -166,7 +165,6 @@ foreach my $tfile(@taxfiles) {
 			#$tax=~s/^..//;
 			 my ($rank,$tax)=split(/\_/,$uc);
 			 next if(!$validranks{$rank});
-			# print "--> $contigid $rank $node $tax\n";
 			if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
 			}
 		}
@@ -263,7 +261,7 @@ foreach my $tfile(@taxfiles) {
 			my $percas=$accumtax{$mtax}/$totalas;
 			my $perctotal=$accumtax{$mtax}/$totalcount;
 			if(!$times2) { $times2=0; }
-			# if($contig eq "k119_42524") {  printf "  $mtax $rank $accumtax{$mtax} $totalas $totalcount %.2f %.2f\n",$percas,$perctotal; }	      
+			 # if($contig=~/278124/) {  printf "  $mtax $rank $accumtax{$mtax} $totalas $totalcount %.2f %.2f\n",$percas,$perctotal; }	      
 
 			#-- And if it does, we also calculate the disparity index of the contig for this rank
 
@@ -291,16 +289,12 @@ foreach my $tfile(@taxfiles) {
 						if(($ttax && (!$ttax2)) || ($ttax2 && (!$ttax)) || ((!$ttax2) && (!$ttax))) { $chimeracheck{$orf}{$orf2}="unknown"; } #-- Unknown when one of the ORFs has no classification at this rank
 						elsif($ttax eq $ttax2) { $chimeracheck{$orf}{$orf2}="nochimera"; $nonchimera++; }
 						else { $chimeracheck{$orf}{$orf2}="chimera"; $chimera++; }
-						# if($contig eq "3539") { print "$rank $orf $orf2 -> $ttax $ttax2 -> $chimeracheck{$orf}{$orf2}\n"; }
 						}
 				}
 
 
-				# $chimerism=($totalas-$times)/$totalas;
 				my $totch=$chimera+$nonchimera;
 				if($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
-				# print "$chimerism*****\n";
-				# if($contig eq "k119_9990") {  printf "  $mtax $rank $accumtax{$mtax} $totalas $totalcount %.2f %.2f $chimerism\n",$percas,$perctotal; }	      
 				$consensus{$rank}=$mtax; 
 				printf outfile1 "   $rank: $totalas\t$mtax: $times\tDisparity: %.3f\n",$chimerism; 
 

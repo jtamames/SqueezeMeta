@@ -254,6 +254,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' @param N integer Plot the \code{N} most abundant taxa (default \code{15}).
 #' @param tax character. Custom taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).
+#' @param nocds character. Treat reads classified as No CDS separately, as unclassified or ignore them in the plot (default \code{"treat_separately"}).
 #' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{FALSE}).
 #' @param ignore_unclassified logical. Don't include unclassified reads in the plot (default \code{FALSE}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
@@ -270,7 +271,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, "family")
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, ignore_unmapped = F, ignore_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, nocds = 'treat_separately', ignore_unmapped = F, ignore_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
@@ -290,8 +291,17 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         warning(sprintf('We can\'t plot N = %s? taxa. Continuing with default values', N))
         N = 15
         }
+    if (!nocds %in% c('treat_separately', 'treat_as_unclassified', 'ignore'))
+        {
+        stop('Select nocds among "treat_separately", "treat_as_unclassified", "ignore"')
+        }
     if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
 
+    #if(!is.null(ignore_taxa)) 
+    #    {
+    #    remove_taxa = rep(T, length(ignore_taxa))
+    #    names(remove_taxa) = ignore_taxa
+    #    }
     check.samples(SQM, samples)
 
     data0 = SQM[['taxa']][[rank]][[count]]
@@ -299,48 +309,61 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
     if(no_partial_classifications)
         {
         unclassified = grepl('[Uu]nclassified', rownames(data0))
-        unclassified_counts = colSums(data0[unclassified,])
-	data0 = rbind(data0[!unclassified,], 'Unclassified' = unclassified_counts)
+        unclassified_counts = colSums(data0[unclassified,,drop=F])
+	data0 = rbind(data0[!unclassified,,drop=F], 'Unclassified' = unclassified_counts)
         }
 
     # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df
     data = as.data.frame(data0)
     data = mostAbundant(data, N = N, items = tax, others = others, rescale = rescale)
 
-    # Verify whether there are Unclassified or Unmapped
+    # Verify whether there are Unclassified or Unmapped or No CDS
+
+
+
     if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = F}
-    if(ignore_unclassified & !('Unclassified' %in% rownames(data))) {ignore_unclassified = F}
-   
-    # remove unmapped taxa (only possible when not custom items)
-    # if N include unmmaped taxa, add one more taxa
-    if (ignore_unmapped & !(ignore_unclassified) & is.null(tax)  & N != 0 )
-    { # We overwrite data from scratch!
-        data = as.data.frame(data0) # Pick one more taxa
-        data = mostAbundant(data, N = N + 1, items = tax, others = others, rescale = F) # Create the data table again
-        data = data[rownames(data) != 'Unmapped', , drop = F] # Remove 'unmapped'
-        data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
-    }
+    if((nocds == 'ignore'| nocds == 'treat_as_unclassified') & !('No CDS' %in% rownames(data))) { nocds = 'treat_separately' }
+    # Convert No CDS options in logical values
+    if (nocds == 'treat_separately') 
+        { 
+        ignore_nocds = F 
+        } else if (nocds == 'ignore') 
+        { 
+        ignore_nocds = T 
+        } else if (nocds == 'treat_as_unclassified') 
+        { 
+        ignore_nocds = T # at the end we ignore this class 'cause they're included in ignore_unclassified 
+        }
+    if(ignore_unclassified & !('Unclassified' %in% rownames(data)) & nocds != 'treat_as_unclassified') {ignore_unclassified = F}
+
+    ignore_cases = c('Unmapped' = ignore_unmapped, 'Unclassified' = ignore_unclassified, 'No CDS' = ignore_nocds)
+    #if (!is.null(ignore_taxa)) {ignore_cases = c(ignore_cases, remove_taxa)}
     
-    # remove unclassified taxa (only possible when not custom items)
-    # if N include unclassified taxa, add one more taxa
-    if (ignore_unclassified & !(ignore_unmapped) & is.null(tax) & N != 0 )
-    { # We overwrite data from scratch!
-        data = as.data.frame(data0) # Pick one more taxa
-        data = mostAbundant(data, N = N + 1, items = tax, others = others, rescale = F) # Create the data table again
-        data = data[rownames(data) != 'Unclassified', , drop = F] # Remove 'Unclassified'
+    # any(ignore_cases) => return T if at least one of the cases is T and we should ignore it
+    # remove unmapped/noCDS/Unclassified taxa (only possible when not custom items)
+    # Add as many taxa as needed to recover N taxa excluding any of the special cases
+    if ( any(ignore_cases) & is.null(tax)  & N != 0 )
+        { # We overwrite data from scratch!
+        data = as.data.frame(data0) # Pick more taxa to complete N
+        # how many taxa should we replace?
+        rr = sum(ignore_cases) # count T cases
+        data = mostAbundant(data, N = N + rr, items = tax, others = others, rescale = F) # Create the data table again
+        # If nocds == 'treat_as_unclassified' => Unclassified = Unclassified + nocds
+        if (nocds == 'treat_as_unclassified') 
+            {
+            if (('Unclassified' %in% rownames(data)))
+                {
+                data['Unclassified', ] = data['Unclassified', ] + data['No CDS', ]
+                } else {data['Unclassified', ] = data['No CDS', ]}
+            }
+	# Remove ignore_cases = T
+        for (i in 1:length(ignore_cases))
+            {
+            if (ignore_cases[i])
+                { data = data[rownames(data) != names(ignore_cases)[i], , drop = F] } # Remove  ignore cases
+            }
         data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
-    }
-    
-    # remove unmapped and unclassified taxa (only possible when not custom items)
-    # if N include unmmaped and unclassified taxa, add two more taxa
-    if (ignore_unclassified & ignore_unmapped & is.null(tax) & N != 0 )
-    { # We overwrite data from scratch!
-        data = as.data.frame(data0) # Pick two more taxa
-        data = mostAbundant(data, N = N + 2, items = tax, others = others, rescale = F) # Create the data table again
-        data = data[rownames(data) != 'Unclassified', , drop = F] # Remove 'Unclassified'
-        data = data[rownames(data) != 'Unmapped', , drop = F] # Remove 'Unmapped'
-        data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
-    }
+        }
 
 
     #print(data)
@@ -353,32 +376,41 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         {
         # Try to use user colors
         # Check if the user is trying to trick us
-        if(!(is.null(tax)) & length(color) == length(tax) )
-            {
-            # User passes colors for tax
-            color = color
-            } else if(is.null(tax) & length(color) == N)
-            {
-            # User passes colors for the N most abundant taxa, use them
-            color = color
-            } else
-            {
-            # User passes less/more colors than taxa, use default colors.
-            warning('You passed less/more colors than taxa. Using default colors')
-            color = defaultColors
-            }
-    } else
+            if(!(is.null(tax)) & length(color) == length(tax) )
+                {
+                # User passes colors for tax
+                color = color
+                }else if(is.null(tax) & length(color) == N)
+                {
+                # User passes colors for the N most abundant taxa, use them
+                color = color
+                }else
+                {
+                # User passes less/more colors than taxa, use default colors.
+                warning('You passed less/more colors than taxa. Using default colors')
+                color = defaultColors
+                }
+        }else
         {
-        # Use default colors from the beginning. User does not care about colors
-        if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'Unclassified', 'Unmapped'),,drop=F])]
-        }else{ color = NULL }
+            # Use default colors from the beginning. User does not care about colors
+            if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'Unclassified', 'Unmapped', 'No CDS'), , drop=F])]
+            }else{ color = NULL }
         }
- 
+
     # Add others color
     if (others & !is.null(color))
         {
         color = c('#F5DEB3', color)
         }
+
+    # Add NoCDS color and put No CDS at the bottom
+    if('No CDS' %in% rownames(data))
+        {
+        if(!is.null(color)) { color = c(color, 'azure2') }
+        niceOrder = c(rownames(data)[rownames(data)!='No CDS'], 'No CDS')
+        data = data[niceOrder,,drop=F]
+        }
+    
     # Add unclassified color and put Unclassified at the bottom
     if('Unclassified' %in% rownames(data))
         {
@@ -395,6 +427,9 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         data = data[niceOrder,,drop=F]
         }
 
+
+
+
     # If requested, plot only the selected samples
     if(!is.null(samples)) { data = data[,samples,drop=F] }
 
@@ -404,4 +439,3 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
     p = plotBars(data, label_y = nice_label, color = color, label_fill = nice_rank, base_size = base_size, max_scale_value = max_scale_value)
     return(p)
     }
-

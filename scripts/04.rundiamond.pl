@@ -13,6 +13,9 @@ $|=1;
 my $pwd=cwd();
 
 my $projectdir=$ARGV[0];
+my $notax=$ARGV[1];
+my $blastmode=$ARGV[2];
+
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -44,26 +47,26 @@ if($blocksize eq "NF") {
 	$blocksize=$block_size_set;
 	}
 
+if(!$blastmode) { $blastmode="blastp"; }
 print outmet "Similarity searches for ";
 
 print "  Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for";
 
 #-- nr database
 
-$command="cp $databasepath/DB_BUILD_DATE $interdir";
-my $ecode = system $command;
-if($ecode!=0) { warn "Error running command:     $command"; }
-$command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
-print " taxa";
-print outsyslog "Running Diamond for taxa: $command\n";
-my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
-print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+if(!$notax) {
+	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
+	print " taxa";
+	print outsyslog "Running Diamond for taxa: $command\n";
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+	print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+	}
 
 #-- COG database
 
 if(!$nocog) {
-	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
+	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
 	print " COGS";
 	print outsyslog "Running Diamond for COGs: $command\n";
 	my $ecode = system $command;
@@ -74,7 +77,7 @@ if(!$nocog) {
 #-- KEGG database
 
 if(!$nokegg) {
-	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
+	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
 	print " KEGG";
 	print outsyslog "Running Diamond for KEGG: $command\n";
 	my $ecode = system $command;
@@ -91,7 +94,7 @@ if($opt_db) {
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
 		my $outdb="$interdir/04.$project.$dbname.diamond";
-		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
+		$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
 		print " $dbname";
 		print outsyslog "Running Diamond for $dbname: $command\n";
 		my $ecode = system $command;

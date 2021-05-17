@@ -1,6 +1,7 @@
 mode rna
 
 preserve_raw_paired_index true
+min_edge_length_for_is_count 500
 
 calculate_coverage_for_each_lib true
 strand_specificity {
@@ -8,6 +9,32 @@ strand_specificity {
     antisense false
 }
 
+ss_coverage_splitter {
+    enabled           true
+    bin_size          50   
+    min_edge_len      200
+    min_edge_coverage 5
+    min_flanking_coverage 2
+    coverage_margin   5
+}
+
+pacbio_processor
+{
+    internal_length_cutoff 100
+;align and traverse.
+    compression_cutoff 0.6
+    path_limit_stretching 1.3
+    path_limit_pressing 0.7
+    max_path_in_dijkstra 5000
+    max_vertex_in_dijkstra 1000
+;gap_closer
+    long_seq_limit 100
+    enable_gap_closing false
+    enable_fl_gap_closing true
+    pacbio_min_gap_quantity 2
+    contigs_min_gap_quantity 1
+    max_contigs_gap_length 10000
+}
 
 contig_output {
     scaffolds_name  transcripts
@@ -17,24 +44,26 @@ contig_output {
 
 simp
 {
-    ; enable advanced ec removal algo
+    ;all topology based erroneous connection removers are off
     topology_simplif_enabled false
+
     tc
     {
         ; rctc: tip_cov < rctc * not_tip_cov
         ; tc_lb: max_tip_length = max((min(k, read_length / 2) * tc_lb), read_length);
-        condition  "{ mmm 3 tc_lb 3.5, cb 100000, rctc 0.1 } { tc_lb 3.5, cb 4, rctc 10000 } { tc_lb 0.1, cb 20, rctc 10000 }"
+        condition  "{ mmm 3 tc_lb 4, cb 100000, rctc 0.5 } { tc_lb 2, cb 1, rctc 10000 }"
     }
 
     dead_end
     {
-        condition  "{ tc_lb 3.5, cb 2 }"
         enabled true
+        condition  "{ tc_lb 3.5, cb 2 }"
     }
 
     ; bulge remover:
     br
     {
+        enabled true
         max_additive_length_coefficient 100
         max_coverage            1000000.0
         max_relative_coverage       100000.0 ; bulge_cov < this * not_bulge_cov
@@ -48,53 +77,42 @@ simp
        ; to_ec_lb: max_ec_length = 2*tip_length(to_ec_lb) - 1
        ; nbr: use not bulge erroneous connections remover 
        ; condition               "{ ec_lb 9, icb 40.0, nbr }"
-       condition               "{ ec_lb 30, icb 50 }"
+       condition               "{ ec_lb 30, icb 200, rcec_cb 1.0 }"
     }
 
     ; relative coverage erroneous connections remover:
     rcec
     {
-            enabled true
-            rcec_lb 30
-            rcec_cb 0.5
+        rcec_lb 30
+        rcec_cb 1.0
+        enabled true
     }
 
     rcc
     {
         enabled true
         coverage_gap    20.
-        max_length_coeff    2.0
-        max_length_with_tips_coeff   3.0
-        max_vertex_cnt      30
-        max_ec_length_coefficient   30
-        max_coverage_coeff  5.0
-    }
-
-    ;all topology based erroneous connection removers are off
-    ier
-    {
-        enabled                     false
     }
 
     ; hidden ec remover
     her
     {
-        enabled                     true
+        ; TODO NB config also used in special rna mode version (always enabled)
+        enabled                     false
         uniqueness_length           1500
         unreliability_threshold     0.2
         relative_threshold          5
     }
 
-    init_clean
+    ier
     {
-        activation_cov  -1.
-        ier
-        {
-            enabled false
-        }
-
-        tip_condition   ""
-        ec_condition    ""
+        enabled                       true
+        use_rl_for_max_length         true ; max_length will be taken max with read_length
+        use_rl_for_max_length_any_cov false ; use_rl_for_max_length_any_cov will be taken max with read_length
+        max_length                    80
+        max_coverage                  2
+        max_length_any_cov            0
+        rl_threshold_increase         2 ; add this value to read length if used, i.e. flags above are set
     }
 
 }
@@ -114,22 +132,22 @@ params {
     scaffolding_mode old
 
     overlap_removal {
-        enabled true
+        enabled false
         end_start_only  true
         cut_all true
     }
 
     extension_options
     {
-        use_default_single_threshold true
         single_threshold           0.05
     }
 
     scaffolder {
         cutoff        1
-        hard_cutoff   10
+        hard_cutoff   5
+        rel_cov_cutoff    0.1
         cluster_info false
-        min_overlap_for_rna_scaffolding 10
+        min_overlap_for_rna_scaffolding 8
     }
 
     path_cleaning_presets "default soft hard"
@@ -185,8 +203,9 @@ params {
 
     simple_coverage_resolver {
         enabled true
-        coverage_delta 0.5
+        coverage_margin 2  
         min_upper_coverage 2
+        max_coverage_variation 10
     }
 }
 }

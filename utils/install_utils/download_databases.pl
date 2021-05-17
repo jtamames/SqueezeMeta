@@ -27,18 +27,20 @@ else
 my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
 require "$libpath/install_utils/download_confirm.pl";
+require "$libpath/install_utils/get_host.pl";
 ###
+
+my $host = get_host();
 
 system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/SqueezeMetaDB.tar.gz > /dev/null 2>&1");
 
-
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 print "\nDownloading and unpacking test data...\n\n";
-download_confirm("test.tar.gz", "test.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
+download_confirm("test.tar.gz", "test.md5", "$host/SqueezeMeta/", $download_dir);
 
 ### Download db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 print "Downloading and unpacking database tarball...\n";
-download_confirm("SqueezeMetaDB.tar.gz", "SqueezeMetaDB.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
+download_confirm("SqueezeMetaDB.tar.gz", "SqueezeMetaDB.md5", "$host/SqueezeMeta/", $download_dir);
 
 
 ### Finish configuration.

@@ -200,8 +200,7 @@ sub parseafg {
 		if($m[0]=~/^Merged/) { $ts=$m[0]; }
 		else {
 			shift @m; shift @m;
-			# my $ts=$m[$#m];
-			 # $ts=join("_",@m);
+			 $ts=join("_",@m);
 			 $ts=$m[$#m];   #-- Last field of contig name contains the sample ID. Previous solution worked for megahit but not for SPAdes. This one can get trouble if sample names contains "_"
 			}
 		$order{$inpos}=$ts;

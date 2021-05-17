@@ -7,7 +7,8 @@ $projectdir   = abs_path(dirname(__FILE__));
 
 #-- Generic paths
 
-$databasepath = "/media/disk7/fer/SqueezeMeta/db";
+#$databasepath = "/media/disk7/fer/SqueezeMeta/db";
+$databasepath = "/media/disk5/tamames/SqueezeMeta/db";
 $extdatapath  = "$installpath/data";
 $scriptdir    = "$installpath/scripts";   #-- Scripts directory
 
@@ -90,6 +91,8 @@ $singletons      = 0;
 $cleaning        = 0;
 $cleaningoptions = "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper          = "bowtie";
+$mapping_options = "";
+
 
 
 #-- External software

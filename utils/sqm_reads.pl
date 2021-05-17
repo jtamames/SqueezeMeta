@@ -35,15 +35,18 @@ my $scriptdir = "$installpath/scripts";
 my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
+open(inv,"$installpath/version.txt") || die;
+my $version=<inv>;
+chomp $version;
+close inv;
 
-my $version="1.2.0, Jun 2020";
 my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
 our($databasepath);
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile,$printversion);
 
 my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -66,6 +69,7 @@ Arguments:
    -e|-evalue: max evalue for discarding hits for Diamond run  (Default: 1e-03)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
+   -v|version: Print version
    -h: this help
 
 END_MESSAGE
@@ -81,6 +85,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
+		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
 
@@ -90,6 +95,7 @@ my $miniden=30;         #-- Minimum identity for the hit
 my $querycover=0;	#-- Minimum coverage of hit in query
 	
 print BOLD "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
+if($printversion) { exit; }
 
 if(!$blocksize) {
         print "\nSetting block size for Diamond\n";

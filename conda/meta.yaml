@@ -63,7 +63,7 @@ about:
           To install this package with conda run:
           \n
           \n
-          `conda create -n SqueezeMeta -c bioconda -c conda-forge -c fpusan squeezemeta`
+          `conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
           \n
           \n
           And activate it with:

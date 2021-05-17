@@ -31,7 +31,7 @@ my $outsam;
 my $samcommand="mkdir $samdir > /dev/null 2>&1";
 system $samcommand;
 system("rm $interdir/01.$projectname.singletons  > /dev/null 2>&1");
-open(syslog,">>$syslogfile");
+open(outsyslog,">>$syslogfile");
 
 my $assemblybck="$interdir/01.$projectname.assembly_orig.fasta";    #-- Make a copy of the original assembly
 print "  Copying contigs from $contigsfna to $assemblybck\n";

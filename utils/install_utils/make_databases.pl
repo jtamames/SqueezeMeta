@@ -32,31 +32,32 @@ else
 my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
 require "$libpath/install_utils/download_confirm.pl";
+require "$libpath/install_utils/get_host.pl";
 ###
 
+my $host = get_host();
 
 system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db.tar.gz $download_dir/kegg.dmnd.gz > /dev/null 2>&1");
 
-
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 print "\nDownloading and unpacking test data...\n\n";
-download_confirm("test.tar.gz", "test.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
+download_confirm("test.tar.gz", "test.md5", "$host/SqueezeMeta/", $download_dir);
 
 
 ### Download general db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 print "Downloading and unpacking general database tarball...\n";
-download_confirm("db.tar.gz", "db.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $download_dir);
+download_confirm("db.tar.gz", "db.md5", "$host/SqueezeMeta/", $download_dir);
 
 
 ### Download and unpack silva databases
 print "Downloading and unpacking SILVA databases (https://www.arb-silva.de/silva-license-information)...\n";
-download_confirm("silva.nr_v132.align.gz", "silva.nr_v132.align.md5",  "http://silvani.cnb.csic.es/SqueezeMeta/", $database_dir);
-download_confirm("silva.nr_v132.tax.gz", "silva.nr_v132.tax.md5",  "http://silvani.cnb.csic.es/SqueezeMeta/", $database_dir);
+download_confirm("silva.nr_v132.align.gz", "silva.nr_v132.align.md5",  "$host/SqueezeMeta/", $database_dir);
+download_confirm("silva.nr_v132.tax.gz", "silva.nr_v132.tax.md5",  "$host/SqueezeMeta/", $database_dir);
 
 
 ### Download and create kegg db.
 print "\nDownloading and creating kegg database...\n\n";
-download_confirm("kegg.db.gz", "kegg.db.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $database_dir);
+download_confirm("kegg.db.gz", "kegg.db.md5", "$host/SqueezeMeta/", $database_dir);
 system("$installpath/bin/diamond makedb --in $database_dir/kegg.db -d $database_dir/keggdb -p 8");
 system("rm $database_dir/kegg.db");
 
@@ -98,6 +99,7 @@ system "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db
 my $textrows = `wc -l $lca_dir/taxid_tree.txt`;
 my $dbrows = `echo 'SELECT count(*) FROM taxid;' | sqlite3 $lca_dir/taxid.db`;
 if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!" }
+system("md5sum $lca_dir/taxid.db > $lca_dir/taxid.md5");
 
 system "sqlite3 $lca_dir/parents.db < $libpath/install_utils/parents.sql";
 system "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/parents.db -cmd '.separator \"\\t\"'";

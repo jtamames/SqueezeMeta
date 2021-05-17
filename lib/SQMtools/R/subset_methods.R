@@ -131,7 +131,8 @@ subsetContigs = function(SQM, contigs, trusted_functions_only = F, ignore_unclas
                         trusted_functions_only = trusted_functions_only,
                         ignore_unclassified_functions=ignore_unclassified_functions,
                         rescale_tpm = rescale_tpm,
-                        rescale_copy_number = rescale_copy_number)
+                        rescale_copy_number = rescale_copy_number,
+	                contigs_override = contigs)
            )
     }
 
@@ -171,7 +172,7 @@ subsetRand = function(SQM, N)
 #' mostAbundantORFnames = names(sort(rowSums(Hadza$orfs$tpm), decreasing=T))[1:100]
 #' mostAbundantORFs = subsetORFs(Hadza, mostAbundantORFnames)
 #' @export
-subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
+subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F, contigs_override = NULL)
     {
 
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
@@ -179,7 +180,8 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     if(!tax_source %in% c('contigs', 'orfs')) { stop('tax_source must be "orfs" or "contigs"') }
    
     orfs    = rownames(SQM$orfs$table[orfs,,drop=F]) # Make sure it will work if orfs is a bool vector too.
-    contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
+    if(is.null(contigs_override)) { contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
+    } else { contigs = contigs_override } # so we can include contigs without ORFs if required
     bins    = unique( unlist(SQM$contigs$bins[contigs,]) )
     bins    = bins[bins!='No_bin']
     
