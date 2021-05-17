@@ -12,6 +12,7 @@ plotTaxonomy(
   tax = NULL,
   others = T,
   samples = NULL,
+  nocds = "treat_separately",
   ignore_unmapped = F,
   ignore_unclassified = F,
   no_partial_classifications = F,
@@ -35,6 +36,8 @@ plotTaxonomy(
 \item{others}{logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).}
 
 \item{samples}{character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).}
+
+\item{nocds}{character. Either \code{"treat_separately"} to treat reads annotated as No CDS separately, \code{"treat_as_unclassified"} to treat them as Unclassified or \code{"ignore"} to ignore them in the plot (default \code{"treat_separately"}).}
 
 \item{ignore_unmapped}{logical. Don't include unmapped reads in the plot (default \code{FALSE}).}
 

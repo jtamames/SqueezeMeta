@@ -11,7 +11,8 @@ subsetORFs(
   trusted_functions_only = F,
   ignore_unclassified_functions = F,
   rescale_tpm = F,
-  rescale_copy_number = F
+  rescale_copy_number = F,
+  contigs_override = NULL
 )
 }
 \arguments{
