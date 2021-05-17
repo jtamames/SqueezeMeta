@@ -27,14 +27,16 @@ else
 my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
 require "$libpath/install_utils/download_confirm.pl";
+require "$libpath/install_utils/get_host.pl";
 ###
 
+my $host = get_host();
 
 system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
 
 ###Download rdp classifier.
 print("Downloading and unpacking RDP classifier...\n");
-download_confirm("classifier.tar.gz", "classifier.md5", "http://silvani.cnb.csic.es/SqueezeMeta/", $libpath);
+download_confirm("classifier.tar.gz", "classifier.md5", "$host/SqueezeMeta/", $libpath);
 system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar . > /dev/null 2>&1"); # Add symlink
 
 ###Update configuration files to reflect new db path.
