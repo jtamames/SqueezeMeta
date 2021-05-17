@@ -254,9 +254,9 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' @param N integer Plot the \code{N} most abundant taxa (default \code{15}).
 #' @param tax character. Custom taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).
+#' @param nocds character. Treat reads classified as No CDS separately, as unclassified or ignore them in the plot (default \code{"treat_separately"}).
 #' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{FALSE}).
 #' @param ignore_unclassified logical. Don't include unclassified reads in the plot (default \code{FALSE}).
-#' @param ignore_nocds logical. Don't include reads classified as No CDS in the plot (default \code{FALSE}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
 #' @param no_partial_classifications logical. Treat reads not fully classified at the requested level (e.g. "Unclassified bacteroidetes" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).
 #' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
@@ -271,7 +271,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, "family")
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, ignore_unmapped = F, ignore_unclassified = F, ignore_nocds = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, nocds = 'treat_separately', ignore_unmapped = F, ignore_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
@@ -291,8 +291,17 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         warning(sprintf('We can\'t plot N = %s? taxa. Continuing with default values', N))
         N = 15
         }
+    if (!nocds %in% c('treat_separately', 'treat_as_unclassified', 'ignore'))
+        {
+        stop('Select nocds among "treat_separately", "treat_as_unclassified", "ignore"')
+        }
     if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
 
+    #if(!is.null(ignore_taxa)) 
+    #    {
+    #    remove_taxa = rep(T, length(ignore_taxa))
+    #    names(remove_taxa) = ignore_taxa
+    #    }
     check.samples(SQM, samples)
 
     data0 = SQM[['taxa']][[rank]][[count]]
@@ -313,10 +322,23 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 
 
     if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = F}
-    if(ignore_unclassified & !('Unclassified' %in% rownames(data))) {ignore_unclassified = F}
-    if(ignore_nocds & !('No CDS' %in% rownames(data))) {ignore_nocds = F}
+    if((nocds == 'ignore'| nocds == 'treat_as_unclassified') & !('No CDS' %in% rownames(data))) { nocds = 'treat_separately' }
+    # Convert No CDS options in logical values
+    if (nocds == 'treat_separately') 
+        { 
+        ignore_nocds = F 
+        } else if (nocds == 'ignore') 
+        { 
+        ignore_nocds = T 
+        } else if (nocds == 'treat_as_unclassified') 
+        { 
+        ignore_nocds = T # at the end we ignore this class 'cause they're included in ignore_unclassified 
+        }
+    if(ignore_unclassified & !('Unclassified' %in% rownames(data)) & nocds != 'treat_as_unclassified') {ignore_unclassified = F}
 
     ignore_cases = c('Unmapped' = ignore_unmapped, 'Unclassified' = ignore_unclassified, 'No CDS' = ignore_nocds)
+    #if (!is.null(ignore_taxa)) {ignore_cases = c(ignore_cases, remove_taxa)}
+    
     # any(ignore_cases) => return T if at least one of the cases is T and we should ignore it
     # remove unmapped/noCDS/Unclassified taxa (only possible when not custom items)
     # Add as many taxa as needed to recover N taxa excluding any of the special cases
@@ -326,7 +348,15 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         # how many taxa should we replace?
         rr = sum(ignore_cases) # count T cases
         data = mostAbundant(data, N = N + rr, items = tax, others = others, rescale = F) # Create the data table again
-        # Remove ignore_cases = T
+        # If nocds == 'treat_as_unclassified' => Unclassified = Unclassified + nocds
+        if (nocds == 'treat_as_unclassified') 
+            {
+            if (('Unclassified' %in% rownames(data)))
+                {
+                data['Unclassified', ] = data['Unclassified', ] + data['No CDS', ]
+                } else {data['Unclassified', ] = data['No CDS', ]}
+            }
+	# Remove ignore_cases = T
         for (i in 1:length(ignore_cases))
             {
             if (ignore_cases[i])
@@ -372,6 +402,15 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         {
         color = c('#F5DEB3', color)
         }
+
+    # Add NoCDS color and put No CDS at the bottom
+    if('No CDS' %in% rownames(data))
+        {
+        if(!is.null(color)) { color = c(color, 'azure2') }
+        niceOrder = c(rownames(data)[rownames(data)!='No CDS'], 'No CDS')
+        data = data[niceOrder,,drop=F]
+        }
+    
     # Add unclassified color and put Unclassified at the bottom
     if('Unclassified' %in% rownames(data))
         {
@@ -388,12 +427,6 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         data = data[niceOrder,,drop=F]
         }
 
-    if('No CDS' %in% rownames(data))
-        {
-        if(!is.null(color)) { color = c(color, 'azure2') }
-        niceOrder = c(rownames(data)[rownames(data)!='No CDS'], 'No CDS')
-        data = data[niceOrder,,drop=F]
-        }
 
 
 
