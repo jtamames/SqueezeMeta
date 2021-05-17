@@ -36,9 +36,13 @@ my $scriptdir = "$installpath/scripts";
 my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
-my($numthreads,$outdir,$aadir,$project,$samplesfile,$notax,$nocog,$nokegg,$blastmode,$blocksize,$hel,$blockoption);
+open(inv,"$installpath/version.txt") || die;
+my $version=<inv>;
+chomp $version;
+close inv;
 
-my $version="1.3.1, March 2021";
+my($numthreads,$outdir,$aadir,$project,$samplesfile,$notax,$nocog,$nokegg,$blastmode,$blocksize,$hel,$blockoption,$printversion);
+
 my $start_run = time();
 print BOLD "\nSQM_annot v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 
@@ -59,6 +63,7 @@ Mandatory parameters:
    --notax: Skip taxonomic annotation
    --nocog: Skip COGs annotation
    --nofun: Skip KEGG annotation
+   -version: Print version
    -h: this help
    
 END_MESSAGE
@@ -72,10 +77,12 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nocog" => \$nocog,
 		     "nokegg" => \$nokegg,
 		     "blastmode=s" => \$blastmode,
+		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
 
-if($hel) { print "$helptext\n"; die; }
+if($hel) { print "$helptext\n"; exit; }
+if($printversion) { exit; }
 if(!$samplesfile) { die "Please specify a file of samples\n"; }
 if(!$outdir) { $outdir="."; }
 if(!$aadir) { $aadir="."; }

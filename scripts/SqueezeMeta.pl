@@ -14,7 +14,6 @@ use Term::ANSIColor qw(:constants);
 use lib ".";
 use strict;
 
-my $version="1.3.1";
 my $start_run = time();
 
 my $longtrace=0;    #-- Reports an explanation msg for each of the steps
@@ -36,6 +35,11 @@ else
 	}
 our $installpath = abs_path("$scriptdir/..");
 ###
+
+open(inv,"$installpath/version.txt") || die;
+my $version=<inv>;
+chomp $version;
+close inv;
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$lowmem,$minion,,$consensus,$doublepass)="0";
@@ -192,7 +196,7 @@ if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNR
 if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
 if(($assembler=~/flye/i) && ($mode=~/merge/i)) { $dietext.="Invalid combination of mode and assembler\n (We are sorry for this, the low number of contigs provided by Flye prevents minimus2 needed in $mode mode to work correctly\n Please use coassembly, or a different assembler)\n"; }
 if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
-if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }
+if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
 
 $projectdir = abs_path($projectdir);
 $projectname = (split '/', $projectdir)[-1];
@@ -208,14 +212,14 @@ while(<infile1>) {
 	$_=~s/\r//g;
 	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 	$pairsample{$sample}.="$iden;";
-	if($_=~/ /) { print RED; print "Please do not use blank spaces in the samples file\n"; print RESET;  die; }
-	if(($iden ne "pair1") && ($iden ne "pair2")) { print RED; print "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; print RESET;  die; }
-	if((!$sample) || (!$file) || (!$iden)) { print RED; print "Bad format in samples file $equivfile. Missing fields\n"; print RESET;  die; }
-	if(-e "$rawfastq/$file") {} elsif(!$empty) { print RED; print "Can't find sample file $rawfastq/$file for sample $sample in the samples file. Please check\n"; print RESET;  die; }
+	if($_=~/ /) { print RED; print "Please do not use blank spaces in the samples file\n"; print RESET;  exit; }
+	if(($iden ne "pair1") && ($iden ne "pair2")) { print RED; print "Samples file, line $_: file label must be \"pair1\" or \"pair2\". For single reads, use \"pair1\"\n"; print RESET;  exit; }
+	if((!$sample) || (!$file) || (!$iden)) { print RED; print "Bad format in samples file $equivfile. Missing fields\n"; print RESET;  exit; }
+	if(-e "$rawfastq/$file") {} elsif(!$empty) { print RED; print "Can't find sample file $rawfastq/$file for sample $sample in the samples file. Please check\n"; print RESET;  exit; }
 }
 close infile1;
 foreach my $chsam(keys %pairsample) { 
-	if($pairsample{$chsam}!~/pair1/) { print RED; print "Sample $chsam has not pair1 in the samples file. Please check\n"; print RESET;  die; }
+	if($pairsample{$chsam}!~/pair1/) { print RED; print "Sample $chsam has not pair1 in the samples file. Please check\n"; print RESET;  exit; }
 	}
 
 my $currtime=timediff();

@@ -36,14 +36,18 @@ my $scriptdir = "$installpath/scripts";
 my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
-my $version="1.3.0, Jun 2020";
+open(inv,"$installpath/version.txt") || die;
+my $version=<inv>;
+chomp $version;
+close inv;
+
 my $start_run = time();
 print BOLD "\nSQM_mapper v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 
 
 	#-- Configuration variables from conf file
 
-my($mappingfile,$fastqdir,$gff_file,$mapper,$outdir,$reference,$hel,$project,$numthreads,$funfile);
+my($mappingfile,$fastqdir,$gff_file,$mapper,$outdir,$reference,$hel,$project,$numthreads,$funfile,$printversion);
 my $verbose=0;
 my $bowtie2_build_soft = "$installpath/bin/bowtie2/bowtie2-build";
 my $bowtie2_x_soft     = "$installpath/bin/bowtie2/bowtie2";
@@ -67,6 +71,7 @@ Mandatory parameters:
    -t: Number of threads (Default: 12)
    -m: Mapper to be used (Bowtie, BWA) (Default: Bowtie)
    -fun: File containing functional annotations for the genes in the reference
+   -version: Print version
    -h: this help
 
 END_MESSAGE
@@ -80,10 +85,12 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "r|reference=s"  => \$reference,
 		     "n|name=s"  => \$project,
 		     "fun=s" => \$funfile,
+		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
 
-if($hel) { print "$helptext\n"; die; }
+if($hel) { print "$helptext\n"; exit; }
+if($printversion) { exit; }
 if(!$numthreads) { $numthreads=12; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$project) { $project="sqm"; }
