@@ -106,7 +106,7 @@ foreach my $thissample(sort keys %samplefiles) {
 		elsif($assembler eq 'rnaspades') { $command_start="$spades_soft --rna" }
 		if(-e $par2name) { $command="$command_start --pe1-1 $par1name --pe1-2 $par2name -m 400 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile  2>&1"; }
 		else { $command="$command_start --s1 $par1name -m 400 $assembler_options -t $numthreads -o $datapath/spades > /dev/null 2>&1"; } #-- Support for single reads
-		print "  Running Spades (Li et al 2015, Bioinformatics 31(10):1674-6) for $thissample\n";
+		print "  Running Spades (Bankevich et al 2012, J Comp Biol 19(5):455-77) for $thissample\n";
 		print outsyslog "Running Spades for $thissample: $command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
