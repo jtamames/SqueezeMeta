@@ -52,6 +52,10 @@ print outmet "Similarity searches for ";
 
 print "  Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for";
 
+$command="cp $databasepath/DB_BUILD_DATE $interdir";
+my $ecode = system $command;
+if($ecode!=0) { warn "Error running command:     $command"; }
+
 #-- nr database
 
 if(!$notax) {
