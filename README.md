@@ -272,6 +272,10 @@ In addition to the main SqueezeMeta pipeline, we provide two extra modes that en
 
 **3) sqm_hmm_reads.pl**: This script provides a wrapper to the [Short-Pair](https://sourceforge.net/projects/short-pair/) software, which allows to screen the reads for particular functions using an ultra-sensitive HMM algorithm.
 
+**4) sqm_mapper.pl**: This script maps reads to a given reference using one of the included sequence aligners (Bowtie2, BWA), and provides estimation of the abundance of the contigs and ORFs in the reference.
+
+**5) sqm_annot.pl**: This script performs functional and taxonomic annotation for a set of genes, for instance these encoded in a genome (or sets of contigs).
+
 
 ## 14. License and third-party software
 SqueezeMeta is distributed under a GPL-3 license.
@@ -308,6 +312,6 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 
 
 ## 15. About
-SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
+SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fernando.puente.sanchez@slu.se).
 
 

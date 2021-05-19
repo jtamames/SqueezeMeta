@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Part of the SqueezeMeta distribution. 25/03/2018 Original version,
-                            (c) Fernando Puente-Sánchez, CNB-CSIC.
+Part of the SqueezeMeta distribution. 10/05/2021.
+    (c) Fernando Puente-Sánchez, 2019-2020, CNB-CSIC / 2021 SLU.
 
 Generate tabular outputs from sqm_reads.pl or sqm_longreads.pl results.
 
@@ -238,7 +238,7 @@ def main(args):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB) 2019\n')
+    parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB-SLU) 2021\n')
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
     parser.add_argument('output_dir', type=str, help='Output directory')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')

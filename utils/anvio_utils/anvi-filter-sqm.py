@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 """
+Part of the SqueezeMeta distribution. 10/05/2021.
+    (c) Fernando Puente-Sánchez, 2019-2020, CNB-CSIC / 2021 SLU.
+
 Select the anvi'o splits (which are themselves contigs, or parts of
 long contigs) that fulfill a set of conditions, and visualize them
 using anvi-interactive.
@@ -295,7 +298,7 @@ def makeTaxTree(splits, contigTax, outname):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Filter SqueezeMeta results and visualize them with anvi\'o', epilog='Fernando Puente-Sánchez (CNB) 2019\n')
+    parser = argparse.ArgumentParser(description='Filter SqueezeMeta results and visualize them with anvi\'o', epilog='Fernando Puente-Sánchez (CNB-SLU) 2021\n')
     parser.add_argument('-p', '--profile-db', type=str, required=True, help='Anvi\'o profile database')
     parser.add_argument('-c', '--contigs-db', type=str, required=True, help='Anvi\'o contigs database')
     parser.add_argument('-t', '--taxonomy', type=str, required = True, help='SqueezeMeta contigs taxonomy')

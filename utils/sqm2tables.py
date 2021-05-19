@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Part of the SqueezeMeta distribution. 25/03/2018 Original version,
-                            (c) Fernando Puente-Sánchez, CNB-CSIC.
+Part of the SqueezeMeta distribution. 10/05/2021.
+    (c) Fernando Puente-Sánchez, 2019-2020, CNB-CSIC / 2021 SLU.
 
 Generate tabular outputs from SqueezeMeta results.
 
