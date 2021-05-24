@@ -161,6 +161,9 @@ The command for running SqueezeMeta has the following syntax:
  
 *Other* 
 * *--minion*: Run on MinION reads (Default: no). Equivalent to -a canu -map minimap2-ont 
+* *-test* [step]: For testing purposes, stops AFTER the given step number
+* *--empty*: Creates an empty directory structure and configuration files. It does not run the pipeline
+
  
 *Information* 
 * *-v*: Version number 
