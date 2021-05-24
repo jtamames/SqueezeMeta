@@ -20,9 +20,6 @@ our($projectname);
 my $project=$projectname;
 
 do "$projectpath/parameters.pl";
-our($installpath);
-system("perl $installpath/utils/versionchange.pl $projectpath");
-do "$projectpath/SqueezeMeta_conf.pl";
 
 #-- Configuration variables from conf file
 

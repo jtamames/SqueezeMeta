@@ -46,12 +46,6 @@ do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-#-- Checking for version compatibility
-
-our($installpath);
-system("perl $installpath/utils/versionchange.pl $projectpath");
-do "$projectpath/SqueezeMeta_conf.pl";
-
 our($installpath,$extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,$binresultdir);
 
 if(!$complete_cutoff) { $complete_cutoff=30; }		#-- Do not consider bins below this level of completion

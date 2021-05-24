@@ -20,12 +20,6 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
-#-- Checking for version compatibility
-
-our($installpath);
-system("perl $installpath/utils/versionchange.pl $projectpath");
-do "$projectpath/SqueezeMeta_conf.pl";
-
 #-- Configuration variables from conf file
 
 our($installpath,$databasepath,$installpath,$resultpath,$interdir,$contigsfna,%binscripts,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile,$binners,$methodsfile,$syslogfile);

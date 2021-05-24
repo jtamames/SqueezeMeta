@@ -124,7 +124,6 @@ my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa wi
 
 my $resultsdir=$project;
 if (-d $resultsdir) { print RED "WARNING: Project name $project already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
-system("perl $installpath/utils/versionchange.pl $projectpath");
 
 $methodsfile="$resultsdir/methods.txt";
 open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";

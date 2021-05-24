@@ -19,12 +19,6 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
-#-- Checking for version compatibility
-
-our($installpath);
-system("perl $installpath/utils/versionchange.pl $projectpath");
-do "$projectpath/SqueezeMeta_conf.pl";
-
 our($installpath,$resultpath,$tempdir,$interdir,$aafile,$ntfile,$gff_file,$prodigal_soft,$methodsfile,$syslogfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";

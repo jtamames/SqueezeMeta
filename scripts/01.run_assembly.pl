@@ -17,12 +17,6 @@ do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-#-- Checking for version compatibility
-
-our($installpath);
-system("perl $installpath/utils/versionchange.pl $projectpath");
-do "$projectpath/SqueezeMeta_conf.pl";
-
 #-- Configuration variables from conf file
 
 our($installpath,$datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile);

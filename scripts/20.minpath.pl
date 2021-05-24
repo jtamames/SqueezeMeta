@@ -16,11 +16,6 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
-#-- Checking for version compatibility
-our($installpath);
-system("perl $installpath/utils/versionchange.pl $projectpath");
-do "$projectpath/SqueezeMeta_conf.pl";
-
 #-- Configuration variables from conf file
 
 our($installpath,$extdatapath,$contigsinbins,$mergedfile,$tempdir,$interdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction20,$binresultsdir);

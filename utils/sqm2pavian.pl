@@ -22,12 +22,6 @@ my $project=$projectname;
 
 do "$projectpath/parameters.pl";
 
-#-- Checking for version compatibility
-
-our($installpath);
-system("perl $installpath/utils/versionchange.pl $projectpath");
-do "$projectpath/SqueezeMeta_conf.pl";
-
 our($installpath,$resultpath,$databasepath,$mcountfile);
 
 my %rankequival=('k','D','p','P','c','C','o','O','f','F','g','G','s','S');
