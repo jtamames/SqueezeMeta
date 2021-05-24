@@ -7,6 +7,7 @@
 subsetFun(
   SQM,
   fun,
+  columns = NULL,
   ignore_case = T,
   fixed = F,
   trusted_functions_only = F,
@@ -18,7 +19,9 @@ subsetFun(
 \arguments{
 \item{SQM}{SQM object to be subsetted.}
 
-\item{fun}{character, pattern to search for in the different functional classifications.}
+\item{fun}{character. Pattern to search for in the different functional classifications.}
+
+\item{columns}{character. Restrict the search to the provided column names from \code{SQM$orfs$table}. If not provided the search will be performed in all the columns containing functional information (default \code{NULL}).}
 
 \item{ignore_case}{logical Make pattern matching case-insensitive (default \code{TRUE}).}
 
@@ -42,6 +45,8 @@ Create a SQM object containing only the ORFs with a given function, and the cont
 data(Hadza)
 Hadza.iron = subsetFun(Hadza, "iron")
 Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
+# Search for multiple patterns using regular expressions
+Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=F)
 }
 \seealso{
 \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.

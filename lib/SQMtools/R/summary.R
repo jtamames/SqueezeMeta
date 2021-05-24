@@ -24,25 +24,25 @@ summary.SQM = function(SQM)
     res$contigs$N90          = Npercent(as.numeric(SQM$contigs$table$Length), 90) # as.numeric to avoid integer overflow.
 
     sk = SQM$contigs$tax[,'superkingdom']
-    sk = sk[!grepl('^Unclassified', sk)] # Remove Unclassified
+    sk = sk[!grepl('^Unclassified|^Unmapped|^No CDS', sk)] # Remove Unclassified
     sk = sk[!grepl('in NCBI)', sk)]      # Remove "virtual" taxa (coming for ranks missing in NCBI for some taxa).
     p  = SQM$contigs$tax[,'phylum']
-    p  = p[!grepl('^Unclassified', p)]
+    p  = p[!grepl('^Unclassified|^Unmapped|^No CDS', p)]
     p  = p[!grepl('in NCBI)', p)]
     c_ = SQM$contigs$tax[,'class']
-    c_ = c_[!grepl('^Unclassified', c_)]
+    c_ = c_[!grepl('^Unclassified|^Unmapped|^No CDS', c_)]
     c_ = c_[!grepl('in NCBI)', c_)]
     o  = SQM$contigs$tax[,'order']
-    o  = o[!grepl('^Unclassified', o)]
+    o  = o[!grepl('^Unclassified|^Unmapped|^No CDS', o)]
     o  = o[!grepl('in NCBI)', o)]
     f  = SQM$contigs$tax[,'family']
-    f  = f[!grepl('^Unclassified', f)]
+    f  = f[!grepl('^Unclassified|^Unmapped|^No CDS', f)]
     f  = f[!grepl('in NCBI)', f)]
     g  = SQM$contigs$tax[,'genus']
-    g  = g[!grepl('^Unclassified', g)]
+    g  = g[!grepl('^Unclassified|^Unmapped|^No CDS', g)]
     g  = g[!grepl('in NCBI)', g)]
     s  = SQM$contigs$tax[,'species']
-    s  = s[!grepl('^Unclassified', s)]
+    s  = s[!grepl('^Unclassified|^Unmapped|^No CDS', s)]
     s  = s[!grepl('in NCBI)', s)]
 
     res$contigs$superkingdom = list(nContigs = length(sk), nTaxa = length(unique(sk)), most_abundant = most_abundant_row(SQM$tax$superkingdom$abund) )
@@ -60,8 +60,14 @@ summary.SQM = function(SQM)
     res$orfs$COG       = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,'COG ID' ] != '') )
     res$orfs$COG_good  = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,'COG ID' ], fixed=T) )
     res$orfs$PFAM      = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,'PFAM'   ] != '') )
+    for(method in SQM$misc$ext_annot_sources)
+        {
+        res$orfs[[method]]                     = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,method] != '') )
+        res$orfs[[sprintf('%s_good', method)]] = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,method], fixed=T) )
+        }
 
-    res$samples = SQM$misc$samples
+    res$samples           = SQM$misc$samples
+    res$ext_annot_sources = SQM$misc$ext_annot_sources
 
     class(res) = 'summary.SQM'
 
@@ -123,6 +129,11 @@ print.summary.SQM = function(summ)
     cat( sprintf('\tWith COG\t%s\n'             , paste(summ$orfs$COG      , collapse='\t')) )
     cat( sprintf('\tWith COG (best aver)\t%s\n' , paste(summ$orfs$COG_good , collapse='\t')) )
     cat( sprintf('\tWith PFAM\t%s\n'            , paste(summ$orfs$PFAM     , collapse='\t')) )
+    for(method in summ$ext_annot_sources)
+        {
+        cat( sprintf('\tWith %s\t%s\n'            , method, paste(summ$orfs[[method]]                      , collapse='\t')) )
+        cat( sprintf('\tWith %s (best aver)\t%s\n', method, paste(summ$orfs[[sprintf('%s_good', method)]] , collapse='\t')) )
+        }
     cat('\n')
     }
 
@@ -141,9 +152,10 @@ Npercent  = function(len, percent)
 #' @noRd
 most_abundant_row = function(table, ignore_unclassified=T)
     {
-    if(ignore_unclassified) { table = table[!grepl('Unclassified', rownames(table)),,drop=F] }
+    if(ignore_unclassified) { table = table[!grepl('Unclassified|Unmapped|^No CDS', rownames(table)),,drop=F] }
     colMaxsIdx = apply(table, 2, which.max)
     res = rownames(table)[colMaxsIdx]
+    if(is.null(res)) { res = rep('Unclassified', ncol(table)) }
     names(res) = colnames(table)
     return(res)
     }

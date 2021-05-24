@@ -12,14 +12,14 @@ $|=1;
 
 my $pwd=cwd();
 
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
@@ -27,6 +27,7 @@ our($installpath,$datapath,$taxlist,$binresultsdir,$checkm_soft,$alllog,$resultp
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
+print "  Evaluating bins with CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n\n";
 
 my $markerdir="$datapath/checkm_markers";
 my $checktemp="$tempdir/checkm_batch";
@@ -46,7 +47,9 @@ while(<infile1>) {
 	chomp;
 	next if !$_;
 	my @t=split(/\t/,$_);
-	$tax{$t[1]}=$t[2];
+	my $nctax=$t[1];
+	$nctax=~s/ \<.*//;
+	$tax{$nctax}=$t[2];
 	}
 close infile1;
 
@@ -110,7 +113,7 @@ foreach my $m(@files) {
 				if($ftax!~/\_/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\_/,$ftax); }
 				$ntax=~s/unclassified //gi;
 				$ntax=~s/ \<.*\>//gi; 
-				if($tax{$ntax} && ($rank ne "n") && ($rank ne "s")) { 
+				if(($tax{$ntax}) && ($rank ne "n") && ($rank ne "s") && ($branks{$rank})) { 
 				push( @{ $alltaxa{$thisfile} },"$branks{$rank}\_$ntax");
 				#   print "$m\t$ntax\t$tax{$ntax}\n";
 				}
@@ -136,7 +139,7 @@ foreach my $m(@files) {
 		#-- Use already existing tax profile or create it
 	
 		if(-e $marker) {} else { 
-			my $command="$checkm_soft taxon_set $rank $tax $marker > /dev/null 2>&1";
+			my $command="$checkm_soft taxon_set $rank $tax $marker >> $syslogfile 2>&1";
 			print outsyslog "$command\n";
                         my $ecode = system $command;
 			if($ecode!=0) { die "Error running command:    $command"; }
@@ -151,12 +154,12 @@ foreach my $m(@files) {
 		$fastafile=~s/.*\///;
 		# print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
 		# system("$checkm_soft analyze -t $numthreads -x $bins{$thisfile} $marker $bindir $checktemp > /dev/null");
-		my $command = "$checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null 2>&1";
+		my $command = "$checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp >> $syslogfile 2>&1";
 		print outsyslog "$command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }
 
-		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc > /dev/null 2>&1";
+		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc >> $syslogfile 2>&1";
 		print outsyslog "$command\n";
 		my $ecode = system $command;
 		if($ecode!=0) { die "Error running command:    $command"; }

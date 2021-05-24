@@ -10,18 +10,18 @@ use lib ".";
 $|=1;
 
 my $pwd=cwd();
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($databasepath,$contigsfna,$contigcov,$maxbin_soft,$alllog,$tempdir,$interdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$interdir,$singletons,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
 my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
@@ -32,6 +32,21 @@ my(%allcontigs,%skip);
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
+
+my %singletonlist;
+if($singletons) {		#-- Excluding singleton raw reads from binning
+	my $singletonlist="$interdir/01.$projectname.singletons";
+	print "  Excluding singleton reads from $singletonlist\n";
+	print outsyslog "  Excluding singleton reads from $singletonlist\n";
+	open(infile0,$singletonlist) || die "Cannot open singleton list in $singletonlist\n";
+	while(<infile0>) {
+		chomp;
+		next if !$_;
+		my @y=split(/\t/,$_);
+		$singletonlist{$y[0]}=1;
+		}
+	close infile0;
+	}
 
 print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
 open(infile0,$mappingfile) || die "Can't open $alllog\n";
@@ -49,6 +64,7 @@ while(<infile1>) {
 	chomp;
 	next if !$_;
 	my @r=split(/\t/,$_);
+	next if $singletonlist{$r[0]};
 	my($chimlevel,$numgenes);
 	if($r[3]=~/Disparity\: (.*)/) { $chimlevel=$1; }
 	if($r[4]=~/Genes\: (.*)/) { $numgenes=$1; }
@@ -67,6 +83,7 @@ while(<infile1>) {
 	if($_=~/^\>([^ ]+)/) { 
 		my $tc=$1;
 		if($allcontigs{$tc}) { $ingood=1; } else { $ingood=0; } 
+		if($singletonlist{$tc}) { $ingood=0; }
 		}
 	if($ingood) { print outfile1 "$_\n"; }
 	}
@@ -110,7 +127,7 @@ close outfile1;
 
 my $command="perl $maxbin_soft -thread $numthreads -contig $tempfasta -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
 print outsyslog "Running Maxbin: $command\n";
-print "  Running Maxbin\n";
+print "  Running Maxbin (Wu et al 2016, Bioinformatics 32(4), 605-7)\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 

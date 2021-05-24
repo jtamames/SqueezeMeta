@@ -11,16 +11,18 @@ my $pwd=cwd();
 
 $|=1;
 
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
+do "$projectdir/parameters.pl";
+
 #-- Configuration variables from conf file
 
-our($scriptdir,$resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile);
+our($installpath,$scriptdir,$resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
@@ -47,7 +49,7 @@ else {
 		$mergestep++;	
 		if(-e $finalcontigs) { system("rm $finalcontigs > /dev/null 2>&1"); }
 		$merged="$interdir/merged_$mergestep.$project.fasta";
-                my $command="$installpath/lib/SqueezeMeta/kmerdist.pl $projectpath $mergestep >> $syslogfile 2>&1";
+                my $command="$installpath/lib/SqueezeMeta/kmerdist.pl $projectdir $mergestep >> $syslogfile 2>&1";
 		print outsyslog "Calculating distances between metagenomes: $command\n";
 		my $ecode=system($command);
 		if($ecode!=0) { die "Error running command:    $command"; }
@@ -197,8 +199,8 @@ sub parseafg {
 		if($m[0]=~/^Merged/) { $ts=$m[0]; }
 		else {
 			shift @m; shift @m;
-			# my $ts=$m[$#m];
 			 $ts=join("_",@m);
+			 $ts=$m[$#m];   #-- Last field of contig name contains the sample ID. Previous solution worked for megahit but not for SPAdes. This one can get trouble if sample names contains "_"
 			}
 		$order{$inpos}=$ts;
 		$samples{$ts}=1;

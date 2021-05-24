@@ -34,9 +34,7 @@
 #'  
 #' ### Now let's calculate the average copy numbers of each function.
 #' # We do it for KEGG annotations here, but we could also do it for COGs or PFAMs.
-#' KEGG.coverage = SQMtools:::aggregate.fun(Hadza, "KEGG", trusted_functions_only=T,
-#'                                          ignore_unclassified_functions=F)$cov
-#' USiCGs.cov = apply(KEGG.coverage[USiCGs,], 2, median)
+#' USiCGs.cov = apply(Hadza$functions$KEGG$cov[USiCGs,], 2, median)
 #' # Sample-wise division by the median USiCG coverage.
-#' KEGG.copynumber = t(t(KEGG.coverage) / USiCGs.cov)
+#' KEGG.copynumber = t(t(Hadza$functions$KEGG$cov) / USiCGs.cov)
 "USiCGs"

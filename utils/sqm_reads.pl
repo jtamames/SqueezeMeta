@@ -35,15 +35,18 @@ my $scriptdir = "$installpath/scripts";
 my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
+open(inv,"$installpath/VERSION") || die;
+my $version=<inv>;
+chomp $version;
+close inv;
 
-my $version="0.1.0, Sept 2019";
 my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
 our($databasepath,$installpath);
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile,$printversion);
 
 my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -66,6 +69,7 @@ Arguments:
    -e|-evalue: max evalue for discarding hits for Diamond run  (Default: 1e-03)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
+   -v|version: Print version
    -h: this help
 
 END_MESSAGE
@@ -78,10 +82,10 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nodiamond" => \$nodiamond,   
-		     "nodiamond" => \$nodiamond,   
 		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
+		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
 
@@ -91,6 +95,7 @@ my $miniden=30;         #-- Minimum identity for the hit
 my $querycover=0;	#-- Minimum coverage of hit in query
 	
 print BOLD "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
+if($printversion) { exit; }
 
 if(!$blocksize) {
         print "\nSetting block size for Diamond\n";
@@ -123,8 +128,9 @@ my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGi
 my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
 
 my $resultsdir=$project;
-if (-d $resultsdir) { print RED "WARNING: Project name $project already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
-
+my @fields=split(/\//, $resultsdir);
+my $project=$fields[-1];
+if (-d $resultsdir) { print RED "WARNING: Project name $resultsdir already exists\n"; print RESET; } else { system("mkdir $resultsdir"); }
 $methodsfile="$resultsdir/methods.txt";
 open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
@@ -189,10 +195,22 @@ foreach my $thissample(keys %allsamples) {
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		print "   File: $thisfile\n";
 		my $idenf=$allsamples{$thissample}{$thisfile};
-		if($thisfile=~/fastq.gz/) { system("zcat $rawseqs/$thisfile | wc > rc.txt"); }
-		elsif($thisfile=~/fastq/) { system("wc $rawseqs/$thisfile > rc.txt"); }
-		elsif($thisfile=~/fasta.gz/) { system("zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"); }
-		elsif($thisfile=~/fasta/) { system("grep -c \"^>\" $rawseqs/$thisfile > rc.txt"); }
+		my($seqformat,$seqcompress);
+		if($thisfile=~/\.fq\.|\.fq$|\.fastq\.|\.fastq$/) { $seqformat="fastq"; }
+		elsif($thisfile=~/\.fa\.|\.fa$|\.fasta\.|\.fasta$/) { $seqformat="fasta"; }
+		else { die "Unrecognized file format (must be fq, fastq, fa or fasta)\n"; }
+		if($thisfile=~/\.gz$/) { $seqcompress="gz"; }
+		my $command;
+		if($seqformat eq "fastq") {
+			if($seqcompress) { $command="zcat $rawseqs/$thisfile | wc > rc.txt"; }
+			else { $command="wc $rawseqs/$thisfile > rc.txt"; }
+			}
+		else {
+			if($seqcompress) { $command="zcat $rawseqs/$thisfile | grep -c \"^>\" > rc.txt"; }
+			else { $command="grep -c \"^>\" $rawseqs/$thisfile > rc.txt"; }
+			}
+		system($command);
+		# print "$seqformat; Counting reads: $command\n";
 		open(inw,"rc.txt");
 		my $line=<inw>;
 		$line=~s/^\s+//g;
@@ -200,7 +218,7 @@ foreach my $thissample(keys %allsamples) {
 		my $numseqs=$l[0];
 		close inw;
 		chomp $numseqs;
-		if($thisfile=~/fastq/) { $numseqs/=4; }
+		if($seqformat eq "fastq") { $numseqs/=4; }
 		system("rm rc.txt");
 		$totalseqs{$thisfile}++;
 		$currtime=timediff();
@@ -228,9 +246,9 @@ foreach my $thissample(keys %allsamples) {
 		my $numhits=($#y)+1;
 		print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\n";
 			
-		my $lca_command="perl $auxdir/lca_reads.pl $outfile";
+		my $lca_command="perl $auxdir/lca_reads.pl $outfile $numthreads";
 		$currtime=timediff();
-		print CYAN "[",$currtime->pretty,"]: Running LCA\n";
+		print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
 		system($lca_command);
 		open(infiletax,$outfile_tax) || die;
 		while(<infiletax>) {
@@ -260,14 +278,14 @@ foreach my $thissample(keys %allsamples) {
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
 			else { 
-				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n";
+				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
 				system($blastx_command); 
 				print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
 			}
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
 			$currtime=timediff();
-			print CYAN "[",$currtime->pretty,"]: Running fun3\n";
+			print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
 			system($func_command);
 			open(infilecog,$outfile_cog) || die;
 			while(<infilecog>) {
@@ -288,14 +306,14 @@ foreach my $thissample(keys %allsamples) {
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
 			else { 
-				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n";
+				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n"; print RESET;
 				system($blastx_command); 
 				print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
 			}
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 			$currtime=timediff();
-			print CYAN "[",$currtime->pretty,"]: Running fun3\n";
+			print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
 			system($func_command);
 			open(infilekegg,$outfile_kegg) || die;
 			while(<infilekegg>) {
@@ -320,14 +338,14 @@ foreach my $thissample(keys %allsamples) {
 				#print "Running BlastX: $blastx_command\n";
 				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
 				else { 
-					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n";
+					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
 					system($blastx_command); 
 					print outmet "$extdbname, ";
 				}
 				my $outfile_opt="$thissampledir/$thisfile.$extdbname";
 				my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
 				$currtime=timediff();
-				print CYAN "[",$currtime->pretty,"]: Running fun3\n";
+				print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
 				system($func_command);
 				open(infileopt,$outfile_opt) || die;
 				while(<infileopt>) {
@@ -534,4 +552,5 @@ sub timediff {
 	my $timesp = Time::Seconds->new( $run_time );
 	return $timesp;
 }
+
 

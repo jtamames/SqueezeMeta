@@ -2,7 +2,7 @@
 % Please edit documentation in R/exportKrona.R
 \name{exportKrona}
 \alias{exportKrona}
-\title{Export the taxonomy of a SQM object into a krona Chart}
+\title{Export the taxonomy of a SQM object into a Krona Chart}
 \usage{
 exportKrona(SQM, output_name = NA)
 }
@@ -12,7 +12,7 @@ exportKrona(SQM, output_name = NA)
 \item{output_name}{character. Name of the output file containing the Krona charts in html format (default \code{"<project_name>.krona.html")}.}
 }
 \description{
-This function selects the most abundant functions across all samples in a SQM object and represents their abundances in a heatmap. Alternatively, a custom set of functions can be represented.
+Generate a krona chart containing the full taxonomy from a SQM object.
 }
 \details{
 Original code was kindly provided by Giuseppe D'Auria (dauria_giu@gva.es).

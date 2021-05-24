@@ -1,4 +1,6 @@
-require(reshape2)
+library(reshape2)
+library(data.table)
+
 
 #' Load a SqueezeMeta project into R
 #'
@@ -6,15 +8,10 @@ require(reshape2)
 #'
 #' @section Prerequisites:
 #' {
-#' \enumerate{
-#'     \item Run \href{http://github.com/jtamames/SqueezeMeta}{SqueezeMeta}! An example call for running it would be:
+#' Run \href{http://github.com/jtamames/SqueezeMeta}{SqueezeMeta}! An example call for running it would be:
 #'
 #'         \code{/path/to/SqueezeMeta/scripts/SqueezeMeta.pl}\cr
 #'         \code{-m coassembly -f fastq_dir -s samples_file -p project_dir}
-#'     \item Generate tabular outputs with the \code{sqm2tables.py} script included in the \code{path/to/SqueezeMeta/utils} directory:
-#'
-#'         \code{/path/to/SqueezeMeta/utils/sqm2tables.py project_dir project_dir/results/tables}
-#'     }
 #' }
 #' 
 #' @section The SQM object structure:
@@ -23,12 +20,13 @@ require(reshape2)
 #' \tabular{lllllll}{
 #' \bold{lvl1}         \tab \bold{lvl2}               \tab \bold{lvl3}          \tab \bold{type}             \tab \bold{rows/names} \tab \bold{columns} \tab \bold{data}        \cr
 #' \bold{$orfs}        \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab orfs              \tab misc. data     \tab misc. data         \cr
-#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances (reads) \cr
+#'                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances (bases) \cr
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
 #' \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr
-#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (reads) \cr
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab contigs           \tab (n/a)          \tab sequences          \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab contigs           \tab tax. ranks     \tab taxonomies         \cr
@@ -36,27 +34,33 @@ require(reshape2)
 #' $bins               \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab bins              \tab misc. data     \tab misc. data         \cr
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy           \cr
-#' \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances         \cr
+#' \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$phylum}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$phylum}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$class}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$class}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab classes           \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$order}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$order}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab orders            \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$family}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab families          \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$family}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab families          \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab families          \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$genus}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$genus}             \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab genera            \tab samples        \tab percentages        \cr
-#'                     \tab \bold{$species}           \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab species           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$species}           \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab species           \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab species           \tab samples        \tab percentages        \cr
-#' \bold{$functions}   \tab \bold{$KEGG}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances         \cr
+#' \bold{$functions}   \tab \bold{$KEGG}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances (reads) \cr
+#'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances (bases) \cr
+#'                     \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab coverages          \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab avg. copies        \cr
-#'                     \tab \bold{$COG}               \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$COG}               \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances (reads) \cr
+#'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances (bases) \cr
+#'                     \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab COG ids          \tab samples        \tab coverages          \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab avg. copies        \cr
-#'                     \tab \bold{$PFAM}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances         \cr
+#'                     \tab \bold{$PFAM}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances (reads) \cr
+#'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances (bases) \cr
+#'                     \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab coverages          \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab avg. copies        \cr
 #' \bold{$total_reads} \tab                           \tab                      \tab \emph{numeric vector}   \tab samples           \tab (n/a)          \tab total reads        \cr
@@ -76,10 +80,12 @@ require(reshape2)
 #'                     \tab \bold{$COG_paths}         \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab COG hierarchy      \cr
 #'                     \tab \bold{$ext_annot_sources} \tab                      \tab \emph{character vector} \tab COG ids           \tab (n/a)          \tab external databases \cr
 #' }
-#' If external databases for functional classification were provided to SqueezeMeta via the \code{-extdb} argument, the corresponding abundance, tpm and copy number profiles will be present in \code{SQM$functions} (e.g. results for the CAZy database would be present in \code{SQM$functions$CAZy}). Additionally, the extended names of the features present in the external database will be present in \code{SQM$misc} (e.g. \code{SQM$misc$CAZy_names}).
+#' If external databases for functional classification were provided to SqueezeMeta via the \code{-extdb} argument, the corresponding abundance (reads and bases), coverages, tpm and copy number profiles will be present in \code{SQM$functions} (e.g. results for the CAZy database would be present in \code{SQM$functions$CAZy}). Additionally, the extended names of the features present in the external database will be present in \code{SQM$misc} (e.g. \code{SQM$misc$CAZy_names}).
 #' }
 #' @param project_path character, project directory generated by SqueezeMeta. 
-#' @param tax_mode character, which taxonomic classification should be loaded? SqueezeMeta applies the identity thresholds described in \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4005636/}{Luo \emph{et al.}, 2014}. Use \code{allfilter} for applying the minimum identity threshold to all taxa (default) and \code{prokfilter} for applying the threshold to Bacteria and Archaea, but not to Eukaryotes.
+#' @param tax_mode character, which taxonomic classification should be loaded? SqueezeMeta applies the identity thresholds described in \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4005636/}{Luo \emph{et al.}, 2014}. Use \code{allfilter} for applying the minimum identity threshold to all taxa (default), \code{prokfilter} for applying the threshold to Bacteria and Archaea, but not to Eukaryotes, and \code{nofilter} for applying no thresholds at all.
+#' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}). Will only have an effect if the \code{project_dir/results/tables} is not already present.
+#' @param engine character. Engine used to load the ORFs and contigs tables. Either \code{data.frame} (default) or \code{data.table} (significantly faster if your project is large).
 #' @return SQM object containing the parsed project.
 #' @examples
 #' \dontrun{
@@ -108,19 +114,51 @@ require(reshape2)
 #' boxplot(Hadza$contigs$table[,"GC perc"]) # Not weighted by contig length or abundance!
 #' @export
 
-loadSQM = function(project_path, tax_mode = 'allfilter')
+loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only = F, engine = 'data.frame')
     {
     
-    if(!tax_mode %in% c('allfilter', 'prokfilter'))
+    if(!tax_mode %in% c('allfilter', 'prokfilter', 'nofilter'))
         {
-        stop('tax_mode must be either \'allfilter\' (apply minimum identity threshold for all taxa) or \'prokfilter\' (don\'t appy thresholds to Eukaryotes)')
+        stop('tax_mode must be either "allfilter" (apply minimum identity threshold for all taxa), "prokfilter" (don\'t apply thresholds to Eukaryotes) or "nofilter" (don\'t apply thresholds at all).')
         }
 
-    # include my hierarchy somehow?? -> sqm2tables, aggregate KEGG hierarchy levels??
-    
+    if(!engine %in% c('data.frame', 'data.table'))
+        {
+        stop('engine must be either "data.frame" or "data.table"')
+        }
+
+    ### Check that this is a valid SQM project.
+    if(!file.exists(sprintf('%s/SqueezeMeta_conf.pl', project_path)))
+        {
+        stop(sprintf('Directory "%s" does not seem to contain a valid SqueezeMeta project', project_path))
+        }
+
+    project_name = tail(unlist(strsplit(project_path, split='/')), 1)
+    ### Check whether we need to create the projectdir/results/tables directory.
+    if(!file.exists(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode, project_name)))
+        {
+	cat(sprintf('Generating tabular outputs for project in %s\n', project_path))
+        lines = readLines(sprintf('%s/SqueezeMeta_conf.pl', project_path))
+	lines = trimws(lines)
+        lines = gsub(pattern = "#[^\\\n]*", replacement = "", x = lines) # Remove comments.
+	install_path = lines[grepl("^\\$installpath",lines)]
+	if(length(install_path)==0) { stop(sprintf('$installpath can not be found in conf file \"%s/SqueezeMeta_conf.pl\".', project_path)) }
+        install_path = gsub(';|\"', '', trimws(strsplit(install_path, split = '=')[[1]][2]))
+	if(trusted_functions_only)
+            {
+            extra_args = '--trusted-functions'
+        }else
+            {
+            extra_args = ''
+	    }
+	command = sprintf('%s/utils/sqm2tables.py %s %s/results/tables %s', install_path, project_path, project_path, extra_args)
+	ecode = system(command)
+	if(ecode != 0) { stop('An error occurred while running sqm2tables.py') }
+	}
+
+    ### Do stuff.
     SQM                          = list()
     
-    project_name                 = tail(unlist(strsplit(project_path, split='/')), 1)
     SQM$misc                     = list()
     SQM$misc$project_name        = project_name
 
@@ -128,11 +166,22 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     SQM$orfs                     = list()
 
     cat('    table...\n')        # option to remove table from memory after getting abund & TPM?
-    SQM$orfs$table               = read.table(sprintf('%s/results/13.%s.orftable', project_path, project_name),
-                                              header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=F)
+    if(engine == 'data.frame')
+        {
+        SQM$orfs$table           = read.table(sprintf('%s/results/13.%s.orftable', project_path, project_name),
+                                              header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
+    } else if (engine == 'data.table')
+        {
+        SQM$orfs$table           = data.table::fread(sprintf('%s/results/13.%s.orftable', project_path, project_name), header=T, sep='\t')
+        }
+    SQM$orfs$table               = generic.table(SQM$orfs$table)
     cat('    abundances...\n')
     SQM$orfs$abund               = as.matrix(SQM$orfs$table[,grepl('Raw read count', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$abund)     = gsub('Raw read count ', '', colnames(SQM$orfs$abund), fixed=T)
+    storage.mode(SQM$orfs$abund) = 'numeric'
+    SQM$orfs$bases               = as.matrix(SQM$orfs$table[,grepl('Raw base count', colnames(SQM$orfs$table)),drop=F])
+    colnames(SQM$orfs$bases)     = gsub('Raw base count ', '', colnames(SQM$orfs$abund), fixed=T)
+    storage.mode(SQM$orfs$bases) = 'numeric'
     SQM$orfs$cov                 = as.matrix(SQM$orfs$table[,grepl('Coverage', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$cov)       = gsub('Coverage ', '', colnames(SQM$orfs$cov), fixed=T)
     SQM$orfs$tpm                 = as.matrix(SQM$orfs$table[,grepl('TPM', colnames(SQM$orfs$table)),drop=F])
@@ -140,68 +189,43 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     SQM$misc$samples             = colnames(SQM$orfs$abund)
     
     cat('    sequences\n')    
-    SQM$orfs$seqs                = read.namedvector(sprintf('%s/results/tables/%s.orf.sequences.tsv', project_path, project_name))
+    SQM$orfs$seqs                = read.namedvector(sprintf('%s/results/tables/%s.orf.sequences.tsv', project_path, project_name), engine=engine)
     
     cat('    taxonomy...\n')
-    SQM$orfs$tax                 = as.matrix(read.table(sprintf('%s/results/tables/%s.orf.tax.%s.tsv', project_path, project_name, tax_mode),
+    if(engine == 'data.frame')
+        {
+        SQM$orfs$tax             = as.matrix(read.table(sprintf('%s/results/tables/%s.orf.tax.%s.tsv', project_path, project_name, tax_mode),
                                                         header=T, row.names=1, sep='\t'))
-    # Remove orfs with no nt length (which should be fixed at some point). The tax table contains the correct number of orfs.
+    }else if(engine == 'data.table')
+        {
+        ta                       = data.table::fread(sprintf('%s/results/tables/%s.orf.tax.%s.tsv', project_path, project_name, tax_mode), header=T, sep='\t')
+        SQM$orfs$tax             = as.matrix(ta[,-1])
+        rownames(SQM$orfs$tax)   = unlist(ta[,1])
+        }
+    #SQM$orfs$tax                 = SQM$orfs$tax[rownames(SQM$orfs$table),]
+    # THIS SHOULD NOT BE NEEDED ANYMORE (BUT ALAS IT IS! >_<)
     SQM$orfs$table               = SQM$orfs$table[rownames(SQM$orfs$table) %in% rownames(SQM$orfs$tax),]
     SQM$orfs$abund               = SQM$orfs$abund[rownames(SQM$orfs$table),,drop=F]
     SQM$orfs$tpm                 = SQM$orfs$tpm[rownames(SQM$orfs$table),,drop=F]
     SQM$orfs$seqs                = SQM$orfs$seqs[rownames(SQM$orfs$table)[rownames(SQM$orfs$table) %in% names(SQM$orfs$seqs)]]
-   
-    # Load KEGG/COG/others names and paths as misc data
-    KEGGids                      = SQM$orfs$table[,'KEGG ID']
-    KEGGids                      = gsub('*', '', KEGGids, fixed=T)
-    KEGGnames                    = SQM$orfs$table[,'KEGGFUN']
-    KEGGnames                    = KEGGnames[KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    SQM$misc$KEGG_names          = KEGGnames
-    names(SQM$misc$KEGG_names)   = KEGGids  [KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    SQM$misc$KEGG_names          = SQM$misc$KEGG_names[unique(names(SQM$misc$KEGG_names))]
-    KEGGpaths                    = SQM$orfs$table[,'KEGGPATH']
-    KEGGpaths                    = KEGGpaths[KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    SQM$misc$KEGG_paths          = KEGGpaths
-    names(SQM$misc$KEGG_paths)   = KEGGids  [KEGGids!='' & !grepl(';', KEGGids, fixed=T)]
-    SQM$misc$KEGG_paths          = SQM$misc$KEGG_paths[unique(names(SQM$misc$KEGG_paths))]
-
-    COGids                       = SQM$orfs$table[,'COG ID']
-    COGids                       = gsub('*', '', COGids, fixed=T)
-    COGnames                     = SQM$orfs$table[,'COGFUN']
-    COGnames                     = COGnames[COGids!='' & !grepl(';', COGids, fixed=T)]
-    SQM$misc$COG_names           = COGnames
-    names(SQM$misc$COG_names)    = COGids  [COGids!='' & !grepl(';', COGids, fixed=T)]
-    SQM$misc$COG_names           = SQM$misc$COG_names[unique(names(SQM$misc$COG_names))]
-    COGpaths                     = SQM$orfs$table[,'COGPATH']
-    COGpaths                     = COGpaths[COGids!='' & !grepl(';', COGids, fixed=T)]
-    SQM$misc$COG_paths           = COGpaths
-    names(SQM$misc$COG_paths)    = COGids  [COGids!='' & !grepl(';', COGids, fixed=T)]
-    SQM$misc$COG_paths           = SQM$misc$COG_paths[unique(names(SQM$misc$COG_names))]
-
-    result_files                 = strsplit(list.files(sprintf('%s/results', project_path)), '.', fixed=T)
-    external_annotation_results  = result_files[sapply(result_files, FUN=function(x) length(x)>2 & x[3]=='fun3' & !x[4] %in% c('kegg', 'cog', 'pfam', 'tax'))]
-    SQM$misc$ext_annot_sources   = sapply(external_annotation_results, FUN=function(x) x[4])
-    for(method in SQM$misc$ext_annot_sources)
-        {
-        ids = SQM$orfs$table[,method]
-        ids = gsub('*', '', ids, fixed=T)
-        names = SQM$orfs$table[,sprintf('%s NAME', method)]
-        names = names[ids!=''] # We assume that there are not multiple annotations like in KEGG or COG. # names[ids!='' & !grepl(';', ids, fixed=T)]
-        field = sprintf('%s_names', method)
-        SQM$misc[[field]] = names
-        names(SQM$misc[[field]]) = ids[ids!=''] #  We assume that there are not multiple annotations like in KEGG or COG. # ids[ids!='' & !grepl(';', ids, fixed=T)]
-        SQM$misc[[field]] = SQM$misc[[field]][unique(names(SQM$misc[[field]]))]
-        }
-
 
     cat('Loading contigs\n')
     SQM$contigs                   = list()
 
     cat('    table...\n')                    # option to remove table from memory after getting abund & TPM?
-    SQM$contigs$table             = read.table(sprintf('%s/results/20.%s.contigtable', project_path, project_name),
-                                                       header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
+    if(engine == 'data.frame')
+        {
+        SQM$contigs$table         = read.table(sprintf('%s/results/20.%s.contigtable', project_path, project_name),
+                                               header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
+    } else if (engine == 'data.table')
+        {
+        SQM$contigs$table         = data.table::fread(sprintf('%s/results/20.%s.contigtable', project_path, project_name), header=T, sep='\t')
+        }
+    SQM$contigs$table             = generic.table(SQM$contigs$table)
     cat('    abundances...\n')
-    SQM$contigs$abund             = as.matrix(SQM$contigs$table[,grepl('Raw read count', colnames(SQM$contigs$table)),drop=F])
+    abunds                        = as.matrix(SQM$contigs$table[,grepl('Raw read count', colnames(SQM$contigs$table)),drop=F])
+    storage.mode(abunds)          = 'numeric'
+    SQM$contigs$abund             = abunds
     colnames(SQM$contigs$abund)   = gsub('Raw read count ', '', colnames(SQM$contigs$abund), fixed=T)
     SQM$contigs$cov               = as.matrix(SQM$contigs$table[,grepl('Coverage', colnames(SQM$contigs$table)),drop=F])
     colnames(SQM$contigs$cov)     = gsub('Coverage ', '', colnames(SQM$contigs$cov), fixed=T)
@@ -209,12 +233,21 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     colnames(SQM$contigs$tpm)     = gsub('TPM ', '', colnames(SQM$contigs$tpm), fixed=T)
 
     cat('    sequences...\n')                                                 
-    SQM$contigs$seqs              = read.namedvector(sprintf('%s/results/tables/%s.contig.sequences.tsv', project_path, project_name))
+    SQM$contigs$seqs              = read.namedvector(sprintf('%s/results/tables/%s.contig.sequences.tsv', project_path, project_name), engine=engine)
     SQM$contigs$seqs              = SQM$contigs$seqs[rownames(SQM$contigs$table)]
 
     cat('    taxonomy...\n')
-    SQM$contigs$tax               = as.matrix(read.table(sprintf('%s/results/tables/%s.contig.tax.tsv', project_path, project_name),
+    if(engine == 'data.frame')
+        {
+        SQM$contigs$tax           = as.matrix(read.table(sprintf('%s/results/tables/%s.contig.tax.%s.tsv', project_path, project_name, tax_mode),
                                                          header=T, row.names=1, sep='\t'))
+    }else if(engine == 'data.table')
+        {
+        ta                        = data.table::fread(sprintf('%s/results/tables/%s.contig.tax.%s.tsv', project_path, project_name, tax_mode), header=T, sep='\t')
+        SQM$contigs$tax           = as.matrix(ta[,-1])
+        rownames(SQM$contigs$tax) = unlist(ta[,1])
+        }
+
     SQM$contigs$tax               = SQM$contigs$tax[rownames(SQM$contigs$table),]
 
 					  
@@ -226,7 +259,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         inBins                    = reshape2::dcast(inBins, X..Contig~Method, value.var="Bin.ID")
         rownames(inBins)          = inBins[,1]
         SQM$contigs$bins          = as.matrix(inBins[,-1,drop=F])
-        notInBins                 = setdiff(rownames(SQM$contigs$table), SQM$contigs$bins)
+        notInBins                 = setdiff(rownames(SQM$contigs$table), rownames(SQM$contigs$bins))
         notInBins                 = matrix(NA, nrow=length(notInBins), ncol=ncol(SQM$contigs$bins), dimnames=list(notInBins, colnames(SQM$contigs$bins)))
         SQM$contigs$bins          = rbind(SQM$contigs$bins, notInBins)
         SQM$contigs$bins          = SQM$contigs$bins[rownames(SQM$contigs$table),,drop=F]
@@ -324,24 +357,46 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
     rownames(SQM$taxa$genus$percent)        = SQM$misc$tax_names_short[rownames(SQM$taxa$genus$percent)]
     rownames(SQM$taxa$species$percent)      = SQM$misc$tax_names_short[rownames(SQM$taxa$species$percent)]
 
+    # Now the rownames are a character vector which actually has its own names inside. Some R packages don't like this, so we correct it.
+    for(taxlevel in names(SQM$taxa))
+        {
+        for(counts in names(SQM$taxa[[taxlevel]]))
+            {
+            names(rownames(SQM$taxa[[taxlevel]][[counts]])) = NULL
+            }
+        }
+
 
     cat('Loading functions\n')
+
+    result_files                 = strsplit(list.files(sprintf('%s/results', project_path)), '.', fixed=T)
+    external_annotation_results  = result_files[sapply(result_files, FUN=function(x) length(x)>2 & x[3]=='fun3' & !x[4] %in% c('kegg', 'cog', 'pfam', 'tax'))]
+    SQM$misc$ext_annot_sources   = sapply(external_annotation_results, FUN=function(x) x[4])
+ 
     SQM$functions                  = list()
     ### KEGG
-    SQM$functions$KEGG             = list()
     if(file.exists(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name)))
         {
         has_KEGG                               = TRUE
+	SQM$functions$KEGG                     = list()
         SQM$functions$KEGG$abund               = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.abund.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$KEGG$bases               = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.bases.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$KEGG$cov                 = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.cov.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$KEGG$tpm                 = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.tpm.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+	funinfo                                = read.table(sprintf('%s/results/tables/%s.KO.names.tsv', project_path, project_name),
+                                                            header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+	SQM$misc$KEGG_names                    = funinfo[,1]
+	names(SQM$misc$KEGG_names)             = rownames(funinfo)
+        SQM$misc$KEGG_paths                    = funinfo[,2]
+        names(SQM$misc$KEGG_paths)             = rownames(funinfo)
     }else
         {
         warning('    There are no KEGG results in your project. Skipping...')
         has_KEGG                               = FALSE
-        SQM$functions$KEGG$abund               = NULL # Just being explicit here
-        SQM$functions$KEGG$tpm                 = NULL # Just being explicit here
         }
     ### COG              
     if(file.exists(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name)))
@@ -350,21 +405,34 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         SQM$functions$COG                      = list()
         SQM$functions$COG$abund                = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.abund.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$COG$bases                = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.bases.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$COG$cov                  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.cov.tsv', project_path, project_name),
+                                                                      header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$COG$tpm                  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.tpm.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        funinfo                                = read.table(sprintf('%s/results/tables/%s.COG.names.tsv', project_path, project_name),
+                                                            header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+        SQM$misc$COG_names                     = funinfo[,1]
+        names(SQM$misc$COG_names)              = rownames(funinfo)
+        SQM$misc$COG_paths                     = funinfo[,2]
+        names(SQM$misc$COG_paths)              = rownames(funinfo)
+
     }else
         {
         warning('    There are no COG results in your project. Skipping...')
         has_COG                            = FALSE
-        SQM$functions$COG$abund            = NULL # Just being explicit here
-        SQM$functions$COG$tpm              = NULL # Just being explicit here
         }
     ### PFAM
-    SQM$functions$PFAM                     = list()
     if(file.exists(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name)))
         {
         has_PFAM = TRUE
+        SQM$functions$PFAM                 = list()
         SQM$functions$PFAM$abund           = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.abund.tsv', project_path, project_name),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$PFAM$bases           = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.bases.tsv', project_path, project_name),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions$PFAM$cov             = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.cov.tsv', project_path, project_name),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$PFAM$tpm             = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.tpm.tsv', project_path, project_name),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
@@ -372,8 +440,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         {
         warning('    There are no PFAM results in your project. Skipping...')
         has_PFAM                           = FALSE
-        SQM$functions$PFAM$abund           = NULL # Just being explicit here
-        SQM$functions$PFAM$tpm             = NULL # Just being explicit here
         }
 
     ### EXTERNAL ANNOTATION SOURCES
@@ -382,8 +448,24 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
         SQM$functions[[method]] = list()
 	SQM$functions[[method]]$abund      = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.abund.tsv', project_path, project_name, method),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions[[method]]$bases      = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.bases.tsv', project_path, project_name, method),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+        SQM$functions[[method]]$cov        = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.cov.tsv', project_path, project_name, method),
+                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions[[method]]$tpm        = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.tpm.tsv', project_path, project_name, method),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+	funinfo                            = read.table(sprintf('%s/results/tables/%s.%s.names.tsv', project_path, project_name, method),
+                                                                header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+	field                              = sprintf('%s_names', method)
+	SQM$misc[[field]]                  = funinfo[,1]
+        names(SQM$misc[[field]])           = rownames(funinfo)	
+        }
+
+    ### CODING FRACTION FOR CORRECTING TPMs
+    SQM$misc$coding_fraction               = list()
+    for(method in names(SQM$functions))
+        {
+        SQM$misc$coding_fraction[[method]] = 1 - (SQM$functions[[method]]$tpm['Unmapped',] / colSums(SQM$functions[[method]]$tpm))
         }
 
     ### COPY NUMBERS
@@ -396,7 +478,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         }else
             {
-            SQM$functions$KEGG$copy_number = NULL # Just being explicit here
             }
         ### COG
         if(has_COG)
@@ -405,7 +486,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         }else
             {
-            SQM$functions$COG$copy_number  = NULL # Just being explicit here
             }
         ### PFAM
         if(has_PFAM)
@@ -414,7 +494,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         }else
             {
-            SQM$functions$PFAM$copy_number = NULL # Just being explicit here
             }
 	### EXTERNAL ANNOTATION SOURCES
 	for(method in SQM$misc$ext_annot_sources)
@@ -433,9 +512,12 @@ loadSQM = function(project_path, tax_mode = 'allfilter')
 
 
     cat('Loading total reads\n')
+    lines           = readLines(sprintf('%s/results/10.%s.mappingstat', project_path, project_name))
+    evilLines       = (substr(lines,1,1) == '#' & substr(lines,1,8) != '# Sample') | substr(lines,1,1) == ''
+    lines           = lines[!evilLines]
     SQM$total_reads = as.matrix(
-                                read.table(sprintf('%s/results/10.%s.mappingstat', project_path, project_name), 
-                                           header=T, sep='\t', row.names=1, skip=1, comment.char='')
+                                read.table(text = lines,
+                                           header=T, sep='\t', row.names=1, comment.char='')
                                )[,'Total.reads']
 
     class(SQM)      = 'SQM'

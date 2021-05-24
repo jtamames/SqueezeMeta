@@ -10,14 +10,14 @@ use lib ".";
 $|=1;
 
 my $pwd=cwd();
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
@@ -76,8 +76,10 @@ if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta 
 		my $bindir="$interdir/binners/$tbinner";
 		my $command="cp $bindir/*fasta $binresultsdir";
 		system $command;
+		print outsyslog "$command\n";
 		my $command="cp $bindir/*fa $binresultsdir";
 		system $command;
+		print outsyslog "$command\n";
 		}
 	}
 
@@ -85,7 +87,7 @@ else { 				#-- Otherwise, run DAS tool to combine results
 	
 	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres15 --search_engine diamond -t $numthreads -o $interdir/binners/DAS/$project --db_directory $databasepath";
  
-	print "Running DAS Tool for $methods\n";
+	print "Running DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43) for $methods\n";
 	print outsyslog "Running DAS Tool for $methods: $das_command\n";
 	my $ecode = system $das_command;
 	if($ecode!=0) { warn "Error running command:    $das_command"; }

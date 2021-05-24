@@ -107,8 +107,15 @@ def subset_anvio(splits, contigs_db, profile_db, outdir):
     
     ##### New
     if version > 6:
+      # scg_taxonomy  
       c.execute('CREATE TABLE scg_taxonomy AS SELECT * FROM old.scg_taxonomy') # Just copy
-
+    if version >= 7:
+        # amino_acid_additional_data
+        c.execute('CREATE TABLE amino_acid_additional_data AS SELECT * FROM old.amino_acid_additional_data') # Just copy
+        # nucleotide_additional_data
+        c.execute('CREATE TABLE nucleotide_additional_data AS SELECT * FROM old.nucleotide_additional_data') # Just copy
+        # trna_taxonomy
+        c.execute('CREATE TABLE trna_taxonomy AS SELECT * FROM old.trna_taxonomy') # Just copy
     conn.commit()
     conn.close()
     #############################################################################################
@@ -199,6 +206,12 @@ def subset_anvio(splits, contigs_db, profile_db, outdir):
     # variability_splits
     query = 'CREATE TABLE variability_splits AS SELECT * FROM old.variability_splits WHERE contig IN {}'.format(splitsSub)
     c.execute(query, splits)
+    
+    if version >= 7:
+        #indels
+        query = 'CREATE TABLE indels AS SELECT * FROM old.indels WHERE split_name IN {}'.format(splitsSub)
+        c.execute(query, splits)
+
 
     conn.commit()
     conn.close()

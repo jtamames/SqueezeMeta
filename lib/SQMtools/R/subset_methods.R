@@ -2,7 +2,8 @@
 #'
 #' Create a SQM object containing only the ORFs with a given function, and the contigs and bins that contain them.
 #' @param SQM SQM object to be subsetted.
-#' @param fun character, pattern to search for in the different functional classifications.
+#' @param fun character. Pattern to search for in the different functional classifications.
+#' @param columns character. Restrict the search to the provided column names from \code{SQM$orfs$table}. If not provided the search will be performed in all the columns containing functional information (default \code{NULL}).
 #' @param ignore_case logical Make pattern matching case-insensitive (default \code{TRUE}).
 #' @param fixed logical. If \code{TRUE}, pattern is a string to be matched as is. If \code{FALSE} the pattern is treated as a regular expression (default \code{FALSE}).
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
@@ -15,41 +16,23 @@
 #' data(Hadza)
 #' Hadza.iron = subsetFun(Hadza, "iron")
 #' Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
+#' # Search for multiple patterns using regular expressions
+#' Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=F)
 #' @export
-subsetFun = function(SQM, fun, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
+subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
 
-    searchSpace = paste(SQM$orfs$table[,'Gene name'],
-                        SQM$orfs$table[,'KEGG ID'],
-                        SQM$orfs$table[,'KEGGFUN'],
-                        SQM$orfs$table[,'KEGGPATH'],
-                        SQM$orfs$table[,'COG ID'],
-                        SQM$orfs$table[,'COGFUN'],
-                        SQM$orfs$table[,'COGPATH'],
-                        SQM$orfs$table[,'PFAM'])
-
-    for(method in SQM$misc$ext_annot_sources)
-        {
-        name = sprintf('%s NAME', method)
-        searchSpace = paste(searchSpace, SQM$orfs$table[,method], SQM$orfs$table[,name])
+    if(is.null(columns))
+        { columns = c('Gene name', 'KEGG ID', 'KEGGFUN', 'KEGGPATH', 'COG ID', 'COGFUN', 'COGPATH', 'PFAM')
+        for(method in SQM$misc$ext_annot_sources) { columns = c(columns, method, sprintf('%s NAME', method)) }
         }
 
-    goodORFs = grepl(fun, searchSpace, ignore.case = ignore_case, fixed=fixed)
+    goodRows = rep(FALSE, nrow(SQM$orfs$table))
+    for(col in columns) { goodRows = goodRows | grepl(fun, SQM$orfs$table[,col], ignore.case = ignore_case, fixed=fixed) }
 
+    goodORFs = rownames(SQM$orfs$table)[goodRows]
 
-    # In the old code below, multi-pattern greps with AND had to be ALL TRUE in at least one table field.
-    # The code above creates a single query string per gene, so the different patterns can be TRUE in different fields, and multi-pattern grep will still be TRUE.
-    #goodORFs = rownames(SQM$orfs$table)[
-    #                                    grepl(fun, SQM$orfs$table[,'Gene name'], ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'KEGG ID']  , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'KEGGFUN']  , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'KEGGPATH'] , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'COG ID']   , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'COGFUN']   , ignore.case=ignore_case, fixed=fixed) |
-    #                                    grepl(fun, SQM$orfs$table[,'COGPATH']  , ignore.case=ignore_case, fixed=fixed) | 
-    #                                    grepl(fun, SQM$orfs$table[,'PFAM']     , ignore.case=ignore_case, fixed=fixed)
-    #                                   ]
     return ( subsetORFs(SQM, goodORFs, tax_source = 'orfs',
                         trusted_functions_only = trusted_functions_only,
                         ignore_unclassified_functions=ignore_unclassified_functions,
@@ -148,7 +131,8 @@ subsetContigs = function(SQM, contigs, trusted_functions_only = F, ignore_unclas
                         trusted_functions_only = trusted_functions_only,
                         ignore_unclassified_functions=ignore_unclassified_functions,
                         rescale_tpm = rescale_tpm,
-                        rescale_copy_number = rescale_copy_number)
+                        rescale_copy_number = rescale_copy_number,
+	                contigs_override = contigs)
            )
     }
 
@@ -188,15 +172,16 @@ subsetRand = function(SQM, N)
 #' mostAbundantORFnames = names(sort(rowSums(Hadza$orfs$tpm), decreasing=T))[1:100]
 #' mostAbundantORFs = subsetORFs(Hadza, mostAbundantORFnames)
 #' @export
-subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
+subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F, contigs_override = NULL)
     {
 
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
     if(length(orfs)==0) { stop('No ORFs were selected. Perhaps the subset query yielded no results?') }
     if(!tax_source %in% c('contigs', 'orfs')) { stop('tax_source must be "orfs" or "contigs"') }
-    
-    orfs    = rownames(SQM$orfs$table[orfs,]) # Make sure it will work if orfs is a bool vector too.
-    contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
+   
+    orfs    = rownames(SQM$orfs$table[orfs,,drop=F]) # Make sure it will work if orfs is a bool vector too.
+    if(is.null(contigs_override)) { contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
+    } else { contigs = contigs_override } # so we can include contigs without ORFs if required
     bins    = unique( unlist(SQM$contigs$bins[contigs,]) )
     bins    = bins[bins!='No_bin']
     
@@ -204,6 +189,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     subSQM$orfs$table                 = SQM$orfs$table[orfs      ,,drop=F]
     subSQM$orfs$abund                 = SQM$orfs$abund[orfs      ,,drop=F]
+    subSQM$orfs$bases                 = SQM$orfs$bases[orfs      ,,drop=F]
     subSQM$orfs$cov                   = SQM$orfs$cov[orfs        ,,drop=F]
     subSQM$orfs$tpm                   = SQM$orfs$tpm[orfs        ,,drop=F]
     subSQM$orfs$seqs                  = SQM$orfs$seqs[orfs]
@@ -215,11 +201,13 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$contigs$tpm                = SQM$contigs$tpm[contigs  ,,drop=F]
     subSQM$contigs$seqs               = SQM$contigs$seqs[contigs]
     subSQM$contigs$tax                = SQM$contigs$tax[contigs  ,,drop=F]
-    subSQM$contigs$bins               = SQM$contigs$bins[contigs ,,drop=F]
-
-    subSQM$bins$table                 = subSQM$bins$table[bins   ,,drop=F]
-    subSQM$bins$tpm                   = subSQM$bins$tpm[bins     ,,drop=F]
-    subSQM$bins$tax                   = subSQM$bins$tax[bins     ,,drop=F]
+    if('bins' %in% names(subSQM))
+        {
+        subSQM$contigs$bins           = SQM$contigs$bins[contigs ,,drop=F]
+        subSQM$bins$table             = subSQM$bins$table[bins   ,,drop=F]
+        subSQM$bins$tpm               = subSQM$bins$tpm[bins     ,,drop=F]
+        subSQM$bins$tax               = subSQM$bins$tax[bins     ,,drop=F]
+        }
 
     subSQM$taxa$superkingdom$abund    = aggregate.taxa(subSQM, 'superkingdom', tax_source)
     subSQM$taxa$phylum$abund          = aggregate.taxa(subSQM, 'phylum'      , tax_source)
@@ -237,35 +225,67 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$taxa$genus$percent         = 100 * t(t(subSQM$taxa$genus$abund)        / subSQM$total_reads) #colSums(subSQM$taxa$genus$abund))
     subSQM$taxa$species$percent       = 100 * t(t(subSQM$taxa$species$abund)      / subSQM$total_reads) #colSums(subSQM$taxa$species$abund))
 
-    KEGG                              = aggregate.fun(subSQM, 'KEGG', trusted_functions_only, ignore_unclassified_functions)
-    COG                               = aggregate.fun(subSQM, 'COG' , trusted_functions_only, ignore_unclassified_functions)
-    PFAM                              = aggregate.fun(subSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
+    if('KEGG' %in% names(subSQM$functions))
+        {
+        KEGG                          = aggregate.fun(subSQM, 'KEGG', trusted_functions_only, ignore_unclassified_functions)
+        subSQM$functions$KEGG$abund   = KEGG$abund
+        subSQM$functions$KEGG$bases   = KEGG$bases
+        subSQM$functions$KEGG$cov     = KEGG$cov
+        }
+    
+    if('COG' %in% names(subSQM$functions))
+        {
+        COG                           = aggregate.fun(subSQM, 'COG' , trusted_functions_only, ignore_unclassified_functions)
+        subSQM$functions$COG$abund    = COG$abund
+        subSQM$functions$COG$bases    = COG$bases
+        subSQM$functions$COG$cov      = COG$cov
+        }
 
-    subSQM$functions$KEGG$abund       = KEGG$abund
-    subSQM$functions$COG$abund        = COG$abund
-    subSQM$functions$PFAM$abund       = PFAM$abund
+
+    if('PFAM' %in% names(subSQM$functions))
+        {
+        PFAM                          = aggregate.fun(subSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
+        subSQM$functions$PFAM$abund   = PFAM$abund
+        subSQM$functions$PFAM$bases   = PFAM$bases
+        subSQM$functions$PFAM$cov     = PFAM$cov
+        }
 
     ext_annots = list()
     for(method in subSQM$misc$ext_annot_sources)
         {
         ext_annots[[method]]          = aggregate.fun(subSQM, method, trusted_functions_only, ignore_unclassified_functions)
         subSQM$functions[[method]]$abund = ext_annots[[method]]$abund
+        subSQM$functions[[method]]$bases = ext_annots[[method]]$bases
+        subSQM$functions[[method]]$cov   = ext_annots[[method]]$cov
         }
 
     if(rescale_tpm)
         {
-        subSQM$functions$KEGG$tpm     = KEGG$tpm_rescaled
-        subSQM$functions$COG$tpm      = COG$tpm_rescaled
-        subSQM$functions$PFAM$tpm     = PFAM$tpm_rescaled
+        if('KEGG' %in% names(subSQM$functions)) { subSQM$functions$KEGG$tpm = KEGG$tpm_rescaled }
+        if('COG'  %in% names(subSQM$functions)) { subSQM$functions$COG$tpm  = COG$tpm_rescaled  }
+        if('PFAM' %in% names(subSQM$functions)) { subSQM$functions$PFAM$tpm = PFAM$tpm_rescaled }
+
         for(method in subSQM$misc$ext_annot_sources)
             {
             subSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm_rescaled
             }
+        subSQM$orfs$tpm               = 1000000 * t(t(subSQM$orfs$tpm)   /colSums(subSQM$orfs$tpm)   )
+        subSQM$contigs$tpm            = 1000000 * t(t(subSQM$contigs$tpm)/colSums(subSQM$contigs$tpm))
+        #if('bins' in names(subSQM)
+        #    {
+        #    subSQM$bins$tpm           = 1000000 * t(t(subSQM$bins$tpm)   /colSums(subSQM$bins$tpm)   )
+        #    }
+	for(method in names(subSQM$functions))
+            {
+            subSQM$misc$coding_fraction[[method]]        = rep(1, ncol(subSQM$orfs$tpm))
+	    names(subSQM$misc$coding_fraction[[method]]) = names(subSQM$orfs$tpm)
+            }
+
     }else
         {
-        subSQM$functions$KEGG$tpm     = KEGG$tpm
-        subSQM$functions$COG$tpm      = COG$tpm
-        subSQM$functions$PFAM$tpm     = PFAM$tpm
+        if('KEGG' %in% names(subSQM$functions)) { subSQM$functions$KEGG$tpm = KEGG$tpm }
+        if('COG'  %in% names(subSQM$functions)) { subSQM$functions$COG$tpm  = COG$tpm  }
+        if('PFAM' %in% names(subSQM$functions)) { subSQM$functions$PFAM$tpm = PFAM$tpm }
         for(method in subSQM$misc$ext_annot_sources)
             {
             subSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm
@@ -295,18 +315,14 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
            {
            RecA = SQM$misc$RecA_cov
            }
-        subSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA)
-        subSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA)
-        subSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA)
+        if('KEGG' %in% names(subSQM$functions)) { subSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA) }
+        if('COG'  %in% names(subSQM$functions)) { subSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA) }
+        if('PFAM' %in% names(subSQM$functions)) { subSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA) }
         for(method in subSQM$misc$ext_annot_sources)
             {
             subSQM$functions[[method]]$copy_number = t(t(ext_annots[[method]]$cov) / RecA)
             }
         subSQM$misc$RecA_cov              = RecA
-	# For consistency with load, just return an empty list if a given functional hierarchy is missing from the parent object.
-	if(is.null(SQM$functions$KEGG$abund)) { subSQM$functions$KEGG = list() }
-	if(is.null(SQM$functions$COG$abund) ) { subSQM$functions$COG  = list() }
-	if(is.null(SQM$functions$PFAM$abund)) { subSQM$functions$PFAM = list() }
         }
 
 

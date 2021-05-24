@@ -14,9 +14,11 @@ use lib ".";
 use strict;
 
 
-###
+###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
 use File::Basename;
+use Cwd 'abs_path';
 
+my $pwd=cwd();
 my $utilsdir;
 if(-l __FILE__)
         {
@@ -28,11 +30,19 @@ else
         {
         $utilsdir = abs_path(dirname(__FILE__));
         }
+my $installpath = abs_path("$utilsdir/..");
+my $scriptdir = "$installpath/scripts";
+my $auxdir = "$installpath/lib/SQM_reads";
 my $shortpair_soft = abs_path("$utilsdir/../bin/Short-Pair/Short-Pair.py");
+
 ###
 
+open(inv,"$installpath/VERSION") || die;
+my $version=<inv>;
+chomp $version;
+close inv;
 
-my($numthreads,$pair1,$pair2,$pfam,$outfile,$dietext,$tempfile1,$tempfile2,$hel);
+my($numthreads,$pair1,$pair2,$pfam,$outfile,$dietext,$tempfile1,$tempfile2,$hel,$printversion);
 
 my $start_run = time();
 
@@ -51,6 +61,7 @@ Arguments:
  Optional:
    -t: Number of threads (Default: 12)
    -output: Name of the output file (Default: sqm_pfam.out)
+   -v|version: Print version
    -h: this help
 
 
@@ -61,12 +72,14 @@ my $result = GetOptions ("t=i" => \$numthreads,
 			"pair2=s" => \$pair2,
 			"pfam=s" => \$pfam,
 			"output=s" => \$outfile,
+		        "v|version" => \$printversion,
 		    	"h" => \$hel
 			);
 			
 
-print "\nsqm_hmm_reads.pl - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n
+print "\nsqm_hmm_reads.pl v$version- (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n
 The Short-Pair tool is published in Techa-Angkoon, Sun & Lei J, BMC bioinformatics 18:414 (2017). doi: https://doi.org/10.1186/s12859-017-1826-2\n\n";
+if($printversion) { exit; }
 
 if($hel) { die "$helptext\n"; } 
 if(!$pair1) { $dietext.="MISSING PAIR1\n"; }

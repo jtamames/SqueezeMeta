@@ -5,6 +5,7 @@ use Getopt::Long;
 use strict;
 use File::Basename;
 use Cwd 'abs_path';
+use lib "."; 
 
 $|=1;
 
@@ -62,6 +63,30 @@ my $dirbin=$binresultsdir;
 my @colors=("#fc05ea","#0000ff","#ff0000","#00ff00","#7a4304","#f77300","#00adf7","#04721c","#7a30db","#c4c107");	#-- Magenta, Blue, Red, Green, brown, Orange, ligth blue, dark green, yellow
 my @colors2=("#f77300","#00adf7","#04721c","#7a30db","#c4c107");	#-- Orange, ligth blue, dark green, yellow
 
+my%pathfull;
+if($funclass eq "metacyc") {
+	open(infile0,"$extdatapath/metacyc_pathways_onto.txt") || die;
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		my($pathid,$fpath)=split(/\t/,$_);
+		my($pathname,$rest)=split(/\s\-\>\s/,$fpath);
+		$pathfull{$pathname}=$fpath;
+		}
+	close infile0;
+	}
+else {
+	open(infile0,"$extdatapath/pathwaylist.dat") || die;
+        while(<infile0>) {
+		chomp;
+                next if(!$_ || ($_=~/^\#/));
+		my @k=split(/\t/,$_);
+		$pathfull{$k[1]}=$k[2]; 
+		}
+	close infile0;
+	}
+
+
 print "Reading bins in $bintable...\n";
 
 my($header,$totalbins,$numbins,);
@@ -100,8 +125,8 @@ while(<infile1>) {
 		}
 	$contamination{$binname}=$k[9];
 
-	if($k[2]=~/phylum\:([^;]+)/) { $phylo{$binname}{phylum}=$1; $countphylo{phylum}{$1}++; }
-	if($k[2]=~/genus\:([^;]+)/) { $phylo{$binname}{genus}=$1; $countphylo{genus}{$1}++;}
+	if($k[2]=~/p\_([^;]+)/) { $phylo{$binname}{phylum}=$1; $countphylo{phylum}{$1}++; }
+	if($k[2]=~/g\_([^;]+)/) { $phylo{$binname}{genus}=$1; $countphylo{genus}{$1}++;}
 	}
 close infile1;
 print "Found $totalbins bins\nWorking with $numbins bins with more than $complete_cutoff% completion and less than $contamination_cutoff% contamination\n";
@@ -139,8 +164,9 @@ while(<infile1>) {
 		my $refun=$headerf[$pos];			#-- Full label
 		my @lifun=split(/\;/,$headerf[$pos]);
 		my $shortfun=$lifun[$#lifun];				#-- Just pathway as a label
+		my $fullfun=$pathfull{$refun};
 		foreach my $u(keys %requested) {
-			if($refun=~/$u/i) {
+			if($fullfun=~/$u/i) {
 				my $tratio;
 				if($k[$pos] eq "NF") { $tratio=0; } else { $tratio=$k[$pos]/$pathnum[$pos]; }
 				$fun{$biname}{$shortfun}=$tratio; 

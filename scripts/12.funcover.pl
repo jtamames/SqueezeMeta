@@ -14,14 +14,14 @@ $|=1;
 my $pwd=cwd();
 my $taxreq=$ARGV[1];	#-- Invoke it with a name of taxon to get just functions for that taxon
 
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
@@ -181,13 +181,12 @@ while(<infile6>) {
 	my $mapbases=$k[3];
 	# print "$k[0] $cfun_kegg $cfun_cog $sample $longorfs{$k[0]}\n";
 	$totalbases{$sample}+=$mapbases;
-	next if((!$cfun_kegg) && (!$cfun_cog));
 	next if($taxreq && (!$validid{$k[0]}));
 	$allsamples{$sample}++;
 	if($mapbases) {
 	
 		#-- Counting KEGGs
-	
+		
 		if($cfun_kegg) {
 			my @kegglist=split(/\;/,$cfun_kegg);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
 			foreach my $tlist_kegg(@kegglist) {
@@ -206,12 +205,14 @@ while(<infile6>) {
 	
 		foreach my $odb(sort keys %optdb) {
 			my $cfun_opt=$tfun{$k[0]}{$odb};
+			# print "$k[0] $odb $cfun_opt\n";
 			if($cfun_opt) {
 				my @optlist=split(/\;/,$cfun_opt);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
 				foreach my $tlist_opt(@optlist) {
 					$funstat{$odb}{$tlist_opt}{$sample}{copies}++;
 					$funstat{$odb}{$tlist_opt}{$sample}{length}+=$longorfs{$k[0]}; 
 					$funstat{$odb}{$tlist_opt}{$sample}{bases}+=$mapbases;
+                                        $funstat{$odb}{$tlist_opt}{$sample}{reads}+=$k[2];
 					foreach my $tk(keys %equival) {
 						my $krank=$equival{$tk};
 						my $itax=$taxf{$k[0]}{$krank};
@@ -265,10 +266,10 @@ while(<infile7>) {
 		foreach my $tlist_cog(@coglist) { 
 			if($tlist_cog) { $funstat{cog}{$tlist_cog}{$sample}{reads}+=$k[2]; }  
 			}
-		foreach my $odb(sort keys %optdb) {
-			my $cfun_opt=$tfun{$k[0]}{$odb};
-			if($cfun_opt) { $funstat{$odb}{$cfun_opt}{$sample}{reads}+=$k[2]; }
-			}
+#		foreach my $odb(sort keys %optdb) {
+#			my $cfun_opt=$tfun{$k[0]}{$odb};
+#			if($cfun_opt) { $funstat{$odb}{$cfun_opt}{$sample}{reads}+=$k[2]; }
+#			}
 		}
 	
 	}
@@ -287,7 +288,7 @@ foreach my $classfun(sort keys %funstat) {
 	if($taxreq) { print outfile1 ", for taxon $taxreq"; }
 	print outfile1 "\n";
 	# print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tNorm Coverage\tNorm Coverage per copy\tTPM\tDistribution\tName\tFunction\n";
-	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal bases\tCoverage\tTPM\tDistribution";
+	print outfile1 "# $classfun ID\tSample\tCopy number\tTotal length\tTotal reads\tTotal bases\tRPKM\tCoverage\tTPM\tDistribution";
 	if($classfun ne "cog") { print outfile1 "\tName"; }
 	print outfile1 "\tFunction\n";
 	
@@ -314,7 +315,7 @@ foreach my $classfun(sort keys %funstat) {
 			# print "$classfun*$kid*$samp*$funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}\n";
 			my $rpkm=(($funstat{$classfun}{$kid}{$samp}{reads}*1000000000)/($funstat{$classfun}{$kid}{$samp}{length}*$totalreads{$samp}));
  			my $tpm=$rpk{$kid}/$accumrpk;
-			my $stringtax=""; 
+		my $stringtax=""; 
 			foreach my $tk(keys %equival) {
 				my $krank=$equival{$tk};
 				my $countt=0;
@@ -322,7 +323,7 @@ foreach my $classfun(sort keys %funstat) {
 				$stringtax.="$krank:$countt;";
 				}
 			chop $stringtax;
-			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t$stringtax",$cover,$tpm; 
+			printf outfile1 "$kid\t$samp\t$funstat{$classfun}{$kid}{$samp}{copies}\t$funstat{$classfun}{$kid}{$samp}{length}\t$funstat{$classfun}{$kid}{$samp}{reads}\t$funstat{$classfun}{$kid}{$samp}{bases}\t%.3f\t%.3f\t%.3f\t$stringtax",$rpkm,$cover,$tpm; 
  			if($classfun ne "cog") { print outfile1 "\t$funs{$classfun}{$kid}{name}"; }
 			print outfile1 "\t$funs{$classfun}{$kid}{fun}\n";
 			}

@@ -3,7 +3,7 @@ sudo yum -y install epel-release
 
 
 ### Install git and system libraries
-sudo yum -y install ncurses-devel git zlib-devel bzip2-devel xz-devel libxml2-devel libcurl-devel openssl-devel
+sudo yum -y install gcc ncurses-devel git zlib-devel bzip2-devel xz-devel libxml2-devel libcurl-devel openssl-devel tree
 
 
 ### Install Ruby.
@@ -18,7 +18,9 @@ sudo cpan Term::ANSIColor
 
 
 ###Install Python modules.
-sudo yum -y install python3 python36-scipy python3-pandas
+sudo yum -y install python3 python36-scipy
+sudo python3 -m pip install future cython
+sudo python3 -m pip install pandas
 sudo python3 -m pip install matplotlib dendropy pysam
 
 
@@ -47,7 +49,11 @@ sudo R CMD INSTALL <installpath>/SqueezeMeta/lib/SQMtools
 
 ### Install databases and test data.
 # This will occupy around 200Gb.
-<installpath>/SqueezeMeta/scripts/preparing_databases/download_databases.pl <datapath>
+<installpath>/SqueezeMeta/utils/install_utils/download_databases.pl <datapath>
+
+
+### Test that all the dependencies can be located in this environment.
+<installpath>/SqueezeMeta/utils/install_utils/test_install.pl
 
 
 ### Run SqueezeMeta on test data.

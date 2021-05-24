@@ -11,15 +11,15 @@ my $pwd=cwd();
 
 $|=1;
 
-my $projectpath=$ARGV[0];
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($installpath,$resultpath,$interdir,$tempdir,$cdhit_soft,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile);
+our($resultpath,$interdir,$tempdir,$scriptdir,$cdhit_soft,$contigid,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile,$singletons);
 
 #-- Merges the assemblies in a single dataset
 
@@ -80,19 +80,21 @@ else {
 	#-- Renaming contigs
 
 	my $cocount;
+	if(!$contigid) { $contigid="Merged"; }
 	open(outfile0,">$finalcontigs") || die;
 	open(infile0,"$finalcontigs.prov") || die;
 	while(<infile0>) {
 		chomp;
 		if($_=~/^\>/) {
 			$cocount++;
-			my $newname="Merged\_$cocount";
+			my $newname="$contigid\_$cocount";
 			print outfile0 ">$newname\n"; 
 			}
 		else { print outfile0 "$_\n"; }
 		}
 	close infile0;
 	close outfile0;
+	system("rm $finalcontigs.prov");
 			
 
 	#-- Remove files from temp
@@ -133,7 +135,9 @@ while(<infile1>) {
 }
 close infile1;
 close outfile1;
+print "  Number of contigs: $numc\n";
+print outsyslog "  Number of contigs: $numc\n";
+
 close outsyslog;
 close out_met;
-print "  Number of contigs: $numc\n";
 

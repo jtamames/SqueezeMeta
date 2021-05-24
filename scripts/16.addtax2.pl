@@ -11,23 +11,24 @@ use lib ".";
 
 my $pwd=cwd();
 
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($installpath,$datapath,$databasepath,$interdir,$alllog,$bintax,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir);
+our($installpath,$binresultsdir,$datapath,$databasepath,$syslogfile,$interdir,$alllog,$bintax,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir);
 
 	#-- Some configuration values for the algorithm
 	
 my $verbose=0;
 
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 # my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranks=('k','p','c','o','f','g','s');
 my(%tax,%taxlist);
@@ -53,6 +54,7 @@ close infile0;
 	#-- Read taxonomic assignments for contigs
 
 my $input=$alllog;
+print syslogfile "  Reading taxonomic assignments for contigs from $input\n";
 open(infile1,$input) || die "Can't open $input\n";
 while(<infile1>) {
 	chomp;
@@ -72,6 +74,7 @@ close infile1;
 open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 	my $bindir=$binresultsdir;
 	print "  Looking for bins in $bindir\n";
+	print syslogfile "  Looking for bins in $bindir\n";
 
 	#-- Reading bin directories
 
@@ -224,6 +227,8 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 		close outfile2;
 
  	}
+	print syslogfile "  Output created in $bintax\n";
 close outfile1;
+close syslogfile;
 
 

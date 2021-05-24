@@ -10,7 +10,8 @@ plotBars(
   label_y = "Abundances",
   label_fill = "Features",
   color = NULL,
-  base_size = 11
+  base_size = 11,
+  max_scale_value = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ plotBars(
 \item{color}{Vector with custom colors for the different features. If empty, the default ggplot2 palette will be used (default \code{NULL}).}
 
 \item{base_size}{numeric. Base font size (default \code{11}).}
+
+\item{max_scale_value}{numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).}
 }
 \value{
 a ggplot2 plot object.

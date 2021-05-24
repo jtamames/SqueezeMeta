@@ -9,7 +9,9 @@ plotFunctions(
   fun_level = "KEGG",
   count = "tpm",
   N = 25,
-  fun = c(),
+  fun = NULL,
+  samples = NULL,
+  ignore_unmapped = T,
   ignore_unclassified = T,
   gradient_col = c("ghostwhite", "dodgerblue4"),
   base_size = 11
@@ -20,11 +22,15 @@ plotFunctions(
 
 \item{fun_level}{character. Either \code{"KEGG"}, \code{"COG"}, \code{"PFAM"} or any other custom database used for annotation (default \code{"KEGG"}).}
 
-\item{count}{character. Either \code{"tpm"} for TPM normalized values, \code{"abund"} for raw abundances or \code{"copy_number"} for copy numbers (default \code{"tpm"}).}
+\item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"tpm"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
 
 \item{N}{integer Plot the \code{N} most abundant functions (default \code{25}).}
 
 \item{fun}{character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).}
+
+\item{samples}{character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).}
+
+\item{ignore_unmapped}{logical. Don't include unmapped ORFs in the plot (default \code{TRUE}).}
 
 \item{ignore_unclassified}{logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).}
 

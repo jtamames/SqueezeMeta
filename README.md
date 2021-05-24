@@ -3,6 +3,8 @@
 # SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 
 - Find the SqueezeMeta paper at: https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full 
+- Find a second paper on how to analyse the output of SqueezeMeta at: https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-020-03703-2
+- Check some papers using SqueezeMeta: https://github.com/jtamames/SqueezeMeta/wiki/Some-papers-using-SqueezeMeta-(non-comprehensive-list)
 - Make sure to [check the wiki!](https://github.com/jtamames/SqueezeMeta/wiki)
 
 ## 1. What is SqueezeMeta?
@@ -18,11 +20,14 @@ SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, c
 
 SqueezeMeta can be run in three different modes, depending of the type of multi-metagenome support. These modes are:
 
-- Sequential mode: All samples are treated individually and analysed sequentially. This mode does not include binning.
+- Sequential mode: All samples are treated individually and analysed sequentially.
 
 - Coassembly mode: Reads from all samples are pooled and a single assembly is performed. Then reads from individual samples are mapped to the coassembly to obtain gene abundances in each sample. Binning methods allow to obtain genome bins.
 
 - Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
+
+- Seqmerge mode: This is intended to work with more samples than the merged mode. Instead of merging all individual assemblies in a single step, which can be very computationally demanding, seqmerge works sequentially. First, it assembles individually all samples, as in merged mode. But then it will merge the two most similar assemblies. Similarity is measured as Amino Acid Identity values using the wonderful CompareM software by Donovan Parks. After this first merging, it again evaluates similarity and merge, and proceeds this way until all metagenomes have been merged in one. Therefore, for n metagenomes, it will need n-1 merging steps.
+
 
 SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
@@ -54,27 +59,51 @@ Detailed information about the different steps of the pipeline can be found in t
 
 ## 2. Installation
 
-For installing SqueezeMeta, download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 or CentOS7 (DVD iso) installation.
- 
+SqueezeMeta is intended to be run in a x86_64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda.
+
+`conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
+
+This will create a new conda environment named SqueezeMeta, which must then be activated.
+
+`conda activate SqueezeMeta`
+
+When using conda, all the scripts from the SqueezeMeta distribution will be available on `$PATH`.
+
+Alternatively, just download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 or CentOS7 (DVD iso) installation.
+
+The `test_install.pl` script can be run in order to check whether the required dependencies are available in your environment.
+
+`/path/to/SqueezeMeta/utils/install_utils/test_install.pl`
+
  
 ## 3. Downloading or building databases
 
 SqueezeMeta uses several databases. GenBank nr for taxonomic assignment, and eggnog, KEGG and Pfam for functional assignment. 
 The script *download_databases.pl* can be run to download a pre-formatted version of all the databases required by SqueezeMeta.
 
-`/path/to/SqueezeMeta/scripts/preparing_databases/download_databases.pl /download/path`
+`/path/to/SqueezeMeta/utils/install_utils/preparing_databases/download_databases.pl /download/path`
 
-, where `<datapath>` is the destination folder. This is the recommended option.
+, where `/download/path` is the destination folder. This is the recommended option, but the files are hosted in our institutional server, which can at times be unreachable.
 
 Alternatively, the script *make_databases.pl* can be run to download from source and format the latest version of the databases.
 
-`/path/to/SqueezeMeta/scripts/preparing_databases/make_databases.pl /download/path`
+`/path/to/SqueezeMeta/utils/install_utils/make_databases.pl /download/path`
 
 The databases occupy 200Gb, but we recommend having at least 350Gb free disk space during the building process.
 
+Two directories will be generated after running either `make_databases.pl` or `download_databases.pl`.
+- `/download/path/db`, which contains the actual databases.
+- `/download/path/test`, which contains data for a test run of SqueezeMeta.
+
+If `download_databases.pl` or `make_databases.pl` can't find our server, you can instead run `make_databases_alt.pl` (same syntax as `make_databases.pl`) which will try to download the data from an alternative site.
+
 If the SqueezeMeta databases are already built in another location in the system, a different copy of SqueezeMeta can be configured to use them with
 
-`/path/to/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl /path/to/db`
+`/path/to/SqueezeMeta/utils/install_utils/configure_nodb.pl /path/to/db`
+
+, where `/path/to/db` is the route to the `db` folder that was generated by either `make_databases.pl` or `download_databases.pl`.
+
+After configuring the databases, the `test_install.pl` can be run in order to check that SqueezeMeta is ready to work (see previous section).
 
 
 ## 4. Execution, restart and running scripts
@@ -100,21 +129,25 @@ The command for running SqueezeMeta has the following syntax:
 * *-cleaning_options* [string]: Options for Trimmomatic (default: LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30) 
  
 *Assembly*  
-* *-a* [megahit,spades,canu]: assembler (Default:megahit) 
-* *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). 
+* *-a* [megahit,spades,rnaspades,canu,flye]: assembler (Default:megahit) 
+* *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler)
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
-* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta. 
+* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
+* *--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
+
  
 *Annotation* 
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
-* *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual.  
+* *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details.
+* *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual
 * *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
 *Mapping* 
 * *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie) 
- 
+* *-mapping_options* [string]: Extra options for the mapper (refer to the manual of the specific mapper)
+
 *Binning* 
 * *--nobins*: Skip binning (Default: no) 
 * *--nomaxbin*: Skip MaxBin binning (Default: no) 
@@ -128,6 +161,9 @@ The command for running SqueezeMeta has the following syntax:
  
 *Other* 
 * *--minion*: Run on MinION reads (Default: no). Equivalent to -a canu -map minimap2-ont 
+* *-test* [step]: For testing purposes, stops AFTER the given step number
+* *--empty*: Creates an empty directory structure and configuration files. It does not run the pipeline
+
  
 *Information* 
 * *-v*: Version number 
@@ -157,7 +193,7 @@ Sample3	readfileD_1.fastq	pair1	noassembly
 Sample3	readfileD_2.fastq	pair2	noassembly
 ```
 
-The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the "noassembly" value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Notice also that paired reads are expected, and that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
+The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the `noassembly` value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Similarly, an extra column with the `nobinning` value can be included in order to avoid using those samples for binning. Notice that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
 
 ### Restart
 
@@ -165,7 +201,7 @@ Any interrupted SqueezeMeta run can be restarted using the program restart.pl. I
 
 `restart.pl <projectname>`
 
-This command must be issued in the upper directory to the project <projectname>, and will restart the run of that project by reading the progress.txt file to find out the point where the run stopped. 
+This command will restart the run of that project by reading the progress.txt file to find out the point where the run stopped. 
  
 Alternatively, the run can be restarted from a specific step by issuing the command:
 
@@ -174,7 +210,7 @@ Alternatively, the run can be restarted from a specific step by issuing the comm
 e.g. `restart.pl <projectname> -step 6` would restart the pipeline from the taxonomic assignment of genes. The different steps of the pipeline are listed in section 1.
 
 ### Running scripts
-Also, any individual script of the pipeline can be run in the upper directory to the project using the same syntax: 
+Also, any individual script of the pipeline can be run using the same syntax: 
 
 `script <projectname>` (for instance, `04.rundiamond.pl <projectname>` to repeat the DIAMOND run for the project)
 
@@ -203,7 +239,8 @@ Alternatively, `-m sequential` or `-m merged` can be used.
 ## 9. Working with Oxford Nanopore MinION and PacBio reads
 Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
 We also include the canu assembler, which is specially tailored to work with long, noisy reads. It can be selected by including the -a *canu* flag when calling SqueezeMeta.
-As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads.
+As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads. Since version 1.3 we also include flye as an optional assembler for long reads.
+As an alternative to assembly, we also provide the sqm_longreads.pl script, which will predict and annotate ORFs within individual long reads.
 
 
 ## 10. Working in a low-memory environment
@@ -214,17 +251,17 @@ We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3,
 ## 11. Updating SqueezeMeta
 Assuming your databases are not inside the SqueezeMeta directory, just remove it, download the new version and configure it with
 
-`/path/to/SqueezeMeta/scripts/preparing_databases/configure_nodb.pl /path/to/db`
+`/path/to/SqueezeMeta/utils/install_utils/configure_nodb.pl /path/to/db`
 
 
 ## 12. Downstream analysis of SqueezeMeta results
-SqueezeMeta comes with a variety of options to explore the results and generate different plots. These are fully described in the PDF manual. Briefly, the three main ways to analyze the output of SqueezeMeta are the following:
+SqueezeMeta comes with a variety of options to explore the results and generate different plots. These are fully described in the PDF manual and in the [wiki](https://github.com/jtamames/SqueezeMeta/wiki). Briefly, the three main ways to analyze the output of SqueezeMeta are the following:
 
-**1) Integration with R:** We provide the *SQMtools* R package, which allows to easily load a whole SqueezeMeta project and expose the results into R. The package includes functions to select particular taxa or functions and generate plots. The package also makes the different tables generated by SqueezeMeta easily available for third-party R packages such as *vegan* (for multivariate analysis), *DESeq2* (for differential abundance testing) or for custom analysis pipelines.
+<img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/Figure_1_readmeSQM.png" width="50%">
 
-**2) Integration with the anvi'o analysis pipeline:** We provide a compatibility layer for loading SqueezeMeta results into the anvi'o analysis and visualization platform (http://merenlab.org/software/anvio/). This includes a built-in query language for selecting the contigs to be visualized in the anvi'o interactive interface.
+**1) Integration with R:** We provide the *SQMtools* R package, which allows to easily load a whole SqueezeMeta project and expose the results into R. The package includes functions to select particular taxa or functions and generate plots. The package also makes the different tables generated by SqueezeMeta easily available for third-party R packages such as *vegan* (for multivariate analysis), *DESeq2* (for differential abundance testing) or for custom analysis pipelines. See examples [here](https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results).
 
-**3) MySQL database:** SqueezeMeta includes a built in MySQL database that can be queried via a web-based interface, in order to facilitate the exploration of metagenomic results. Code and instruction installations can be found at https://github.com/jtamames/SqueezeMdb.
+**2) Integration with the anvi'o analysis pipeline:** We provide a compatibility layer for loading SqueezeMeta results into the anvi'o analysis and visualization platform (http://merenlab.org/software/anvio/). This includes a built-in query language for selecting the contigs to be visualized in the anvi'o interactive interface. See examples [here](https://github.com/jtamames/SqueezeMeta/wiki/Loading-SQM-results-into-anvi'o).
 
 We also include utility scripts for generating [itol](https://itol.embl.de/) and [pavian](https://ccb.jhu.edu/software/pavian/) -compatible outputs.
 
@@ -232,9 +269,15 @@ We also include utility scripts for generating [itol](https://itol.embl.de/) and
 ## 13. Alternative analysis modes
 In addition to the main SqueezeMeta pipeline, we provide two extra modes that enable the analysis of individual reads.
 
-**1) SQM_reads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs. This can be useful when the assembly quality is low, or when looking for low abundance functions that might not have enough coverage to be assembled.
+**1) sqm_reads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs. This can be useful when the assembly quality is low, or when looking for low abundance functions that might not have enough coverage to be assembled.
 
-**2) SQM_hmm_reads.pl**: This script provides a wrapper to the [Short-Pair](https://sourceforge.net/projects/short-pair/) software, which allows to screen the reads for particular functions using an ultra-sensitive HMM algorithm.
+**2) sqm_longreads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs, assuming that more than one ORF can be found in the same read (e.g. as happens in PacBio or MinION reads).
+
+**3) sqm_hmm_reads.pl**: This script provides a wrapper to the [Short-Pair](https://sourceforge.net/projects/short-pair/) software, which allows to screen the reads for particular functions using an ultra-sensitive HMM algorithm.
+
+**4) sqm_mapper.pl**: This script maps reads to a given reference using one of the included sequence aligners (Bowtie2, BWA), and provides estimation of the abundance of the contigs and ORFs in the reference.
+
+**5) sqm_annot.pl**: This script performs functional and taxonomic annotation for a set of genes, for instance these encoded in a genome (or sets of contigs).
 
 
 ## 14. License and third-party software
@@ -267,9 +310,11 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [pullseq](https://github.com/bcthomas/pullseq)
 * [Short-Pair](https://sourceforge.net/projects/short-pair/)
 * [SAMtools](http://samtools.sourceforge.net/)
+* [Mothur](https://mothur.org/)
+* [Flye](https://github.com/fenderglass/Flye)
 
 
 ## 15. About
-SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fpuente@cnb.csic.es).
+SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fernando.puente.sanchez@slu.se).
 
 

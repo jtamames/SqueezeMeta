@@ -12,19 +12,21 @@ $|=1;
 
 my $pwd=cwd();
 
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+my $notax=$ARGV[1];
+my $blastmode=$ARGV[2];
+
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$aafile,$numthreads,$diamond_soft,$nodiamond,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile,$syslogfile);
-
+our($aafile,$databasepath,$numthreads,$diamond_soft,$nodiamond,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile,$syslogfile);
 my $command;
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
@@ -50,36 +52,35 @@ if(-e $taxdiamond) { $taxfound=1; }
 if(-e $cogdiamond) { $cogfound=1; }
 if(-e $keggdiamond) { $keggfound=1; }
 my($donediamond,$stringmethods);
-
+if(!$blastmode) { $blastmode="blastp"; }
+print outmet "Similarity searches for ";
 $stringmethods="Similarity searches for ";
+
+$command="cp $databasepath/DB_BUILD_DATE $interdir";
+my $ecode = system $command;
+if($ecode!=0) { warn "Error running command:     $command"; }
 
 #-- nr database
 
-if((!$nodiamond) || ($nodiamond && !$taxfound)) {
-	$command="$diamond_soft blastp -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
-	print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa\n";
+if(!$notax) {
+	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
+	print " taxa";
 	print outsyslog "Running Diamond for taxa: $command\n";
 	my $ecode = system $command;
-	$donediamond=1;
 	if($ecode!=0) { die "Error running command:    $command"; }
-	$stringmethods.="GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+	print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
 	}
-else { print "  Found --nodiamond flag and Diamond result for taxa ($taxdiamond): skipping\n"; }	
-	
+
 #-- COG database
 
 if(!$nocog) {
-	if((!$nodiamond) || ($nodiamond && !$cogfound)) {
-		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
-		print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for COGs\n";
-		print outsyslog "Running Diamond for COGs: $command\n";
-		my $ecode = system $command;
-		$donediamond=1;
-		if($ecode!=0) { die "Error running command:    $command"; }
-		$stringmethods.="eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
-		}
-	else { print "  Found --nodiamond flag and Diamond result for COGs ($cogdiamond): skipping\n"; }	
-	}
+	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
+	print " COGS";
+	print outsyslog "Running Diamond for COGs: $command\n";
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+	print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
+}
 
 #-- KEGG database
 
@@ -106,17 +107,12 @@ if($opt_db) {
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
 		my $outdb="$interdir/04.$project.$dbname.diamond";
-		if(-e $outdb) { $outfound=1; }
-		if((!$nodiamond) || ($nodiamond && !$outfound)) {
-			$command="$diamond_soft blastp -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
-			print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for $dbname\n";
-			print outsyslog "Running Diamond for $dbname: $command\n";
-			my $ecode = system $command;
-			$donediamond=1;
-			if($ecode!=0) { die "Error running command:    $command"; }
-			$stringmethods.="$dbname, ";
-			}
-		else { print "  Found --nodiamond flag and Diamond result for $dbname ($outdb): skipping\n"; }		
+		$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
+		print " $dbname";
+		print outsyslog "Running Diamond for $dbname: $command\n";
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
+		print outmet "$dbname, ";
 		}
 }
 

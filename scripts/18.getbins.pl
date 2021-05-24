@@ -12,25 +12,26 @@ $|=1;
 
 my $pwd=cwd();
 
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$bincov,$contigcov,$binresultsdir,$contigsinbins,$resultpath,$interdir,$bintable,$checkmfile);
-
+our($binresultsdir,$checkmfile,$datapath,$bincov,$contigcov,%bindirs,%dasdir,$contigsinbins,$resultpath,$interdir,$bintable,$syslogfile);
 my(%bins,%contigs,%allsamples,%mapped,%totalreadcount,%taxrna,%rinsample);
 tie %allsamples,"Tie::IxHash";
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 	#-- Read 16S in contigs
 
 my $rnafile="$resultpath/02.$project.16S.txt";
+print syslogfile "  Reading 16S rRNA in contigs from $rnafile\n";
 open(infile1,$rnafile) || warn "Can't open $rnafile\n";
 while(<infile1>) {
 	chomp;
@@ -48,11 +49,13 @@ close infile1;
 	#-- Create the bin coverage table and the contigsinbins file
 
 if(-e $bincov) { system("rm $bincov"); }
+print syslogfile "  Creating bin coverage table in $bincov\n";
 open(outfile1,">>$bincov") || die "Can't open $bincov for writing\n";
 print outfile1 "#--Created by $0,",scalar localtime,"\n";
-print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tSample\n";
+print outfile1 "# Bin ID\tMethod\tCoverage\tRPKM\tTPM\tSample\n";
 
 if(-e $contigsinbins) { system("rm $contigsinbins"); }
+print syslogfile "  Creating contigs in bins table in $contigsinbins\n";
 open(outfile2,">>$contigsinbins") || die "Can't open $contigsinbins for writing\n";
 print outfile2 "#--Created by $0,",scalar localtime,"\n";
 print outfile2 "# Contig\tMethod\tBin ID\n";
@@ -140,6 +143,7 @@ print outfile2 "# Contig\tMethod\tBin ID\n";
 	#-- Count coverages for the bins
 
 	print "\n  Calculating coverages\n";
+	print syslogfile "  Calculating coverages for bins from $contigcov\n";
 	open(infile5,$contigcov) || die "Can't open contig coverage file $contigcov\n";
 	while(<infile5>) { 
 		chomp;
@@ -185,13 +189,14 @@ print outfile2 "# Contig\tMethod\tBin ID\n";
 					   
 	my $outputfile=$bintable;
 	print "  Creating table in $outputfile\n";
+	print syslogfile "  Creating table in $outputfile\n";
 	open(outfile3,">$outputfile") || die "Can't open $outputfile for writing\n";
 	
 	#-- Headers
 	
 	print outfile3 "# Created by $0, ",scalar localtime,"\n";
 	print outfile3 "Bin ID\tMethod\tTax\tTax 16S\tLength\tGC perc\tNum contigs\tDisparity\tCompleteness\tContamination\tStrain het";
-	foreach my $countfile(keys %allsamples) { print outfile3 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile"; }
+	foreach my $countfile(keys %allsamples) { print outfile3 "\tCoverage $countfile\tTPM $countfile"; }
 	print outfile3 "\n";
 	
 	#-- Data
@@ -204,13 +209,14 @@ print outfile2 "# Contig\tMethod\tBin ID\n";
 				}
 			chop $taxrna;
 			printf outfile3 "$thisbin\t$method\t$bins{$method}{$thisbin}{consensus}\t$taxrna\t$bins{$method}{$thisbin}{size}\t%.2f\t$bins{$method}{$thisbin}{contignum}\t$bins{$method}{$thisbin}{chimerism}\t$bins{$method}{$thisbin}{complete}\t$bins{$method}{$thisbin}{contamination}\t$bins{$method}{$thisbin}{strain}",$bins{$method}{$thisbin}{gc};			   
-			foreach my $countfile(keys %allsamples) { printf outfile3 "\t%.3f\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{rpkm}{$countfile},$bins{$method}{$thisbin}{tpm}{$countfile}; }
+			foreach my $countfile(keys %allsamples) { printf outfile3 "\t%.3f\t%.3f",$bins{$method}{$thisbin}{coverage}{$countfile},$bins{$method}{$thisbin}{tpm}{$countfile}; }
 			print outfile3 "\n";
 		}
 	}
 close outfile3;
 close outfile1;
 close outfile2;
+close syslogfile;
 
 print "  Done!\n";
 print "=============\nBIN TABLE CREATED: $outputfile\n=============\n\n";

@@ -12,26 +12,28 @@ $|=1;
 
 my $pwd=cwd();
 
-my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
+my $projectdir=$ARGV[0];
+if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
+if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
+do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-do "$projectpath/parameters.pl";
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,$nobins,$contigtable,$binresultsdir);
+our($datapath,$resultpath,$alllog,$contigsfna,$aafile,$contigcov,$contigsinbins,$nobins,$contigtable,$syslogfile,%bindirs,%dasdir);
 
 my(%contig,%allsamples);
 tie %allsamples,"Tie::IxHash";
+open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 	#-- Reading taxonomic assignment and disparity for the contigs
 
 open(infile1,$alllog) || warn "Can't open contiglog file $alllog\n";
 print "  Reading taxa for contigs information...";
+print syslogfile "  Reading taxa for contigs information from $alllog\n";
 while(<infile1>) { 
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -44,6 +46,7 @@ close infile1;
 	#-- Reading GC content and length of the contigs
 	
 print "done!\n  Reading GC & length... ";
+print syslogfile "  Reading GC & length from $contigsfna\n";
 open(infile2,$contigsfna) || warn "Can't open fasta file $contigsfna\n";
 my($thisname,$contigname,$seq);
 while(<infile2>) {
@@ -71,6 +74,7 @@ if($contigname) {
 	#-- Reading number of genes for the contigs
 
 print "done!\n  Reading number of genes... ";
+print syslogfile "  Reading number of genes from $aafile\n";
 open(infile3,$aafile) || warn "Can't open aa file $aafile\n";
 while(<infile3>) {
 	chomp;
@@ -86,6 +90,7 @@ close infile3;
   #-- Reading contig coverages 
   
 print "done!\n  Reading coverages... ";
+print syslogfile "  Reading coverages from $contigcov\n";
 open(infile4,$contigcov) || die "Can't open $contigcov\n";
 while(<infile4>) {
 	chomp;
@@ -103,6 +108,7 @@ close infile4;
 
 if(!$nobins) {				#-- Skip this step if no bins were requested  
 	print "done!\n  Reading bins... ";
+	print syslogfile "  Reading bins from $contigsinbins\n";
 	open(infile5,$contigsinbins); # File will be missing if running in sequential mode
 	while(<infile5>) {
 		chomp;
@@ -116,13 +122,14 @@ if(!$nobins) {				#-- Skip this step if no bins were requested
 	#-- CREATING CONTIG TABLE
 	
 print "done!\n  Creating contig table...";
+print syslogfile "  Creating contig table in $contigtable\n";
 open(outfile1,">$contigtable") || die "Can't open $contigtable for writing\n";
 
 	#-- Headers
 
 print outfile1 "#Created by $0, ",scalar localtime,"\n";
 print outfile1 "Contig ID\tTax\tDisparity\tGC perc\tLength\tNum genes\tBin ID";
-foreach my $countfile(keys %allsamples) { print outfile1 "\tCoverage $countfile\tRPKM $countfile\tTPM $countfile\tRaw read count $countfile"; }
+foreach my $countfile(keys %allsamples) { print outfile1 "\tCoverage $countfile\tTPM $countfile\tRaw read count $countfile"; }
 print outfile1 "\n";
 
 	#-- Contig data
@@ -163,10 +170,11 @@ foreach my $ctg(@sortedcontigs) {
 	#-- Output
 
 	printf outfile1 "$p\t$contig{$p}{tax}\t$contig{$p}{chimerism}\t%.2f\t$contig{$p}{len}\t$contig{$p}{numgenes}\t$binfield",$contig{$p}{gc}; 
-	foreach my $countfile(keys %allsamples) { printf outfile1 "\t%.3f\t%.3f\t%.3f\t%d",$contig{$p}{coverage}{$countfile},$contig{$p}{rpkm}{$countfile},$contig{$p}{tpm}{$countfile},$contig{$p}{raw}{$countfile}; }
+	foreach my $countfile(keys %allsamples) { printf outfile1 "\t%.3f\t%.3f\t%d",$contig{$p}{coverage}{$countfile},$contig{$p}{tpm}{$countfile},$contig{$p}{raw}{$countfile}; }
 	print outfile1 "\n";
 }
 close outfile1;
+close syslogfile;
 
 print "done!\n";
 print "============\nCONTIG TABLE CREATED: $contigtable\n============\n\n";
