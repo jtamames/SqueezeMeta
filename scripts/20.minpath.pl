@@ -141,7 +141,7 @@ sub metacyc {
 		       }
 		close outfile1; 
 		print "  Running MinPath for metacyc: $kbin         \r";
-		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
+		my $command="$minpath_soft -any $outec -map ec2path -report $tempdir/$kbin.metacyc.temp.report -details $tempdir/$kbin.metacyc.details  > /dev/null";
 		if($ff) { print outsyslog "Running MinPath for metacyc ($kbin): $command \n"; } else { print outsyslog "$kbin "; }
 		$ff=0;
 		my $ecode = system $command;
@@ -150,7 +150,7 @@ sub metacyc {
 			print "  This is normally due to a small bin having no annotations recognizable by MinPath.\n"
 			}
 
-		open(infile5,"$tempdir/$kbin.minpath.temp.report") || next;
+		open(infile5,"$tempdir/$kbin.metacyc.temp.report") || next;
 		my %accum=();
 		while(<infile5>) {
 			chomp;
@@ -203,7 +203,7 @@ sub kegg {
 			}
 		close outfile3;	
 		print "  Running MinPath for kegg: $kbin         \r";
-		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.minpath.temp.report -details $outdir/$kbin.kegg.details > /dev/null";
+		my $command="$minpath_soft -ko $outkegg -map ec2path -report $tempdir/$kbin.kegg.temp.report -details $tempdir/$kbin.kegg.details > /dev/null";
 		if($ff) { print outsyslog "Running MinPath for kegg ($kbin): $command \n"; } else { print outsyslog "$kbin "; }
 		$ff=0;
 		my $ecode = system $command;
@@ -211,7 +211,8 @@ sub kegg {
 			print "  WARNING: Error running command:    $command\n";
 			print "  This is normally due to a small bin having no annotations recognizable by MinPath.\n"
 			}
-		open(infile6,"$tempdir/$kbin.minpath.temp.report") || next;
+		open(infile6,"$tempdir/$kbin.kegg.temp.report") || next;
+		# print "Reading $tempdir/$kbin.kegg.temp.report\n";
 		my %accum=();
 		my $pathname;
 		while(<infile6>) {
@@ -227,7 +228,7 @@ sub kegg {
 			}
 		close infile6;	
 	
-		open(infile7,"$outdir/$kbin.kegg.details") || next;
+		open(infile7,"$tempdir/$kbin.kegg.details") || next;
 		while(<infile7>) {
 			chomp;
 			if($_=~/^path.*fam0 (\d+) fam-found (\d+) \# (.*)/) {
@@ -238,7 +239,7 @@ sub kegg {
 		close infile7;
 	
 	
-		open(outfile4,">$outdir/$kbin.kegg.pathways") || die "Can't open $outdir/$kbin.kegg.pathways for writing\n";
+		open(outfile4,">$tempdir/$kbin.kegg.pathways") || die "Can't open $outdir/$kbin.kegg.pathways for writing\n";
 		foreach my $konto(sort keys %accum) { 
 			print outfile4 "$konto\n"; 
 			$pathways{$kbin}{$konto}=1; 
