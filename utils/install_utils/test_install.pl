@@ -81,6 +81,7 @@ if(!$ecode) {
 	check_python_library("matplotlib");
 	check_python_library("dendropy");
 	check_python_library("pysam");
+	check_python_library("Bio.Seq");
 	check_python_library("pandas");
 	check_python_library("cython");
         check_python_library("future");
