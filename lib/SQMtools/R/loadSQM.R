@@ -215,11 +215,11 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     cat('    table...\n')                    # option to remove table from memory after getting abund & TPM?
     if(engine == 'data.frame')
         {
-        SQM$contigs$table         = read.table(sprintf('%s/results/20.%s.contigtable', project_path, project_name),
+        SQM$contigs$table         = read.table(sprintf('%s/results/19.%s.contigtable', project_path, project_name),
                                                header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
     } else if (engine == 'data.table')
         {
-        SQM$contigs$table         = data.table::fread(sprintf('%s/results/20.%s.contigtable', project_path, project_name), header=T, sep='\t')
+        SQM$contigs$table         = data.table::fread(sprintf('%s/results/19.%s.contigtable', project_path, project_name), header=T, sep='\t')
         }
     SQM$contigs$table             = generic.table(SQM$contigs$table)
     cat('    abundances...\n')
@@ -251,10 +251,10 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     SQM$contigs$tax               = SQM$contigs$tax[rownames(SQM$contigs$table),]
 
 					  
-    if(file.exists(sprintf('%s/results/19.%s.bintable', project_path, project_name)))
+    if(file.exists(sprintf('%s/results/18.%s.bintable', project_path, project_name)))
         {
         cat('    binning info...\n')
-        inBins                    = read.table(sprintf('%s/intermediate/19.%s.contigsinbins', project_path, project_name),
+        inBins                    = read.table(sprintf('%s/intermediate/18.%s.contigsinbins', project_path, project_name),
                                                header=T, sep='\t', quote='', comment.char='', skip=1, as.is=T)
         inBins                    = reshape2::dcast(inBins, X..Contig~Method, value.var="Bin.ID")
         rownames(inBins)          = inBins[,1]
@@ -268,14 +268,17 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         cat('Loading bins\n')
         cat('    table...\n')
         SQM$bins                  = list()
-        SQM$bins$table            = read.table(sprintf('%s/results/19.%s.bintable', project_path, project_name),
+        SQM$bins$table            = read.table(sprintf('%s/results/18.%s.bintable', project_path, project_name),
                                                header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
         cat('    abundances...\n')
         SQM$bins$tpm              = as.matrix(SQM$bins$table[,grepl('TPM', colnames(SQM$bins$table)),drop=F])
         colnames(SQM$bins$tpm)    = gsub('TPM ', '', colnames(SQM$bins$tpm), fixed=T)
         cat('    taxonomy...\n')
         SQM$bins$tax              = as.matrix(read.table(sprintf('%s/results/tables/%s.bin.tax.tsv', project_path, project_name),
-                                                         header=T, row.names=1, sep='\t'))
+							 header=T, row.names=1, sep='\t'))
+    } else
+        {
+	warning('    There are no binning results in your project. Skipping...')
 	}
     cat('Loading taxonomies\n')                                   
     SQM$taxa                      = list()
