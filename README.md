@@ -302,6 +302,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 * [MaxBin](https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html)
 * [MetaBAT](https://bitbucket.org/berkeleylab/metabat)
+* [CONCOCT](https://github.com/BinPro/CONCOCT)
 * [DAS tool](https://github.com/cmks/DAS_Tool)
 * [checkm](http://ecogenomics.github.io/CheckM)
 * [comparem](https://github.com/dparks1134/CompareM)

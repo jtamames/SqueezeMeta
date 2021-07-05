@@ -44,6 +44,7 @@ SqueezeMeta redistributes the following third-party software:
   - Work within the SQM directory structure
   - Add `-markerpath` as an additional command line argument
 * [MetaBAT](https://bitbucket.org/berkeleylab/metabat)
+* [CONCOCT](https://github.com/BinPro/CONCOCT)
 * [DAS tool](https://github.com/cmks/DAS_Tool)
   - Add extra logging, remove some superfluous error messages
   - Explicitly load `library(methods)` in DAS_Tool.R since Rscript does not load it on startup (even if R console does)

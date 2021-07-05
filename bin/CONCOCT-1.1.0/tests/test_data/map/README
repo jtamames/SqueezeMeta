@@ -1,0 +1,7 @@
+These reads were constructed for testing the gen_input_table script. 
+
+
+ten_reads.fa
+This file contains 10 reads per sequence, which are exact subsequences of the original sequences and 5 extra reads which should not be mapping to any of the original sequences.
+twenty_reads.fa
+This file contains 20 reads per sequence, which are exact subsequences of the original sequences and 5 extra reads which should not be mapping to any of the original sequences.

@@ -24,7 +24,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
+our($datapath,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
     $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
@@ -191,7 +191,7 @@ foreach my $thissample(keys %allsamples) {
 	#-- Transform to sorted bam
 	
 	if(0) {
-		my $ecode = system("LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$installpath/lib $installpath/bin/samtools sort $outsam -o $samdir/$projectname.$thissample.bam -@ $numthreads; rm $outsam");
+		my $ecode = system("$samtools_soft sort $outsam -o $samdir/$projectname.$thissample.bam -@ $numthreads; rm $outsam");
                 if($ecode!=0) { die "Error running samtools"; }
 	}
 

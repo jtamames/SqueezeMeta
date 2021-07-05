@@ -25,6 +25,7 @@ requirements:
     - matplotlib
     - dendropy
     - pysam
+    - biopython
     - perl=5.26
     - perl-tie-ixhash
     - perl-dbd-mysql

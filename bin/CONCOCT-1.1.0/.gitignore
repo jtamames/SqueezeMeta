@@ -1,0 +1,20 @@
+# Python byte comde #
+#####################
+*.pyc
+# VIM #
+*.swp
+# Emacs generated files #
+*~
+dist/*
+build/*
+c-concoct/build/*
+*.egg*
+c-concoct/dist/*
+c-concoct/vbgmm.c
+#ignore screen file
+.screenrc
+#ignore test folder
+tests/nose_tmp_output
+tests/test_data/integration_test_data
+#ignore doc builds
+doc/build/*

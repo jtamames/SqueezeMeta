@@ -1,0 +1,36 @@
+# Dockerfile to test conda install of CONCOCT (http://github.com/BinPro/CONCOCT)
+#
+# This docker creates and sets up an Ubuntu environment to test
+# the conda installation process
+# 
+# Run with command:
+# docker build . -f doc/dockerfile_develop
+
+FROM ubuntu:latest
+COPY . /opt/CONCOCT
+
+# Get basic ubuntu packages needed
+RUN apt-get update -qq
+RUN apt-get install -qq wget
+
+# Install conda
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh; \
+bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
+
+ENV PATH="/root/miniconda/bin:${PATH}"
+
+RUN conda config --add channels defaults
+RUN conda config --add channels bioconda
+RUN conda config --add channels conda-forge
+
+# Install python dependencies and fetch and install CONCOCT
+RUN conda create -n concoct_env python=3 concoct
+
+RUN cd /opt/CONCOCT;\
+    conda run -n concoct_env \
+    concoct -t 1 --composition_file tests/test_data/composition.fa \
+    --coverage_file tests/test_data/coverage -b test_out_t1; \
+    conda run -n concoct_env \ 
+    concoct -t 4 --composition_file tests/test_data/composition.fa \
+    --coverage_file tests/test_data/coverage -b test_out_t4;
+

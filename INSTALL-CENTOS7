@@ -21,7 +21,7 @@ sudo cpan Term::ANSIColor
 sudo yum -y install python3 python36-scipy
 sudo python3 -m pip install future cython
 sudo python3 -m pip install pandas
-sudo python3 -m pip install matplotlib dendropy pysam
+sudo python3 -m pip install matplotlib dendropy pysam biopython
 
 
 ### Install R.

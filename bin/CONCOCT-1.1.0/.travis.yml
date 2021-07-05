@@ -1,0 +1,31 @@
+language: python
+python:
+  - "2.7"
+  - "3.5"
+  # Since we are using system_site_packages, we are only able to use
+  # the default python versions, see:
+  # https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs
+# command to install dependencies
+virtualenv:
+  system_site_packages: true
+services:
+   - xvfb
+before_install:
+   - pip install --upgrade pip
+   - sudo apt-get update -qq
+   - sudo apt-get install -qq build-essential libgsl0-dev bedtools mummer samtools
+   - "export DISPLAY=:99.0"
+   - pip install -r requirements.txt
+   - wget https://github.com/BinPro/integration_test_data/archive/v1.0.tar.gz
+   - mkdir tests/test_data/integration_test_data
+   - tar -xvzf v1.0.tar.gz -C tests/test_data/integration_test_data --strip-components=1
+install:
+  - python setup.py install
+# command to run tests
+script: nosetests
+
+branches:
+  only:
+    - master
+    - travis_tryout
+    - develop
