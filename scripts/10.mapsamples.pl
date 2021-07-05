@@ -188,10 +188,10 @@ foreach my $thissample(keys %allsamples) {
 	print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
 	sqm_counter($thissample,$outsam,$totalreads,$gff_file);
 
-	#-- Transform to bam
+	#-- Transform to sorted bam
 	
 	if(0) {
-		my $ecode = system("LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$installpath/lib $installpath/bin/samtools view -b $outsam > $samdir/$projectname.$thissample.bam; rm $outsam");
+		my $ecode = system("LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$installpath/lib $installpath/bin/samtools sort $outsam -o $samdir/$projectname.$thissample.bam -@ $numthreads; rm $outsam");
                 if($ecode!=0) { die "Error running samtools"; }
 	}
 
