@@ -256,6 +256,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         cat('    binning info...\n')
         inBins                    = read.table(sprintf('%s/intermediate/18.%s.contigsinbins', project_path, project_name),
                                                header=T, sep='\t', quote='', comment.char='', skip=1, as.is=T)
+	if(max(table(inBins$X..Contig))>1) { warning('Some contigs are asigned to more than one bin, something went wrong...') }
         inBins                    = reshape2::dcast(inBins, X..Contig~Method, value.var="Bin.ID")
         rownames(inBins)          = inBins[,1]
         SQM$contigs$bins          = as.matrix(inBins[,-1,drop=F])

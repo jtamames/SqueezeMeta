@@ -15,6 +15,12 @@ requirements:
     - bioconductor-pathview
     - perl=5.26
     - perl-app-cpanminus
+    - libopenblas=*=*openmp*
+    - biopython
+    - numpy
+    - scipy
+    - scikit-learn
+    - cython
   run:
     - python=3.6
     - numpy
@@ -42,6 +48,7 @@ requirements:
     - r-data.table
     - bioconductor-pathview
     - tree
+    - libopenblas=*=*openmp*
 
 build:
   noarch: generic

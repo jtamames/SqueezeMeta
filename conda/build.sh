@@ -10,6 +10,7 @@ ln -s $SQM_DIR/utils/binning_utils/* .
 ln -s $SQM_DIR/utils/anvio_utils/* .
 R CMD INSTALL $SQM_DIR/bin/DAS_Tool/package/DASTool_*.tar.gz
 R CMD INSTALL $SQM_DIR/lib/SQMtools
+python3 $SQM_DIR/bin/CONCOCT-1.1.0/setup.py install
 cpanm Linux::MemInfo -L $PREFIX
 # Check that we won't break anything when manually moving libraries
 #if [ -d $PREFIX/lib/site_perl/5.26.2/ ]; then exit 1; fi # This would fail on purpose
