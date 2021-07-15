@@ -446,7 +446,7 @@ sub contigcov {
 		my $longt=$lencontig{$rc};
 		next if(!$longt);
 		my $coverage=$readcount{$rc}{lon}/$longt;
-		my $rpkm=($readcount{$rc}{reads}*1000000000)/(($longt/1000)*$totalreadcount); #-- Length of contig in Kbs
+		my $rpkm=($readcount{$rc}{reads}*1000000)/(($longt/1000)*$totalreadcount); #-- Length of contig in Kbs
 		my $tpm=$rp{$rc}/$accumrpk;
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
 		else { printf outfile4 "$rc\t%.2f\t%.1f\t%.1f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
