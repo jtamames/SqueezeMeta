@@ -36,19 +36,16 @@ my $scriptdir = "$installpath/scripts";
 my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
-open(inv,"$installpath/version.txt") || die;
-my $version=<inv>;
-chomp $version;
-close inv;
-
+my $version="1.3.0, Jun 2020";
 my $start_run = time();
 print BOLD "\nSQM_mapper v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 
 
 	#-- Configuration variables from conf file
 
-my($mappingfile,$fastqdir,$gff_file,$mapper,$outdir,$reference,$hel,$project,$numthreads,$funfile,$printversion);
+my($mappingfile,$fastqdir,$gff_file,$mapper,$outdir,$reference,$hel,$project,$numthreads,$funfile);
 my $verbose=0;
+my $fullmap=1;		#-- Creates a file with the mapping of all reads
 my $bowtie2_build_soft = "$installpath/bin/bowtie2/bowtie2-build";
 my $bowtie2_x_soft     = "$installpath/bin/bowtie2/bowtie2";
 my $bwa_soft           = "$installpath/bin/bwa";
@@ -69,9 +66,8 @@ Mandatory parameters:
  Options:
    -n|-name: Prefix name for the results (Default: sqm)
    -t: Number of threads (Default: 12)
-   -m: Mapper to be used (Bowtie, BWA) (Default: Bowtie)
+   -m: Mapper to be used (Bowtie, BWA, minimap2-ont, minimap2-pb, minimap2-sr) (Default: Bowtie)
    -fun: File containing functional annotations for the genes in the reference
-   -version: Print version
    -h: this help
 
 END_MESSAGE
@@ -85,12 +81,10 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "r|reference=s"  => \$reference,
 		     "n|name=s"  => \$project,
 		     "fun=s" => \$funfile,
-		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
 
-if($hel) { print "$helptext\n"; exit; }
-if($printversion) { exit; }
+if($hel) { print "$helptext\n"; die; }
 if(!$numthreads) { $numthreads=12; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$project) { $project="sqm"; }
@@ -98,6 +92,8 @@ if(!$reference) { die "Missing argument -r\n $helpshort\n"; }
 if(!$gff_file) { die "Missing argument -g\n $helpshort\n"; } 
 if(!$fastqdir) { die "Missing argument -f\n $helpshort\n"; } 
 if(!$outdir) { die "Missing argument -o\n $helpshort\n"; }
+$mapper=~tr/A-Z/a-z/;
+if(($mapper ne "bowtie") && ($mapper ne "bwa") && ($mapper ne "minimap2-ont") && ($mapper ne "minimap2-pb") && ($mapper ne "minimap2-sr")) { die "Unrecognized mapper $mapper. Valid options are Bowtie, BWA, minimap2-ont, minimap2-pb, minimap2-sr\n"; } 
 
 if(-e $outdir) { print "WARNING: Output directory $outdir already exists\n"; }
 else { system("mkdir $outdir"); }
@@ -155,6 +151,10 @@ elsif($mapper eq "bwa") {
                 system($bwa_command);
                 }
         }
+elsif($mapper=~/minimap/i) { 
+	print "  Mapping with Minimap2 (Li 2018, Bioinformatics 34(18), 3094-3100)\n"; 
+	print outsyslog "Read mapping against contigs was performed using Minimap2\n"; 
+	}
 
 	#-- Prepare output files
 
@@ -162,10 +162,17 @@ my $mappingstat="$outdir/$project.mappingstat";
 my $mapcountfile="$outdir/$project.mapcount";
 my $contigcov="$outdir/$project.contigcov";
 my $mapfunfile="$outdir/$project.mapcount.fun";
+my $fullmapfile="$outdir/$project.fullmap";
 
 open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
+if($fullmap) {
+	open(outfile2,">$fullmapfile") || die "Can't open fullmap file $fullmapfile for writing\n";	
+	print outfile2 "#-- Created by $0, ",scalar localtime,"\n";
+	print outfile2 "# Read\tGene\tBases\n";
+	}
+	
 open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
 print outfile3 "Gen\tTotal length\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
@@ -429,6 +436,8 @@ sub current_thread {
 		my $endread=$initread;
 		#-- Calculation of the length match end using CIGAR string
 
+		$cigar=~s/^\d+S//;
+		$cigar=~s/\d+S$//;
 		while($cigar=~/^(\d+)([IDMNSHPX])/) {
 			my $mod=$1;
 			my $type=$2;
@@ -437,6 +446,7 @@ sub current_thread {
 			$cigar=~s/^(\d+)([IDMNSHPX])//g;
 			}
 		# print "*$incontig*$init*$end\n";
+		
 		foreach my $initgen(sort { $a<=>$b; } keys %{ $genesincontigs{$incontig} }) {
 			my $basesingen;
 			last if($endread<$initgen);
@@ -445,13 +455,13 @@ sub current_thread {
 			if((($initread>=$initgen) && ($initread<=$endgen)) && (($endread>=$initgen) && ($endread<=$endgen))) {   #-- Read is fully contained in the gene
 				$basesingen=$endread-$initread;
 				if($verbose) { print "Read within gene: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
-				# print outfile2 "$readid\t$genname\t$basesingen\n";
+				if($fullmap) { print outfile2 "$readid\t$genname\t$basesingen\n"; }
 				$accum{$genname}{reads}++;
 				$accum{$genname}{bases}+=$basesingen;
 				}
 			elsif(($initread>=$initgen) && ($initread<=$endgen)) {   #-- Read starts within this gene
 				$basesingen=$endgen-$initread;
-				# print outfile2 "$readid\t$genname\t$basesingen\n";
+				if($fullmap) { print outfile2 "$readid\t$genname\t$basesingen\n"; }
 				if($verbose) {  print "Start of read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				$accum{$genname}{reads}++;
 				$accum{$genname}{bases}+=$basesingen;
@@ -459,14 +469,14 @@ sub current_thread {
  			elsif(($endread>=$initgen) && ($endread<=$endgen)) {   #-- Read ends within this gene
 				$basesingen=$endread-$initgen;
 				if($verbose) {  print "End of read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
-				# print outfile2 "$readid\t$genname\t$basesingen\n";
+				if($fullmap) { print outfile2 "$readid\t$genname\t$basesingen\n"; }
 				$accum{$genname}{bases}+=$basesingen;
 				$accum{$genname}{reads}++;
 				}
 			elsif(($initread<=$initgen) && ($endread>=$endgen)) {  #-- Gen is fully contained in the read
 				if($verbose) {  print "Gene within read: $readid $initread-$endread $incontig $initgen-$endgen $basesingen\n"; }
 				$basesingen=$endgen-$initgen;
-				# print outfile2 "$readid\t$genname\t$basesingen\n";
+				if($fullmap) { print outfile2 "$readid\t$genname\t$basesingen\n"; }
 				$accum{$genname}{reads}++;
 				$accum{$genname}{bases}+=$basesingen;
 				}
