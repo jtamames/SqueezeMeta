@@ -15,18 +15,33 @@ requirements:
     - bioconductor-pathview
     - perl=5.26
     - perl-app-cpanminus
-    - libopenblas=*=*openmp*
-    - biopython
+    - python=3.6
+    - setuptools
+    - cython >=0.19.1
     - numpy
-    - scipy
-    - scikit-learn
-    - cython
+    - scipy >=0.12.0
+    - pandas >=0.11.0
+    - biopython >=1.62b
+    - scikit-learn >=0.18.0
+    - nose >=1.3.0
+    - gsl
+    - openmp
+    - samtools
+    - blas=*=mkl # To avoid openmp
   run:
     - python=3.6
-    - numpy
-    - scipy
-    - pandas
-    - cython
+    - setuptools
+    - cython >=0.19.1
+    - {{ pin_compatible('numpy') }}
+    - scipy >=0.12.0
+    - pandas >=0.11.0
+    - biopython >=1.62b
+    - scikit-learn >=0.18.0
+    - nose >=1.3.0
+    - gsl
+    - openmp
+    - samtools
+    - blas=*=mkl # To avoid openblas which causes trouble with CONCOCT
     - future
     - matplotlib
     - dendropy
@@ -48,7 +63,6 @@ requirements:
     - r-data.table
     - bioconductor-pathview
     - tree
-    - libopenblas=*=*openmp*
 
 build:
   noarch: generic

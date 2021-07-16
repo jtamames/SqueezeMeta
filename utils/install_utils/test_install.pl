@@ -83,6 +83,8 @@ if(!$ecode) {
 	check_python_library("pysam");
 	check_python_library("Bio.Seq");
 	check_python_library("pandas");
+	check_python_library("sklearn");
+	check_python_library("nose");
 	check_python_library("cython");
         check_python_library("future");
 	#check_python_library("madeToFail");
