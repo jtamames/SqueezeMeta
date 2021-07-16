@@ -10,6 +10,7 @@ require(reshape2)
 #' @param label_fill character Label for color scale (default \code{"Abundance"}).
 #' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
 #' @param base_size numeric. Base font size (default \code{11}).
+#' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return A ggplot2 plot object.
 #' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the top functional categories of a SQM object; \code{\link[plotBars]{plotBars}} for plotting a barplot with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 #' @examples
@@ -18,7 +19,7 @@ require(reshape2)
 #' topPFAM = topPFAM[rownames(topPFAM) != "Unclassified",] # Take out the Unclassified ORFs.
 #' plotHeatmap(topPFAM, label_x = "Samples", label_y = "PFAMs", label_fill = "TPM")
 #' @export
-plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fill = 'Abundance', gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
+plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fill = 'Abundance', gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
     if(length(gradient_col) < 2)
@@ -32,6 +33,12 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
     data_melt$sample = as.factor(data_melt$sample)
     data_melt$item = as.factor(data_melt$item)
     data_melt$abun = as.numeric(data_melt$abun)
+    if (!is.null(metadata_groups))
+    	{
+            if(sum(sapply(metadata_groups, length)) != length(unique(data_melt$sample)))
+                {stop('metadata_groups must contain the same samples that data')}
+        data_melt$group = apply(data_melt, 1, function(s) unlist(lapply(names(metadata_groups), function(x) if( s['sample'] %in% metadata_groups[[x]]){x})))
+    	}
     #PLOT DATA
     if(is.null(label_x)) { label_x = '' }
     if(is.null(label_y)) { label_y = '' }
@@ -49,6 +56,15 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
     p = p + ggplot2::theme_light(base_size = base_size)
     p = p + ggplot2::theme(axis.title.x = theme_x, axis.title.y = theme_y)
     p = p + ggplot2::labs(x = label_x, y = label_y, fill = label_fill)
+    if (!is.null(metadata_groups))
+    	{
+        p = p + ggplot2::facet_grid(.~group, scale = 'free')
+    	}	
+
+    if (length(unique(data_melt$sample)) > 10)
+    	{
+        p = p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
+    	}
     return(p)
     }
 
@@ -64,6 +80,7 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
 #' @param color Vector with custom colors for the different features. If empty, the default ggplot2 palette will be used (default \code{NULL}).
 #' @param base_size numeric. Base font size (default \code{11}).
 #' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
+#' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotHeatmap}} for plotting a heatmap with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 #' @examples
@@ -71,7 +88,7 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
 #' sk = Hadza$taxa$superkingdom$abund
 #' plotBars(sk, label_y = "Raw reads", label_fill = "Superkingdom")
 #' @export
-plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fill = 'Features', color = NULL, base_size = 11, max_scale_value = NULL)
+plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fill = 'Features', color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
     if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
@@ -81,6 +98,14 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
     data_melt$sample = as.factor(data_melt$sample)
     data_melt$item = as.factor(data_melt$item)
     data_melt$abun = as.numeric(data_melt$abun)
+    
+     if (!is.null(metadata_groups)) 
+    	{
+	    if(sum(sapply(metadata_groups, length)) != length(unique(data_melt$sample)))
+	        {stop('metadata_groups must contain the same samples that data')}	    
+        data_melt$group = apply(data_melt, 1, function(s) unlist(lapply(names(metadata_groups), function(x) if( s['sample'] %in% metadata_groups[[x]]){x})))
+    	}
+	
     #PLOT DATA
     p = ggplot2::ggplot(data_melt, ggplot2::aes(x = sample, y = abun, fill = item))
     p = p + ggplot2::geom_col()
@@ -112,6 +137,15 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
         {
         p = p + ggplot2::ylim(0, max_scale_value)
         }
+    if (!is.null(metadata_groups))
+     	{
+        p = p + ggplot2::facet_grid(.~group, scale = 'free')
+    	}
+
+    if (length(unique(data_melt$sample)) > 10)
+    	{
+        p = p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
+    	}	
     return(p)
     }
 
@@ -130,13 +164,14 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' @param ignore_unclassified logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).
 #' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
 #' @param base_size numeric. Base font size (default \code{11}).
+#' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
-plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unmapped = T, ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11)
+plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unmapped = T, ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!fun_level %in% names(SQM$functions))
@@ -237,9 +272,13 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 
     # If requested, plot only the selected samples
     if(!is.null(samples)) { data = data[,samples,drop=F] }
-
+    if (!is.null(metadata_groups))
+        {
+            if(sum(sapply(metadata_groups, length)) != ncol(data))
+               {stop('metadata_groups must contain the same samples that your SQM object. If you want to select some samples, you can use the flag samples and a metadata_groups list that includes all the selected samples')}
+        }
     # Plot
-    p = plotHeatmap(data, label_y = fun_level, label_fill = nice_label, gradient_col = gradient_col, base_size = base_size)
+    p = plotHeatmap(data, label_y = fun_level, label_fill = nice_label, gradient_col = gradient_col, base_size = base_size, metadata_groups = metadata_groups)
     return(p)
     }  
 
@@ -271,7 +310,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, "family")
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, nocds = 'treat_separately', ignore_unmapped = F, ignore_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, nocds = 'treat_separately', ignore_unmapped = F, ignore_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
@@ -432,10 +471,14 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 
     # If requested, plot only the selected samples
     if(!is.null(samples)) { data = data[,samples,drop=F] }
-
+    if (!is.null(metadata_groups))
+        {
+            if(sum(sapply(metadata_groups, length)) != ncol(data))
+               {stop('metadata_groups must contain the same samples that your SQM object. If you want to select some samples, you can use the flag samples and a metadata_groups list that includes all the selected samples')}
+        }
     # Plot
     nice_label = c(abund='Raw abundance', percent='Percentage')[count]
     nice_rank  = paste0(toupper(substr(rank,1,1)), substr(rank,2,nchar(rank)))
-    p = plotBars(data, label_y = nice_label, color = color, label_fill = nice_rank, base_size = base_size, max_scale_value = max_scale_value)
+    p = plotBars(data, label_y = nice_label, color = color, label_fill = nice_rank, base_size = base_size, max_scale_value = max_scale_value, metadata_groups = metadata_groups)
     return(p)
     }
