@@ -134,6 +134,13 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         }
 
     project_name = tail(unlist(strsplit(project_path, split='/')), 1)
+
+    ### Check whether this project was created with an old version of SQM
+    if(file.exists(sprintf('%s/results/20.%s.contigtable', project_path, project_name)))
+        {
+        stop("Your project was created with an older version of SqueezeMeta. Running utils/versionchange.pl might fix this.")
+	}
+
     ### Check whether we need to create the projectdir/results/tables directory.
     if(!file.exists(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode, project_name)))
         {

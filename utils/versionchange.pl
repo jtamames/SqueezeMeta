@@ -11,6 +11,24 @@ use File::Basename;
 
 $|=1;
 
+###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
+use File::Basename;
+use Cwd 'abs_path';
+
+our $scriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $scriptdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$scriptdir/..");
+###
+
 my $pwd=cwd();
 my $projectpath=$ARGV[0];
 if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
@@ -18,8 +36,9 @@ if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_con
 do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
+my $basedir="$projectpath/..";
 
-our($installpath,$version,$resultpath,$basedir,$interdir,$bintable,$bintax,$bincov,$contigsinbins,$contigtable,$basedir,$mode,$scriptdir,%bindirs);
+our($version,$resultpath,$basedir,$interdir,$bintable,$bintax,$bincov,$contigsinbins,$contigtable,$mode,$scriptdir,%bindirs);
 if(!$version) { $version="Unknown older version"; }
 open(infile1,"$installpath/version.txt") || warn "Cannot find version number in $installpath/version.txt\n";
 my $thisversion=<infile1>;
@@ -98,9 +117,9 @@ if($version ne $thisversion) {
 
 
 		print "  Now changing file SqueezeMeta_conf.pl\n";
-		system("mv $basedir/$projectname/SqueezeMeta_conf.pl $basedir/$projectname/SqueezeMeta_conf.pl.old");
-		open(outfile1,">$basedir/$projectname/SqueezeMeta_conf.pl") || die;
-		open(infile1,"$scriptdir/SqueezeMeta_conf.pl") || die "Cannot open model $scriptdir/SqueezeMeta_conf.pl\n";
+		system("mv $projectpath/SqueezeMeta_conf.pl $projectpath/SqueezeMeta_conf.pl.old");
+		open(outfile1,">$projectpath/SqueezeMeta_conf.pl") || die;
+		open(infile1,"$projectpath/SqueezeMeta_conf.pl.old") || die "Cannot open model $projectpath/SqueezeMeta_conf.pl.old\n";
 		print outfile1 "\$version = \"$thisversion\";\n";
 		print outfile1 "\$mode = \"$mode\";\n\n";
 		print outfile1 "\$installpath = \"$installpath\";\n";
