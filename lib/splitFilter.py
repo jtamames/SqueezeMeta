@@ -378,9 +378,9 @@ class SplitFilter():
         elif op == 'NOT IN':
             return tSubject not in tValue
         elif op == 'CONTAINS':
-            return tSubject in tValue
+            return tValue in tSubject
         elif op == 'DOES NOT CONTAIN':
-            return tSubject not in tValue
+            return tValue not in tSubject
         elif op == '>':
             return tSubject > tValue
         elif op == '>=':
@@ -392,5 +392,60 @@ class SplitFilter():
         else:
             raise Exception('Unrecognized operation "{}"'.format(op))
 
-            
+
+
+class DictFilter(SplitFilter):
+    def __init__(self, read_tax, read_fun, fun_info, tax_source):
+        self.read_tax = read_tax[tax_source]
+        self.read_fun = read_fun
+        self.fun_info = fun_info
+        self.ALL_KEYWORDS = self.TAX_KEYWORDS + self.FUN_KEYWORDS
+
+
+    def run(self, query):
+        tree = self.parse_query(query)
+        goodReads = self._run_node(tree)
+        return goodReads
+
+
+    def runTax(self, op, subject, value):
+        assert op not in ('>', '<', '>=', '<=')
+        taxIdx = {rank: i for i, rank in enumerate(self.TAX_KEYWORDS)}
+        goodTax = set()
+        for read, tax in self.read_tax.items():
+            tax = tax[taxIdx[subject]].split(';')[-1].split('_', 1)[1] # get rid of "k_" in "k_Bacteria"
+            if self.evaluate(op, tax, value):
+                goodTax.add(read)
+        return goodTax
+
+
+    def runFun(self, op, subject, value):
+        assert op in ('==', '!=', 'IN', 'NOT IN', 'CONTAINS', 'DOES NOT CONTAIN')
+        goodFun = set()
+        hmethods = {'kegg', 'cogs'}
+        for method in self.read_fun:
+            if subject == 'FUNH' and method not in hmethods:
+                continue
+            for read, funs in self.read_fun[method].items():
+                for fun_id in funs:
+                    # Get info
+                    if method in hmethods:
+                        if fun_id in self.fun_info[method]: 
+                            fun_name, fun_h = self.fun_info[method][fun_id]
+                        else:
+                            fun_name, fun_h = None, None
+                    else:
+                        fun_name = self.fun_info[fun_id] if fun_id in self.fun_info[method] else None
+                    # Select relevant info
+                    if subject == 'FUN':
+                        info = (fun_id, fun_name) if fun_name else (fun_id,)
+                    elif subject == 'FUNH':
+                        info = (fun_h,) if fun_h else tuple()
+                    # Filter
+                    for i in info:
+                        if self.evaluate(op, i, value):
+                            goodFun.add(read)
+        return goodFun
+                   
+
             

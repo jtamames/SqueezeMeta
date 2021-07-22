@@ -302,7 +302,7 @@ def parse_args():
     parser.add_argument('-p', '--profile-db', type=str, required=True, help='Anvi\'o profile database')
     parser.add_argument('-c', '--contigs-db', type=str, required=True, help='Anvi\'o contigs database')
     parser.add_argument('-t', '--taxonomy', type=str, required = True, help='SqueezeMeta contigs taxonomy')
-    parser.add_argument('-q', '--query', type=str, required=True, nargs='+')
+    parser.add_argument('-q', '--query', type=str, required=True, nargs='+', 'Query to filter the results')
     parser.add_argument('-o', '--output-dir', type=str, default='filteredDB', help='Output directory')
     parser.add_argument('-m', '--max-splits', type=int, default=25000, help='Maximum number of splits to visualize')
     parser.add_argument('--enforce-clustering', action='store_true', help='Hierarchically cluster splits based on abundances and composition')
