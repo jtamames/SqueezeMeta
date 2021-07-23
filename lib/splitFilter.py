@@ -395,10 +395,12 @@ class SplitFilter():
 
 
 class DictFilter(SplitFilter):
-    def __init__(self, read_tax, read_fun, fun_info, tax_source):
+    def __init__(self, read_tax, tax_source, read_fun, fun_info, tax2fun, fun2tax):
         self.read_tax = read_tax[tax_source]
         self.read_fun = read_fun
         self.fun_info = fun_info
+        self.tax2fun  = tax2fun
+        self.fun2tax  = fun2tax
         self.ALL_KEYWORDS = self.TAX_KEYWORDS + self.FUN_KEYWORDS
 
 
@@ -416,6 +418,7 @@ class DictFilter(SplitFilter):
             tax = tax[taxIdx[subject]].split(';')[-1].split('_', 1)[1] # get rid of "k_" in "k_Bacteria"
             if self.evaluate(op, tax, value):
                 goodTax.add(read)
+                goodTax.update(self.tax2fun[read])
         return goodTax
 
 
@@ -445,6 +448,7 @@ class DictFilter(SplitFilter):
                     for i in info:
                         if self.evaluate(op, i, value):
                             goodFun.add(read)
+                            goodFun.add(self.fun2tax[read])
         return goodFun
                    
 

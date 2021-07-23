@@ -98,7 +98,6 @@ def main(args):
     project_name = args.project_path.strip('/').split('/')[-1]
     output_prefix = project_name #args.output_dir.strip('/').split('/')[-1]
     samples = defaultdict(int)
-    foo = set()
     with open('{}/{}.out.mappingstat'.format(args.project_path, project_name)) as infile:
         for line in infile:
             if line.startswith('#'):
@@ -173,6 +172,7 @@ def main(args):
                 out_dict[read] = tax_wranks
     
     # Go anti go!
+    filterOK = []
     for sample in samples:
 
         read_tax = {'nofilter': {}, 'allfilter': {}, 'prokfilter': {}}
@@ -233,11 +233,7 @@ def main(args):
                         read_fun[method][read] = funs
                         fun_reads.add(read)
 
-        # Tax to fun equivalence (needed bc in longreads tax and fun reads have different names
-        if not longreads:
-            tax2fun = {read: [read] for read in tax_reads | fun_reads}
-            fun2tax = {read: read   for read in tax_reads | fun_reads}
-        else:
+        if longreads:
             # Get all fun reads even if they are not annotated
             with open('{}/{}.out.allreads'.format(args.project_path, project_name)) as infile:
                 infile.readline()
@@ -264,22 +260,25 @@ def main(args):
 
         # Select reads.
         if args.query:
-            sfilter = DictFilter(read_tax, read_fun, fun_info, 'prokfilter')
+            sfilter = DictFilter(read_tax, 'prokfilter', read_fun, fun_info, tax2fun, fun2tax)
             print('- Query tree is:')
             sfilter.print_tree(args.query)
-            gr = sfilter.run(args.query)
+            gr = sfilter.run(args.query) # here we also take care of fun-tax names equivalence if working with longreads
             good_tax_reads = set()
             good_fun_reads = set()
             for read in gr:
-                if read in fun_reads:
-                    good_tax_reads.add(fun2tax[read])
-                    good_fun_reads.add(read)
-                elif read in tax_reads:
+                if read in tax_reads:
                     good_tax_reads.add(read)
-                    good_fun_reads.update(tax2fun[read])
+                elif read in fun_reads:
+                    good_fun_reads.add(read)
+            if gr:
+                filterOK.append(True)
+            else:
+                filterOK.append(False)
         else:
             good_tax_reads = tax_reads
             good_fun_reads = fun_reads
+            filterOK.append(True)
 
         # Aggregate counts from the same taxa. 
         for filt in TAXFILTERS:
@@ -312,6 +311,10 @@ def main(args):
                 else:
                     pass # we already counted all reads
 
+    ### Test whether we got something
+    if not any(filterOK):
+        print('\nYour query generated no positive results\n')
+        exit(0)
 
     ### Write tax results.
     for filt in TAXFILTERS:
