@@ -231,7 +231,7 @@ sub query {
 				$accumnofilter{$rank}{$tax}++; 		#-- Not considering identity filters for ranks
 				}
 			#if(($list[8]) && ($giden{$list[0]}>=$idenrank{'superkingdom'})) { $validhits++;  }			#-- Count the number of valid hits
-			if(($list[2])) { 
+			if(($list[0])) { 
 				$validhitsnofilter++; 
 				if($giden{$list[0]}>=$idenrank{'superkingdom'}) { $validhits++; }		#-- Count the number of valid hits 
 				}			
