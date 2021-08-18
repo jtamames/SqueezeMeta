@@ -56,7 +56,7 @@ open(syslogfile,">>$syslogfile");
 
 #-- Split Diamond file
 
-splitfiles($numthreads);
+$numthreads=splitfiles($numthreads);	#-- For setting number of threads equal to number of files, in case $numfile<$numthreads
 
 #-- Launch threads
 
@@ -113,10 +113,12 @@ sub splitfiles {
                         open(outfiletemp,">$tempdir/diamond_collapse.$numfile.m8");
                         print outfiletemp $_;
                         $nextp+=$splitlines;
+			if($nextp<=$filelines) { $nextp=$filelines+1; }
                         }
                 else { print outfiletemp $_; }
                 }
         close infile2;
+	return $numfile;	#-- For setting number of threads equal to number of files, in case $numfile<$numthreads
         }
 
 
