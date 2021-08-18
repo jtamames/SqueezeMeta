@@ -1,5 +1,24 @@
 #!/usr/bin/env python3
 
+"""
+Part of the SqueezeMeta distribution. 10/05/2021.
+    (c) Fernando Puente-Sánchez, 2019-2020, CNB-CSIC / 2021 SLU.
+
+Generate tabular outputs from SqueezeMeta results.
+
+USAGE: sqm2tables.py [-h] project_path output_dir
+                     [--trusted-functions] [--ignore-unclassified]
+                     [--sqm2anvio] [--force-overwrite]
+
+OPTIONS:
+    --trusted-functions: Include only ORFs with highly trusted KEGG and
+        COG assignments in aggregated functional tables
+    --ignore-unclassified: Ignore reads without assigned functions in
+        TPM calculation
+    --sqm2anvio: Write the required files for sqm2anvio
+    --force-overwrite: Write results even if the output directory
+        already exists
+"""
 
 from os.path import abspath, dirname, realpath
 from os import mkdir, listdir
@@ -99,19 +118,6 @@ def main(args):
 
     ### Taxonomy.
     fun_prefix = perlVars['$fun3tax_blastx'] if doublepass else perlVars['$fun3tax']
-<<<<<<< HEAD
-    orf_tax, orf_tax_wranks = parse_tax_table(fun_prefix + '.wranks')
-    orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.noidfilter.wranks')
-
-    contig_abunds, _, _ = parse_contig_table(perlVars['$contigtable'])
-    contig_tax, contig_tax_wranks = parse_contig_tax(perlVars['$interdir'] + '/09.' + perlVars['$projectname'] + '.contiglog')
-    contig_tax_nofilter, contig_tax_nofilter_wranks = parse_contig_tax(perlVars['$interdir'] + '/09.' + perlVars['$projectname'] + '.contiglog.noidfilter')
-    
-    # Add ORFs/contigs not present in the input tax file.
-    
-    def add_features(abunds, tax, tax_wranks, tax_nofilter, tax_nofilter_wranks):
-        unclass_list, unclass_list_wranks = parse_tax_string('n_Unclassified')
-=======
     orf_tax, orf_tax_wranks = parse_tax_table(fun_prefix + '.wranks', noCDS = noCDSorfs)
     orf_tax_nofilter, orf_tax_nofilter_wranks = parse_tax_table(fun_prefix + '.noidfilter.wranks', noCDS = noCDSorfs)
 
@@ -122,31 +128,22 @@ def main(args):
     # Add ORFs/contigs not present in the input tax file.
     
     def add_features(abunds, tax, tax_wranks, tax_nofilter, tax_nofilter_wranks, noCDS):
->>>>>>> d2959e1bf20f845325100940d4f5f3d06bf9ade8
         for feat in abunds:
             if feat not in tax:
                 assert feat not in tax_wranks
                 assert feat not in tax_nofilter
                 assert feat not in tax_nofilter_wranks
-<<<<<<< HEAD
-=======
                 if feat in noCDS:
                     unclass_list, unclass_list_wranks = parse_tax_string('n_No CDS', emptyClassString = 'No CDS')
                 else:
                     unclass_list, unclass_list_wranks = parse_tax_string('n_Unclassified', emptyClassString = 'Unclassified')
->>>>>>> d2959e1bf20f845325100940d4f5f3d06bf9ade8
                 tax[feat] = unclass_list
                 tax_wranks[feat] = unclass_list_wranks
                 tax_nofilter[feat] = unclass_list
                 tax_nofilter_wranks[feat] = unclass_list_wranks
 
-<<<<<<< HEAD
-    add_features(orfs['abundances'], orf_tax, orf_tax_wranks, orf_tax_nofilter, orf_tax_nofilter_wranks)
-    add_features(contig_abunds, contig_tax, contig_tax_wranks, contig_tax_nofilter, contig_tax_nofilter_wranks)
-=======
     add_features(orfs['abundances'], orf_tax, orf_tax_wranks, orf_tax_nofilter, orf_tax_nofilter_wranks, noCDSorfs)
     add_features(contig_abunds, contig_tax, contig_tax_wranks, contig_tax_nofilter, contig_tax_nofilter_wranks, noCDScontigs)
->>>>>>> d2959e1bf20f845325100940d4f5f3d06bf9ade8
     
     orf_tax_prokfilter, orf_tax_prokfilter_wranks = {}, {}
     contig_tax_prokfilter, contig_tax_prokfilter_wranks = {}, {}
@@ -205,11 +202,7 @@ def main(args):
 
 
 def parse_args():
-<<<<<<< HEAD
-    parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sanchez (CNB) 2019\n')
-=======
     parser = argparse.ArgumentParser(description='Aggregate SqueezeMeta results into tables', epilog='Fernando Puente-Sánchez (CNB-SLU) 2021\n')
->>>>>>> d2959e1bf20f845325100940d4f5f3d06bf9ade8
     parser.add_argument('project_path', type=str, help='Base path of the SqueezeMeta project')
     parser.add_argument('output_dir', type=str, help='Output directory')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
