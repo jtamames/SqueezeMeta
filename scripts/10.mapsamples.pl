@@ -150,7 +150,7 @@ foreach my $thissample(keys %allsamples) {
 		#-- Support for single reads
        		if(!$mapper || ($mapper eq "bowtie")) {
            		if($formatseq eq "fasta") { $formatoption="-f"; }
-    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam $mapping_options"; }
+    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --very-sensitive-local --quiet -p $numthreads -S $outsam $mapping_options"; }
 	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --quiet -p $numthreads -S $outsam $mapping_options"; } }
         	elsif($mapper eq "bwa") {
             		#Apparently bwa works seamlesly with fasta files as input.
