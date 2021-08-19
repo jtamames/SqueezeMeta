@@ -162,13 +162,17 @@ def main(args):
         with open(path) as infile:
             for line in infile:
                 fields = line.strip().split('\t')
-                # .replace('_nofilter') so that reads from allfilter and nofilter have the same name, but reads from fwd and rev don't.
-                read = 'FILE={}|READ={}'.format(path.rsplit('.', 2)[0], fields[0]) # store the path + name of the original file without suffixes
+                if not longreads:
+                     read = 'FILE={}|READ={}'.format(path.rsplit('.', 2)[0], fields[0]) # store the path + name of the original file without suffixes
+                                                                                        # so standard and nofilter look the same, but fwd and rev don't
+                else:
+                     read = fields[0]
                 if not longreads:
                     tax_string = fields[1] if len(fields) > 1 else 'n_Unclassified'
                 else:
                     tax_string = fields[1] if fields[1] else 'n_Unclassified'
                 tax, tax_wranks = parse_tax_string(tax_string)
+                assert read not in out_dict
                 out_dict[read] = tax_wranks
     
     # Go anti go!
@@ -195,7 +199,6 @@ def main(args):
         for tax_file in allfilter_tax_files:
             path = '{}/{}/{}'.format(args.project_path, sample, tax_file)
             tax_file_to_dict(path, read_tax['allfilter'])
-
         assert read_tax['nofilter'].keys() == read_tax['allfilter'].keys()
 
         # Generate taxonomy with filters only for prokaryotes.
@@ -204,11 +207,6 @@ def main(args):
                 read_tax['prokfilter'][read] = read_tax['allfilter'][read]
             else:
                 read_tax['prokfilter'][read] = read_tax['nofilter'][read]
-
-        # Simplify read names.
-        #read_tax['nofilter'  ] = {read.split('READ=')[1]: tax for read, tax in read_tax['nofilter'  ].items()}
-        #read_tax['allfilter' ] = {read.split('READ=')[1]: tax for read, tax in read_tax['allfilter' ].items()}
-        #read_tax['prokfilter'] = {read.split('READ=')[1]: tax for read, tax in read_tax['prokfilter'].items()}
 
         for read in read_tax['prokfilter']:
             tax_reads.add(read)       
@@ -228,13 +226,15 @@ def main(args):
                         fields = line.strip().split('\t')
                         while len(fields) < 3:
                             fields.append('Unclassified')
-                        read = 'FILE={}|READ={}'.format(path.rsplit('.', 1)[0], fields[0]) ## store the path + name of the original file (without the .kegg .cogs... suffixes)
+                        if not longreads:
+                            read = 'FILE={}|READ={}'.format(path.rsplit('.', 1)[0], fields[0]) ## store the path + name of the original file (without the .kegg .cogs... suffixes)
+                        else:
+                            read = fields[0]
                         funs = fields[2] if args.trusted_functions else fields[1]
                         funs = funs.split(';')
                         assert read not in read_fun[method]
                         read_fun[method][read] = funs
                         fun_reads.add(read)
-
         if longreads:
             # Get all fun reads even if they are not annotated
             with open('{}/{}.out.allreads'.format(args.project_path, project_name)) as infile:
@@ -245,7 +245,7 @@ def main(args):
                     if s == sample:
                         if s not in fun_reads:
                             fun_reads.add(read) # With this, fun_reads has ALL the reads/ORFs
-        
+
         # Propagate unclassified funs
         for read in fun_reads:
             for method in FUNMETHODS:
@@ -264,7 +264,6 @@ def main(args):
                     if read not in read_fun[method]:
                        read_fun[method][read] = ['Unclassified']
                        fun_reads.add(read)
-
 
         # Tax_fun name equivalence (for longreads)
         tax2fun = defaultdict(list)
