@@ -173,9 +173,11 @@ class SplitFilter():
             Parse a string consisting a single relational expression into a tuple of the form (operation, subject, value)
             """
             if expr:
-                temp_expr = expr.replace(' NOT IN ', ' $not in$ ').replace(' CONTAINS ', ' $contains$ ').replace(' DOES NOT CONTAIN ', ' $does not contain$ ')  # Hack since "IN" is itself a substring of "CONTAINS",
-                                                                                                                                                                #  "NOT IN" and "DOES NOT CONTAIN"
-                temp_relOps = [op.replace('NOT IN', '$not in$').replace('CONTAINS', '$contains$').replace('DOES NOT CONTAIN', '$does not contain$') for op in self.RELATIONAL_OPERATORS] # Keep hacking
+                temp_expr = expr.replace(' NOT IN ', ' $not in$ ').replace(' CONTAINS ', ' $contains$ ').replace(' DOES NOT CONTAIN ', ' $does not contain$ ').replace(' IN ', ' $in$ ')
+                # Hack since "IN" is itself a substring of "CONTAINS", "SUPERKINGDOM",
+                #  "NOT IN" and "DOES NOT CONTAIN"
+                temp_relOps = [op.replace('NOT IN', '$not in$').replace('CONTAINS', '$contains$').replace('DOES NOT CONTAIN', '$does not contain$').replace('IN', '$in$')
+                               for op in self.RELATIONAL_OPERATORS] # Keep hacking
                 ops = [op.replace('$','').upper() for op in temp_relOps if op in temp_expr] # Finish hacking
                 if len(ops) != 1:
                     raise Exception('Either none or more than one relational operators in expression "{}"'.format(expr))
@@ -438,7 +440,7 @@ class DictFilter(SplitFilter):
                         else:
                             fun_name, fun_h = None, None
                     else:
-                        fun_name = self.fun_info[fun_id] if fun_id in self.fun_info[method] else None
+                        fun_name = self.fun_info[method][fun_id] if fun_id in self.fun_info[method] else None
                     # Select relevant info
                     if subject == 'FUN':
                         info = (fun_id, fun_name) if fun_name else (fun_id,)

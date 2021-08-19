@@ -163,7 +163,7 @@ def main(args):
             for line in infile:
                 fields = line.strip().split('\t')
                 # .replace('_nofilter') so that reads from allfilter and nofilter have the same name, but reads from fwd and rev don't.
-                read = 'FILE={}|READ={}'.format(path.replace('_nofilter', ''), fields[0])
+                read = 'FILE={}|READ={}'.format(path.rsplit('.', 2)[0], fields[0]) # store the path + name of the original file without suffixes
                 if not longreads:
                     tax_string = fields[1] if len(fields) > 1 else 'n_Unclassified'
                 else:
@@ -205,10 +205,10 @@ def main(args):
             else:
                 read_tax['prokfilter'][read] = read_tax['nofilter'][read]
 
-        # Simplify read names.     
-        read_tax['nofilter'  ] = {read.split('READ=')[1]: tax for read, tax in read_tax['nofilter'  ].items()}
-        read_tax['allfilter' ] = {read.split('READ=')[1]: tax for read, tax in read_tax['allfilter' ].items()}
-        read_tax['prokfilter'] = {read.split('READ=')[1]: tax for read, tax in read_tax['prokfilter'].items()}
+        # Simplify read names.
+        #read_tax['nofilter'  ] = {read.split('READ=')[1]: tax for read, tax in read_tax['nofilter'  ].items()}
+        #read_tax['allfilter' ] = {read.split('READ=')[1]: tax for read, tax in read_tax['allfilter' ].items()}
+        #read_tax['prokfilter'] = {read.split('READ=')[1]: tax for read, tax in read_tax['prokfilter'].items()}
 
         for read in read_tax['prokfilter']:
             tax_reads.add(read)       
@@ -220,16 +220,18 @@ def main(args):
         for method in FUNMETHODS:
             fun_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith(method)]
             for fun_file in fun_files:
-                with open('{}/{}/{}'.format(args.project_path, sample, fun_file)) as infile:
+                path = '{}/{}/{}'.format(args.project_path, sample, fun_file)
+                with open(path) as infile:
                     infile.readline()
                     infile.readline()
                     for line in infile:
                         fields = line.strip().split('\t')
                         while len(fields) < 3:
                             fields.append('Unclassified')
-                        read = fields[0]
+                        read = 'FILE={}|READ={}'.format(path.rsplit('.', 1)[0], fields[0]) ## store the path + name of the original file (without the .kegg .cogs... suffixes)
                         funs = fields[2] if args.trusted_functions else fields[1]
                         funs = funs.split(';')
+                        assert read not in read_fun[method]
                         read_fun[method][read] = funs
                         fun_reads.add(read)
 
@@ -248,15 +250,30 @@ def main(args):
         for read in fun_reads:
             for method in FUNMETHODS:
                 if read not in read_fun[method]:
-                    read_fun[method][read] = ['Unclassified']            
+                    read_fun[method][read] = ['Unclassified']
 
-        # Tax_fun name equivalence
+        # Propagate reads from fun to tax and vice-versa (shortreads only)
+        if not longreads:
+            for filt in TAXFILTERS:
+                for read in fun_reads:
+                    if read not in read_tax[filt]:
+                        read_tax[filt][read] = parse_tax_string('n_Unclassified')[1]
+                        tax_reads.add(read)
+            for method in FUNMETHODS:
+                for read in tax_reads:
+                    if read not in read_fun[method]:
+                       read_fun[method][read] = ['Unclassified']
+                       fun_reads.add(read)
+
+
+        # Tax_fun name equivalence (for longreads)
         tax2fun = defaultdict(list)
         fun2tax = {}
         for read in fun_reads:
-            tread = read.rsplit('_')[0]
+            tread = read.rsplit('_', 1)[0] if longreads else read
             tax2fun[tread].append(read)
             fun2tax[read] = tread
+
 
         # Select reads.
         if args.query:
@@ -269,7 +286,7 @@ def main(args):
             for read in gr:
                 if read in tax_reads:
                     good_tax_reads.add(read)
-                elif read in fun_reads:
+                if read in fun_reads:
                     good_fun_reads.add(read)
             if gr:
                 filterOK.append(True)
@@ -288,11 +305,13 @@ def main(args):
                 for i, rank in enumerate(TAXRANKS):
                     tax_dict[filt][rank][sample][tax[i]] += 1
         for i, rank in enumerate(TAXRANKS): # And add unclassified
-            taxa = tax_dict[filt][rank][sample]
-            if not args.query:
-                classified_reads = sum(taxa.values()) #if not query else 
-                total_reads = samples[sample]
-                taxa[parse_tax_string('n_Unclassified')[1][i]] = (total_reads - classified_reads)
+            for filt in TAXFILTERS:
+                taxa = tax_dict[filt][rank][sample]
+                if not args.query:
+                    uString = parse_tax_string('n_Unclassified')[1][i]
+                    classified_reads = sum(taxa.values()) - taxa[uString]
+                    total_reads = samples[sample]
+                    taxa[uString] = (total_reads - classified_reads)
             
                         
         # Aggregate counts from the same function.
@@ -306,6 +325,7 @@ def main(args):
             classified_reads = sum(functions.values())
             if not args.query:
                 if not longreads:
+                    classified_reads = sum(functions.values()) - functions['Unclassified']
                     total_reads = samples[sample]
                     functions['Unclassified'] = (total_reads - classified_reads)
                 else:
@@ -344,7 +364,7 @@ def main(args):
                     else:
                         outfile.write('{}\t{} (name not available)\t{} (path not available)\n'.format(fun, fun, fun))
                 else:
-                    outfile.write('{}\t{}\n'.format(ID, line[-1]))
+                    outfile.write('{}\t{}\n'.format(fun, info[fun]))
 
             if method in ('kegg', 'cogs'):
                outfile.write('Unclassified\tUnclassified\tUnclassified\n')
