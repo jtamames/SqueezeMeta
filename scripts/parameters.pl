@@ -34,7 +34,7 @@ $maxchimerism15=0.1;   #--STEP15:  Threshold for excluding chimeric contigs
 $mingenes15=1;	     #--STEP15:  Threshold for excluding small contigs (few genes than this)
 $smallnoannot15=1;     #-- STEP15: For excluding contigs with just one gene an no annotation
 
-$score_tres16=0.25;    #-- STEP16: Score threshold for keeping bins (proxy for level of completeness)
+$score_tres16=0;    #-- STEP16: Score threshold for keeping bins (proxy for level of completeness)
 
 $mincontigs17=1;  	     #-- STEP17: Minimum number of contigs for the bin 
 $minconsperc_asig17=0.6;       #-- STEP17: Ratio contigs for the taxon/sum(genes all taxa). Therefore it only considers assigned contigs
