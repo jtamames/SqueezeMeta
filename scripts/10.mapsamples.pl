@@ -25,7 +25,7 @@ do "$projectdir/parameters.pl";
 	#-- Configuration variables from conf file
 
 our($installpath,$datapath,$bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
-    $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+    $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
 
@@ -395,36 +395,39 @@ sub contigcov {
 	my($mappedreads,$totalreadcount,$totalreadlength)=0;
 	open(outfile4,">>$contigcov") || die "Can't open contigcov file $contigcov for writing\n";
 
-	#-- Count length of contigs and bases mapped from the sam file
+	#-- Count contig length from 01.lon file (using SAM headers gives trouble when using minimap2)
 
+	print "  Reading contig length from $contigslen\n";
+	open(infilelen,$contigslen) || die "Cannot read contig length from $contigslen\n";
+	while(<infilelen>) {
+		chomp;
+		next if !$_;
+		my($tcon,$tlen)=split(/\t/,$_);
+		$lencontig{$tcon}=$tlen;
+		}
+	close infilelen;
+	
+	#-- Count bases mapped from the sam file
+	
 	my($thisr,$lastr);
 	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
 	while(<infile4>) {
 		chomp;
 		my @t=split(/\t/,$_);
-
-		#-- Use the headers to extract contig length
-
-		if($_=~/^\@/) {
-		$t[1]=~s/SN\://;
-		$t[2]=~s/LN\://;
-		$lencontig{$t[1]}=$t[2];
-		}
+		next if($_=~/^\@/);
 	
-		#-- And the mapped reads to sum base coverage
+		#-- Use the mapped reads to sum base coverage
 
-		else {
-			if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
-				$thisr=$t[0];
-				next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
-				$lastr=$thisr;
-				$readcount{$t[2]}{reads}++;
-				$readcount{$t[2]}{lon}+=length $t[9];
-				$mappedreads++;
-			}       
-			$totalreadcount++;
-			$totalreadlength+=length $t[9];
-		} 
+		if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+			$thisr=$t[0];
+			next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
+			$lastr=$thisr;
+			$readcount{$t[2]}{reads}++;
+			$readcount{$t[2]}{lon}+=length $t[9];
+			$mappedreads++;
+		}       
+		$totalreadcount++;
+		$totalreadlength+=length $t[9];
 	}
 	close infile4;
 	
