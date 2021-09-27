@@ -43,7 +43,7 @@ close inv;
 
 our $pwd=cwd();
 our($nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$lowmem,$minion,,$consensus,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$rename);
 our($databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir);  
 
@@ -75,7 +75,8 @@ Arguments:
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
    --sg|--singletons: Add unassembled reads to the contig file, as if they were contigs  
-   -contigid <string>: Nomenclature for contigs (Default: assemblerÂ´s name)
+   -contigid <string>: Nomenclature for contigs (Default: assembler´s name)
+   --norename: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
    
  Mapping: 
    -map: mapping software <bowtie, bwa, minimap2-ont, minimap2-pb, minimap2-sr> (Default: bowtie) 
@@ -141,6 +142,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "e|evalue=f" => \$evalue,   
 		     "minidentity=f" => \$miniden,   
 		     "assembly_options=s" => \$assembler_options,
+		     "norename" => \$rename,
 		     "cleaning" => \$cleaning,
 		     "cleaning_options=s" => \$cleaningoptions,
 		     "mapping_options=s" => \$mapping_options,
@@ -168,6 +170,7 @@ if(!$doublepass) { $doublepass=0; }
 if(!$nobins) { $nobins=0; }
 if(!$nomaxbin) { $nomaxbin=0; }
 if(!$nometabat) { $nometabat=0; }
+if(!$rename) { $rename=0; }
 if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
 if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
 if($consensus) { $consensus/=100; }
@@ -321,6 +324,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$nobins/)          { print outfile5 "\$nobins          = $nobins;\n";              }
 			elsif($_=~/^\$nomaxbin/)        { print outfile5 "\$nomaxbin        = $nomaxbin;\n";            }
 			elsif($_=~/^\$nometabat/)       { print outfile5 "\$nometabat       = $nometabat;\n";           }
+			elsif($_=~/^\$rename/)          { print outfile5 "\$rename          = $rename;\n";           }
 			elsif($_=~/^\$mapper/)          { print outfile5 "\$mapper          = \"$mapper\";\n";          }
 			elsif($_=~/^\$mapping_options/) { print outfile5 "\$mapping_options = \"$mapping_options\";\n"; }
 			elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $cleaning;\n";            }
@@ -554,6 +558,7 @@ else {
 		elsif($_=~/^\$nobins/)                    { print outfile6 "\$nobins          = $nobins;\n";                          }
 		elsif($_=~/^\$nomaxbin/)                  { print outfile6 "\$nomaxbin        = $nomaxbin;\n";                        }
 		elsif($_=~/^\$nometabat/)                 { print outfile6 "\$nometabat       = $nometabat;\n";                       }
+		elsif($_=~/^\$rename/)      		  { print outfile5 "\$rename          = $rename;\n";           }
 		elsif($_=~/^\$doublepass/)                { print outfile6 "\$doublepass      = $doublepass;\n";                      }
 		elsif($_=~/^\$mapper/)                    { print outfile6 "\$mapper          = \"$mapper\";\n";                      }
 		elsif($_=~/^\$mapping_options/)		  { print outfile6 "\$mapping_options = \"$mapping_options\";\n"; }
