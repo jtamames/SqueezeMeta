@@ -24,25 +24,25 @@ summary.SQM = function(SQM)
     res$contigs$N90          = Npercent(as.numeric(SQM$contigs$table$Length), 90) # as.numeric to avoid integer overflow.
 
     sk = SQM$contigs$tax[,'superkingdom']
-    sk = sk[!grepl('^Unclassified|^Unmapped', sk)] # Remove Unclassified
+    sk = sk[!grepl('^Unclassified|^Unmapped|^No CDS', sk)] # Remove Unclassified
     sk = sk[!grepl('in NCBI)', sk)]      # Remove "virtual" taxa (coming for ranks missing in NCBI for some taxa).
     p  = SQM$contigs$tax[,'phylum']
-    p  = p[!grepl('^Unclassified|^Unmapped', p)]
+    p  = p[!grepl('^Unclassified|^Unmapped|^No CDS', p)]
     p  = p[!grepl('in NCBI)', p)]
     c_ = SQM$contigs$tax[,'class']
-    c_ = c_[!grepl('^Unclassified|^Unmapped', c_)]
+    c_ = c_[!grepl('^Unclassified|^Unmapped|^No CDS', c_)]
     c_ = c_[!grepl('in NCBI)', c_)]
     o  = SQM$contigs$tax[,'order']
-    o  = o[!grepl('^Unclassified|^Unmapped', o)]
+    o  = o[!grepl('^Unclassified|^Unmapped|^No CDS', o)]
     o  = o[!grepl('in NCBI)', o)]
     f  = SQM$contigs$tax[,'family']
-    f  = f[!grepl('^Unclassified|^Unmapped', f)]
+    f  = f[!grepl('^Unclassified|^Unmapped|^No CDS', f)]
     f  = f[!grepl('in NCBI)', f)]
     g  = SQM$contigs$tax[,'genus']
-    g  = g[!grepl('^Unclassified|^Unmapped', g)]
+    g  = g[!grepl('^Unclassified|^Unmapped|^No CDS', g)]
     g  = g[!grepl('in NCBI)', g)]
     s  = SQM$contigs$tax[,'species']
-    s  = s[!grepl('^Unclassified|^Unmapped', s)]
+    s  = s[!grepl('^Unclassified|^Unmapped|^No CDS', s)]
     s  = s[!grepl('in NCBI)', s)]
 
     res$contigs$superkingdom = list(nContigs = length(sk), nTaxa = length(unique(sk)), most_abundant = most_abundant_row(SQM$tax$superkingdom$abund) )
@@ -152,7 +152,7 @@ Npercent  = function(len, percent)
 #' @noRd
 most_abundant_row = function(table, ignore_unclassified=T)
     {
-    if(ignore_unclassified) { table = table[!grepl('Unclassified|Unmapped', rownames(table)),,drop=F] }
+    if(ignore_unclassified) { table = table[!grepl('Unclassified|Unmapped|^No CDS', rownames(table)),,drop=F] }
     colMaxsIdx = apply(table, 2, which.max)
     res = rownames(table)[colMaxsIdx]
     if(is.null(res)) { res = rep('Unclassified', ncol(table)) }

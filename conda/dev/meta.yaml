@@ -1,10 +1,10 @@
 package:
   name: squeezemeta-dev
-  version: '1.3rc1'
+  version: '1.4.0rc1'
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
-  git_tag: develop
+  git_tag: master
 
 requirements:
   build:

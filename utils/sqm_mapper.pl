@@ -36,7 +36,11 @@ my $scriptdir = "$installpath/scripts";
 my $auxdir = "$installpath/lib/SQM_reads";
 ###
 
-my $version="1.3.0, Jun 2020";
+open(inv,"$installpath/VERSION") || die;
+my $version=<inv>;
+chomp $version;
+close inv;
+
 my $start_run = time();
 print BOLD "\nSQM_mapper v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 

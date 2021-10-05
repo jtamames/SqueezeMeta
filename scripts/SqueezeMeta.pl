@@ -36,7 +36,7 @@ else
 our $installpath = abs_path("$scriptdir/..");
 ###
 
-open(inv,"$installpath/version.txt") || die;
+open(inv,"$installpath/VERSION") || die;
 my $version=<inv>;
 chomp $version;
 close inv;

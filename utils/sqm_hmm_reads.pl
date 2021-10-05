@@ -37,7 +37,7 @@ my $shortpair_soft = abs_path("$utilsdir/../bin/Short-Pair/Short-Pair.py");
 
 ###
 
-open(inv,"$installpath/version.txt") || die;
+open(inv,"$installpath/VERSION") || die;
 my $version=<inv>;
 chomp $version;
 close inv;

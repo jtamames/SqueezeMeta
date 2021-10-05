@@ -37,7 +37,7 @@ my $auxdir = "$installpath/lib/SQM_reads";
 
 ###
 
-open(inv,"$installpath/version.txt") || die;
+open(inv,"$installpath/VERSION") || die;
 my $version=<inv>;
 chomp $version;
 close inv;
