@@ -17,7 +17,7 @@ usage: combine-sqm-tables.py [-h] PROJECT_PATHS
                              [-f PATHS_FILE]
                              [-o OUTPUT_DIR] [-p OUTPUT_PREFIX]
                              [--trusted-functions] [--ignore-unclassified]
-                             [--sqm-reads] [--force-overwrite]
+                             [--sqm-reads] [--force-overwrite] [--doc]
                              project_paths [project_paths ...]
 
 OPTIONS:
@@ -31,7 +31,8 @@ OPTIONS:
         TPM calculation. Ignored if --sqm-reads is provided
     --sqm-reads: Projects were generated using sqm_reads.pl
     --force-overwrite: Write results even if the output directory
-        already exists.
+        already exists
+    --doc: Show this documentation
 
 EXAMPLES:
     # Combine projects /path/to/proj1 and /path/to/proj2,
@@ -356,9 +357,14 @@ def parse_args():
     parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
     parser.add_argument('--sqmreads', action='store_true', help='Projects were generated using sqm_reads.pl')
     parser.add_argument('--force-overwrite', action='store_true', help='Write results even if the output directory already exists')
+    parser.add_argument('--doc', action='store_true', help='Show documentation')
 
     return parser.parse_args()
 
 
 if __name__ == '__main__':
-    main(parse_args())
+    args = parse_args()
+    if args.doc:
+        print(__doc__)
+    else:
+        main(args)

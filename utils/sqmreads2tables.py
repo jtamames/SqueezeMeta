@@ -7,13 +7,15 @@ Generate tabular outputs from sqm_reads.pl or sqm_longreads.pl results.
 
 USAGE: sqm_reads2tables.py [-h] project_path output_dir [-q "QUERY"]
                      [--trusted-functions] [--ignore-unclassified]
+                     [--doc]
 
 OPTIONS:
     -q/--query: Optional query for filtering your results (see below)
     --trusted-functions: Include only ORFs with highly trusted KEGG and
         COG assignments in aggregated functional tables
     --force-overwrite: Write results even if the output directory
-        already exists.
+        already exists
+    --doc: Show this documentation
 
 QUERY SYNTAX:
 
@@ -62,7 +64,7 @@ QUERY SYNTAX:
 
 from os.path import abspath, dirname, realpath
 from os import mkdir, listdir
-from sys import exit
+from sys import exit, argv
 import argparse
 
 from collections import defaultdict
@@ -380,6 +382,7 @@ def parse_args():
     parser.add_argument('-q', '--query', type=str, nargs='+', help='Query for filtering the results')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
     parser.add_argument('--force-overwrite', action='store_true', help='Write results even if the output directory already exists')
+    parser.add_argument('--doc', action='store_true', help='Show documentation')
     args = parser.parse_args()
     if args.query:
         args.query = ' '.join(args.query)
@@ -388,5 +391,8 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    main(parse_args())
+    if '--doc' in argv: # hack so we can pass only --doc without getting an error for not providing the required positional arguments
+        print(__doc__)
+    else:
+        main(parse_args())
 

@@ -16,7 +16,7 @@ Run this script in the project directory:
 USAGE: anvi-load-sqm.py [-h] -p PROJECT -o OUTPUT [--num-threads NUM_THREADS]
                         [--run-HMMS] [--run-scg-taxonomy] [--min-contig-length MIN_CONTIG_LENGTH]
                         [--min-mean-coverage MIN_MEAN_COVERAGE]
-                        [--skip-SNV-profiling] [--profile-SCVs] [--force-overwrite]
+                        [--skip-SNV-profiling] [--profile-SCVs] [--force-overwrite] [--doc]
        -p PROJECT, --project PROJECT          Name of the SQM project. E.g. Hadza16 (REQUIRED)
        -o OUTPUT                              Path to the output directory (REQUIRED)
        --num-threads         NUM_THREADS      Number of threads
@@ -30,7 +30,8 @@ USAGE: anvi-load-sqm.py [-h] -p PROJECT -o OUTPUT [--num-threads NUM_THREADS]
                                               Note that if it is the first time you use it in anvio 6, it would be necessary to run the
                                               anvi-setup-scg-databases to set up the database
                                               (more info: http://merenlab.org/2019/10/08/anvio-scg-taxonomy/)
-        --force-overwrite                      Force overwrite if the output directory already exists
+        --force-overwrite                     Force overwrite if the output directory already exists
+        --doc                                 Show this documentation  
  
 ABOUT ANVI'O:
     - Anvi'o is an advanced analysis and visualization platform for 'omics data.
@@ -53,10 +54,7 @@ import shutil
 import sys
 from os.path import abspath, dirname, realpath
 import datetime
-try:
-    import anvio
-except ModuleNotFoundError:
-    raise Exception('Anvi\'o has not been detected. Are you sure that it has been activated?')
+# Moved anvi'o try import to the if __name__ == '__main__' block, so that we can still print help and __doc__ even if anvi'o is not present
 
 
 # Describe functions
@@ -77,6 +75,7 @@ def parse_arguments():
     general.add_argument('--skip-SNV-profiling', action = 'store_true', help = 'To skip the profiling of SNV')
     general.add_argument('--profile-SCVs', action = 'store_true', help = 'Perform characterization of codon frequencies in genes')
     general.add_argument('--force-overwrite', action = 'store_true', help = 'Force overwrite if the output directory already exists')
+    general.add_argument('--doc', action='store_true', help='Show documentation')
     args = general.parse_args()
     return(args)
 
@@ -430,4 +429,12 @@ def main(args):
 ################################################################################################################
     
 if __name__ == '__main__':
-    main(parse_arguments())
+    if '--doc' in sys.argv: # hack so we can pass only --doc without getting an error for not providing the required arguments
+        print(__doc__)
+    else:
+        args = parse_arguments()
+        try: # try to import here so that we can print help and __doc__ even if anvio is not installed
+            import anvio
+        except ModuleNotFoundError:
+            raise Exception('Anvi\'o has not been detected. Are you sure that it has been activated?')
+        main(args)

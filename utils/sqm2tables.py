@@ -8,7 +8,7 @@ Generate tabular outputs from SqueezeMeta results.
 
 USAGE: sqm2tables.py [-h] project_path output_dir
                      [--trusted-functions] [--ignore-unclassified]
-                     [--sqm2anvio] [--force-overwrite]
+                     [--sqm2anvio] [--force-overwrite] [--doc]
 
 OPTIONS:
     --trusted-functions: Include only ORFs with highly trusted KEGG and
@@ -18,11 +18,12 @@ OPTIONS:
     --sqm2anvio: Write the required files for sqm2anvio
     --force-overwrite: Write results even if the output directory
         already exists
+    --doc: show this documentation
 """
 
 from os.path import abspath, dirname, realpath
 from os import mkdir, listdir
-from sys import exit
+from sys import exit, argv
 import argparse
 
 from collections import defaultdict
@@ -209,10 +210,14 @@ def parse_args():
     parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
     parser.add_argument('--sqm2anvio', action='store_true', help='Write the required files for sqm2anvio')
     parser.add_argument('--force-overwrite', action='store_true', help='Write results even if the output directory already exists')
+    parser.add_argument('--doc', action='store_true', help='Show documentation')
 
     return parser.parse_args()
 
 
 
 if __name__ == '__main__':
-    main(parse_args())
+    if '--doc' in argv: # hack so we can pass only --doc without getting an error for not providing the required positional arguments
+        print(__doc__)
+    else:
+        main(parse_args())

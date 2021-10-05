@@ -12,7 +12,7 @@ USAGE:
 
 anvi-filter-sqm.py [-h] -p PROFILE_DB -c CONTIGS_DB -t TAXONOMY
       -q "QUERY" [-o OUTPUT_DIR] [-m MAX_SPLITS] [--enforce-clustering]
-      [--extra-anvio-args "EXTRA_ANVIO_ARGS"] [-s {safe,yolo}]
+      [--extra-anvio-args "EXTRA_ANVIO_ARGS"] [-s {safe,yolo}] [--doc]
      
 
 OPTIONS:
@@ -103,7 +103,7 @@ QUERY SYNTAX:
 
 import argparse
 from os.path import abspath, dirname, realpath, exists
-from sys import path, stderr
+from sys import path, stderr, argv
 import glob
 utils_home = abspath(dirname(realpath(__file__)))
 path.append('{}/../../lib/'.format(utils_home))
@@ -114,9 +114,6 @@ from sys import argv
 from subprocess import call
 from os import devnull
 DEVNULL = open(devnull, 'wb')
-from splitFilter import SplitFilter
-from subsetAnvio import subset_anvio
-
 
 OUTTREE = 'Taxonomy.nwk'
 COLLECTION_NAME = 'SqueezeMeta'
@@ -302,12 +299,13 @@ def parse_args():
     parser.add_argument('-p', '--profile-db', type=str, required=True, help='Anvi\'o profile database')
     parser.add_argument('-c', '--contigs-db', type=str, required=True, help='Anvi\'o contigs database')
     parser.add_argument('-t', '--taxonomy', type=str, required = True, help='SqueezeMeta contigs taxonomy')
-    parser.add_argument('-q', '--query', type=str, required=True, nargs='+', 'Query to filter the results')
+    parser.add_argument('-q', '--query', type=str, required=True, nargs='+', help='Query to filter the results')
     parser.add_argument('-o', '--output-dir', type=str, default='filteredDB', help='Output directory')
     parser.add_argument('-m', '--max-splits', type=int, default=25000, help='Maximum number of splits to visualize')
     parser.add_argument('--enforce-clustering', action='store_true', help='Hierarchically cluster splits based on abundances and composition')
     parser.add_argument('--extra-anvio-args', type=str, help='Extra arguments for anvi-interactive')
     parser.add_argument('-s', '--split-mode', type=str, choices = ['safe', 'yolo'], default='yolo', help='How should we try to subset the database?')
+    parser.add_argument('--doc', action='store_true', help='Show documentation')
     args = parser.parse_args()
     args.query = ' '.join(args.query)
     return args
@@ -315,4 +313,13 @@ def parse_args():
 
 
 if __name__=='__main__':
-    main(parse_args())
+    if '--doc' in argv: # hack so we can pass only --doc without getting an error for not providing the required arguments
+        print(__doc__)
+    else:
+        args = parse_args()
+        try: # try to import here so that we can print help and __doc__ even if anvio is not installed
+            from splitFilter import SplitFilter
+            from subsetAnvio import subset_anvio
+        except:
+            raise
+        main(args)
