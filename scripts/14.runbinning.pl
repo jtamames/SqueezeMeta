@@ -31,7 +31,7 @@ foreach my $tbinner(@binner) {
 	my $scriptname=$binscripts{$tbinner};
 	if(!$scriptname) { print RED; print "WARNING in STEP14 -> No binner found for $tbinner\n"; print RESET; $finaltrace.="WARNING in STEP15: No binner found for $tbinner\n"; next; }
 	print "  Running $tbinner from $scriptname\n";
-	my $ecode = system("perl $scriptname $project >> $tempdir/$project.log");
+	my $ecode = system("perl $scriptname $projectpath >> $tempdir/$project.log");
 	if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
 	my $dirbin="$interdir/binners/$tbinner";
 	if(-d $dirbin) {} else { system("mkdir $dirbin"); }
