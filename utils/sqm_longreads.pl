@@ -110,9 +110,9 @@ if(!$blocksize) {
         my $ram=$mem{"MemAvailable"}/(1024*1024);
         my $ramstr=sprintf('%.2f',$ram);
         my $block_size_set=sprintf('%.1f',$ram/5);
-        if($block_size_set>8) { $block_size_set=8; }
+        if($block_size_set>8) { $block_size_set=16; }
         if($block_size_set<1) { $block_size_set=1; }
-        print "  AVAILABLE (free) RAM memory: $ramstr Gb\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 8). You can override this setting using the -b option when starting the project.\n\n";
+        print "  AVAILABLE (free) RAM memory: $ramstr Gb\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 16). You can override this setting using the -b option when starting the project.\n\n";
         $blocksize=$block_size_set;
         }
 

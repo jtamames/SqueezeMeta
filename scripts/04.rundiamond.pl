@@ -40,9 +40,9 @@ if($blocksize eq "NF") {
 	my $ram=$mem{"MemAvailable"}/(1024*1024);
 	my $ramstr=sprintf('%.2f',$ram);
 	my $block_size_set=sprintf('%.1f',$ram/5);
-	if($block_size_set>8) { $block_size_set=8; }	
+	if($block_size_set>16) { $block_size_set=16; }	
 	if($block_size_set<1) { $block_size_set=1; }
-	print "  AVAILABLE (free) RAM memory: $ramstr Gb\n  We will set Diamond block size to $block_size_set (Gb RAM/5, Max 8).\n  You can override this setting using the -b option when starting the project, or changing\n  the \$blocksize variable in SqueezeMeta_conf.pl\n";
+	print "  AVAILABLE (free) RAM memory: $ramstr Gb\n  We will set Diamond block size to $block_size_set (Gb RAM/5, Max 16).\n  You can override this setting using the -b option when starting the project, or changing\n  the \$blocksize variable in SqueezeMeta_conf.pl\n";
 	print outsyslog "Diamond block size set to $block_size_set (Free Mem $ramstr Gb)\n";
 	$blocksize=$block_size_set;
 	}

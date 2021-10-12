@@ -155,7 +155,7 @@ The command for running SqueezeMeta has the following syntax:
  
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 
-* *-b*|*-block-size* [number]: Block size for DIAMOND against the nr database (Default: 8) 
+* *-b*|*-block-size* [number]: Block size for DIAMOND against the nr database (Default: calculate automatically) 
 * *-canumem* [number]: Memory for canu in Gb (Default: 32) 
 * *--lowmem*: Run on less than 16 Gb of RAM memory (Default: no). Equivalent to: -b 3 -canumem 15 
  
