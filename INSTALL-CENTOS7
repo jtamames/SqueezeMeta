@@ -3,7 +3,7 @@ sudo yum -y install epel-release
 
 
 ### Install git and system libraries
-sudo yum -y install gcc ncurses-devel git zlib-devel bzip2-devel xz-devel libxml2-devel libcurl-devel openssl-devel tree
+sudo yum -y install gcc ncurses-devel git zlib-devel bzip2-devel xz-devel libxml2-devel libcurl-devel openssl-devel tree libjpeg-turbo-devel gsl-devel
 
 
 ### Install Ruby.
@@ -18,10 +18,11 @@ sudo cpan Term::ANSIColor
 
 
 ###Install Python modules.
-sudo yum -y install python3 python36-scipy
+sudo yum -y install python3 python36-scipy python3-devel
 sudo python3 -m pip install future cython
 sudo python3 -m pip install pandas
-sudo python3 -m pip install matplotlib dendropy pysam biopython
+sudo python3 -m pip install matplotlib dendropy pysam
+sudo python3 -m pip install biopython sklearn nose
 
 
 ### Install R.
@@ -46,6 +47,10 @@ quit(save="no")
 sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
 sudo R CMD INSTALL <installpath>/SqueezeMeta/lib/SQMtools
 
+
+### Optional: install concoct (if you want to runing along with or instead of maxbin/metabat)
+cd <installpath>/SqueezeMeta/bin/bin/CONCOCT-1.1.0
+sudo setup.py install
 
 ### Install databases and test data.
 # This will occupy around 200Gb.

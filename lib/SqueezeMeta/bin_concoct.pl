@@ -21,7 +21,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($samtools_soft, $concoct_dir,$databasepath,$contigsfna,$contigcov,$alllog,$tempdir,$interdir,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($installpath, $samtools_soft, $concoct_dir,$databasepath,$contigsfna,$contigcov,$alllog,$tempdir,$interdir,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
@@ -54,15 +54,15 @@ foreach my $sam(@samfiles) {
 print "\n  Cutting contigs in pieces!\n";
 my $bedfile="$tempdir/$project.contigs.bed";
 my $choppedcontigs="$tempdir/$project.choppedcontigs.fasta";
-$command="$concoct_dir/scripts/cut_up_fasta.py $contigsfna -c 10000 -o 0 --merge_last -b $bedfile > $choppedcontigs";
+$command="python3 $concoct_dir/scripts/cut_up_fasta.py $contigsfna -c 10000 -o 0 --merge_last -b $bedfile > $choppedcontigs";
 print outsyslog "\n  Cutting contigs in pieces!: $command\n";	
 system $command;	
 print "  Creating abundance table\n";	
-$command="$concoct_dir/scripts/concoct_coverage_table.py $bedfile $tempdir/*.sorted.bam > $bindir/coverage_table.tsv";
+$command="PATH=$installpath/bin:\$PATH python3 $concoct_dir/scripts/concoct_coverage_table.py $bedfile $tempdir/*.sorted.bam > $bindir/coverage_table.tsv";
 print outsyslog "  Creating abundance table: $command\n";
 system($command);
 print "  Running concoct\n";
-$command="OMP_THREAD_LIMIT=$numthreads $concoct_dir/bin/concoct --composition_file $choppedcontigs --coverage_file $bindir/coverage_table.tsv --threads $numthreads  -b $bindir/concoct_int/ > /dev/null 2>&1";
+$command="OMP_THREAD_LIMIT=$numthreads python3 $concoct_dir/bin/concoct --composition_file $choppedcontigs --coverage_file $bindir/coverage_table.tsv --threads $numthreads  -b $bindir/concoct_int/ > /dev/null 2>&1";
 print outsyslog "  Running concoct: $command\n";
 system($command);
 print "  Merging clusters\n";
@@ -70,7 +70,7 @@ $command="$concoct_dir/scripts/merge_cutup_clustering.py $bindir/concoct_int/clu
 print outsyslog "  Merging clusters: $command\n";
 system($command);
 print "  Extracting final bins\n";
-$command="$concoct_dir/scripts/extract_fasta_bins.py $contigsfna $bindir/concoct_int/clustering_merged.csv --output_path $bindir > /dev/null 2>&1";
+$command="python3 $concoct_dir/scripts/extract_fasta_bins.py $contigsfna $bindir/concoct_int/clustering_merged.csv --output_path $bindir > /dev/null 2>&1";
 print outsyslog "  Extracting final bins: $command\n";
 system($command);
 print "  Renaming bins\n";
