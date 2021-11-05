@@ -10,6 +10,7 @@ use strict;
 use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 use Tie::IxHash;
+use Linux::MemInfo;
 use Cwd;
 use lib ".";
 use threads;
@@ -29,6 +30,18 @@ do "$projectdir/parameters.pl";
 
 our($datapath,$databasepath,$interdir,$tempdir,$taxdiamond,$lca_db,$fun3tax,$numthreads,$evalue,$scoreratio6,$diffiden6,$flex6,$minhits6,$noidfilter6,$syslogfile);
 my $infile=$taxdiamond;
+
+#-- Set maximum number of threads (we aim for 1 thread per Gb of free RAM)
+my %mem=get_mem_info;
+my $ram=$mem{"MemAvailable"}/(1024*1024);
+my $ramstr=sprintf('%.2f',$ram);
+my $ramthreads=int($ram)-2;
+if($ramthreads < $numthreads) {
+	print "  AVAILABLE (free) RAM memory: $ramstr Gb\n  We will set the number of threads to $ramthreads for this step\n";
+	$numthreads = $ramthreads;
+	}
+
+
 
 #-- Some parameters for the algorithm
 
@@ -82,19 +95,19 @@ $_->join() for threads->list();
 
 my $catcommand="cat ";
 for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.wranks "; }
-$catcommand.=" > $fun3tax.wranks";
+$catcommand.="> $fun3tax.wranks";
 print "  Creating $fun3tax.wranks file\n";
 print syslogfile "  Creating $fun3tax.wranks file: $catcommand\n";
-system $catcommand;
+my $ecode = system($catcommand);
 
 my $catcommand="cat ";
 for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.noidfilter.wranks "; }
 $catcommand.=" > $fun3tax.noidfilter.wranks";
 print "  Creating $fun3tax.noidfilter.wranks file\n";
 print syslogfile "  Creating $fun3tax.noidfilter.wranks file: $catcommand\n";
-system $catcommand;
+$ecode = system $catcommand;
 print syslogfile "  Removing temporaty diamond files in $tempdir\n";
-# system("rm $tempdir/diamond_lca.*.m8");
+system("rm $tempdir/diamond_lca.*.m8");
 close syslogfile;
  
 

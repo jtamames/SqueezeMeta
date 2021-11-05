@@ -987,7 +987,7 @@ sub pipeline {
 		if($ecode!=0)        { error_out(6,$scriptname); }
 		my $wc=qx(wc -l "$fun3tax.wranks");
 		my($wsize,$rest)=split(/\s+/,$wc);
-		if($wsize<2)    { error_out(6,$scriptname,$pfamhmmer); }
+		if($wsize<2)    { error_out(6,$scriptname,"$fun3tax.wranks"); }
 		close(outfile4); open(outfile4,">>$syslogfile");		
 	}
 			
