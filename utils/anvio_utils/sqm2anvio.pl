@@ -204,7 +204,7 @@ closedir indir1;
 $samkeep=1;
 if($samkeep) { 
 	foreach my $sam(@samfiles) {
-		(my $bam = $sam) =~ s/\.sam/-RAW.bam/;
+		(my $bam = $sam) =~ s/\.sam$/-RAW.bam/;
                 $bam =~ s/$project\.//;
         	my $ecode = system("LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$installpath/lib $installpath/bin/samtools view -b $samdir/$sam > $outdir/bam/$bam");
 		if($ecode!=0) { die "Error running samtools"; }

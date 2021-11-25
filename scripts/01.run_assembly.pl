@@ -19,7 +19,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile);
+our($datapath,$assembler,$outassembly,$megahit_soft,$assembler_options,$extassembly,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile,$norename);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name,%extassemblies);
 
@@ -141,26 +141,28 @@ print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, B
 
 #-- Standardization of contig names
 
-print "  Renaming contigs\n";
-open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
-my $provcontigs="$tempdir/contigs.prov";
-open(outfile1,">$provcontigs") || die "Can't open $provcontigs for writing\n";
-my $cocount;
-if(!$contigid) { $contigid="$assembler"; }
-while(<infile1>) {
-	chomp;
-	next if !$_;
-	if($_=~/^\>/) {
-		$cocount++;
-		my $newcontigname="$contigid\_$cocount";
-		print outfile1 ">$newcontigname\n";
+if(!$norename) {
+	print "  Renaming contigs\n";
+	open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
+	my $provcontigs="$tempdir/contigs.prov";
+	open(outfile1,">$provcontigs") || die "Can't open $provcontigs for writing\n";
+	my $cocount;
+	if(!$contigid) { $contigid="$assembler"; }
+	while(<infile1>) {
+		chomp;
+		next if !$_;
+		if($_=~/^\>/) {
+			$cocount++;
+			my $newcontigname="$contigid\_$cocount";
+			print outfile1 ">$newcontigname\n";
+			}
+		else { print outfile1 "$_\n"; }
 		}
-	else { print outfile1 "$_\n"; }
+	close infile1;
+	close outfile1;
+	system("mv $provcontigs $contigsfna");
 	}
-close infile1;
-close outfile1;
-system("mv $provcontigs $contigsfna");
-
+	
 #-- Counts length of the contigs (we will need it later)
 
 my $numc;

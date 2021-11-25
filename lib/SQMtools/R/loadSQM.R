@@ -299,19 +299,19 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     SQM$taxa$species              = list()
     
 
-    SQM$taxa$superkingdom$abund   = as.matrix(read.table(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode, project_name),
+    SQM$taxa$superkingdom$abund   = as.matrix(read.table(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))
-    SQM$taxa$phylum$abund         = as.matrix(read.table(sprintf('%s/results/tables/%s.phylum.%s.abund.tsv', project_path, project_name, tax_mode),
+    SQM$taxa$phylum$abund         = as.matrix(read.table(sprintf('%s/results/tables/%s.phylum.%s.abund.tsv'      , project_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))
-    SQM$taxa$class$abund          = as.matrix(read.table(sprintf('%s/results/tables/%s.class.%s.abund.tsv', project_path, project_name, tax_mode),
+    SQM$taxa$class$abund          = as.matrix(read.table(sprintf('%s/results/tables/%s.class.%s.abund.tsv'       , project_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))
-    SQM$taxa$order$abund          = as.matrix(read.table(sprintf('%s/results/tables/%s.order.%s.abund.tsv', project_path, project_name, tax_mode),
+    SQM$taxa$order$abund          = as.matrix(read.table(sprintf('%s/results/tables/%s.order.%s.abund.tsv'       , project_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))
-    SQM$taxa$family$abund         = as.matrix(read.table(sprintf('%s/results/tables/%s.family.%s.abund.tsv', project_path, project_name, tax_mode),
+    SQM$taxa$family$abund         = as.matrix(read.table(sprintf('%s/results/tables/%s.family.%s.abund.tsv'      , project_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))
-    SQM$taxa$genus$abund          = as.matrix(read.table(sprintf('%s/results/tables/%s.genus.%s.abund.tsv', project_path, project_name, tax_mode),
+    SQM$taxa$genus$abund          = as.matrix(read.table(sprintf('%s/results/tables/%s.genus.%s.abund.tsv'       , project_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))
-    SQM$taxa$species$abund        = as.matrix(read.table(sprintf('%s/results/tables/%s.species.%s.abund.tsv', project_path, project_name, tax_mode),
+    SQM$taxa$species$abund        = as.matrix(read.table(sprintf('%s/results/tables/%s.species.%s.abund.tsv'     , project_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))
                                                           
      

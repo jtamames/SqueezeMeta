@@ -21,7 +21,7 @@ OPTIONS:
     --doc: show this documentation
 """
 
-from os.path import abspath, dirname, realpath
+from os.path import abspath, dirname, realpath, isfile
 from os import mkdir, listdir
 from sys import exit, argv
 import argparse
@@ -180,7 +180,7 @@ def main(args):
         write_row_dict(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
 
         ### Bins
-        if not int(perlVars['$nobins']):
+        if not int(perlVars['$nobins']) and isfile(perlVars['$bintable']):
             bin_tpm, bin_tax, bin_tax_wranks = parse_bin_table(perlVars['$bintable'])
             write_row_dict(TAXRANKS, bin_tax, prefix + 'bin.tax.tsv')
 

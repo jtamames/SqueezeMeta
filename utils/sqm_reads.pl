@@ -230,9 +230,12 @@ foreach my $thissample(keys %allsamples) {
 		my %iblast;
 		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
 		else { 
-			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
-			system($blastx_command);
-			print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+			if(-e $outfile) { print "Diamond result found in $outfile, skipping run\n"; }
+			else {
+				print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
+				system($blastx_command);
+				print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
+				}
 			}
 		open(inf,$outfile);
 		while(<inf>) {
@@ -247,9 +250,12 @@ foreach my $thissample(keys %allsamples) {
 		print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\n";
 			
 		my $lca_command="perl $auxdir/lca_reads.pl $outfile $numthreads";
-		$currtime=timediff();
-		print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
-		system($lca_command);
+		if(-e $outfile_tax) { print "LCA result found in $outfile, skipping run\n"; }
+		else {
+			$currtime=timediff();
+			print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
+			system($lca_command);
+			}
 		open(infiletax,$outfile_tax) || die;
 		while(<infiletax>) {
 			chomp;
@@ -274,19 +280,25 @@ foreach my $thissample(keys %allsamples) {
 		$currtime=timediff();
 		if(!$nocog) {
 			my $outfile="$thissampledir/$thisfile.cogs.m8";
-			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
-			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
-			else { 
-				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
-				system($blastx_command); 
-				print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
-			}
+			if(-e $outfile) { print "Diamond result for COGs found in $outfile, skipping run\n"; }
+			else {
+				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+				#print "Running BlastX: $blastx_command\n";
+				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
+				else { 
+					print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
+					system($blastx_command); 
+					print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
+					}
+				}
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
-			$currtime=timediff();
-			print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
-			system($func_command);
+			if(-e $outfile_cog) { print "COGs results found in $outfile_cog, skipping run\n"; }
+			else {
+				$currtime=timediff();
+				print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
+				system($func_command);
+				}
 			open(infilecog,$outfile_cog) || die;
 			while(<infilecog>) {
 				chomp;
@@ -302,19 +314,25 @@ foreach my $thissample(keys %allsamples) {
 		if(!$nokegg) {
 			$currtime=timediff();
 			my $outfile="$thissampledir/$thisfile.kegg.m8";
-			my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
-			#print "Running BlastX: $blastx_command\n";
-			if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
-			else { 
+			if(-e $outfile) { print "Diamond result for KEGG found in $outfile, skipping run\n"; }
+			else {
+				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+				#print "Running BlastX: $blastx_command\n";
+				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
+				else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n"; print RESET;
-				system($blastx_command); 
-				print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
-			}
+					system($blastx_command); 
+					print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
+					}
+				}
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
-			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
-			$currtime=timediff();
-			print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
-			system($func_command);
+			if(-e $outfile_kegg) { print "KEGG results found in $outfile_kegg, skipping run\n"; }
+			else {
+				my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
+				$currtime=timediff();
+				print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
+				system($func_command);
+				}
 			open(infilekegg,$outfile_kegg) || die;
 			while(<infilekegg>) {
 				chomp;
@@ -334,19 +352,25 @@ foreach my $thissample(keys %allsamples) {
 				my($extdbname,$extdb,$dblist)=split(/\t/,$_);
 				$currtime=timediff();
 				my $outfile="$thissampledir/$thisfile.$extdbname.m8";
-				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
-				#print "Running BlastX: $blastx_command\n";
-				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
-				else { 
-					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
-					system($blastx_command); 
-					print outmet "$extdbname, ";
-				}
+				if(-e $outfile) { print "Diamond result for $extdbname found in $outfile, skipping run\n"; }
+				else {
+					my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+					#print "Running BlastX: $blastx_command\n";
+					if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
+					else { 
+						print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
+						system($blastx_command); 
+						print outmet "$extdbname, ";
+						}
+					}
 				my $outfile_opt="$thissampledir/$thisfile.$extdbname";
-				my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
-				$currtime=timediff();
-				print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
-				system($func_command);
+				if(-e $outfile_opt) { print "$extdbname results found in $outfile_opt, skipping run\n"; }
+				else {
+					my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
+					$currtime=timediff();
+					print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
+					system($func_command);
+					}
 				open(infileopt,$outfile_opt) || die;
 				while(<infileopt>) {
 					chomp;

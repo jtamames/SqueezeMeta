@@ -56,7 +56,7 @@ open(syslogfile,">>$syslogfile");
 
 #-- Split Diamond file
 
-splitfiles($numthreads);
+$numthreads=splitfiles($numthreads);	#-- For setting number of threads equal to number of files, in case $numfile<$numthreads
 
 #-- Launch threads
 
@@ -113,10 +113,12 @@ sub splitfiles {
                         open(outfiletemp,">$tempdir/diamond_collapse.$numfile.m8");
                         print outfiletemp $_;
                         $nextp+=$splitlines;
+			if($nextp<=$filelines) { $nextp=$filelines+1; }
                         }
                 else { print outfiletemp $_; }
                 }
         close infile2;
+	return $numfile;	#-- For setting number of threads equal to number of files, in case $numfile<$numthreads
         }
 
 
@@ -154,18 +156,24 @@ sub current_thread {
  	 for (@st){
    		 my @fields=@$_;
    		 my ($query,$identity,$alilong) = @fields[0,2,3];
-   		 my $frame;
-   		 next if($identity<$min_identity);
+		 my ($querylong,$hitlong)= @fields[12,13];
+   		 my ($frame,$alihitperc);
+  		 my ($init1,$end1) = sort {$a<=>$b} @fields[6,7];
+		 if($hitlong)  {
+		 	$alihitperc=$alilong/$hitlong;
+		 	next if(($alihitperc<$min_overlap) && ($init1>=10));   # Exlude partial hits not at the beggining or end of the sequence
+			next if(($alihitperc<$min_overlap) && ($end1<=($querylong-10)));
+   		 	}
+		 next if($identity<$min_identity);
    		 next if($alilong<$min_alilong);
    		 if(($flgs->{'no-identical'}) && ($identity==100)) { next; }
-    		if(!$fields[12]) {      #-- Si ya trae el frame puesto, no la calcules
+    		#if(!$fields[12]) {      #-- Si ya trae el frame puesto, no la calcules
     		 $frame = ($fields[6]%3);
     		 $frame=3     if ($frame == 0);
     		 $frame *= -1 if ($fields[7]<$fields[6]);
    		 push @fields,$frame;
-                		     }
-   		 my ($init1,$end1) = sort {$a<=>$b} @fields[6,7];
-
+                #		     }
+ 
    		 # If we are in the first line:
    		 ($coverage_i,$coverage_e) = ($init1,$end1) if (! defined ($coverage_i) or ! defined ($coverage_e));
    		 $prev_query = $fields[0] if (! defined $prev_query);

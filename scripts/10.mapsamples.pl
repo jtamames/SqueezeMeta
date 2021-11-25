@@ -25,7 +25,7 @@ do "$projectdir/parameters.pl";
 #-- Configuration variables from conf file
 
 our($datapath,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
-    $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+    $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
 
@@ -150,8 +150,8 @@ foreach my $thissample(keys %allsamples) {
 		#-- Support for single reads
        		if(!$mapper || ($mapper eq "bowtie")) {
            		if($formatseq eq "fasta") { $formatoption="-f"; }
-    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam $mapping_options"; }
-	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --quiet -p $numthreads -S $outsam $mapping_options"; } }
+    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --very-sensitive-local --quiet -p $numthreads -S $outsam $mapping_options"; }
+	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --very-sensitive-local --quiet -p $numthreads -S $outsam $mapping_options"; } }
         	elsif($mapper eq "bwa") {
             		#Apparently bwa works seamlesly with fasta files as input.
             		if(-e "$tempdir/$par2name") { $command="$bwa_soft mem $bowtieref $tempdir/$par1name $tempdir/$par2name -v 1 -t $numthreads $mapping_options > $outsam"; }
@@ -200,7 +200,7 @@ if($warnmes) {
 	print outfile1 "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
 	if($mincontiglen>200) { 
 		print outfile1 "# Notice also that you set the minimum contig length to $mincontiglen. In this way you are removing the contigs shorter than that size. This can be, at least partially, the cause of this low mapping percentage\n";
-		print outfile1 "# It is likely that redoing the analysis with the default minimum contig length (200) can solve this problem\n";
+		print outfile1 "# It is likely that redoing the analysis with the default minimum contig length (200) will improve the results\n";
 		print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n";
 		}
 	else { print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n"; }
@@ -329,6 +329,9 @@ sub current_thread {
 		my $endread=$initread;
 		#-- Calculation of the length match end using CIGAR string
 
+		$cigar=~s/^\d+S//;  #-- Elimination of soft clipping in minimap2 mapping
+		$cigar=~s/\d+S$//;  
+
 		while($cigar=~/^(\d+)([IDMNSHPX])/) {
 			my $mod=$1;
 			my $type=$2;
@@ -392,36 +395,39 @@ sub contigcov {
 	my($mappedreads,$totalreadcount,$totalreadlength)=0;
 	open(outfile4,">>$contigcov") || die "Can't open contigcov file $contigcov for writing\n";
 
-	#-- Count length of contigs and bases mapped from the sam file
+	#-- Count contig length from 01.lon file (using SAM headers gives trouble when using minimap2)
 
+	print "  Reading contig length from $contigslen\n";
+	open(infilelen,$contigslen) || die "Cannot read contig length from $contigslen\n";
+	while(<infilelen>) {
+		chomp;
+		next if !$_;
+		my($tcon,$tlen)=split(/\t/,$_);
+		$lencontig{$tcon}=$tlen;
+		}
+	close infilelen;
+	
+	#-- Count bases mapped from the sam file
+	
 	my($thisr,$lastr);
 	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
 	while(<infile4>) {
 		chomp;
 		my @t=split(/\t/,$_);
-
-		#-- Use the headers to extract contig length
-
-		if($_=~/^\@/) {
-		$t[1]=~s/SN\://;
-		$t[2]=~s/LN\://;
-		$lencontig{$t[1]}=$t[2];
-		}
+		next if($_=~/^\@/);
 	
-		#-- And the mapped reads to sum base coverage
+		#-- Use the mapped reads to sum base coverage
 
-		else {
-			if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
-				$thisr=$t[0];
-				next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
-				$lastr=$thisr;
-				$readcount{$t[2]}{reads}++;
-				$readcount{$t[2]}{lon}+=length $t[9];
-				$mappedreads++;
-			}       
-			$totalreadcount++;
-			$totalreadlength+=length $t[9];
-		} 
+		if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+			$thisr=$t[0];
+			next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
+			$lastr=$thisr;
+			$readcount{$t[2]}{reads}++;
+			$readcount{$t[2]}{lon}+=length $t[9];
+			$mappedreads++;
+		}       
+		$totalreadcount++;
+		$totalreadlength+=length $t[9];
 	}
 	close infile4;
 	
@@ -446,7 +452,7 @@ sub contigcov {
 		my $longt=$lencontig{$rc};
 		next if(!$longt);
 		my $coverage=$readcount{$rc}{lon}/$longt;
-		my $rpkm=($readcount{$rc}{reads}*1000000000)/(($longt/1000)*$totalreadcount); #-- Length of contig in Kbs
+		my $rpkm=($readcount{$rc}{reads}*1000000)/(($longt/1000)*$totalreadcount); #-- Length of contig in Kbs
 		my $tpm=$rp{$rc}/$accumrpk;
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
 		else { printf outfile4 "$rc\t%.2f\t%.1f\t%.1f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
