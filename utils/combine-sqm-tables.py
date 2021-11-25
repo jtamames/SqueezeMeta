@@ -204,7 +204,7 @@ def main(args):
         parse_table('{}/results/tables/{}.species.nofilter.abund.tsv'.format(projPath, projName), no_species)
         
         if not isfile('{}/results/tables/{}.KO.abund.tsv'.format(projPath, projName)): # assuming sqm2tables and sqmreads2tables properly handle projects with the nokegg/nocog/nopfam flags.
-            print('Project at {}/{} is missing KEGG annotations, so they will be not included in the combined tables'.format(projPath, projName))
+            print('Project at {} is missing KEGG annotations, so they will be not included in the combined tables'.format(projPath))
             hasKEGG = False
         else:
             parse_table('{}/results/tables/{}.KO.abund.tsv'.format(projPath, projName), KOabund)
@@ -214,7 +214,7 @@ def main(args):
 
 
         if not isfile('{}/results/tables/{}.COG.abund.tsv'.format(projPath, projName)):
-            print('Project at {}/{} is missing COG annotations, so they will be not included in the combined tables'.format(projPath, projName))
+            print('Project at {} is missing COG annotations, so they will be not included in the combined tables'.format(projPath))
             hasCOG = False
         else:
             parse_table('{}/results/tables/{}.COG.abund.tsv'.format(projPath, projName), COGabund)
@@ -225,7 +225,7 @@ def main(args):
 
         if not args.sqmreads:
             if not isfile('{}/results/tables/{}.PFAM.abund.tsv'.format(projPath, projName)):
-                print('Project at {}/{} is missing PFAM annotations, so they will be not included in the combined tables'.format(projPath, projName))
+                print('Project at {} is missing PFAM annotations, so they will be not included in the combined tables'.format(projPath))
                 hasPFAM = False
             else:
                 parse_table('{}/results/tables/{}.PFAM.abund.tsv'.format(projPath, projName), PFAMabund)
