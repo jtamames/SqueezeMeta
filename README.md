@@ -135,6 +135,8 @@ The command for running SqueezeMeta has the following syntax:
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
 * *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
 * *--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
+* *-contigid* [string]: Nomenclature for contigs (Default: assembler´s name)
+* *--norename*: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
 
  
 *Annotation* 
@@ -149,10 +151,9 @@ The command for running SqueezeMeta has the following syntax:
 * *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie) 
 * *-mapping_options* [string]: Extra options for the mapper (refer to the manual of the specific mapper). Please provide all the extra options as a single quoted string (e.g. _-mapping_options “--opt1 foo --opt2 bar”_)
 
-*Binning* 
-* *--nobins*: Skip binning (Default: no) 
-* *--nomaxbin*: Skip MaxBin binning (Default: no) 
-* *--nometabat*: Skip MetaBat2 binning (Default: no) 
+*Binning*
+* *--nobins*: Skip all binning  (Default: no). Overrides --binners 
+* *--binners*: Specify binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
  
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 

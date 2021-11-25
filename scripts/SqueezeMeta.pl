@@ -92,11 +92,11 @@ Arguments:
    -consensus <value>: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
    --D|--doublepass: First pass looking for genes using gene prediction, second pass using BlastX  (Default: no)
    -extdb <database file>: List of user-provided databases
-   -b|-block-size <block size>: block size for diamond against the nr database (Default: 8)
+   -b|-block-size <block size>: block size for diamond against the nr database (Default: calculate automatically)
    
  Binning:
    --nobins: Skip all binning  (Default: no). Overrides --binners 
-   --binners: Specify binning programs to be used (available: maxbin, metabat)  (Default: maxbin,metabat)
+   --binners: Specify binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
    
  Performance:
    -t <threads>: Number of threads (Default: 12)
