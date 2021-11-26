@@ -177,6 +177,7 @@ while(<infile1>) {
 	else { $seq.=$_; }
 }
 close infile1;
+if($contigname) { my $len=length $seq; print outfile1 "$contigname\t$len\n"; }
 close outfile1;
 close out_tr;
 close outmet;
