@@ -18,7 +18,7 @@ my $start_run = time();
 
 my $longtrace=0;    #-- Reports an explanation msg for each of the steps
 
-###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
+###scriptdir patch v2, Fernando Puente-SÃ¡nchez, 18-XI-2019
 use File::Basename;
 use Cwd 'abs_path';
 
@@ -44,7 +44,7 @@ close inv;
 our $pwd=cwd();
 
 our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$lowmem,$minion,,$consensus,$doublepass)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$rename);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename);
 our($binresultsdir,$databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
 our(%bindirs,%dasdir,%binscripts);  
 
@@ -76,7 +76,7 @@ Arguments:
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
    --sg|--singletons: Add unassembled reads to the contig file, as if they were contigs  
-   -contigid <string>: Nomenclature for contigs (Default: assembler�s name)
+   -contigid <string>: Nomenclature for contigs (Default: assembler´s name)
    --norename: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
    
  Mapping: 
@@ -142,7 +142,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "e|evalue=f" => \$evalue,   
 		     "minidentity=f" => \$miniden,   
 		     "assembly_options=s" => \$assembler_options,
-		     "norename" => \$rename,
+		     "norename" => \$norename,
 		     "cleaning" => \$cleaning,
 		     "cleaning_options=s" => \$cleaningoptions,
 		     "mapping_options=s" => \$mapping_options,
@@ -172,7 +172,7 @@ if(!$nobins) { $nobins=0; }
 if(!$binners) { $binners="maxbin,metabat2"; }
 if(!$nomaxbin) { $nomaxbin=0; }
 if(!$nometabat) { $nometabat=0; }
-if(!$rename) { $rename=0; }
+if(!$norename) { $norename=0; }
 if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
 if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
 if($consensus) { $consensus/=100; }
@@ -228,7 +228,7 @@ foreach my $chsam(keys %pairsample) {
 	}
 
 my $currtime=timediff();
-print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
+print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-SÃ¡nchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 if($test) { print GREEN "Running in test mode! I will stop after step $test\n\n"; print RESET; }
 print "Run started ",scalar localtime," in $mode mode\n";
 
@@ -263,7 +263,7 @@ if($mode=~/sequential/i) {
 	print "\n\n";
 
 	open(outfile2,">$pwd/syslog") || do { print RED; print "Can't write in directory $pwd\n"; print RESET; die; }; 		 #-- A log file for the global proccess
-	print outfile2 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+	print outfile2 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-SÃ¡nchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 	print outfile2 "Run started ",scalar localtime," in SEQUENTIAL mode (it will proccess all metagenomes sequentially)\n";
 	print outfile2 "Command: $commandline\n"; 
 	print outfile2 "Options: threads=$numthreads; contiglen=$mincontiglen; assembler=$assembler; sample file=$equivfile; raw fastq=$rawfastq\n";
@@ -286,7 +286,7 @@ if($mode=~/sequential/i) {
 		print "Run started ",scalar localtime," in SEQUENTIAL mode\n";
 		my $params = join(" ", @ARGV);
 		# print outfile2 "$0 $params\n";
-		print outfile4 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+		print outfile4 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-SÃ¡nchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 		print outfile4 "Run started for $thissample, ",scalar localtime,"\n";
 		print outfile4 "Project: $projectname\n";
 		print outfile4 "Map file: $equivfile\n";
@@ -328,7 +328,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$doublepass/)      { print outfile5 "\$doublepass      = $doublepass;\n";          }
 			elsif($_=~/^\$nobins/)          { print outfile5 "\$nobins          = $nobins;\n";              }
 			elsif($_=~/^\$binners/)         { print outfile5 "\$binners         = \"$binners\";\n";         }
-			elsif($_=~/^\$rename/)          { print outfile5 "\$rename          = $rename;\n";           }
+			elsif($_=~/^\$norename/)        { print outfile5 "\$norename          = $norename;\n";           }
 			elsif($_=~/^\$mapper/)          { print outfile5 "\$mapper          = \"$mapper\";\n";          }
 			elsif($_=~/^\$mapping_options/) { print outfile5 "\$mapping_options = \"$mapping_options\";\n"; }
 			elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $cleaning;\n";            }
@@ -534,7 +534,7 @@ else {
 	open(outfile3,">$projectdir/progress") or do { print RED; print "Can't write in $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; }; #-- Un indice que indica en que punto estamos (que procedimientos han terminado)
 	open(outfile4,">$syslogfile") or do { print RED; print "Can't write in $projectdir. Wrong permissions, or out of space?\n"; print RESET; die; };
 	my $params = join(" ", @ARGV);
-	print outfile4 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
+	print outfile4 "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-SÃ¡nchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n";
 	print outfile4 "Run started ",scalar localtime," in $mode mode\n";
 	print outfile4 "Command: $commandline\n"; 
 	print outfile4 "Project: $projectname\n";
@@ -573,7 +573,7 @@ else {
 		elsif($_=~/^\$nobins/)                    { print outfile6 "\$nobins          = $nobins;\n";                          }
 		elsif($_=~/^\$binners/)                   { print outfile6 "\$binners         = \"$binners\";\n";                     }
 		elsif($_=~/^\$nometabat/)                 { print outfile6 "\$nometabat       = $nometabat;\n";                       }
-		elsif($_=~/^\$rename/)      		  { print outfile5 "\$rename          = $rename;\n";                          }
+		elsif($_=~/^\$norename/)      		  { print outfile5 "\$norename          = $norename;\n";                          }
 		elsif($_=~/^\$doublepass/)                { print outfile6 "\$doublepass      = $doublepass;\n";                      }
 		elsif($_=~/^\$mapper/)                    { print outfile6 "\$mapper          = \"$mapper\";\n";                      }
 		elsif($_=~/^\$mapping_options/)		  { print outfile6 "\$mapping_options = \"$mapping_options\";\n";             }
