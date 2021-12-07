@@ -328,7 +328,7 @@ if($mode=~/sequential/i) {
 			elsif($_=~/^\$doublepass/)      { print outfile5 "\$doublepass      = $doublepass;\n";          }
 			elsif($_=~/^\$nobins/)          { print outfile5 "\$nobins          = $nobins;\n";              }
 			elsif($_=~/^\$binners/)         { print outfile5 "\$binners         = \"$binners\";\n";         }
-			elsif($_=~/^\$norename/)        { print outfile5 "\$norename          = $norename;\n";           }
+			elsif($_=~/^\$norename/)        { print outfile5 "\$norename        = $norename;\n";           }
 			elsif($_=~/^\$mapper/)          { print outfile5 "\$mapper          = \"$mapper\";\n";          }
 			elsif($_=~/^\$mapping_options/) { print outfile5 "\$mapping_options = \"$mapping_options\";\n"; }
 			elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $cleaning;\n";            }
@@ -573,7 +573,7 @@ else {
 		elsif($_=~/^\$nobins/)                    { print outfile6 "\$nobins          = $nobins;\n";                          }
 		elsif($_=~/^\$binners/)                   { print outfile6 "\$binners         = \"$binners\";\n";                     }
 		elsif($_=~/^\$nometabat/)                 { print outfile6 "\$nometabat       = $nometabat;\n";                       }
-		elsif($_=~/^\$norename/)      		  { print outfile5 "\$norename          = $norename;\n";                          }
+		elsif($_=~/^\$norename/)      		  { print outfile6 "\$norename        = $norename;\n";                          }
 		elsif($_=~/^\$doublepass/)                { print outfile6 "\$doublepass      = $doublepass;\n";                      }
 		elsif($_=~/^\$mapper/)                    { print outfile6 "\$mapper          = \"$mapper\";\n";                      }
 		elsif($_=~/^\$mapping_options/)		  { print outfile6 "\$mapping_options = \"$mapping_options\";\n";             }
