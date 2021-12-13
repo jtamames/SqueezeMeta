@@ -365,12 +365,12 @@ def main(args):
                     else:
                         outfile.write('{}\t{} (name not available)\t{} (path not available)\n'.format(fun, fun, fun))
                 else:
-                    outfile.write('{}\t{}\n'.format(fun, info[fun]))
+                    outfile.write('{}\t{}\t\n'.format(fun, info[fun]))
 
             if method in ('kegg', 'cogs'):
                outfile.write('Unclassified\tUnclassified\tUnclassified\n')
             else:
-               outfile.write('Unclassified\tUnclassified\n')
+               outfile.write('Unclassified\tUnclassified\t\n')
             
 
 
