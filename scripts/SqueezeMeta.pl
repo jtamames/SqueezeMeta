@@ -443,10 +443,20 @@ if($mode=~/sequential/i) {
 					my $par2name="$datapath/raw_fastq/".$prepsamples{$ts}{pair2};
 					my $orig1=$par1name;
 					my $orig2=$par2name;
-					$orig1=~s/\.fastq/\.original.fastq/;
-					$orig1=~s/\.fasta/\.original.fasta/;
-					$orig2=~s/\.fastq/\.original.fastq/;
-					$orig2=~s/\.fasta/\.original.fasta/;
+					if($orig1=~/fastq/) {
+						$orig1=~s/\.fastq/\.original.fastq/;
+						$orig2=~s/\.fastq/\.original.fastq/;
+						}
+					elsif($orig1=~/fasta/) {
+						$orig1=~s/\.fasta/\.original.fasta/;
+						$orig2=~s/\.fasta/\.original.fasta/;
+						}
+					else {	
+						$orig1=~s/\.fa/\.original.fasta/;
+						$orig2=~s/\.fa/\.original.fasta/;
+						$orig1=~s/\.fq/\.original.fastq/;
+						$orig2=~s/\.fq/\.original.fastq/;
+					}
 					my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
 					system $tcommand; 
 					if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions > /dev/null 2>&1"; }
@@ -717,10 +727,20 @@ sub moving {
 			my $par2name="$datapath/raw_fastq/".$prepsamples{$ts}{pair2};
 			my $orig1=$par1name;
 			my $orig2=$par2name;
-			$orig1=~s/\.fastq/\.original.fastq/;
-			$orig1=~s/\.fasta/\.original.fasta/;
-			$orig2=~s/\.fastq/\.original.fastq/;
-			$orig2=~s/\.fasta/\.original.fasta/;
+			if($orig1=~/fastq/) {
+				$orig1=~s/\.fastq/\.original.fastq/;
+				$orig2=~s/\.fastq/\.original.fastq/;
+				}
+			elsif($orig1=~/fasta/) {
+				$orig1=~s/\.fasta/\.original.fasta/;
+				$orig2=~s/\.fasta/\.original.fasta/;
+				}
+			else {	
+				$orig1=~s/\.fa/\.original.fasta/;
+				$orig2=~s/\.fa/\.original.fasta/;
+				$orig1=~s/\.fq/\.original.fastq/;
+				$orig2=~s/\.fq/\.original.fastq/;
+			}
 			my $tcommand="mv $par1name $orig1; mv $par2name $orig2";
 			system $tcommand; 
 			if(-e $orig2) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $orig1 $orig2 $par1name $par1name.removed $par2name $par2name.removed $cleaningoptions > /dev/null 2>&1"; }
