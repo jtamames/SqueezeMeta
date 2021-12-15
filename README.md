@@ -153,7 +153,7 @@ The command for running SqueezeMeta has the following syntax:
 
 *Binning*
 * *--nobins*: Skip all binning  (Default: no). Overrides --binners 
-* *--binners*: Specify binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
+* *--binners*: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
  
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 
