@@ -47,7 +47,7 @@ do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-our($installpath,$extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,$binresultdir);
+our($installpath,$extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,$binresultsdir);
 
 if(!$complete_cutoff) { $complete_cutoff=30; }		#-- Do not consider bins below this level of completion
 if(!$contamination_cutoff) { $contamination_cutoff=100; }		#-- Do not consider bins above this level of contamination
