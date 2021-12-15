@@ -143,7 +143,7 @@ foreach my $thissample(sort keys %samplefiles) {
 			print "AVAILABLE (free) RAM memory: $ram\nWe will set canu to $canumem. You can override this setting using the -canumem option\n";
 			print outsyslog "canumem set to $canumem (Free Mem $ram bytes)\n";
 			}
- 		$command="$canu_soft -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=$canumem oeaMemory=$canumem batMemory=$canumem mhapThreads=$numthreads mmapThreads=$numthreads ovlThreads=$numthreads ovbThreads=$numthreads ovsThreads=$numthreads corThreads=$numthreads oeaThreads=$numthreads redThreads=$numthreads batThreads=$numthreads gfaThreads=$numthreads merylThreads=$numthreads $assembler_options -nanopore-raw $par1name >> $syslogfile 2>&1";
+                $command="$canu_soft  -p $project -d $datapath/canu genomeSize=5m corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0  maxThreads=$numthreads maxMemory=$canumem $assembler_options -nanopore-raw  $par1name > $syslogfile 2>&1;";
                 print "  Running canu (Koren et al 2017, Genome Res 27(5):722-36) for $thissample\n";
 		print outsyslog "Running canu for $thissample: $command\n";
 		my $ecode = system $command;
