@@ -104,15 +104,18 @@ my $querycover=0;	#-- Minimum coverage of hit in query
 print BOLD "\nSqueezeMeta on Long Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 if($printversion) { exit; }
 
-if(!$blocksize) {
-        print "\nSetting block size for Diamond\n";
+if(not defined $blocksize) {
+        print "  Setting block size for Diamond\n";
+        my $block_size_multiplier=8;
+        my $max_block_size=16;
         my %mem=get_mem_info;
         my $ram=$mem{"MemAvailable"}/(1024*1024);
         my $ramstr=sprintf('%.2f',$ram);
-        my $block_size_set=sprintf('%.1f',$ram/5);
-        if($block_size_set>8) { $block_size_set=16; }
+        my $block_size_set=sprintf('%.1f',$ram/$block_size_multiplier);
+        if($block_size_set>$max_block_size) { $block_size_set=$max_block_size; }
         if($block_size_set<1) { $block_size_set=1; }
-        print "  AVAILABLE (free) RAM memory: $ramstr Gb\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 16). You can override this setting using the -b option when starting the project.\n\n";
+        print "  AVAILABLE (free) RAM memory: $ramstr Gb\n  We will set Diamond block size to $block_size_set (Gb RAM/$block_size_multiplier, Max $max_block_size).\n  You can override this setting using the -b option when starting the project, or changing\n  the \$blocksize variable in SqueezeMeta_conf.pl\n";
+        print outsyslog "Diamond block size set to $block_size_set (Free Mem $ramstr Gb)\n";
         $blocksize=$block_size_set;
         }
 
@@ -321,7 +324,8 @@ foreach my $thissample(keys %allsamples) {
 		my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissample $thissampledir $euknofilter $installpath $databasepath";
 		print outsyslog "  Running consensus annotation: Output in $thissampledir/readconsensus.txt: $command\n";
 		# print "$command\n";
-		system($command);
+		my $ecode = system($command);
+                if($ecode) { die "Error running command $command"; }
 
 	#---- Functional annotation
 		
@@ -337,7 +341,9 @@ foreach my $thissample(keys %allsamples) {
 			else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
 				print outsyslog "[",$currtime->pretty,"]: Running Diamond for COGs: $blastx_command\n";
-				system($blastx_command); 
+				my $ecode = system($blastx_command);
+                                if($ecode) { die "Error running command $blastx_command"; }
+ 
 				print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
 			}
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
@@ -345,7 +351,9 @@ foreach my $thissample(keys %allsamples) {
 			$currtime=timediff();
 			print "[",$currtime->pretty,"]: Running functional annotations for COGs\n"; print RESET;
 			print outsyslog "[",$currtime->pretty,"]: Running functional annotations for COGs: $func_command\n";
-			system($func_command);
+			my $ecode = system($func_command);
+			if($ecode) { die "Error running command $func_command"; }
+
 			open(infilecog,$outfile_cog) || die;
 			while(<infilecog>) { 
 				chomp;
@@ -373,7 +381,8 @@ foreach my $thissample(keys %allsamples) {
 			else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n"; print RESET;
 				print outsyslog "[",$currtime->pretty,"]: Running Diamond for KEGG: $blastx_command\n";
-				system($blastx_command); 
+				my $ecode = system($blastx_command);
+				if($ecode) { die "Error running command $blastx_command"; } 
 				print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
 			}
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
@@ -381,7 +390,9 @@ foreach my $thissample(keys %allsamples) {
 			$currtime=timediff();
 			print CYAN "[",$currtime->pretty,"]: Running functional annotation for KEGG\n"; print RESET;
 			print outsyslog "[",$currtime->pretty,"]: Running functional annotation for KEGG: $func_command\n"; 
-			system($func_command);
+			my $ecode = system($func_command);
+			if($ecode) { die "Error running command $func_command"; }
+
 			open(infilekegg,$outfile_kegg) || die;
 			while(<infilekegg>) {
 				chomp;
@@ -412,7 +423,9 @@ foreach my $thissample(keys %allsamples) {
 				else { 
 					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
 					print outsyslog "[",$currtime->pretty,"]: Running Diamond for $extdbname: $blastx_command\n";
-					system($blastx_command); 
+					my $ecode = system($blastx_command);
+					if($ecode) { die "Error running command $blastx_command"; }
+	
 					print outmet "$extdbname, ";
 				}
 				my $outfile_opt="$thissampledir/$thisfile.$extdbname";
@@ -420,7 +433,8 @@ foreach my $thissample(keys %allsamples) {
 				$currtime=timediff();
 				print "[",$currtime->pretty,"]: Running functional annotation for $extdbname\n"; print RESET;
 				print outsyslog "[",$currtime->pretty,"]: Running functional annotation for $extdbname: $func_command\n"; 
-				system($func_command);
+				my $ecode = system($func_command);
+				if($ecode) { die "Error running command $func_command"; }
 				open(infileopt,$outfile_opt) || die;
 				while(<infileopt>) {
 					chomp;
@@ -703,7 +717,8 @@ sub run_blastx {
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	print "Running Diamond Blastx: $blastx_command**\n" if $verbose;
-	system $blastx_command;
+	my $ecode = system $blastx_command;
+	if($ecode) { die "Error running $blastx_command"; }
 	}
 
 sub collapse {
@@ -715,7 +730,8 @@ sub collapse {
 	print outsyslog "Collapsing hits with blastxcollapse.pl: $collapse_command\n";
 	print "Collapsing hits with blastxcollapse.pl: $collapse_command\n" if $verbose;
 	close outsyslog;
-	system $collapse_command;
+	my $ecode = system $collapse_command;
+	if($ecode) { die "Error running $collapse_command"; }
 	open(outsyslog,">>$resultsdir/syslog");
 	}
 	
@@ -728,7 +744,8 @@ sub merge {
 	print outsyslog "Merging splitted hits with mergehits.pl: $merge_command\n";
 	print "Merging splitted hits with mergehits.pl: $merge_command\n" if $verbose;
 	close outsyslog;
-	system $merge_command;
+	my $ecode = system $merge_command;
+	if($ecode) { die "Error running $merge_command" }
 	open(outsyslog,">>$resultsdir/syslog");
 	}
 
@@ -789,7 +806,8 @@ sub lca {
 	$currtime=timediff();
 	print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
 	close(outsyslog);
-	system($lca_command);
+	my $ecode = system($lca_command);
+	if($ecode) { die "Error running $lca_command" }
 	open(outsyslog,">>$resultsdir/syslog");
 	}
 

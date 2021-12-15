@@ -44,7 +44,7 @@ my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
-our($databasepath,$installpath);
+our($databasepath);
 
 my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile,$printversion);
 
@@ -97,15 +97,18 @@ my $querycover=0;	#-- Minimum coverage of hit in query
 print BOLD "\nSqueezeMeta on Reads v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 if($printversion) { exit; }
 
-if(!$blocksize) {
-        print "\nSetting block size for Diamond\n";
+if(not defined $blocksize) {
+        print "  Setting block size for Diamond\n";
+        my $block_size_multiplier=8;
+        my $max_block_size=16;
         my %mem=get_mem_info;
         my $ram=$mem{"MemAvailable"}/(1024*1024);
         my $ramstr=sprintf('%.2f',$ram);
-        my $block_size_set=sprintf('%.1f',$ram/5);
-        if($block_size_set>8) { $block_size_set=16; }
+        my $block_size_set=sprintf('%.1f',$ram/$block_size_multiplier);
+        if($block_size_set>$max_block_size) { $block_size_set=$max_block_size; }
         if($block_size_set<1) { $block_size_set=1; }
-        print "  AVAILABLE (free) RAM memory: $ramstr Gb\nWe will set Diamond block size to $block_size_set (Gb RAM/5, Max 16). You can override this setting using the -b option when starting the project.\n\n";
+        print "  AVAILABLE (free) RAM memory: $ramstr Gb\n  We will set Diamond block size to $block_size_set (Gb RAM/$block_size_multiplier, Max $max_block_size).\n  You can override this setting using the -b option when starting the project, or changing\n  the \$blocksize variable in SqueezeMeta_conf.pl\n";
+        print outsyslog "Diamond block size set to $block_size_set (Free Mem $ramstr Gb)\n";
         $blocksize=$block_size_set;
         }
 
@@ -229,11 +232,12 @@ foreach my $thissample(keys %allsamples) {
 		# print "Running BlastX: $blastx_command\n";
 		my %iblast;
 		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
-		else { 
+		else {
 			if(-e $outfile) { print "Diamond result found in $outfile, skipping run\n"; }
 			else {
 				print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
-				system($blastx_command);
+				my $ecode = system($blastx_command);
+                                if($ecode) { die "Error running command $blastx_command"; }
 				print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
 				}
 			}
@@ -254,7 +258,8 @@ foreach my $thissample(keys %allsamples) {
 		else {
 			$currtime=timediff();
 			print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
-			system($lca_command);
+			my $ecode = system($lca_command);
+                        if($ecode) { die "Error running command $lca_command"; }
 			}
 		open(infiletax,$outfile_tax) || die;
 		while(<infiletax>) {
@@ -287,7 +292,8 @@ foreach my $thissample(keys %allsamples) {
 				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
 				else { 
 					print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
-					system($blastx_command); 
+					my $ecode = system($blastx_command); 
+					if($ecode) { die "Error running command $blastx_command"; }
 					print outmet "eggNOG (Huerta-Cepas et al 2016, Nucleic Acids Res 44, D286-93), ";
 					}
 				}
@@ -297,7 +303,8 @@ foreach my $thissample(keys %allsamples) {
 			else {
 				$currtime=timediff();
 				print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
-				system($func_command);
+				my $ecode = system($func_command);
+				if($ecode) { die "Error running command $func_command"; }
 				}
 			open(infilecog,$outfile_cog) || die;
 			while(<infilecog>) {
@@ -321,7 +328,8 @@ foreach my $thissample(keys %allsamples) {
 				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
 				else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n"; print RESET;
-					system($blastx_command); 
+					my $ecode = system($blastx_command); 
+					if($ecode) { die "Error running command $blastx_command"; }
 					print outmet "KEGG (Kanehisa and Goto 2000, Nucleic Acids Res 28, 27-30), ";
 					}
 				}
@@ -331,7 +339,8 @@ foreach my $thissample(keys %allsamples) {
 				my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 				$currtime=timediff();
 				print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
-				system($func_command);
+				my $ecode = system($func_command);
+				if($ecode) { die "Error running command $func_command"; }
 				}
 			open(infilekegg,$outfile_kegg) || die;
 			while(<infilekegg>) {
@@ -359,7 +368,8 @@ foreach my $thissample(keys %allsamples) {
 					if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
 					else { 
 						print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
-						system($blastx_command); 
+						my $ecode = system($blastx_command); 
+						if($ecode) { die "Error running command $blastx_command"; }
 						print outmet "$extdbname, ";
 						}
 					}
@@ -369,7 +379,8 @@ foreach my $thissample(keys %allsamples) {
 					my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
 					$currtime=timediff();
 					print CYAN "[",$currtime->pretty,"]: Running fun3\n"; print RESET;
-					system($func_command);
+					my $ecode = system($func_command);
+					if($ecode) { die "Error running command $func_command"; }
 					}
 				open(infileopt,$outfile_opt) || die;
 				while(<infileopt>) {
