@@ -19,7 +19,8 @@ plotTaxonomy(
   rescale = F,
   color = NULL,
   base_size = 11,
-  max_scale_value = NULL
+  max_scale_value = NULL,
+  metadata_groups = NULL
 )
 }
 \arguments{
