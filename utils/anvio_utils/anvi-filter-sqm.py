@@ -117,12 +117,22 @@ DEVNULL = open(devnull, 'wb')
 from splitFilter import SplitFilter
 from subsetAnvio import subset_anvio
 
+# NEW: Find out anvio version:
+try:
+    import anvio
+except ModuleNotFoundError:
+    raise Exception('Anvi\'o has not been detected. Are you sure that it has been activated?')
+#
+
 
 OUTTREE = 'Taxonomy.nwk'
 COLLECTION_NAME = 'SqueezeMeta'
 
 def main(args):
-    
+    # NEW
+    version = float(anvio.__version__)
+    #
+
     ### Check that the output directory does not exist.
     outdir = args.output_dir.rstrip('/')
     if exists(outdir):
@@ -138,7 +148,10 @@ def main(args):
         exit(1)
 
     ### Load data
-    sfilter = SplitFilter(args.contigs_db, args.profile_db, args.taxonomy)
+    #NEW
+    sfilter = SplitFilter(args.contigs_db, args.profile_db, args.taxonomy, version)
+    #sfilter = SplitFilter(args.contigs_db, args.profile_db, args.taxonomy)
+    #
     splits, samples, contigTax = sfilter.get_parsed_annotations()
     print('')
     print('- {} splits found in anvi\'o profile database.'.format(len(splits)))
