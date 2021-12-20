@@ -41,7 +41,7 @@ while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my($sample,$file,$iden,$flag)=split(/\t/,$_);
-	next if($flag eq "noassembly");
+	next if($flag=~"noassembly");
 	$ident{$file}=$iden;
 	$samplefiles{$sample}{$file}=$iden;
 	}
