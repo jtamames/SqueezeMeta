@@ -20,7 +20,6 @@ SqueezeMeta redistributes the following third-party software:
 * [Spades](http://cab.spbu.ru/software/spades)
   - Work within the SQM directory structure
 * [canu](https://github.com/marbl/canu)
-  - Work within the SQM directory structure
 * [prinseq](http://prinseq.sourceforge.net)
 * [kmer-db](https://github.com/refresh-bio/kmer-db)
 * [CD-HIT](https://github.com/weizhongli/cdhit)

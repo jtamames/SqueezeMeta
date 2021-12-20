@@ -96,8 +96,7 @@ Arguments:
    
  Binning:
    --nobins: Skip all binning  (Default: no). Overrides --binners 
-   --binners: Specify binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
-   
+   --binners: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
  Performance:
    -t <threads>: Number of threads (Default: 12)
    -canumem <mem>: memory for canu in Gb (Default: 32)

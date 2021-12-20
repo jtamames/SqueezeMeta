@@ -10,7 +10,8 @@ plotHeatmap(
   label_y = "Features",
   label_fill = "Abundance",
   gradient_col = c("ghostwhite", "dodgerblue4"),
-  base_size = 11
+  base_size = 11,
+  metadata_groups = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ plotHeatmap(
 \item{gradient_col}{A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).}
 
 \item{base_size}{numeric. Base font size (default \code{11}).}
+
+\item{metadata_groups}{list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).}
 }
 \value{
 A ggplot2 plot object.

@@ -173,17 +173,20 @@ sub blocksize {
 	#-- Setting block size for Diamond
 
 	if($blocksize eq "NF") {
-		print "  Setting block size for Diamond\n";
-		my %mem=get_mem_info;
-		my $ram=$mem{"MemAvailable"};
-		my $block_size_set=sprintf('%.1f',$ram/5000000);
-		if($block_size_set>16) { $block_size_set=16; }	
-		if($block_size_set<1) { $block_size_set=1; }
-		print "  AVAILABLE (free) RAM memory: $ram\n  We will set Diamond block size to $block_size_set (Gb RAM/5, Max 16). You can override this setting using the -b option when starting the project, or changing the \$blocksize variable in SqueezeMeta_conf.pl\n";
-		print outsyslog "Diamond block size set to $block_size_set (Free Mem $ram bytes)\n";
-		$blocksize=$block_size_set;
-		}
-	}
+	        print "  Setting block size for Diamond\n";
+        	my $block_size_multiplier=8;
+        	my $max_block_size=16;
+        	my %mem=get_mem_info;
+        	my $ram=$mem{"MemAvailable"}/(1024*1024);
+        	my $ramstr=sprintf('%.2f',$ram);
+        	my $block_size_set=sprintf('%.1f',$ram/$block_size_multiplier);
+        	if($block_size_set>$max_block_size) { $block_size_set=$max_block_size; }
+        	if($block_size_set<1) { $block_size_set=1; }
+        	print "  AVAILABLE (free) RAM memory: $ramstr Gb\n  We will set Diamond block size to $block_size_set (Gb RAM/$block_size_multiplier, Max $max_block_size).\n  You can override this setting using the -b option when starting the project, or changing\n  the \$blocksize variable in SqueezeMeta_conf.pl\n";
+        	print outsyslog "Diamond block size set to $block_size_set (Free Mem $ramstr Gb)\n";
+        	$blocksize=$block_size_set;
+        	}
+}
 	
 sub run_blastx {
 
