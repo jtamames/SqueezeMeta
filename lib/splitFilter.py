@@ -34,8 +34,8 @@ class SplitFilter():
         else:
             self.SAMPLES = []
             # NEW
-            self.splits  = self.load_anvio_splits(self.profile_db_path, 'abundance_splits', anvio_version)
-            #self.splits  = self.load_anvio_splits(self.profile_db_path, 'abundance_splits')
+            self.splits  = self.load_anvio_splits(self.profile_db_path, 'atomic_data_splits', anvio_version)
+            #self.splits  = self.load_anvio_splits(self.profile_db_path, 'atomic_splits')
             #
         self.ALL_KEYWORDS = self.TAX_KEYWORDS + self.FUN_KEYWORDS + self.SAMPLES # Add sample names to the list of valid keywords.
         self.contigTax = self.load_taxonomy(self.contigs_tax_path)
@@ -63,8 +63,12 @@ class SplitFilter():
     def load_anvio_samples(profile_db_path):
         conn = sqlite3.connect(profile_db_path)
         c = conn.cursor()
-        c.execute('PRAGMA table_info("abundance_splits")')
-        samples = [x[1] for x in c.fetchall()][1:-1]
+        #c.execute('PRAGMA table_info("abundance_splits")')
+        #samples = [x[1] for x in c.fetchall()][1:-1]
+        # NEW
+        # Affected by the new structure of PROFILE.db in anvio 7.1. Read from self?
+        c.execute('SELECT * FROM self WHERE key == \'samples\'')
+        samples = list(map(list, c.fetchall()))[0]
         conn.close()
         return samples
 
