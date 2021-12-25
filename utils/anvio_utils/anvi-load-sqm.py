@@ -54,8 +54,10 @@ import shutil
 import sys
 from os.path import abspath, dirname, realpath
 import datetime
+
 # Moved anvi'o try import to the if __name__ == '__main__' block, so that we can still print help and __doc__ even if anvi'o is not present
 
+import re
 
 # Describe functions
 
@@ -217,13 +219,17 @@ def create_contigsDB(project, contigs, genes, functions, tax_genes, tax_contigs,
                     command = ['diamond', 'dbinfo', '--db', '{}/{}.dmnd'.format(default_scgs_taxonomy_data_dir, f_name)]
                     with open(os.devnull, "w") as null_stdout: # Not showing outputDir from command
                         run_command(command, stdout = null_stdout)
-                    dbinfo = subprocess.check_output(command, universal_newlines = True).split('\n') # Collect STDOUT from command
+                    #dbinfo = subprocess.check_output(command, universal_newlines = True).split('\n') # Collect STDOUT from command
+                    dbinfo = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines = True).split('\n') # Collect STDOUT from command
                     #print(dbinfo)
                     for e in dbinfo:
+                        e = e.replace(' ', '').replace('\t','')
                         if e.startswith('diamond'):
-                            diamond_version_path = e.split(' | ')[0].split('.')[-1] #'diamond v0.9.14.115 | by Benjamin Buchfink <buchfink@gmail.com>'
-                        if e.startswith('Diamond build'):
-                            diamond_version_makedb = e.split(' = ')[1] # 'Diamond build = 123'
+                            diamond_version_path = re.search('[0-9]{3}',e).group(0)
+                            #diamond_version_path = e.split(' | ')[0].split('.')[-1] #'diamond v0.9.14.115 | by Benjamin Buchfink <buchfink@gmail.com>'
+                        if e.startswith('Diamondbuild'):
+                            diamond_version_makedb = re.search('[0-9]{3}',e).group(0)
+                            #diamond_version_makedb = e.split(' = ')[1] # 'Diamond build = 123'
                     if diamond_version_path != diamond_version_makedb:
                         print('The diamond version in path {} is different from the diamond version to make {}.dmnd {}. We note this, but we do not take any action.'.format(diamond_version_path, f_name, diamond_version_makedb))
                         print('If you run into an issue after ignoring these, you may consider to rebuild the databases using the diamond version that is in path.')

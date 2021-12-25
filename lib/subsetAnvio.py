@@ -125,6 +125,13 @@ def subset_anvio(splits, contigs_db, profile_db, outdir):
     conn = sqlite3.connect(new_profile_db)
     c = conn.cursor()
     c.execute('ATTACH DATABASE ? AS old', (profile_db,) )
+    
+    # NEW
+    if version > 7:
+        where = 'item'
+    else:
+        where = 'contig'
+    #
 
     # self
     c.execute('CREATE TABLE self AS SELECT * FROM old.self')
@@ -159,52 +166,119 @@ def subset_anvio(splits, contigs_db, profile_db, outdir):
     # states
     c.execute('CREATE TABLE states AS SELECT * FROM old.states') # Just copy
     # std_coverage_contigs
-    query = 'CREATE TABLE std_coverage_contigs AS SELECT * FROM old.std_coverage_contigs WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE std_coverage_contigs AS SELECT * FROM old.std_coverage_contigs WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE std_coverage_contigs AS SELECT * FROM old.std_coverage_contigs WHERE contig IN {}'.format(splitsSub)
+    # 
     c.execute(query, splits)
+    
     # mean_coverage_contigs
-    query = 'CREATE TABLE mean_coverage_contigs AS SELECT * FROM old.mean_coverage_contigs WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE mean_coverage_contigs AS SELECT * FROM old.mean_coverage_contigs WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE mean_coverage_contigs AS SELECT * FROM old.mean_coverage_contigs WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)
+
     # mean_coverage_Q2Q3_contigs
-    query = 'CREATE TABLE mean_coverage_Q2Q3_contigs AS SELECT * FROM old.mean_coverage_Q2Q3_contigs WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE mean_coverage_Q2Q3_contigs AS SELECT * FROM old.mean_coverage_Q2Q3_contigs WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE mean_coverage_Q2Q3_contigs AS SELECT * FROM old.mean_coverage_Q2Q3_contigs WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)
+    
     # max_normalized_ratio_contigs
-    query = 'CREATE TABLE max_normalized_ratio_contigs AS SELECT * FROM old.max_normalized_ratio_contigs WHERE contig IN {}'.format(splitsSub)
-    c.execute(query, splits)
+    #query = 'CREATE TABLE max_normalized_ratio_contigs AS SELECT * FROM old.max_normalized_ratio_contigs WHERE contig IN {}'.format(splitsSub)
+    #c.execute(query, splits)
+    # NEW: This table disappers
+    if version < 7.1:
+        query = 'CREATE TABLE max_normalized_ratio_contigs AS SELECT * FROM old.max_normalized_ratio_contigs WHERE contig IN {}'.format(splitsSub)
+        c.execute(query, splits)
+
     # relative_abundance_contigs
-    query = 'CREATE TABLE relative_abundance_contigs AS SELECT * FROM old.relative_abundance_contigs WHERE contig IN {}'.format(splitsSub)
-    c.execute(query, splits)
+    #query = 'CREATE TABLE relative_abundance_contigs AS SELECT * FROM old.relative_abundance_contigs WHERE contig IN {}'.format(splitsSub)
+    #c.execute(query, splits)
+    # NEW: This table disappers
+    if version < 7.1:
+        query = 'CREATE TABLE relative_abundance_contigs AS SELECT * FROM old.relative_abundance_contigs WHERE contig IN {}'.format(splitsSub)
+        c.execute(query, splits)
+
     # detection_contigs
-    query = 'CREATE TABLE detection_contigs AS SELECT * FROM old.detection_contigs WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE detection_contigs AS SELECT * FROM old.detection_contigs WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE detection_contigs AS SELECT * FROM old.detection_contigs WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)    
+    
     # abundance_contigs
-    query = 'CREATE TABLE abundance_contigs AS SELECT * FROM old.abundance_contigs WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE abundance_contigs AS SELECT * FROM old.abundance_contigs WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE abundance_contigs AS SELECT * FROM old.abundance_contigs WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)    
+    
     # variability_contigs
-    query = 'CREATE TABLE variability_contigs AS SELECT * FROM old.variability_contigs WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE variability_contigs AS SELECT * FROM old.variability_contigs WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE variability_contigs AS SELECT * FROM old.variability_contigs WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)    
+    
     # std_coverage_splits
-    query = 'CREATE TABLE std_coverage_splits AS SELECT * FROM old.std_coverage_splits WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE std_coverage_splits AS SELECT * FROM old.std_coverage_splits WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE std_coverage_splits AS SELECT * FROM old.std_coverage_splits WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)
+    
     # mean_coverage_splits
-    query = 'CREATE TABLE mean_coverage_splits AS SELECT * FROM old.mean_coverage_splits WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE mean_coverage_splits AS SELECT * FROM old.mean_coverage_splits WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE mean_coverage_splits AS SELECT * FROM old.mean_coverage_splits WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)
+    
     # mean_coverage_Q2Q3_splits
-    query = 'CREATE TABLE mean_coverage_Q2Q3_splits AS SELECT * FROM old.mean_coverage_Q2Q3_splits WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE mean_coverage_Q2Q3_splits AS SELECT * FROM old.mean_coverage_Q2Q3_splits WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE mean_coverage_Q2Q3_splits AS SELECT * FROM old.mean_coverage_Q2Q3_splits WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)    
+    
     # max_normalized_ratio_splits
-    query = 'CREATE TABLE max_normalized_ratio_splits AS SELECT * FROM old.max_normalized_ratio_splits WHERE contig IN {}'.format(splitsSub)
-    c.execute(query, splits)    
+    #query = 'CREATE TABLE max_normalized_ratio_splits AS SELECT * FROM old.max_normalized_ratio_splits WHERE contig IN {}'.format(splitsSub)
+    #c.execute(query, splits)    
+    # NEW: This table disappers
+    if version < 7.1:
+        query = 'CREATE TABLE max_normalized_ratio_splits AS SELECT * FROM old.max_normalized_ratio_splits WHERE contig IN {}'.format(splitsSub)
+        c.execute(query, splits)    
+
     # relative_abundance_splits
-    query = 'CREATE TABLE relative_abundance_splits AS SELECT * FROM old.relative_abundance_splits WHERE contig IN {}'.format(splitsSub)
-    c.execute(query, splits)
+    #query = 'CREATE TABLE relative_abundance_splits AS SELECT * FROM old.relative_abundance_splits WHERE contig IN {}'.format(splitsSub)
+    #c.execute(query, splits)
+    # NEW: This table disappers
+    if version < 7.1:
+        query = 'CREATE TABLE relative_abundance_splits AS SELECT * FROM old.relative_abundance_splits WHERE contig IN {}'.format(splitsSub)
+        c.execute(query, splits)
+    
     # detection_splits
-    query = 'CREATE TABLE detection_splits AS SELECT * FROM old.detection_splits WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE detection_splits AS SELECT * FROM old.detection_splits WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE detection_splits AS SELECT * FROM old.detection_splits WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)
+    
     # abundance_splits
-    query = 'CREATE TABLE abundance_splits AS SELECT * FROM old.abundance_splits WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE abundance_splits AS SELECT * FROM old.abundance_splits WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE abundance_splits AS SELECT * FROM old.abundance_splits WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)
+    
     # variability_splits
-    query = 'CREATE TABLE variability_splits AS SELECT * FROM old.variability_splits WHERE contig IN {}'.format(splitsSub)
+    # NEW
+    query = 'CREATE TABLE variability_splits AS SELECT * FROM old.variability_splits WHERE {} IN {}'.format(where, splitsSub)
+    #query = 'CREATE TABLE variability_splits AS SELECT * FROM old.variability_splits WHERE contig IN {}'.format(splitsSub)
+    #
     c.execute(query, splits)
     
     if version >= 7:
