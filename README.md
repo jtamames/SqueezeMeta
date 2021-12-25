@@ -246,17 +246,24 @@ As an alternative to assembly, we also provide the sqm_longreads.pl script, whic
 
 
 ## 10. Working in a low-memory environment
-In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. By default SqueezeMeta will set up the right parameters for DIAMOND and the canu assembler based on the available memory in the system. DIAMOND memory usage can be manually controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
+In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. By default SqueezeMeta will set up the right parameters for DIAMOND and the canu assembler based on the available memory in the system. DIAMOND memory usage can be manually controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory according to the documentation, but to be safe we set *-b* to *free_ram/8*). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
 We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limitations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
 
+## 11. Tips for working in a computing cluster
+SqueezeMeta will work fine inside a computing cluster, but there are some extra things that must be taken into account. Here is a list in progress based on frequent issues that have been reported.
+- Run `test_install.pl` to make sure that everything is properly configured.
+- If using the conda environment, make sure that it is properly activated by your batch script.
+- If an administrator has set up SqueezeMeta for you (and you have no write privileges in the installation directory), make sure they have run `make_databases.pl`, `download_databases.pl` or `configure_nodb.pl` according to the installation instructions. Once again, `test_install.pl` should tell you whether things seem to be ok.
+- Make sure to request enough memory. See the previous section for a rough guide on what is "enough". If you get a crash during the assembly or during the annotation step, it will be likely because you ran out of memory.
+- Make sure to manually set the `-b` parameter so that it matches the amount of memory that you requested divided by 8. Otherwise, SqueezeMeta will assume that it can use all the free memory in the node in which it is running. This is fine if you got a full node for yourself, but will lead to crashes otherwise.
 
-## 11. Updating SqueezeMeta
+## 12. Updating SqueezeMeta
 Assuming your databases are not inside the SqueezeMeta directory, just remove it, download the new version and configure it with
 
 `/path/to/SqueezeMeta/utils/install_utils/configure_nodb.pl /path/to/db`
 
 
-## 12. Downstream analysis of SqueezeMeta results
+## 13. Downstream analysis of SqueezeMeta results
 SqueezeMeta comes with a variety of options to explore the results and generate different plots. These are fully described in the PDF manual and in the [wiki](https://github.com/jtamames/SqueezeMeta/wiki). Briefly, the three main ways to analyze the output of SqueezeMeta are the following:
 
 <img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/Figure_1_readmeSQM.png" width="50%">
@@ -268,7 +275,7 @@ SqueezeMeta comes with a variety of options to explore the results and generate 
 We also include utility scripts for generating [itol](https://itol.embl.de/) and [pavian](https://ccb.jhu.edu/software/pavian/) -compatible outputs.
 
 
-## 13. Alternative analysis modes
+## 14. Alternative analysis modes
 In addition to the main SqueezeMeta pipeline, we provide two extra modes that enable the analysis of individual reads.
 
 **1) sqm_reads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs. This can be useful when the assembly quality is low, or when looking for low abundance functions that might not have enough coverage to be assembled.
@@ -282,7 +289,7 @@ In addition to the main SqueezeMeta pipeline, we provide two extra modes that en
 **5) sqm_annot.pl**: This script performs functional and taxonomic annotation for a set of genes, for instance these encoded in a genome (or sets of contigs).
 
 
-## 14. License and third-party software
+## 15. License and third-party software
 SqueezeMeta is distributed under a GPL-3 license.
 Additionally, SqueezeMeta redistributes the following third-party software:
 * [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
