@@ -44,15 +44,14 @@ SqueezeMeta uses a combination of custom scripts and external software packages 
 11) Estimation of taxa abundances
 12) Estimation of function abundances
 13) Merging of previous results to obtain the ORF table
-14) Binning with MaxBin
-15) Binning with MetaBAT
-16) Binning integration with DAS tool
-17) Taxonomic assignment of bins, and check for taxonomic disparities
-18) Checking of bins with CheckM
-19) Merging of previous results to obtain the bin table
-20) Merging of previous results to obtain the contig table
-21) Prediction of kegg and metacyc patwhays for each bin
-22) Final statistics for the run
+14) Binning with different methods
+15) Binning integration with DAS tool
+16) Taxonomic assignment of bins, and check for taxonomic disparities
+17) Checking of bins with CheckM
+18) Merging of previous results to obtain the bin table
+19) Merging of previous results to obtain the contig table
+20) Prediction of kegg and metacyc patwhays for each bin
+21) Final statistics for the run
 
 Detailed information about the different steps of the pipeline can be found in the PDF manual.
 
@@ -152,8 +151,8 @@ The command for running SqueezeMeta has the following syntax:
 * *-mapping_options* [string]: Extra options for the mapper (refer to the manual of the specific mapper). Please provide all the extra options as a single quoted string (e.g. _-mapping_options “--opt1 foo --opt2 bar”_)
 
 *Binning*
-* *--nobins*: Skip all binning  (Default: no). Overrides --binners 
-* *--binners*: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
+* *--nobins*: Skip all binning  (Default: no). Overrides -binners 
+* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
  
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 
