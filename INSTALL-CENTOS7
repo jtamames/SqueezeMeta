@@ -50,7 +50,7 @@ sudo R CMD INSTALL <installpath>/SqueezeMeta/lib/SQMtools
 
 ### Optional: install concoct (if you want to runing along with or instead of maxbin/metabat)
 cd <installpath>/SqueezeMeta/bin/bin/CONCOCT-1.1.0
-sudo setup.py install
+sudo python3 setup.py install
 
 ### Install databases and test data.
 # This will occupy around 200Gb.

@@ -11,21 +11,32 @@ class SplitFilter():
     LOGICAL_OPERATORS = ['AND', 'OR']
     ALL_OPERATORS = RELATIONAL_OPERATORS + LOGICAL_OPERATORS
 
-
-    def __init__(self, contigs_db_path, profile_db_path, contigs_tax_path):
+    # NEW
+    def __init__(self, contigs_db_path, profile_db_path, contigs_tax_path, anvio_version):
+    #def __init__(self, contigs_db_path, profile_db_path, contigs_tax_path):
+    #
         """
         Parse a string cointaining relational expressions joined by logical operators.
         """
         self.contigs_db_path  = contigs_db_path
         self.profile_db_path  = profile_db_path
         self.contigs_tax_path = contigs_tax_path
+        # NEW
+        self.anvio_version = anvio_version
+        #
         self.has_blank_profile = self.is_blank_profile(self.profile_db_path)
         if not self.has_blank_profile:
             self.SAMPLES = self.load_anvio_samples(self.profile_db_path)
-            self.splits  = self.load_anvio_splits(self.profile_db_path, 'abundance_splits')
+            # NEW
+            self.splits  = self.load_anvio_splits(self.profile_db_path, 'abundance_splits', anvio_version)
+            #self.splits  = self.load_anvio_splits(self.profile_db_path, 'abundance_splits')
+            #
         else:
             self.SAMPLES = []
-            self.splits  = self.load_anvio_splits(self.profile_db_path, 'atomic_data_splits')
+            # NEW
+            self.splits  = self.load_anvio_splits(self.profile_db_path, 'atomic_data_splits', anvio_version)
+            #self.splits  = self.load_anvio_splits(self.profile_db_path, 'atomic_splits')
+            #
         self.ALL_KEYWORDS = self.TAX_KEYWORDS + self.FUN_KEYWORDS + self.SAMPLES # Add sample names to the list of valid keywords.
         self.contigTax = self.load_taxonomy(self.contigs_tax_path)
 
@@ -52,19 +63,32 @@ class SplitFilter():
     def load_anvio_samples(profile_db_path):
         conn = sqlite3.connect(profile_db_path)
         c = conn.cursor()
-        c.execute('PRAGMA table_info("abundance_splits")')
-        samples = [x[1] for x in c.fetchall()][1:-1]
+        #c.execute('PRAGMA table_info("abundance_splits")')
+        #samples = [x[1] for x in c.fetchall()][1:-1]
+        # NEW
+        # Affected by the new structure of PROFILE.db in anvio 7.1. Read from self?
+        c.execute('SELECT * FROM self WHERE key == \'samples\'')
+        samples = list(map(list, c.fetchall()))[0]
         conn.close()
         return samples
 
     
 
     @staticmethod
-    def load_anvio_splits(profile_db_path, table):
+    # NEW
+    def load_anvio_splits(profile_db_path, table, anvio_version):
+    #def load_anvio_splits(profile_db_path, table):
+    #
         conn = sqlite3.connect(profile_db_path)
         c = conn.cursor()
         c.execute('SELECT * FROM SQLITE_MASTER')
-        c.execute('SELECT contig FROM {}'.format(table)) # named contig, but they're really splits
+        # NEW
+        if anvio_version > 7:
+            c.execute('SELECT item FROM {}'.format(table)) # named contig, but they're really splits
+        else:
+            c.execute('SELECT contig FROM {}'.format(table)) # named contig, but they're really splits
+        #c.execute('SELECT contig FROM {}'.format(table))
+        #
         splits = set([x[0] for x in c.fetchall()])
         conn.close()   
         return splits
