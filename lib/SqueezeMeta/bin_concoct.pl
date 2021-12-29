@@ -21,13 +21,53 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath, $samtools_soft, $concoct_dir,$databasepath,$contigsfna,$contigcov,$alllog,$tempdir,$interdir,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($installpath, $samtools_soft, $concoct_dir,$databasepath,$contigsfna,$singletons,$contigcov,$alllog,$tempdir,$interdir,$mappingfile,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 my $bindir="$interdir/binners/concoct";
 print outsyslog "\nRUNNING concoct\n";
 if(-d $bindir) {} else { print "  Creating $bindir directory\n"; print outsyslog "  Creating $bindir directory\n"; system("mkdir $bindir"); }
+
+my %skip;
+print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "nobinning" flag
+open(infile0,$mappingfile) || die "Can't open $alllog\n";
+while(<infile0>) {
+	chomp;
+	next if !$_;
+	my @t=split(/\t/,$_);
+	if($_=~/nobinning/) { $skip{$t[0]}=1; }
+	}
+close infile0;
+
+my %singletonlist;
+my $outcontig="$tempdir/contigs.nosingle.fasta";
+if($singletons) {		#-- Excluding singleton raw reads from binning
+	my $singletonlist="$interdir/01.$projectname.singletons";
+	print "  Excluding singleton reads from $singletonlist\n";
+	print outsyslog "  Excluding singleton reads from $singletonlist\n";
+	open(infile0,$singletonlist) || die "Cannot open singleton list in $singletonlist\n";
+	while(<infile0>) {
+		chomp;
+		next if !$_;
+		my @y=split(/\t/,$_);
+		$singletonlist{$y[0]}=1;
+		}
+	close infile0;
+	open(provfasta,">$outcontig") || die;
+	open(infilec,$contigsfna) || die;
+	my $gd=1;
+	while(<infilec>) {
+		if($_=~/^>([^ ]+)/) {
+			my $thiscontig=$1;
+			if($singletonlist{$thiscontig}) { $gd=0; } else { $gd=1; }
+			}
+		if($gd) { print provfasta $_; }
+		}
+	close infilec;
+	close provfasta;
+	$contigsfna=$outcontig;	
+	}
 
 my $samdir="$datapath/sam";
 opendir(indir,$samdir) || die;
@@ -36,6 +76,8 @@ closedir indir;
 
 my $command;
 foreach my $sam(@samfiles) {
+	my @w=split(/\./,$sam);
+	if($skip{$w[1]}) { print "  Sample $w[1] flagged for nobinning, skipping\n"; next; }
 	print "  Working for $sam\n";
 	print outsyslog "  Working for $sam\n";
 	my $samfile="$samdir/$sam";
@@ -83,3 +125,4 @@ foreach my $renam(@mfiles) {
 	}
 
 close outsyslog;
+if(-e $outcontig) { system("rm $outcontig"); }

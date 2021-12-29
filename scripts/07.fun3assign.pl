@@ -35,6 +35,11 @@ if(!$nocog) {
 		$cogdiamond="$tempdir/08.$project.fun3.blastx.cog.m8";
 		$fun3cog="$tempdir/08.$project.fun3.blastx.cog";
 		}
+	if(-e $fun3cog) { 
+		print "  Found COG annotation file in $fun3cog, skipping\n"; 	
+		print syslogfile "  Found COG annotation file in $fun3cog, skipping\n";
+		next; 
+		}
 	print syslogfile "  Reading COGs hits from $cogdiamond\n";	
 	open(infile1,$cogdiamond) || die "Can't open cog file $cogdiamond\n";
 	open(outfile1,">$fun3cog") || die "Can't open $fun3cog\n";
@@ -120,6 +125,11 @@ if(!$nokegg) {
 	if($blastx) { 
 		$keggdiamond="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		$fun3kegg="$tempdir/08.$project.fun3.blastx.kegg";
+		}
+	if(-e $fun3kegg) { 
+		print "  Found KEGG annotation file in $fun3kegg, skipping\n"; 	
+		print syslogfile "  Found KEGG annotation file in $fun3kegg, skipping\n";
+		next; 
 		}
 	print syslogfile "  Reading COGs hits from $cogdiamond\n";	
 	open(infile2,$keggdiamond) || die "Can't open $keggdiamond\n";
@@ -213,6 +223,8 @@ if($opt_db) {
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
 		print syslogfile "  Reading $dbname hits from $optdbdiamond\n";	
 
+		if($optdbresult) { print "  Result found in $optdbresult for database $optdbresult, skipping\n"; next; }
+		
 		open(infile1,$optdbdiamond) || die "Can't open opt_db file $optdbdiamond\n";
 		open(outfile1,">$optdbresult") || die "Can't open $optdbresult for writing\n";
 		print outfile1 "# Created by $0 for $dbname, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
@@ -299,6 +311,12 @@ if(!$nopfam) {
 	#-- Read the Pfam data for the pfam.dat file
 
 	print " PFAM";
+	if(-e $fun3pfam) { 
+		print "  Found COG annotation file in $fun3cog, skipping\n"; 	
+		print syslogfile "  Found COG annotation file in $fun3cog, skipping\n";
+		next; 
+	}
+
 	my(%pfamname,%hits);
 	open(infile3,$pfamlist) || die "Can't open $pfamlist\n";
 	while(<infile3>) {
