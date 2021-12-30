@@ -28,3 +28,7 @@ echo "export PERL5LIB=\$CONDA_PREFIX/lib/site_perl/5.26.2/:\$CONDA_PREFIX/lib/si
 echo "export PERL5LIB=\`echo \$PERL5LIB | sed -e \"s,\$CONDA_PREFIX.*\:,,\"\`" > $PREFIX/etc/conda/deactivate.d/deactivate-perl.sh
 chmod +x $PREFIX/etc/conda/activate.d/activate-perl.sh
 chmod +x $PREFIX/etc/conda/deactivate.d/deactivate-perl.sh
+# fix libs for samtools
+cd $PREFIX/lib
+ln -s libncurses.so.6 libncurses.so.5 
+ln -s libtinfo.so.6 libtinfo.so.5
