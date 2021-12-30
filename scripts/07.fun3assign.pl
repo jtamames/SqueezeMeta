@@ -38,82 +38,83 @@ if(!$nocog) {
 	if(-e $fun3cog) { 
 		print "  Found COG annotation file in $fun3cog, skipping\n"; 	
 		print syslogfile "  Found COG annotation file in $fun3cog, skipping\n";
-		next; 
 		}
-	print syslogfile "  Reading COGs hits from $cogdiamond\n";	
-	open(infile1,$cogdiamond) || die "Can't open cog file $cogdiamond\n";
-	open(outfile1,">$fun3cog") || die "Can't open $fun3cog\n";
-	print outfile1 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
-	print outfile1 "#ORF\tBESTHIT\tBESTAVER\n";
+	else {
+		print syslogfile "  Reading COGs hits from $cogdiamond\n";	
+		open(infile1,$cogdiamond) || die "Can't open cog file $cogdiamond\n";
+		open(outfile1,">$fun3cog") || die "Can't open $fun3cog\n";
+		print outfile1 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
+		print outfile1 "#ORF\tBESTHIT\tBESTAVER\n";
 
-	#-- We start reading the Diamond against COG datafile
+		#-- We start reading the Diamond against COG datafile
 
-	my($currorf,$minali,$score1,$score2,$dif);
-	my(%accum,%count,%cog);
-	my @f;
-	while(<infile1>) { 
- 		chomp;
- 		next if(!$_ || ($_=~/^\#/));
- 		@f=split(/\t/,$_);
-		my $presentorf=$f[0];
-		my $hitid=$f[2];
-		my $bitscore=$f[7];
-		if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
-		my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
+		my($currorf,$minali,$score1,$score2,$dif);
+		my(%accum,%count,%cog);
+		my @f;
+		while(<infile1>) { 
+ 			chomp;
+ 			next if(!$_ || ($_=~/^\#/));
+ 			@f=split(/\t/,$_);
+			my $presentorf=$f[0];
+			my $hitid=$f[2];
+			my $bitscore=$f[7];
+			if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
+			my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
 		
-		#-- If we finished reading the hits for last ORF, we output its best hit,
-		#-- and also calculate and output the best average, if any
+			#-- If we finished reading the hits for last ORF, we output its best hit,
+			#-- and also calculate and output the best average, if any
 		
- 		if($currorf && ($presentorf ne $currorf)) {	
+ 			if($currorf && ($presentorf ne $currorf)) {	
 		
-			#-- Calculate the best average
+				#-- Calculate the best average
 		
-			foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }	#-- Average score for the COG
-  			my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
-  			$score1=$accum{$list[0]};		#-- Score of the best COG
-			if($score1) {
-  				if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
-  				$dif=(($score1-$score2)/$score1); 
-  				if($dif>$mindif7) { $cog{$currorf}{bestaver}=$list[0]; }	#-- If difference is enough, then the first is best average
+				foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }	#-- Average score for the COG
+  				my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
+  				$score1=$accum{$list[0]};		#-- Score of the best COG
+				if($score1) {
+  					if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
+  					$dif=(($score1-$score2)/$score1); 
+  					if($dif>$mindif7) { $cog{$currorf}{bestaver}=$list[0]; }	#-- If difference is enough, then the first is best average
 
-				#-- Output the result (Best hit and best aver)
+					#-- Output the result (Best hit and best aver)
 
-  				print outfile1 "$currorf\t$cog{$currorf}{besthit}\t$cog{$currorf}{bestaver}\n";
+  					print outfile1 "$currorf\t$cog{$currorf}{besthit}\t$cog{$currorf}{bestaver}\n";
 				    }
-  			$currorf=$presentorf;		#-- And current ORF is the new one just read
-  			(%accum,%count)=();
-			}
+  				$currorf=$presentorf;		#-- And current ORF is the new one just read
+  				(%accum,%count)=();
+				}
 			
-		#-- If we are still reading the hits for current ORF, just store them if they pass the filters
+			#-- If we are still reading the hits for current ORF, just store them if they pass the filters
 
-		$currorf=$presentorf;
-		next if($olap<$minolap7);	#-- Partial hits are not allowed
-		my @c=split(/\|/,$hitid);
-		my $khit=$c[1];			#-- This is the COG for the hit
-		if(!$cog{$currorf}{besthit}) {
-			$cog{$currorf}{besthit}=$khit;	#-- If it is the first hit, then it is best hit
-			# print out "$currorf\t$kegg{$currorf}\n";
+			$currorf=$presentorf;
+			next if($olap<$minolap7);	#-- Partial hits are not allowed
+			my @c=split(/\|/,$hitid);
+			my $khit=$c[1];			#-- This is the COG for the hit
+			if(!$cog{$currorf}{besthit}) {
+				$cog{$currorf}{besthit}=$khit;	#-- If it is the first hit, then it is best hit
+				# print out "$currorf\t$kegg{$currorf}\n";
+				}
+			next if($count{$khit} && ($count{$khit}>=$maxhits7));	#-- If we have already $maxhits hits for that COG, skip this hit
+			$count{$khit}++;
+			$accum{$khit}+=$bitscore;
 			}
-		next if($count{$khit} && ($count{$khit}>=$maxhits7));	#-- If we have already $maxhits hits for that COG, skip this hit
-		$count{$khit}++;
-		$accum{$khit}+=$bitscore;
-		}
 		
-	close infile1;
+		close infile1;
 
-	#-- We need to proccess also the last ORF in the file
+		#-- We need to proccess also the last ORF in the file
 
-	foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }
-	my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
-	$score1=$accum{$list[0]}; 
-	if($score1) {
- 		if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
-		$dif=(($score1-$score2)/$score1); 
-		if($dif>$mindif7) { $cog{$currorf}{bestaver}=$list[0]; }
-		print outfile1 "$currorf\t$cog{$currorf}{besthit}\t$cog{$currorf}{bestaver}\n";
-		}
-	close outfile1;
-	print syslogfile "  Output in $fun3cog\n";	
+		foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }
+		my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
+		$score1=$accum{$list[0]}; 
+		if($score1) {
+ 			if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
+			$dif=(($score1-$score2)/$score1); 
+			if($dif>$mindif7) { $cog{$currorf}{bestaver}=$list[0]; }
+			print outfile1 "$currorf\t$cog{$currorf}{besthit}\t$cog{$currorf}{bestaver}\n";
+			}
+		close outfile1;
+		print syslogfile "  Output in $fun3cog\n";
+		}	
 	
 	}		#-- END of COG assignment
 
@@ -129,83 +130,84 @@ if(!$nokegg) {
 	if(-e $fun3kegg) { 
 		print "  Found KEGG annotation file in $fun3kegg, skipping\n"; 	
 		print syslogfile "  Found KEGG annotation file in $fun3kegg, skipping\n";
-		next; 
 		}
-	print syslogfile "  Reading COGs hits from $cogdiamond\n";	
-	open(infile2,$keggdiamond) || die "Can't open $keggdiamond\n";
-	open(outfile2,">$fun3kegg") || die "Can't open $fun3kegg\n";
-	print outfile2 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
-	print outfile2 "#ORF\tBESTHIT\tBESTAVER\n";
+	else {	
+		print syslogfile "  Reading COGs hits from $cogdiamond\n";	
+		open(infile2,$keggdiamond) || die "Can't open $keggdiamond\n";
+		open(outfile2,">$fun3kegg") || die "Can't open $fun3kegg\n";
+		print outfile2 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
+		print outfile2 "#ORF\tBESTHIT\tBESTAVER\n";
 
-	#-- We start reading the Diamond against KEGG datafile
+		#-- We start reading the Diamond against KEGG datafile
 
-	my($currorf,$minali,$score1,$score2,$dif);
-	my(%accum,%count,%kegg);
-	my @f;
+		my($currorf,$minali,$score1,$score2,$dif);
+		my(%accum,%count,%kegg);
+		my @f;
 	
-	while(<infile2>) {
-		chomp;
-		next if(!$_ || ($_=~/^\#/));
-		@f=split(/\t/,$_);
-		my $presentorf=$f[0];
-		my $hitid=$f[2];
-		my $bitscore=$f[7];
-		if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
-		my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
+		while(<infile2>) {
+			chomp;
+			next if(!$_ || ($_=~/^\#/));
+			@f=split(/\t/,$_);
+			my $presentorf=$f[0];
+			my $hitid=$f[2];
+			my $bitscore=$f[7];
+			if($f[1]<$f[3]) { $minali=$f[1]; } else { $minali=$f[3]; }
+			my $olap=$f[5]*100/$minali;		#-- Percentage of the query covered by the hit
 		
-		#-- If we finished reading the hits for last ORF, we output its best hit,
-		#-- and also calculate and output the best average, if any
+			#-- If we finished reading the hits for last ORF, we output its best hit,
+			#-- and also calculate and output the best average, if any
 
-		if($currorf && ($presentorf ne $currorf)) {
+			if($currorf && ($presentorf ne $currorf)) {
 		
-			#-- Calculate the best average
+				#-- Calculate the best average
 		
-			foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }	#-- Average score for the KEGG
-			my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
-			$score1=$accum{$list[0]};		#-- Score of the best KEGG
-			if($score1) { 
- 				if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
-				$dif=(($score1-$score2)/$score1); 
-				if($dif>$mindif7) { $kegg{$currorf}{bestaver}=$list[0]; }
+				foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }	#-- Average score for the KEGG
+				my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
+				$score1=$accum{$list[0]};		#-- Score of the best KEGG
+				if($score1) { 
+ 					if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
+					$dif=(($score1-$score2)/$score1); 
+					if($dif>$mindif7) { $kegg{$currorf}{bestaver}=$list[0]; }
 
-				#-- Output the result (Best hit and best aver)
+					#-- Output the result (Best hit and best aver)
 
- 				print outfile2 "$currorf\t$kegg{$currorf}{besthit}\t$kegg{$currorf}{bestaver}\n";
-				   }
-			$currorf=$presentorf;			#-- And current ORF is the new one just read
-			(%accum,%count)=();
+ 					print outfile2 "$currorf\t$kegg{$currorf}{besthit}\t$kegg{$currorf}{bestaver}\n";
+					   }
+				$currorf=$presentorf;			#-- And current ORF is the new one just read
+				(%accum,%count)=();
+				}
+			
+			#-- If we are still reading the hits for current ORF, just store them if they pass the filters
+			
+			
+			next if($olap<$minolap7);	#-- Partial hits are not allowed
+			$currorf=$presentorf;
+			my @c=split(/\|/,$hitid);
+			my $khit=$c[1];			#-- This is the KEGG for the hit
+			if(!$kegg{$currorf}{besthit}) {
+				$kegg{$currorf}{besthit}=$khit;	#-- If it is the first hit, then it is best hit
+				# print outfile2 "$currorf\t$kegg{$currorf}\n";
+				}
+			next if($count{$khit}>=$maxhits7);	#-- If we have already $maxhits hits for that KEGG, skip this hit
+			$count{$khit}++;
+			$accum{$khit}+=$bitscore;
+	   	  }
+		close infile2;
+
+		#-- We need to proccess also the last ORF in the file
+
+		foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }
+		my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
+		$score1=$accum{$list[0]}; 
+		if($score1) {
+ 			if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
+			$dif=(($score1-$score2)/$score1); 
+			if($dif>$mindif7) { $kegg{$currorf}{bestaver}=$list[0]; }
+			print outfile2 "$currorf\t$kegg{$currorf}{besthit}\t$kegg{$currorf}{bestaver}\n";
 			}
-			
-		#-- If we are still reading the hits for current ORF, just store them if they pass the filters
-			
-			
-		next if($olap<$minolap7);	#-- Partial hits are not allowed
-		$currorf=$presentorf;
-		my @c=split(/\|/,$hitid);
-		my $khit=$c[1];			#-- This is the KEGG for the hit
-		if(!$kegg{$currorf}{besthit}) {
-			$kegg{$currorf}{besthit}=$khit;	#-- If it is the first hit, then it is best hit
-			# print outfile2 "$currorf\t$kegg{$currorf}\n";
-			}
-		next if($count{$khit}>=$maxhits7);	#-- If we have already $maxhits hits for that KEGG, skip this hit
-		$count{$khit}++;
-		$accum{$khit}+=$bitscore;
-	     }
-	close infile2;
-
-	#-- We need to proccess also the last ORF in the file
-
-	foreach my $k(keys %accum) { $accum{$k}/=$count{$k}; }
-	my @list=sort { $accum{$b}<=>$accum{$a}; } keys %accum;
-	$score1=$accum{$list[0]}; 
-	if($score1) {
- 		if($list[1]) { $score2=$accum{$list[1]} } else { $score2=0; } 	#-- Score of the 2nd best
-		$dif=(($score1-$score2)/$score1); 
-		if($dif>$mindif7) { $kegg{$currorf}{bestaver}=$list[0]; }
-		print outfile2 "$currorf\t$kegg{$currorf}{besthit}\t$kegg{$currorf}{bestaver}\n";
+		close outfile2;
+		print syslogfile "  Output in $fun3kegg\n";	
 		}
-	close outfile2;
-	print syslogfile "  Output in $fun3kegg\n";	
 	}		#-- END of COG assignment
 	    
 
@@ -223,7 +225,7 @@ if($opt_db) {
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
 		print syslogfile "  Reading $dbname hits from $optdbdiamond\n";	
 
-		if($optdbresult) { print "  Result found in $optdbresult for database $optdbresult, skipping\n"; next; }
+		if(-e $optdbresult) { print "  Result found in $optdbresult for database $optdbresult, skipping\n"; next; }
 		
 		open(infile1,$optdbdiamond) || die "Can't open opt_db file $optdbdiamond\n";
 		open(outfile1,">$optdbresult") || die "Can't open $optdbresult for writing\n";
