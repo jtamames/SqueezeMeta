@@ -58,9 +58,13 @@ Detailed information about the different steps of the pipeline can be found in t
 
 ## 2. Installation
 
-SqueezeMeta is intended to be run in a x86_64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda.
+SqueezeMeta is intended to be run in a x86-64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda. Conda might however be slow solving the dependencies, so it's better to first get `mamba` into your base environment with
 
-`conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
+`conda install -c conda-forge mamba`
+
+and then use `mamba` to install SqueezeMeta
+
+`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
 
 This will create a new conda environment named SqueezeMeta, which must then be activated.
 
@@ -68,7 +72,7 @@ This will create a new conda environment named SqueezeMeta, which must then be a
 
 When using conda, all the scripts from the SqueezeMeta distribution will be available on `$PATH`.
 
-Alternatively, just download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 14.04 or CentOS7 (DVD iso) installation.
+Alternatively, just download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 16.04 or CentOS7 (DVD iso) installation.
 
 The `test_install.pl` script can be run in order to check whether the required dependencies are available in your environment.
 

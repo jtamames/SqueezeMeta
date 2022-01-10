@@ -1,6 +1,6 @@
 package:
   name: squeezemeta
-  version: '1.5.0'
+  version: '1.5.0post1'
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
@@ -82,10 +82,10 @@ about:
           individual genomes via binning procedures.
           \n
           \n
-          To install this package with conda run:
+          To install this package with mamba run:
           \n
           \n
-          `conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
+          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
           \n
           \n
           And activate it with:
