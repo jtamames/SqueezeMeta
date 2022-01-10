@@ -6,7 +6,7 @@ if(!$ARGV[0]) { die "Please provide a database directory!   "; }
 use Cwd 'abs_path';
 my $databasedir=abs_path($ARGV[0]);
 
-if(!$databasedir) { die "Usage: perl install_nodb.pl <database dir>\n"; }
+if(!$databasedir) { die "Usage: perl configure_nodb_alt.pl <database dir>\n"; }
 print("Make sure that $databasedir contains all the database files (nr.dmnd, etc...)\n\n");
 
 
