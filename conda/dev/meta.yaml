@@ -29,6 +29,7 @@ requirements:
     - openmp
     - samtools==1.11
     - blas=*=mkl # To avoid openmp
+    - readline>=8
   run:
     - python=3.6
     - setuptools
@@ -64,6 +65,7 @@ requirements:
     - r-data.table
     - bioconductor-pathview
     - tree
+    - readline>=8
 
 build:
   noarch: generic
