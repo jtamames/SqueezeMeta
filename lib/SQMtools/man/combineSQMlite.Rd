@@ -7,7 +7,7 @@
 combineSQMlite(...)
 }
 \arguments{
-\item{...}{an arbitrary number of SQM or SQMlite objects}
+\item{...}{an arbitrary number of SQM or SQMlite objects. Alternatively, a single list containing an arbitrary number of SQMlite objects.}
 }
 \value{
 A SQMlite object

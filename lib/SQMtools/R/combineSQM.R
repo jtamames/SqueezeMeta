@@ -1,7 +1,7 @@
 #' Combine several SQM objects
 #'
 #' Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link[combineSQMlite]{combineSQMlite}}.
-#' @param ... an arbitrary number of SQM objects
+#' @param ... an arbitrary number of SQM objects. Alternatively, a single list containing an arbitrary number of SQM objects.
 #' @param tax_source character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}). If the objects being combined contain a subset of taxa or bins, this parameter can be set to \code{TRUE}.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
@@ -20,9 +20,12 @@
 #' @export
 combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = T, rescale_copy_number = T)
     {
+    inSQM = list(...)
+    # if there is only one argument and this argument is a list, treat it as a list containing SQM objects
+    if(length(inSQM) == 1 & class(inSQM[[1]]) == 'list') { inSQM = list(...)[[1]] }
     # intermediate function so that we can pass extra args to combineSQM
     myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number)
-    return(Reduce(myFun, list(...)))
+    return(Reduce(myFun, inSQM))
     }
 
 

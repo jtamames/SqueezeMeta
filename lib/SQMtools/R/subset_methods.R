@@ -22,7 +22,7 @@
 subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
-	
+
     fun = c(fun) # This suddenly became necessary when testing it in Ubuntu's R 3.6, and now I want to cut myself
 
     if(is.null(columns))
@@ -66,6 +66,7 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_f
 subsetTax = function(SQM, rank, tax, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm =T, rescale_copy_number = T)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
+    if(!rank %in% colnames(SQM$contigs$tax)) { stop(sprintf('Valid taxonomic ranks are %s', paste(colnames(SQM$contigs$tax), collapse = ', '))) }
     goodContigs = rownames(SQM$contigs$tax)[SQM$contigs$tax[,rank] == tax]
     return ( subsetContigs(SQM, goodContigs,
                            trusted_functions_only = trusted_functions_only,

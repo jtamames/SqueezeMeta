@@ -14,7 +14,7 @@ combineSQM(
 )
 }
 \arguments{
-\item{...}{an arbitrary number of SQM objects}
+\item{...}{an arbitrary number of SQM objects. Alternatively, a single list containing an arbitrary number of SQM objects.}
 
 \item{tax_source}{character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}). If the objects being combined contain a subset of taxa or bins, this parameter can be set to \code{TRUE}.}
 
