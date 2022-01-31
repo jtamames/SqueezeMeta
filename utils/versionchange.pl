@@ -40,7 +40,7 @@ my $basedir="$projectpath/..";
 
 our($version,$resultpath,$basedir,$interdir,$bintable,$bintax,$bincov,$contigsinbins,$contigtable,$mode,$scriptdir,%bindirs);
 if(!$version) { $version="Undetermined version"; }
-open(infile1,"$installpath/VERSION") || warn "Cannot find version number in $installpath/version.txt\n";
+open(infile1,"$installpath/VERSION") || warn "Cannot find version number in $installpath/VERSION\n";
 my $thisversion=<infile1>;
 chomp $thisversion;
 close infile1;
