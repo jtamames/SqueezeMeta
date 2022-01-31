@@ -39,18 +39,18 @@ my $project=$projectname;
 my $basedir="$projectpath/..";
 
 our($version,$resultpath,$basedir,$interdir,$bintable,$bintax,$bincov,$contigsinbins,$contigtable,$mode,$scriptdir,%bindirs);
-if(!$version) { $version="Unknown older version"; }
-open(infile1,"$installpath/version.txt") || warn "Cannot find version number in $installpath/version.txt\n";
+if(!$version) { $version="Undetermined version"; }
+open(infile1,"$installpath/VERSION") || warn "Cannot find version number in $installpath/version.txt\n";
 my $thisversion=<infile1>;
 chomp $thisversion;
 close infile1;
 
 if($version ne $thisversion) {
-	my $logfile="$projectname/changes.$projectname.txt";
+	my $logfile="$projectpath/changes.$projectname.txt";
 	my $binners=join(",",sort keys %bindirs);
 	print RED; 
-	print "WARNING: The results you want to re-run happen to be created with an older version of SqueezeMeta ($version), different from the current one ($thisversion)\n";
-	print "To make these results compatible with the current version, I would need to make some restructuring and name changes.\n";
+	print "WARNING: It seems that the results you want to re-run were created with an older version of SqueezeMeta ($version), different from the current one ($thisversion)\n";
+	print "To make these results compatible with the current version, I need to do some restructuring and name changes.\n";
 	print "I will keep track of all these changes for you.\n";
 	print RESET;
 	my $answer;
@@ -61,7 +61,7 @@ if($version ne $thisversion) {
 		}
 	$answer=~tr/A-Z/a-z/;	
 	if($answer eq "n") { print RED; print "Uncompatible versions\n"; print RESET; die; }
-	open(changes,">$logfile") || die;
+	open(changes,">$logfile") || die "Cannot open log file in $logfile\n";
 	print changes "Migrating results from version \"$version\" to \"$thisversion\", ",scalar localtime,"\n";
 	if($thisversion eq "1.2.0") { 
 		my $bindir="$interdir/binners";
