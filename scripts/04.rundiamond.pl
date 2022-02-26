@@ -65,14 +65,11 @@ if($ecode!=0) { warn "Error running command:     $command"; }
 #-- nr database
 
 if(!$notax) {
-	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond --log";
+	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
 	print " taxa";
 	print outsyslog "Running Diamond for taxa: $command\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }
-        $command = "mv diamond.log $taxdiamond.diamond.log";
-        my $ecode = system $command;
-        if($ecode!=0) { die "Error running command:    $command"; }
 	print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
 	}
 
