@@ -19,7 +19,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($resultpath,$interdir,$tempdir,$scriptdir,$cdhit_soft,$contigid,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile,$singletons);
+our($resultpath,$interdir,$tempdir,$scriptdir,$cdhit_soft,$contigid,$extassembly,$minimus2_soft,$toamos_soft,$prinseq_soft,$numthreads,$methodsfile,$syslogfile,$singletons,$force_overwrite);
 
 #-- Merges the assemblies in a single dataset
 
@@ -32,6 +32,7 @@ if($extassembly) {
 	print "  External assembly provided: $extassembly. Overriding assembly\n";
 	system("cp $extassembly $finalcontigs");
 	}
+elsif((-e $finalcontigs) && (!$force_overwrite)) { print "  Assembly results already present in file $finalcontigs, skipping\n"; exit; }
 else {
 	if(-e $finalcontigs) { system("rm $finalcontigs"); }
 	my $merged="$tempdir/mergedassemblies.$project.fasta";
