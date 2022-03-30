@@ -231,6 +231,8 @@ else {
 	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
 	}
 
+#------------------------------------- CHECKING FILES AND START RUN -----------------------------------------------
+
 $projectdir = abs_path($projectdir);
 $projectname = (split '/', $projectdir)[-1];
 my $syslogfile="$projectdir/syslog";
@@ -274,7 +276,7 @@ print "$numsamples metagenomes found: @nmg";
 print "\n\n";
 
 
-#-------------------------------------NEW CHANGES-----------------------------------------------
+#------------------------------------- WRITE CONF AND START PIPELINE (v1.6) -----------------------------------------------
 
 
 
@@ -675,17 +677,34 @@ sub pipeline {
 			
     #-------------------------------- STEP14: Running binning methods 		
 	
-	 if(!$nobins) {	     
+	 if(!$nobins) {	    
+	 	my $hayresults; 
 	 	if($verbose) { print " (Now we will start creating bins for separating individual organisms in the community)\n"; }  
 		if(($rpoint<=14) && ((!$test) || ($test>=14))) {
-			my $scriptname="14.runbinning.pl";
-			print outfile3 "14\t$scriptname\n";
-			$currtime=timediff();
-			print outfile4 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
-			print BLUE "[",$currtime->pretty,"]: STEP14 -> BINNING: $scriptname\n"; print RESET;
-			if($verbose) { print " (This will use binning programs for creating a set of bins)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
-			if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
+			my @binner=split(/\,/,$binners);
+			foreach my $tbinner(@binner) { #-- Checking for results for all the specified binners
+				my @binfiles;
+				my $wsize=0;
+				my $firstfile;
+				my $dirbin="$interdir/binners/$tbinner";
+				opendir(indir1,$dirbin);
+				@binfiles=grep(/fasta$|fa$/,readdir indir1);
+				closedir indir1;
+				$firstfile="$dirbin/$binfiles[0]";
+				$wsize=checksize($firstfile);
+				if($wsize>2) { $hayresults=1; last; }
+			}
+           	 	if(($hayresults) && (!$force_overwrite)) { print "Binning results for $binners already found, skipping step 14\n"; }
+			else {
+				my $scriptname="14.runbinning.pl";
+				print outfile3 "14\t$scriptname\n";
+				$currtime=timediff();
+				print outfile4 "[",$currtime->pretty,"]: STEP14 -> $scriptname\n";
+				print BLUE "[",$currtime->pretty,"]: STEP14 -> BINNING: $scriptname\n"; print RESET;
+				if($verbose) { print " (This will use binning programs for creating a set of bins)\n"; }
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
+				if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
+				}
 		}
 	}
 		
@@ -1046,7 +1065,11 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
         open(outfile0,">$mappingfile") || die;
         while(<infile0>) {
                 $_=~s/\r//g;
-                print outfile0 $_;
+		if($mode ne "sequential") { print outfile0 $_; }
+		else {							#-- In sequential mode just put the current sample in the new samples file
+			my @k=split(/\t/,$_);
+			if($k[0] eq $conf{projectname}) { print outfile0 $_; }
+			}
                 }
         close outfile0;
         close infile0;

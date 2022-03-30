@@ -215,7 +215,7 @@ system("rm $tempdir/count.*");
 
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
 	
-my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
 print outsyslog "Sorting mapcount table: $command\n";
 system($command);	
 

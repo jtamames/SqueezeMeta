@@ -94,7 +94,6 @@ $euknofilter     = 0;
 $nobins          = 0;
 $doublepass      = 0;
 $norename	 = 0;
-$preserve        = 0;
 $singletons      = 0;
 $cleaning        = 0;
 $cleaningoptions = "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
