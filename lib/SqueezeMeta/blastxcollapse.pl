@@ -24,8 +24,9 @@ my $flgs = {
 	    'first-hit'     => 0,
 	    'no-frames'     => 0,
 	    'e-values'      => 0,
-	    'no-identical'      => 0,
-	    'show-bitscore'      => 0
+	    'no-identical'  => 0,
+	    'show-bitscore' => 0,
+	    'partialhits'   => 0
 	   };
 
 GetOptions (
@@ -40,6 +41,7 @@ GetOptions (
 	    "b|best-only"     => \$flgs->{'best-only'},
 	    "f|first-hit"     => \$flgs->{'first-hit'},
 	    "n|no-frames"     => \$flgs->{'no-frames'},
+	    "x|partialhits"  => \$flgs->{'partialhits'},
 	    "e|e-values"      => \$flgs->{'e-values'},
 	    "i|no-identical"      => \$flgs->{'no-identical'},
 	    "s|show-bitscore"      => \$flgs->{'show-bitscore'}
@@ -159,7 +161,7 @@ sub current_thread {
 		 my ($querylong,$hitlong)= @fields[12,13];
    		 my ($frame,$alihitperc);
   		 my ($init1,$end1) = sort {$a<=>$b} @fields[6,7];
-		 if($hitlong)  {
+		 if($hitlong && !($flgs->{'partialhits'}))  {     #-- Exclude partial hits if $partialhits flag is set to one
 		 	$alihitperc=$alilong/$hitlong;
 		 	next if(($alihitperc<$min_overlap) && ($init1>=10));   # Exlude partial hits not at the beggining or end of the sequence
 			next if(($alihitperc<$min_overlap) && ($end1<=($querylong-10)));
