@@ -279,13 +279,13 @@ foreach my $thissample(keys %allsamples) {
 		$currtime=timediff();
 		print CYAN "[",$currtime->pretty,"]: Starting taxonomic annotation\n"; print RESET;		
 		print outsyslog "[",$currtime->pretty,"]: Starting taxonomic annotation\n";		
-		my $blastxout="$thissampledir/$thissample.nr.blastx";
-		my $collapsed="$thissampledir/$thissample.nr.blastx.collapsed.m8";
+		my $blastxout="$thissampledir/$thisfile.nr.blastx";
+		my $collapsed="$thissampledir/$thisfile.nr.blastx.collapsed.m8";
 		my $collapsedmerged=$collapsed;
 		$collapsedmerged=~s/\.m8/\.merged\.m8/;
-		my $ntseqs="$thissampledir/$thissample.nt.fasta";
-		my $wrankfile="$thissampledir/$thissample.fun3.blastx.tax.wranks";
-		my $wrankfile_nofilter="$thissampledir/$thissample.fun3.blastx.tax_nofilter.wranks";
+		my $ntseqs="$thissampledir/$thisfile.nt.fasta";
+		my $wrankfile="$thissampledir/$thisfile.fun3.blastx.tax.wranks";
+		my $wrankfile_nofilter="$thissampledir/$thisfile.fun3.blastx.tax_nofilter.wranks";
 		if($nodiamond) { print "   (Skipping Diamond search for taxa because of --nodiamond flag)\n"; } 
 		else { 
 			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
@@ -302,7 +302,7 @@ foreach my $thissample(keys %allsamples) {
 			}
 
 		if(-s $wrankfile>0) { print "  Tax annotations found in $wrankfile, not running it again\n"; }
-		else { lca($collapsedmerged,$thissampledir,$scriptdir,$thissample,$numthreads); }
+		else { lca($collapsedmerged,$thissampledir,$scriptdir,$thisfile,$numthreads); }
 		open(outsyslog,">>$resultsdir/syslog");
 		my $numtotalhits;
 		open(inf,$collapsedmerged);
@@ -339,12 +339,12 @@ foreach my $thissample(keys %allsamples) {
 		
 		#-- Run consensus annotation of reads
 
-		my $outconsensus="$thissampledir/readconsensus.txt";
+		my $outconsensus="$thissampledir/$thisfile.readconsensus.txt";
 		if(-s $outconsensus>0) { print "  Consensus annotations found in $outconsensus, not running it again\n"; }
 		else {
 			print "  Running consensus annotation: Output in $outconsensus\n";
-			my $command="$installpath/lib/SQM_reads/readconsensus.pl $thissample $thissampledir $euknofilter $installpath $databasepath";
-			print outsyslog "  Running consensus annotation: Output in $thissampledir/readconsensus.txt: $command\n";
+			my $command="$installpath/lib/SQM_reads/readconsensus.pl $thisfile $thissampledir $euknofilter $installpath $databasepath";
+			print outsyslog "  Running consensus annotation: Output in $outconsensus: $command\n";
 			# print "$command\n";
 			my $ecode = system($command);
               		if($ecode) { die "Error running command $command"; }
@@ -502,7 +502,7 @@ foreach my $thissample(keys %allsamples) {
         $stats{$thissample}{numhits}+=$numhits;
         $stats{$thissample}{numtotalhits}+=$numtotalhits;
 
-		}
+		}    #-- End of file
 
 	#-- Global statistics
 
@@ -622,7 +622,7 @@ foreach my $thissample(keys %allsamples) {
 		}
 	close instats;	
 				
-	}
+	}	#-- End of sample
 		
 close outall;	
 close outcount;
@@ -981,8 +981,8 @@ sub getseqs {
 
 
 sub lca {
-	my($collapsedmerged,$thissampledir,$scriptdir,$thissample,$numthreads)=@_;
-	my $lca_command="perl $auxdir/lca_collapse.pl $collapsedmerged $thissampledir $scriptdir $thissample $numthreads";
+	my($collapsedmerged,$thissampledir,$scriptdir,$thisfile,$numthreads)=@_;
+	my $lca_command="perl $auxdir/lca_collapse.pl $collapsedmerged $thissampledir $scriptdir $thisfile $numthreads";
 	$currtime=timediff();
 	print CYAN "[",$currtime->pretty,"]: Running LCA\n"; print RESET;
 	close(outsyslog);
