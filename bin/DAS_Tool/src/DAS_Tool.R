@@ -66,7 +66,11 @@ if(!packageVersion("DASTool")>=numeric_version("1.1.1")){
   quit()
 }
 
+if(threads>24) { threads <- 24 } # Limit thread usage to segfaults in data.table
+library(data.table) # the bug happened in_pick, which uses data.table. import data.table here so we can use setDTthreads. 
+setDTthreads(threads)
 registerDoMC(threads)
+   
 # cat('running DAS Tool with ', threads, ' threads\n', sep = '')
 a <- 1
 use_Nfifty <- T
