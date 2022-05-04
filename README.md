@@ -84,7 +84,7 @@ The `test_install.pl` script can be run in order to check whether the required d
 SqueezeMeta uses several databases. GenBank nr for taxonomic assignment, and eggnog, KEGG and Pfam for functional assignment. 
 The script *download_databases.pl* can be run to download a pre-formatted version of all the databases required by SqueezeMeta.
 
-`/path/to/SqueezeMeta/utils/install_utils/preparing_databases/download_databases.pl /download/path`
+`/path/to/SqueezeMeta/utils/install_utils/download_databases.pl /download/path`
 
 , where `/download/path` is the destination folder. This is the recommended option, but the files are hosted in our institutional server, which can at times be unreachable.
 
