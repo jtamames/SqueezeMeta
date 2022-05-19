@@ -200,6 +200,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     subSQM$contigs$table              = SQM$contigs$table[contigs,,drop=F]
     subSQM$contigs$abund              = SQM$contigs$abund[contigs,,drop=F]
+    subSQM$contigs$bases              = SQM$contigs$bases[contigs,,drop=F]
     subSQM$contigs$cov                = SQM$contigs$cov[contigs  ,,drop=F]
     subSQM$contigs$tpm                = SQM$contigs$tpm[contigs  ,,drop=F]
     subSQM$contigs$seqs               = SQM$contigs$seqs[contigs]
@@ -207,7 +208,16 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     if('bins' %in% names(subSQM))
         {
         subSQM$contigs$bins           = SQM$contigs$bins[contigs ,,drop=F]
-        subSQM$bins$table             = subSQM$bins$table[bins   ,,drop=F]
+        subSQM$bins$table             = SQM$bins$table[bins      ,,drop=F]
+        x = aggregate(subSQM$contigs$abund, by=list(subSQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)                   = x[,1]
+        x = x[rownames(subSQM$bin$table),-1]
+	nobin                         = colSums(subSQM$contigs$abund) - colSums(x)
+	if(sum(nobin)>0)              { x['No_bin',] = nobin }
+	subSQM$bins$abund             = as.matrix(x)
+	subSQM$bins$percent           = 100 * t(t(subSQM$bins$abund) / subSQM$total_reads)
+	subSQM$bins$bases             = subSQM$bins$bases[bins   ,,drop=F]
+	subSQM$bins$cov               = subSQM$bins$cov[bins     ,,drop=F]
         subSQM$bins$tpm               = subSQM$bins$tpm[bins     ,,drop=F]
         subSQM$bins$tax               = subSQM$bins$tax[bins     ,,drop=F]
         }
@@ -220,13 +230,13 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$taxa$genus$abund           = aggregate.taxa(subSQM, 'genus'       , tax_source)
     subSQM$taxa$species$abund         = aggregate.taxa(subSQM, 'species'     , tax_source)
 
-    subSQM$taxa$superkingdom$percent  = 100 * t(t(subSQM$taxa$superkingdom$abund) / subSQM$total_reads) #colSums(subSQM$taxa$superkingdom$abund))
-    subSQM$taxa$phylum$percent        = 100 * t(t(subSQM$taxa$phylum$abund)       / subSQM$total_reads) #colSums(subSQM$taxa$phylum$abund))
-    subSQM$taxa$class$percent         = 100 * t(t(subSQM$taxa$class$abund)        / subSQM$total_reads) #colSums(subSQM$taxa$class$abund))
-    subSQM$taxa$order$percent         = 100 * t(t(subSQM$taxa$order$abund)        / subSQM$total_reads) #colSums(subSQM$taxa$order$abund))
-    subSQM$taxa$family$percent        = 100 * t(t(subSQM$taxa$family$abund)       / subSQM$total_reads) #colSums(subSQM$taxa$family$abund))
-    subSQM$taxa$genus$percent         = 100 * t(t(subSQM$taxa$genus$abund)        / subSQM$total_reads) #colSums(subSQM$taxa$genus$abund))
-    subSQM$taxa$species$percent       = 100 * t(t(subSQM$taxa$species$abund)      / subSQM$total_reads) #colSums(subSQM$taxa$species$abund))
+    subSQM$taxa$superkingdom$percent  = 100 * t(t(subSQM$taxa$superkingdom$abund) / subSQM$total_reads)
+    subSQM$taxa$phylum$percent        = 100 * t(t(subSQM$taxa$phylum$abund)       / subSQM$total_reads)
+    subSQM$taxa$class$percent         = 100 * t(t(subSQM$taxa$class$abund)        / subSQM$total_reads)
+    subSQM$taxa$order$percent         = 100 * t(t(subSQM$taxa$order$abund)        / subSQM$total_reads)
+    subSQM$taxa$family$percent        = 100 * t(t(subSQM$taxa$family$abund)       / subSQM$total_reads)
+    subSQM$taxa$genus$percent         = 100 * t(t(subSQM$taxa$genus$abund)        / subSQM$total_reads)
+    subSQM$taxa$species$percent       = 100 * t(t(subSQM$taxa$species$abund)      / subSQM$total_reads)
 
     if('KEGG' %in% names(subSQM$functions))
         {

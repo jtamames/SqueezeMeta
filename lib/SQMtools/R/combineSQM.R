@@ -69,6 +69,8 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     #    Abundances
     combSQM$contigs$abund              = as.matrix(combSQM$contigs$table[,grepl('Raw read count', colnames(combSQM$contigs$table)),drop=F])
     colnames(combSQM$contigs$abund)    = gsub('Raw read count ', '', colnames(combSQM$contigs$abund), fixed=T)
+    combSQM$contigs$bases              = as.matrix(combSQM$contigs$table[,grepl('Raw base count', colnames(combSQM$contigs$table)),drop=F])
+    colnames(combSQM$contigs$bases)    = gsub('Raw base count ', '', colnames(combSQM$contigs$abund), fixed=T)
     combSQM$contigs$cov                = as.matrix(combSQM$contigs$table[,grepl('Coverage', colnames(combSQM$contigs$table)),drop=F])
     colnames(combSQM$contigs$cov)      = gsub('Coverage ', '', colnames(combSQM$contigs$abund), fixed=T)
     combSQM$contigs$tpm                = as.matrix(combSQM$contigs$table[,grepl('TPM', colnames(combSQM$contigs$table)),drop=F])
@@ -92,6 +94,22 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         combSQM$bins$table             = rbind(combSQM$bins$table, SQM2$bins$table[extraBins,,drop=F])
         combSQM$bins$table             = combSQM$bins$table[sort(rownames(combSQM$bins$table)),,drop=F]
         #    Abundances
+	x = aggregate(combSQM$contigs$abund, by=list(combSQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)                    = x[,1]
+        x = x[rownames(combSQM$bin$table),-1]
+        nobin                          = colSums(combSQM$contigs$abund) - colSums(x)
+        if(sum(nobin)>0)               { x['No_bin',] = nobin }
+
+        combSQM$bins$abund             = as.matrix(x)
+        combSQM$bins$percent           = 100 * t(t(combSQM$bins$abund) / combSQM$total_reads)
+
+        x = aggregate(combSQM$contigs$bases, by=list(combSQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)                    = x[,1]
+        x = x[rownames(combSQM$bin$table),-1]
+        combSQM$bins$bases             = as.matrix(x)
+
+        combSQM$bins$cov               = as.matrix(combSQM$bins$table[,grepl('Coverage', colnames(combSQM$bins$table)),drop=F])
+	colnames(combSQM$bins$cov)     = gsub('Coverage ', '', colnames(combSQM$bins$cov), fixed=T)
         combSQM$bins$tpm               = as.matrix(combSQM$bins$table[,grepl('TPM', colnames(combSQM$bins$table)),drop=F])
         colnames(combSQM$bins$tpm)     = gsub('TPM ', '', colnames(combSQM$bins$tpm), fixed=T)
         #    Taxonomy
