@@ -35,11 +35,11 @@ library(data.table)
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab contigs           \tab tax. ranks     \tab taxonomies         \cr
 #'                     \tab \bold{$bins}              \tab                      \tab \emph{character matrix} \tab contigs           \tab bin. methods   \tab bins               \cr
 #' $bins               \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab bins              \tab misc. data     \tab misc. data         \cr
+#'                     \tab \bold{$length}            \tab                      \tab \emph{numeric vector}   \tab bins              \tab (n/a)          \tab length             \cr
 #'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (reads) \cr
 #'                     \tab \bold{$percent}           \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (reads) \cr
 #'                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (bases) \cr
 #'                     \tab \bold{$cov}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab coverages          \cr
-#'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy           \cr
 #' \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages        \cr
@@ -296,6 +296,9 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         SQM$bins                  = list()
         SQM$bins$table            = read.table(sprintf('%s/results/18.%s.bintable', project_path, project_name),
                                                header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
+	SQM$bins$length           = SQM$bins$table$Length
+	names(SQM$bins$length)    = rownames(SQM$bins$table)
+
         cat('    abundances...\n')
         x = aggregate(SQM$contigs$abund, by=list(SQM$contigs$bins[,1]), FUN=sum)
         rownames(x)               = x[,1]
@@ -315,8 +318,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
 
         SQM$bins$cov              = as.matrix(SQM$bins$table[,grepl('Coverage', colnames(SQM$bins$table)),drop=F])
         colnames(SQM$bins$cov)    = gsub('Coverage ', '', colnames(SQM$bins$cov), fixed=T)
-        SQM$bins$tpm              = as.matrix(SQM$bins$table[,grepl('TPM', colnames(SQM$bins$table)),drop=F])
-        colnames(SQM$bins$tpm)    = gsub('TPM ', '', colnames(SQM$bins$tpm), fixed=T)
         cat('    taxonomy...\n')
         SQM$bins$tax              = as.matrix(read.table(sprintf('%s/results/tables/%s.bin.tax.tsv', project_path, project_name),
 							 header=T, row.names=1, sep='\t'))

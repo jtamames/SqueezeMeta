@@ -216,9 +216,18 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 	if(sum(nobin)>0)              { x['No_bin',] = nobin }
 	subSQM$bins$abund             = as.matrix(x)
 	subSQM$bins$percent           = 100 * t(t(subSQM$bins$abund) / subSQM$total_reads)
-	subSQM$bins$bases             = subSQM$bins$bases[bins   ,,drop=F]
-	subSQM$bins$cov               = subSQM$bins$cov[bins     ,,drop=F]
-        subSQM$bins$tpm               = subSQM$bins$tpm[bins     ,,drop=F]
+        
+	x = aggregate(subSQM$contigs$bases, by=list(subSQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)                   = x[,1]
+        x = x[rownames(subSQM$bin$table),-1]
+        subSQM$bins$bases             = as.matrix(x)
+        
+	l = aggregate(subSQM$contigs$table$Length, by=list(subSQM$contigs$bins[,1]), FUN=sum)
+	n = l[,1]; l = l[,-1]; names(l) = n
+	l = l[rownames(subSQM$bin$table)]
+	subSQM$bins$length            = l
+	subSQM$bins$cov               = subSQM$bins$bases / subSQM$bins$length
+
         subSQM$bins$tax               = subSQM$bins$tax[bins     ,,drop=F]
         }
 
@@ -284,10 +293,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
             }
         subSQM$orfs$tpm               = 1000000 * t(t(subSQM$orfs$tpm)   /colSums(subSQM$orfs$tpm)   )
         subSQM$contigs$tpm            = 1000000 * t(t(subSQM$contigs$tpm)/colSums(subSQM$contigs$tpm))
-        #if('bins' in names(subSQM)
-        #    {
-        #    subSQM$bins$tpm           = 1000000 * t(t(subSQM$bins$tpm)   /colSums(subSQM$bins$tpm)   )
-        #    }
+
 	for(method in names(subSQM$functions))
             {
             subSQM$misc$coding_fraction[[method]]        = rep(1, ncol(subSQM$orfs$tpm))

@@ -108,10 +108,12 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         x = x[rownames(combSQM$bin$table),-1]
         combSQM$bins$bases             = as.matrix(x)
 
-        combSQM$bins$cov               = as.matrix(combSQM$bins$table[,grepl('Coverage', colnames(combSQM$bins$table)),drop=F])
-	colnames(combSQM$bins$cov)     = gsub('Coverage ', '', colnames(combSQM$bins$cov), fixed=T)
-        combSQM$bins$tpm               = as.matrix(combSQM$bins$table[,grepl('TPM', colnames(combSQM$bins$table)),drop=F])
-        colnames(combSQM$bins$tpm)     = gsub('TPM ', '', colnames(combSQM$bins$tpm), fixed=T)
+        l = aggregate(combSQM$contigs$table$Length, by=list(combSQM$contigs$bins[,1]), FUN=sum)
+        n = l[,1]; l = l[,-1]; names(l) = n
+        l = l[rownames(combSQM$bin$table)]
+        combSQM$bins$length            = l
+        combSQM$bins$cov               = combSQM$bins$bases / combSQM$bins$length
+
         #    Taxonomy
         combSQM$bins$tax               = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=F])
         combSQM$bins$tax               = combSQM$bins$tax[rownames(combSQM$bins$table),,drop=F]
