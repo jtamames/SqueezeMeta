@@ -58,7 +58,7 @@ close out1;
 print "Calculating similarities between metagenomes using k-mer db\n";
 my $command;
 my $kmerdb="$tempdir/kmerdb.$project.txt";
-$command="$kmerdb_soft build -t $numthreads $samples $kmerdb -k 12 > /dev/null 2>&1";
+$command="$kmerdb_soft build -t $numthreads $samples $kmerdb -k 12 -f 0.2 > /dev/null 2>&1";
 #print "$command\n";
 print "k-mer db: Building database\n";
 my $ecode=system($command); 
