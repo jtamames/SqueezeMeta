@@ -1,7 +1,7 @@
 #' Combine several SQM or SQMlite objects
 #'
 #' Combine an arbitrary number of SQM or SQMlite objects into a single SQMlite object. This function accepts objects originating from different projects (i.e. different SqueezeMeta runs).
-#' @param ... an arbitrary number of SQM or SQMlite objects
+#' @param ... an arbitrary number of SQM or SQMlite objects. Alternatively, a single list containing an arbitrary number of SQMlite objects.
 #' @return A SQMlite object
 #' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}, \code{\link[combineSQM]{combineSQM}}
 #' @examples
@@ -16,7 +16,10 @@
 #' @export
 combineSQMlite = function(...)
     {
-    return(Reduce(combineSQMlite_, list(...)))
+    inSQMlite = list(...)
+    # if there is only one argument and this argument is a list, treat it as a list containing SQM objects
+    if(length(inSQMlite) == 1 & class(inSQMlite[[1]]) == 'list') { inSQMlite = list(...)[[1]] }
+    return(Reduce(combineSQMlite_, inSQMlite))
     }
 
 

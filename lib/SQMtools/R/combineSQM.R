@@ -1,7 +1,7 @@
 #' Combine several SQM objects
 #'
 #' Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link[combineSQMlite]{combineSQMlite}}.
-#' @param ... an arbitrary number of SQM objects
+#' @param ... an arbitrary number of SQM objects. Alternatively, a single list containing an arbitrary number of SQM objects.
 #' @param tax_source character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}). If the objects being combined contain a subset of taxa or bins, this parameter can be set to \code{TRUE}.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
@@ -20,9 +20,12 @@
 #' @export
 combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = T, rescale_copy_number = T)
     {
+    inSQM = list(...)
+    # if there is only one argument and this argument is a list, treat it as a list containing SQM objects
+    if(length(inSQM) == 1 & class(inSQM[[1]]) == 'list') { inSQM = list(...)[[1]] }
     # intermediate function so that we can pass extra args to combineSQM
     myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number)
-    return(Reduce(myFun, list(...)))
+    return(Reduce(myFun, inSQM))
     }
 
 
@@ -66,6 +69,8 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     #    Abundances
     combSQM$contigs$abund              = as.matrix(combSQM$contigs$table[,grepl('Raw read count', colnames(combSQM$contigs$table)),drop=F])
     colnames(combSQM$contigs$abund)    = gsub('Raw read count ', '', colnames(combSQM$contigs$abund), fixed=T)
+    combSQM$contigs$bases              = as.matrix(combSQM$contigs$table[,grepl('Raw base count', colnames(combSQM$contigs$table)),drop=F])
+    colnames(combSQM$contigs$bases)    = gsub('Raw base count ', '', colnames(combSQM$contigs$abund), fixed=T)
     combSQM$contigs$cov                = as.matrix(combSQM$contigs$table[,grepl('Coverage', colnames(combSQM$contigs$table)),drop=F])
     colnames(combSQM$contigs$cov)      = gsub('Coverage ', '', colnames(combSQM$contigs$abund), fixed=T)
     combSQM$contigs$tpm                = as.matrix(combSQM$contigs$table[,grepl('TPM', colnames(combSQM$contigs$table)),drop=F])
@@ -89,8 +94,26 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         combSQM$bins$table             = rbind(combSQM$bins$table, SQM2$bins$table[extraBins,,drop=F])
         combSQM$bins$table             = combSQM$bins$table[sort(rownames(combSQM$bins$table)),,drop=F]
         #    Abundances
-        combSQM$bins$tpm               = as.matrix(combSQM$bins$table[,grepl('TPM', colnames(combSQM$bins$table)),drop=F])
-        colnames(combSQM$bins$tpm)     = gsub('TPM ', '', colnames(combSQM$bins$tpm), fixed=T)
+	x = aggregate(combSQM$contigs$abund, by=list(combSQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)                    = x[,1]
+        x = x[rownames(combSQM$bin$table),-1]
+        nobin                          = colSums(combSQM$contigs$abund) - colSums(x)
+        if(sum(nobin)>0)               { x['No_bin',] = nobin }
+
+        combSQM$bins$abund             = as.matrix(x)
+        combSQM$bins$percent           = 100 * t(t(combSQM$bins$abund) / combSQM$total_reads)
+
+        x = aggregate(combSQM$contigs$bases, by=list(combSQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)                    = x[,1]
+        x = x[rownames(combSQM$bin$table),-1]
+        combSQM$bins$bases             = as.matrix(x)
+
+        l = aggregate(combSQM$contigs$table$Length, by=list(combSQM$contigs$bins[,1]), FUN=sum)
+        n = l[,1]; l = l[,-1]; names(l) = n
+        l = l[rownames(combSQM$bin$table)]
+        combSQM$bins$length            = l
+        combSQM$bins$cov               = combSQM$bins$bases / combSQM$bins$length
+
         #    Taxonomy
         combSQM$bins$tax               = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=F])
         combSQM$bins$tax               = combSQM$bins$tax[rownames(combSQM$bins$table),,drop=F]

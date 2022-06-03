@@ -302,6 +302,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' @param color Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).
 #' @param base_size numeric. Base font size (default \code{11}).
 #' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
+#' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
 #' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
@@ -482,3 +483,143 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
     p = plotBars(data, label_y = nice_label, color = color, label_fill = nice_rank, base_size = base_size, max_scale_value = max_scale_value, metadata_groups = metadata_groups)
     return(p)
     }
+
+
+
+#' Barplot of the most abundant bins in a SQM object
+#'
+#' This function selects the most abundant bins across all samples in a SQM object and represents their abundances in a barplot. Alternatively, a custom set of bins can be represented.
+#' @param SQM A SQM or a SQMlite object.
+#' @param count character. Either \code{"percent"} for percentages, or \code{"abund"} for raw abundances (default \code{"percent"}).
+#' @param N integer Plot the \code{N} most abundant bins (default \code{15}).
+#' @param bins character. Custom bins to plot. If provided, it will override \code{N} (default \code{NULL}).
+#' @param others logical. Collapse the abundances of least abundant bins, and include the result in the plot (default \code{TRUE}).
+#' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{FALSE}).
+#' @param ignore_nobin logical. Don't include reads which are not in a bin in the plot (default \code{FALSE}).
+#' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
+#' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
+#' @param color Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).
+#' @param base_size numeric. Base font size (default \code{11}).
+#' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
+#' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
+#' @return a ggplot2 plot object.
+#' @seealso \code{\link[plotBins]{plotBins}} for plotting the most abundant bins of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+#' @examples
+#' data(Hadza)
+#' # Bins distribution.
+#' plotBins(Hadza)
+#' @export
+plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = T, samples = NULL, ignore_unmapped = F, ignore_nobin = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
+{
+    if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
+    if (!count %in% c('abund', 'percent'))
+    {
+        stop('count must be either "abund" or "percent"')
+    }
+    if ('Other' %in% rownames(SQM[['bins']][[count]]))
+    {
+        stop('One of your bin is called "Other", please change its name')
+    }
+    if (is.null(bins) & N <= 0)
+    {
+        warning(sprintf('We can\'t plot N = %s? bins Continuing with default values', N))
+        N = 15
+    }
+    if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
+    check.samples(SQM, samples)
+
+    data0 = SQM[['bins']][[count]]
+
+    # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df
+    data = as.data.frame(data0)
+    data = mostAbundant(data, N = N, items = bins, others = others, rescale = rescale)
+
+    # Verify whether there are no_bin or Unmapped
+
+    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = F}
+    if(ignore_nobin & !('No_bin' %in% rownames(data))) {ignore_nobin = F}
+
+    ignore_cases = c('Unmapped' = ignore_unmapped, 'No_bin' = ignore_nobin)
+
+    # remove unmapped/No_bin items (only possible when not custom items)
+    # Add as many bins as needed to recover N bins excluding any of the special cases
+    if ( any(ignore_cases) & is.null(bins)  & N != 0 )
+    { # We overwrite data from scratch!
+        data = as.data.frame(data0) # Pick more bins to complete N
+        # how many bins should we replace?
+        rr = sum(ignore_cases) # count T cases
+        data = mostAbundant(data, N = N + rr, items = bins, others = others, rescale = F) # Create the data table again
+        # Remove ignore_cases = T
+        for (i in 1:length(ignore_cases))
+        {
+            if (ignore_cases[i])
+            { data = data[rownames(data) != names(ignore_cases)[i], , drop = F] } # Remove  ignore cases
+        }
+        data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
+    }
+
+    #print(data)
+    defaultColors = c(
+        '#97B065', '#B93838', '#83AAF0', '#E2AA48', '#A9A3D2',
+        '#797900', '#F4BCE6', '#84F4F6', '#9AD63B', '#A285F5',
+        '#D2B48C', '#4EA24E', '#465569', '#9C669C', '#6495ED')
+    # Colors to plot. Checks.
+    if (!is.null(color))
+    {
+        # Try to use user colors
+        # Check if the user is trying to trick us
+        if(!(is.null(bins)) & length(color) == length(bins) )
+        {
+            # User passes colors for bin
+            color = color
+        }else if(is.null(bins) & length(color) == N)
+        {
+            # User passes colors for the N most abundant bins, use them
+            color = color
+        }else
+        {
+            # User passes less/more colors than bins, use default colors.
+            warning('You passed less/more colors than bins Using default colors')
+            color = defaultColors
+        }
+    }else
+    {
+        # Use default colors from the beginning. User does not care about colors
+        if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'No_bin', 'Unmapped'), , drop=F])]
+        }else{ color = NULL }
+    }
+
+    # Add others color
+    if (others & !is.null(color))
+    {
+        color = c('#F5DEB3', color)
+    }
+
+    # Add No_bin color and put Unclassified at the bottom
+    if('No_bin' %in% rownames(data))
+    {
+        if(!is.null(color)) { color = c(color, 'azure3') }
+        niceOrder = c(rownames(data)[rownames(data)!='No_bin'], 'No_bin')
+        data = data[niceOrder,,drop=F]
+    }
+
+    # Add unmapped color and put Unmapped at the bottom
+    if('Unmapped' %in% rownames(data))
+    {
+        if(!is.null(color)) { color = c(color, 'azure4') }
+        niceOrder = c(rownames(data)[rownames(data)!='Unmapped'], 'Unmapped')
+        data = data[niceOrder,,drop=F]
+    }
+
+    # If requested, plot only the selected samples
+    if(!is.null(samples)) { data = data[,samples,drop=F] }
+    if (!is.null(metadata_groups))
+    {
+        if(sum(sapply(metadata_groups, length)) != ncol(data))
+        {stop('metadata_groups must contain the same samples that your SQM object. If you want to select some samples, you can use the flag samples and a metadata_groups list that includes all the selected samples')}
+    }
+    # Plot
+    nice_label = c(abund='Raw abundance', percent='Percentage')[count]
+    p = plotBars(data, label_y = nice_label, color = color, label_fill = NULL, base_size = base_size, max_scale_value = max_scale_value, metadata_groups = metadata_groups)
+    return(p)
+}

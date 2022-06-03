@@ -98,8 +98,9 @@ while(<infile4>) {
 	my @cc=split(/\t/,$_);
 	$contig{$cc[0]}{coverage}{$cc[$#cc]}=$cc[1];	#-- Coverage values
 	$contig{$cc[0]}{rpkm}{$cc[$#cc]}=$cc[2];	#-- RPKM values
-	$contig{$cc[0]}{tpm}{$cc[$#cc]}=$cc[3];	#-- TPM values
+	$contig{$cc[0]}{tpm}{$cc[$#cc]}=$cc[3];	        #-- TPM values
 	$contig{$cc[0]}{raw}{$cc[$#cc]}=$cc[5];		#-- Raw read counts
+	$contig{$cc[0]}{base}{$cc[$#cc]}=$cc[6];        #-- Raw base counts
 	$allsamples{$cc[$#cc]}=1;
 }
 close infile4;  
@@ -129,7 +130,7 @@ open(outfile1,">$contigtable") || die "Can't open $contigtable for writing\n";
 
 print outfile1 "#Created by $0, ",scalar localtime,"\n";
 print outfile1 "Contig ID\tTax\tDisparity\tGC perc\tLength\tNum genes\tBin ID";
-foreach my $countfile(keys %allsamples) { print outfile1 "\tCoverage $countfile\tTPM $countfile\tRaw read count $countfile"; }
+foreach my $countfile(keys %allsamples) { print outfile1 "\tCoverage $countfile\tTPM $countfile\tRaw read count $countfile\tRaw base count $countfile"; }
 print outfile1 "\n";
 
 	#-- Contig data
@@ -170,7 +171,7 @@ foreach my $ctg(@sortedcontigs) {
 	#-- Output
 
 	printf outfile1 "$p\t$contig{$p}{tax}\t$contig{$p}{chimerism}\t%.2f\t$contig{$p}{len}\t$contig{$p}{numgenes}\t$binfield",$contig{$p}{gc}; 
-	foreach my $countfile(keys %allsamples) { printf outfile1 "\t%.3f\t%.3f\t%d",$contig{$p}{coverage}{$countfile},$contig{$p}{tpm}{$countfile},$contig{$p}{raw}{$countfile}; }
+	foreach my $countfile(keys %allsamples) { printf outfile1 "\t%.3f\t%.3f\t%d\t%d",$contig{$p}{coverage}{$countfile},$contig{$p}{tpm}{$countfile},$contig{$p}{raw}{$countfile},$contig{$p}{base}{$countfile}; }
 	print outfile1 "\n";
 }
 close outfile1;

@@ -22,7 +22,7 @@
 subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = F, rescale_copy_number = F)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
-	
+
     fun = c(fun) # This suddenly became necessary when testing it in Ubuntu's R 3.6, and now I want to cut myself
 
     if(is.null(columns))
@@ -66,6 +66,7 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_f
 subsetTax = function(SQM, rank, tax, trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm =T, rescale_copy_number = T)
     {
     if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
+    if(!rank %in% colnames(SQM$contigs$tax)) { stop(sprintf('Valid taxonomic ranks are %s', paste(colnames(SQM$contigs$tax), collapse = ', '))) }
     goodContigs = rownames(SQM$contigs$tax)[SQM$contigs$tax[,rank] == tax]
     return ( subsetContigs(SQM, goodContigs,
                            trusted_functions_only = trusted_functions_only,
@@ -199,6 +200,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     subSQM$contigs$table              = SQM$contigs$table[contigs,,drop=F]
     subSQM$contigs$abund              = SQM$contigs$abund[contigs,,drop=F]
+    subSQM$contigs$bases              = SQM$contigs$bases[contigs,,drop=F]
     subSQM$contigs$cov                = SQM$contigs$cov[contigs  ,,drop=F]
     subSQM$contigs$tpm                = SQM$contigs$tpm[contigs  ,,drop=F]
     subSQM$contigs$seqs               = SQM$contigs$seqs[contigs]
@@ -206,8 +208,26 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     if('bins' %in% names(subSQM))
         {
         subSQM$contigs$bins           = SQM$contigs$bins[contigs ,,drop=F]
-        subSQM$bins$table             = subSQM$bins$table[bins   ,,drop=F]
-        subSQM$bins$tpm               = subSQM$bins$tpm[bins     ,,drop=F]
+        subSQM$bins$table             = SQM$bins$table[bins      ,,drop=F]
+        x = aggregate(subSQM$contigs$abund, by=list(subSQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)                   = x[,1]
+        x = x[rownames(subSQM$bin$table),-1]
+	nobin                         = colSums(subSQM$contigs$abund) - colSums(x)
+	if(sum(nobin)>0)              { x['No_bin',] = nobin }
+	subSQM$bins$abund             = as.matrix(x)
+	subSQM$bins$percent           = 100 * t(t(subSQM$bins$abund) / subSQM$total_reads)
+        
+	x = aggregate(subSQM$contigs$bases, by=list(subSQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)                   = x[,1]
+        x = x[rownames(subSQM$bin$table),-1]
+        subSQM$bins$bases             = as.matrix(x)
+        
+	l = aggregate(subSQM$contigs$table$Length, by=list(subSQM$contigs$bins[,1]), FUN=sum)
+	n = l[,1]; l = l[,-1]; names(l) = n
+	l = l[rownames(subSQM$bin$table)]
+	subSQM$bins$length            = l
+	subSQM$bins$cov               = subSQM$bins$bases / subSQM$bins$length
+
         subSQM$bins$tax               = subSQM$bins$tax[bins     ,,drop=F]
         }
 
@@ -219,13 +239,13 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$taxa$genus$abund           = aggregate.taxa(subSQM, 'genus'       , tax_source)
     subSQM$taxa$species$abund         = aggregate.taxa(subSQM, 'species'     , tax_source)
 
-    subSQM$taxa$superkingdom$percent  = 100 * t(t(subSQM$taxa$superkingdom$abund) / subSQM$total_reads) #colSums(subSQM$taxa$superkingdom$abund))
-    subSQM$taxa$phylum$percent        = 100 * t(t(subSQM$taxa$phylum$abund)       / subSQM$total_reads) #colSums(subSQM$taxa$phylum$abund))
-    subSQM$taxa$class$percent         = 100 * t(t(subSQM$taxa$class$abund)        / subSQM$total_reads) #colSums(subSQM$taxa$class$abund))
-    subSQM$taxa$order$percent         = 100 * t(t(subSQM$taxa$order$abund)        / subSQM$total_reads) #colSums(subSQM$taxa$order$abund))
-    subSQM$taxa$family$percent        = 100 * t(t(subSQM$taxa$family$abund)       / subSQM$total_reads) #colSums(subSQM$taxa$family$abund))
-    subSQM$taxa$genus$percent         = 100 * t(t(subSQM$taxa$genus$abund)        / subSQM$total_reads) #colSums(subSQM$taxa$genus$abund))
-    subSQM$taxa$species$percent       = 100 * t(t(subSQM$taxa$species$abund)      / subSQM$total_reads) #colSums(subSQM$taxa$species$abund))
+    subSQM$taxa$superkingdom$percent  = 100 * t(t(subSQM$taxa$superkingdom$abund) / subSQM$total_reads)
+    subSQM$taxa$phylum$percent        = 100 * t(t(subSQM$taxa$phylum$abund)       / subSQM$total_reads)
+    subSQM$taxa$class$percent         = 100 * t(t(subSQM$taxa$class$abund)        / subSQM$total_reads)
+    subSQM$taxa$order$percent         = 100 * t(t(subSQM$taxa$order$abund)        / subSQM$total_reads)
+    subSQM$taxa$family$percent        = 100 * t(t(subSQM$taxa$family$abund)       / subSQM$total_reads)
+    subSQM$taxa$genus$percent         = 100 * t(t(subSQM$taxa$genus$abund)        / subSQM$total_reads)
+    subSQM$taxa$species$percent       = 100 * t(t(subSQM$taxa$species$abund)      / subSQM$total_reads)
 
     if('KEGG' %in% names(subSQM$functions))
         {
@@ -273,10 +293,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
             }
         subSQM$orfs$tpm               = 1000000 * t(t(subSQM$orfs$tpm)   /colSums(subSQM$orfs$tpm)   )
         subSQM$contigs$tpm            = 1000000 * t(t(subSQM$contigs$tpm)/colSums(subSQM$contigs$tpm))
-        #if('bins' in names(subSQM)
-        #    {
-        #    subSQM$bins$tpm           = 1000000 * t(t(subSQM$bins$tpm)   /colSums(subSQM$bins$tpm)   )
-        #    }
+
 	for(method in names(subSQM$functions))
             {
             subSQM$misc$coding_fraction[[method]]        = rep(1, ncol(subSQM$orfs$tpm))

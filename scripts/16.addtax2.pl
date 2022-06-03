@@ -205,6 +205,7 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 				 print "**$fulltax $percas $perctotal -- $times $totalas $totalcount -- $consf\n" if $verbose; 
 				 if($totalas!=$times) { print "***$k$totalas $times\n" if $verbose; }
 				}
+			else { last; }	#-- Prevents looking for consensus in deeper levels if it was not found in the current one
 			}
 		if(!$fulltax) { $fulltax="No consensus"; $strg="Unknown"; }
 		my $abb=$parents{$lasttax}{wranks};	
