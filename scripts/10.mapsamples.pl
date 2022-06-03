@@ -418,7 +418,7 @@ sub contigcov {
 	
 		#-- Use the mapped reads to sum base coverage
 
-		if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+		if($t[5]!~/\*/) { 			#-- If the read mapped, accum reads and bases
 			$thisr=$t[0];
 			next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
 			$lastr=$thisr;
