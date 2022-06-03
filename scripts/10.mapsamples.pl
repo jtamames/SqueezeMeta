@@ -24,7 +24,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
+our($datapath,$userdir,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
     $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
@@ -55,8 +55,8 @@ while(<infile1>) {
 	next if !$_;
 	my @t=split(/\t/,$_);
 	next if(($mode eq "sequential") && ($t[0] ne $projectname));
-	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } 
-	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
+	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$userdir/$t[1]"}=1; } 
+	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$userdir/$t[1]"}=2; }
 	}
 close infile1;
 
@@ -215,7 +215,7 @@ system("rm $tempdir/count.*");
 
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
 	
-my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
 print outsyslog "Sorting mapcount table: $command\n";
 system($command);	
 

@@ -22,9 +22,12 @@ $extpath     = "$projectdir/ext_tables";                                 #-- Dir
 $tempdir     = "$projectdir/temp";                                       #-- Temp directory
 $interdir    = "$projectdir/intermediate";                               #-- Temp directory
 $binresultsdir = "$resultpath/bins";						   #-- Directory for bins
-%bindirs     = ("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");  #-- Directories for bins
 %dasdir      = ("DASTool","$resultpath/DAS/$projectname\_DASTool\_bins");	   #-- Directory for DASTool results
 
+#-- Customizable binning and assembly
+
+%assemblers  = ("megahit","assembly_megahit.pl","spades","assembly_spades.pl","canu","assembly_canu.pl","flye","assembly_flye.pl");
+%bindirs     = ("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");  #-- Directories for bins
 
 #-- Result files
 
