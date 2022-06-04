@@ -136,7 +136,7 @@ foreach my $thissample(keys %allsamples) {
 		if($#pair2>0) {	$command.="cat $a2 > $tempdir/$par2name; "; } else { $command.="cp $a2 $tempdir/$par2name; "; }	
 		}
 	print "  Getting raw reads\n";
-	# print "$command\n";
+	#print "$command\n";
 	print outsyslog "Getting raw reads for $thissample: $command\n";
 	system $command; 
 	
@@ -150,8 +150,9 @@ foreach my $thissample(keys %allsamples) {
 		#-- Support for single reads
        		if(!$mapper || ($mapper eq "bowtie")) {
            		if($formatseq eq "fasta") { $formatoption="-f"; }
-    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --very-sensitive-local --quiet -p $numthreads -S $outsam $mapping_options"; }
-	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --very-sensitive-local --quiet -p $numthreads -S $outsam $mapping_options"; } }
+			if($mapping_options eq "") { $mapping_options = "--very-sensitive-local"; } # very-sensitive-local would interfere with custom mapping options so add it here 
+    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam $mapping_options"; }
+	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name  --quiet -p $numthreads -S $outsam $mapping_options"; } }
         	elsif($mapper eq "bwa") {
             		#Apparently bwa works seamlesly with fasta files as input.
             		if(-e "$tempdir/$par2name") { $command="$bwa_soft mem $bowtieref $tempdir/$par1name $tempdir/$par2name -v 1 -t $numthreads $mapping_options > $outsam"; }
