@@ -22,9 +22,6 @@ my $verbose=0;    #-- Reports an explanation msg for each of the steps
 use File::Basename;
 use Cwd 'abs_path';
 
-# our $installpath="/home/tamames/anaconda3/envs/SqueezeMeta1.5/SqueezeMeta";
-our $installpath="/media/disk5/tamames/SqueezeMeta";
-
 our $scriptdir;
 if(-l __FILE__)
 	{
@@ -36,7 +33,7 @@ else
 	{
 	$scriptdir = abs_path(dirname(__FILE__));
 	}
-#our $installpath = abs_path("$scriptdir/..");
+our $installpath = abs_path("$scriptdir/..");
 ###
 $scriptdir="$installpath/scripts";
 
