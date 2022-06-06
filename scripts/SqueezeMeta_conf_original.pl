@@ -27,7 +27,7 @@ $binresultsdir = "$resultpath/bins";						   #-- Directory for bins
 #-- Customizable binning and assembly
 
 %assemblers  = ("megahit","assembly_megahit.pl","spades","assembly_spades.pl","canu","assembly_canu.pl","flye","assembly_flye.pl");
-%bindirs     = ("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");  #-- Directories for bins
+%binscripts  = ("maxbin","$installpath/lib/SqueezeMeta/bin_maxbin.pl","metabat2","$installpath/lib/SqueezeMeta/bin_metabat2.pl","concoct","$installpath/lib/SqueezeMeta/bin_concoct.pl");
 
 #-- Result files
 
@@ -131,5 +131,4 @@ $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "LD_LIBRARY_PATH=$installpath/lib $installpath/bin/kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";
-%binscripts	    = ('maxbin',"$installpath/lib/SqueezeMeta/bin_maxbin.pl",'metabat2',"$installpath/lib/SqueezeMeta/bin_metabat2.pl",'concoct',"$installpath/lib/SqueezeMeta/bin_concoct.pl");
 $mothur_soft        = "$installpath/bin/mothur";
