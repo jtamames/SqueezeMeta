@@ -513,7 +513,8 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     SQM$misc$coding_fraction               = list()
     for(method in names(SQM$functions))
         {
-        SQM$misc$coding_fraction[[method]] = 1 - (SQM$functions[[method]]$tpm['Unmapped',] / colSums(SQM$functions[[method]]$tpm))
+        #SQM$misc$coding_fraction[[method]] = 1 - (SQM$functions[[method]]$tpm['Unmapped',] / colSums(SQM$functions[[method]]$tpm))
+	SQM$misc$coding_fraction[[method]] = 1 # this was used to correct TPMs ignoring the effect of unmapped reads, but is not needed anymore since we don't track unmapped reads for functions anymore
         }
 
     ### COPY NUMBERS
