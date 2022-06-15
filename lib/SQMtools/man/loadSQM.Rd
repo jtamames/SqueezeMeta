@@ -58,11 +58,11 @@ The SQM object is a nested list which contains the following information:
                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab contigs           \tab tax. ranks     \tab taxonomies         \cr
                     \tab \bold{$bins}              \tab                      \tab \emph{character matrix} \tab contigs           \tab bin. methods   \tab bins               \cr
 $bins               \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab bins              \tab misc. data     \tab misc. data         \cr
+                    \tab \bold{$length}            \tab                      \tab \emph{numeric vector}   \tab bins              \tab (n/a)          \tab length             \cr
                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (reads) \cr
                     \tab \bold{$percent}           \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (reads) \cr
                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (bases) \cr
                     \tab \bold{$cov}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab coverages          \cr
-                    \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab tpm                \cr
                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy           \cr
 \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances (reads) \cr
                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages        \cr

@@ -155,10 +155,9 @@ def parse_orf_table(orf_table, total_reads, total_bases, nokegg, nocog, nopfam, 
     def tpm(funDict):
         # Calculate reads per kilobase.    
         fun_avgLengths = {fun: funDict['lengths'][fun] / funDict['copies'][fun] for fun in funDict['lengths']} # NaN appears if a fun has no copies in a sample.
-        fun_avgLengths['Unmapped'] = sum(funDict['lengths'].values()) / sum(funDict['copies'].values()) # Just use the avg length of all functions for this.
         fun_rpk = {fun: funDict['abundances'][fun] / (fun_avgLengths[fun]/1000) for fun in funDict['abundances']}
         if ignore_unclassified_fun:
-            fun_rpk = {fun: rpk for fun, rpk in fun_rpk.items() if fun not in ('Unclassified', 'Unmapped')}
+            fun_rpk = {fun: rpk for fun, rpk in fun_rpk.items() if fun != 'Unclassified'}
 
         # Remove NaNs.
         for fun, rpk in fun_rpk.items():
@@ -219,20 +218,6 @@ def parse_orf_table(orf_table, total_reads, total_bases, nokegg, nocog, nopfam, 
                 if ID:
                     custom[method]['info'][ID] = [ line[idx[method + ' NAME']] ]
                 update_dicts(custom[method], method, trusted_only)
-
-    # Add unmapped reads.
-    if not nokegg:
-        kegg['abundances']['Unmapped'] = ( total_reads - sum( kegg['abundances'].values() ) ).round().astype(int)
-        kegg['bases'     ]['Unmapped'] = ( total_bases - sum( kegg['bases'     ].values() ) ).round().astype(int)
-    if not nocog:
-        cog ['abundances']['Unmapped'] = ( total_reads - sum( cog ['abundances'].values() ) ).round().astype(int)
-        cog ['bases'     ]['Unmapped'] = ( total_bases - sum( cog ['bases'     ].values() ) ).round().astype(int)
-    if not nopfam:
-        pfam['abundances']['Unmapped'] = ( total_reads - sum( pfam['abundances'].values() ) ).round().astype(int)
-        pfam['bases'     ]['Unmapped'] = ( total_bases - sum( pfam['bases'     ].values() ) ).round().astype(int)
-    for mdic in custom.values():
-        mdic['abundances']['Unmapped'] = ( total_reads - sum( mdic['abundances'].values() ) ).round().astype(int)
-        mdic['bases'     ]['Unmapped'] = ( total_bases - sum( mdic['bases'     ].values() ) ).round().astype(int)
 
     # Calculate tpm.
     orfs['tpm'] = tpm(orfs)
@@ -487,8 +472,7 @@ def write_orf_seqs(orfs, aafile, fna_blastx, rrnafile, trnafile, outname):
     with open(outname, 'w') as outfile:
         outfile.write('ORF\tAASEQ\n')
         for ORF in orfs:
-            if ORF != 'Unmapped':
-                outfile.write('{}\t{}\n'.format(ORF, ORFseq[ORF]))
+            outfile.write('{}\t{}\n'.format(ORF, ORFseq[ORF]))
 
 
 def write_contig_seqs(contigfile, outname):

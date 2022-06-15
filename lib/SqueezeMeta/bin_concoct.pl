@@ -108,7 +108,7 @@ $command="OMP_THREAD_LIMIT=$numthreads python3 $concoct_dir/bin/concoct --compos
 print outsyslog "  Running concoct: $command\n";
 system($command);
 print "  Merging clusters\n";
-$command="$concoct_dir/scripts/merge_cutup_clustering.py $bindir/concoct_int/clustering_gt1000.csv > $bindir/concoct_int/clustering_merged.csv";
+$command="python3 $concoct_dir/scripts/merge_cutup_clustering.py $bindir/concoct_int/clustering_gt1000.csv > $bindir/concoct_int/clustering_merged.csv";
 print outsyslog "  Merging clusters: $command\n";
 system($command);
 print "  Extracting final bins\n";

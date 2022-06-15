@@ -1,0 +1,66 @@
+### System libraries.
+sudo apt install git tree sqlite3 libxml2-dev libcurl4-openssl-dev libssl-dev
+
+
+### Install openjdk.
+sudo apt install openjdk-8-jdk # can possibly work with higher versions
+
+
+### Install Ruby.
+sudo apt install ruby
+
+
+### Install R
+sudo apt install r-base
+
+
+### Perl modules.
+sudo apt install libtie-ixhash-perl libclass-dbi-mysql-perl libxml-parser-perl libxml-libxml-perl libdbd-sqlite3-perl
+sudo cpan Linux::MemInfo
+
+
+### Python modules.
+sudo apt install python3-pip python3-dev python3-scipy python3-matplotlib python3-numpy python3-pandas libgsl-dev
+
+sudo -H python3 -m pip install cython dendropy pysam biopython scikit-learn nose
+
+
+### Download SqueezeMeta.
+# You can download the latest release of SqueezeMeta from https://github.com/jtamames/SqueezeM/releases/latest
+# Alternatively you can clone the github repository.
+#     git clone http://github.com/jtamames/SqueezeMeta
+
+
+### Install R packages.
+sudo R
+install.packages("doMC")
+install.packages("ggplot2")
+install.packages("data.table")
+install.packages("reshape2")
+install.packages("BiocManager")
+BiocManager::install("pathview")
+# if this fails try
+# source("https://bioconductor.org/biocLite.R")
+# BiocInstaller::biocLite("pathview")
+quit(save="no")
+sudo R CMD INSTALL <installpath>/SqueezeMeta/bin/DAS_Tool/package/DASTool_1.1.1.tar.gz
+sudo R CMD INSTALL <installpath>/SqueezeMeta/lib/SQMtools
+
+
+### Optional: install concoct (if you want to runing along with or instead of maxbin/metabat)
+cd <installpath>/SqueezeMeta/bin/bin/CONCOCT-1.1.0
+sudo python3 setup.py install
+
+
+### Install databases and test data.
+# This will occupy around 200Gb.
+<installpath>/SqueezeMeta/utils/install_utils/download_databases.pl <datapath>
+
+
+### Test that all the dependencies can be located in this environment.
+<installpath>/SqueezeMeta/utils/install_utils/test_install.pl
+
+
+### Run SqueezeMeta on test data.
+cd <datapath>/test
+perl <installpath>/SqueezeMeta/scripts/SqueezeMeta.pl -m merged -p Hadza -s test.samples -f raw/

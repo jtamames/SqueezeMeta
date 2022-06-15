@@ -26,7 +26,8 @@ our($installpath,$datapath,$databasepath,$resultpath,$interdir,$binresultsdir,$b
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 my $daspath="$interdir/binners/DAS";
-if(-d $daspath) {} else { system("mkdir $daspath"); }
+if(-d $daspath) {system("rm -r $daspath/*"); } else { system("mkdir $daspath"); }
+if(-d $binresultsdir) { system "rm $binresultsdir/*"; } else { system "mkdir $binresultsdir"; }
 
 #-- Creating contigs in bins tables
 
@@ -65,7 +66,7 @@ foreach my $binmethod(@binner) {
 chop $tables;
 chop $methods;
 print "done\n";
-if(-d $binresultsdir) {} else { system "mkdir $binresultsdir"; }
+
 
 if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta files from it
 	my $gmet=$methods;
@@ -85,7 +86,7 @@ if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta 
 
 else { 				#-- Otherwise, run DAS tool to combine results
 	
-	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres15 --search_engine diamond -t $numthreads -o $interdir/binners/DAS/$project --db_directory $databasepath";
+	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres15 --search_engine diamond -t $numthreads -o $daspath/$project --db_directory $databasepath";
  
 	print "Running DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43) for $methods\n";
 	print outsyslog "Running DAS Tool for $methods: $das_command\n";
@@ -99,5 +100,5 @@ else { 				#-- Otherwise, run DAS tool to combine results
 	}
 
 print "  Final binning results stored in $binresultsdir\n";	
-system("mv $interdir/binners/DAS/$project\_DASTool\_bins/* $binresultsdir");	
+system("mv $daspath/$project\_DASTool\_bins/* $binresultsdir");	
 close outsyslog;

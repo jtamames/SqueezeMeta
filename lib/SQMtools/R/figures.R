@@ -160,7 +160,6 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' @param N integer Plot the \code{N} most abundant functions (default \code{25}).
 #' @param fun character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
-#' @param ignore_unmapped logical. Don't include unmapped ORFs in the plot (default \code{TRUE}).
 #' @param ignore_unclassified logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).
 #' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
 #' @param base_size numeric. Base font size (default \code{11}).
@@ -171,7 +170,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
-plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unmapped = T, ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
+plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
     {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!fun_level %in% names(SQM$functions))
@@ -213,23 +212,12 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
         }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
     data = mostAbundant(data, N = N, items = fun)
 
-    # Verify whether there are Unclassified or Unmapped
-    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) { ignore_unmapped = F }
+    # Verify whether there are Unclassified
     if(ignore_unclassified & !('Unclassified' %in% rownames(data))) { ignore_unclassified = F }
     
-    # remove unmapped functions (only possible when not custom items)
-    # if N include unmapped function, add one more function
-    if (ignore_unmapped & !(ignore_unclassified) & is.null(fun) & N != 0)
-        {
-        if(count == 'percent') { data = as.data.frame(percents)
-        } else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
-        data = mostAbundant(data, N = (N + 1), items = fun)
-        data = data[rownames(data) != 'Unmapped', , drop = F] # Remove 'Unmapped'
-        }
-
     # remove unclassified functions (only possible when not custom items)
     # if N include unclassified function, add one more function
-    if (ignore_unclassified & !(ignore_unmapped) & is.null(fun) & N != 0)
+    if (ignore_unclassified & is.null(fun) & N != 0)
         {
         if(count == 'percent') { data = as.data.frame(percents)
         }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
@@ -237,16 +225,6 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
         data = data[rownames(data) != 'Unclassified', , drop = F] # Remove 'Unclassified'
         }
 
-    # remove unmapped and unclassified functions (only possible when not custom items)
-    # if N include unmapped and unclassified functions, add two more functions
-    if (ignore_unclassified & ignore_unmapped & is.null(fun) & N != 0)
-        {
-         if(count == 'percent') { data = as.data.frame(percents)
-         }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
-         data = mostAbundant(data, N = (N + 2), items = fun)
-         data = data[rownames(data) != 'Unmapped', , drop = F]
-         data = data[rownames(data) != 'Unclassified', , drop = F]
-        }
 
     # Add KEGG & COG names
     if (fun_level %in% c('COG', 'KEGG'))

@@ -53,6 +53,8 @@ plotTaxonomy(
 \item{base_size}{numeric. Base font size (default \code{11}).}
 
 \item{max_scale_value}{numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).}
+
+\item{metadata_groups}{list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).}
 }
 \value{
 a ggplot2 plot object.
