@@ -46,7 +46,7 @@ our $pwd=cwd();
 
 our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$force_overwrite,$consensus,$doublepass)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
-our($binresultsdir,$databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft);
+our($binresultsdir,$databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$checkm_lin);
 our(%bindirs,%dasdir,%binscripts);  
 
 #-- Define help text
@@ -105,6 +105,7 @@ Arguments:
  Binning:
    --nobins: Skip all binning  (Default: no). Overrides -binners 
    -binners: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
+   --checkm_linage: Add taxonomic predictions by checkM (slower) (Default: no)
  
  Performance:
    -t <threads>: Number of threads (Default: 12)
@@ -144,7 +145,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "euk" => \$euknofilter,
 		     "extdb=s" => \$opt_db, 
 		     "nobins" => \$nobins,   
-		     "binners=s" => \$binners,   
+		     "binners=s" => \$binners, 
+		     "checkm_linage" => \$checkm_lin, 
 		     "D|doublepass" => \$doublepass, 
 		     "b|block_size=i" => \$blocksize,
 		     "e|evalue=f" => \$evalue,   
@@ -286,7 +288,7 @@ my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectnam
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
   'extassembly',$extassembly,'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,'miniden',$miniden,
-  'evalue',$evalue);
+  'evalue',$evalue,'checkm_lin',$checkm_lin);
 
 if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		
@@ -978,6 +980,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	if($assembler_options) { print outfile5 "\$assembler_options  = \"$conf{assembler_options}\";\n"; }
 	if($extassembly)       { print outfile5 "\$extassembly        = \"$conf{extassembly}\";\n";       }
 	if($opt_db)            { print outfile5 "\$opt_db             = \"$conf{opt_db}\";\n";            }
+	if($checkm_lin) { print outfile5 "\$checkm_lin             = 1;\n";            }
 	close outfile5;
 	
 	#--  Write progress and syslog

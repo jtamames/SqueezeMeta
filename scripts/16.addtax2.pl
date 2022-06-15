@@ -22,7 +22,7 @@ do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($installpath,$binresultsdir,$datapath,$databasepath,$syslogfile,$interdir,$alllog,$bintax,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir);
+our($installpath,$binresultsdir,$datapath,$databasepath,$syslogfile,$interdir,$alllog,$bintax,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir,$checkm_lin);
 
 	#-- Some configuration values for the algorithm
 	
@@ -31,9 +31,8 @@ my $verbose=0;
 open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 # my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranks=('k','p','c','o','f','g','s');
-my(%tax,%taxlist);
+my(%tax,%taxlist,%parents);
 
-my %parents;
 open(infile0,"$databasepath/LCA_tax/parents.txt") || die "Can't open $databasepath/LCA_tax/parents.txt\n";
 while(<infile0>) {
 	chomp;
@@ -88,6 +87,7 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 		my $tf="$bindir/$k";
 		my $outf="$bindir/$k.tax";
  		# next if($k ne "maxbin.002.fasta");
+		print "  Adding SqueezeMeta taxonomy for $k\n";
 		
 		#-- We will create an output file for bin, with the contig names and consensus
 		
@@ -210,7 +210,6 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 		if(!$fulltax) { $fulltax="No consensus"; $strg="Unknown"; }
 		my $abb=$parents{$lasttax}{wranks};	
 		$abb=~s/superkingdom\:/k_/; $abb=~s/phylum\:/p_/; $abb=~s/order\:/o_/; $abb=~s/class\:/c_/; $abb=~s/family\:/f_/; $abb=~s/genus\:/g_/; $abb=~s/species\:/s_/; $abb=~s/no rank\:/n_/g; $abb=~s/\w+\:/n_/g;
-
 		
 		#-- Write output
 		
@@ -224,6 +223,12 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 				}
 			print outfile2 ";";
 			}
+		print outfile2 "\n";
+		if($checkm_lin) { 
+			my $checkm_tax=checkm($k);
+			$checkm_tax=~s/\_\_/\_/g; 
+			print outfile2 "CheckM_tax: $checkm_tax\n";
+			}
 		printf outfile1 "DAS\t$k\tConsensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
 		close outfile2;
 
@@ -233,3 +238,28 @@ close outfile1;
 close syslogfile;
 
 
+sub checkm {
+	my $thisbin=shift;
+	my $tempdir="$bindir/tempcheckm";
+	my $tempout="$tempdir/bin.txt";
+	print "  Adding CheckM taxonomy for $thisbin\n";
+	if(-d $tempdir) { system("rm -r $tempdir"); }
+	if(-e $tempout) { system("rm $tempout"); }
+	my $command="checkm tree $bindir $tempdir -x $thisbin  >> $syslogfile 2>&1";
+	# print "**$command**\n";
+	system($command);
+	my $command="checkm tree_qa $tempdir --tab_table -f $tempout  >> $syslogfile 2>&1";
+	system($command);
+	open(infw,$tempout) || warn "Cannot open checkm file $tempout\n";
+	$_=<infw>;
+	$_=<infw>;
+	chomp;
+	my @tl=split(/\t/,$_);
+	close infw;
+	my $checkm_tax=$tl[3];
+	return $checkm_tax;
+	}
+		
+		
+		
+	
