@@ -22,7 +22,7 @@ do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($installpath,$binresultsdir,$datapath,$databasepath,$syslogfile,$interdir,$alllog,$bintax,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir,$checkm_lin);
+our($installpath,$binresultsdir,$datapath,$databasepath,$syslogfile,$interdir,$numthreads,$alllog,$bintax,$taxbinmode,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir);
 
 	#-- Some configuration values for the algorithm
 	
@@ -214,7 +214,6 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 		#-- Write output
 		
 		#printf outfile2 "Consensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
-		printf outfile2 "Consensus: $abb\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
 		print outfile2 "List of taxa (abundance >= 1%): ";
 		foreach my $rank(@ranks) {
 			print outfile2 "$rank:";  
@@ -224,16 +223,21 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 			print outfile2 ";";
 			}
 		print outfile2 "\n";
-		if($checkm_lin) { 
-			my $checkm_tax=checkm($k);
+		print outfile2 "SqueezeMeta tax: $abb\n";
+		my $checkm_tax;
+		if($taxbinmode=~/c/) { 
+			$checkm_tax=checkm($k);
 			$checkm_tax=~s/\_\_/\_/g; 
-			print outfile2 "CheckM_tax: $checkm_tax\n";
+			print outfile2 "CheckM tax: $checkm_tax\n";
 			}
-		printf outfile1 "DAS\t$k\tConsensus: $fulltax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
+		my $constax;	
+		$constax=consens($abb,$checkm_tax,$taxbinmode);
+		printf outfile2 "Consensus: $constax\tTotal size: $size\tDisparity: %.3f\tConsensus mode: $taxbinmode\n",$chimerism;
+		printf outfile1 "DAS\t$k\tConsensus: $constax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
 		close outfile2;
 
  	}
-	print syslogfile "  Output created in $bintax\n";
+print syslogfile "  Output created in $bintax\n";
 close outfile1;
 close syslogfile;
 
@@ -245,7 +249,7 @@ sub checkm {
 	print "  Adding CheckM taxonomy for $thisbin\n";
 	if(-d $tempdir) { system("rm -r $tempdir"); }
 	if(-e $tempout) { system("rm $tempout"); }
-	my $command="checkm tree $bindir $tempdir -x $thisbin  >> $syslogfile 2>&1";
+	my $command="checkm tree $bindir $tempdir -t $numthreads -x $thisbin  >> $syslogfile 2>&1";
 	# print "**$command**\n";
 	system($command);
 	my $command="checkm tree_qa $tempdir --tab_table -f $tempout  >> $syslogfile 2>&1";
@@ -261,5 +265,45 @@ sub checkm {
 	}
 		
 		
-		
-	
+
+sub consens {
+	my $sqm_tax=shift;
+	my $checkm_tax=shift;
+	my $taxbinmode=shift;
+	print "  Calculating consensus taxonomy using mode $taxbinmode\n";
+	my @ranks=('k','p','c','o','f','g','s');
+	my @sqm=split(/\;/,$sqm_tax);
+	my @checkm=split(/\;/,$checkm_tax);
+	my(%s,%c);
+	my $disagree;
+	my $const;
+	foreach my $t(@sqm) {
+		my($rank,$ttax)=split(/\_/,$t);
+		$s{$rank}=$ttax;
+		}
+	foreach my $t(@checkm) {
+		my($rank,$ttax)=split(/\_/,$t);
+		$c{$rank}=$ttax;
+		}
+	for my $crank(@ranks) {
+		my $sqmt=$s{$crank};
+		my $checkmt=$c{$crank};
+		if($sqmt && $checkmt && ($sqmt ne $checkmt)) { $disagree=1; }
+		if($taxbinmode eq "s+c") {
+			if($sqmt) { $const.="$crank\_$sqmt;"; }
+			elsif((!$disagree) && $checkmt) { $const.="$crank\_$checkmt;"; }
+			}
+		elsif($taxbinmode eq "c+s") {
+			if($checkmt) { $const.="$crank\_$checkmt;"; }
+			elsif((!$disagree) && $sqmt) { $const.="$crank\_$sqmt;"; }
+			}
+		elsif($taxbinmode eq "s") {
+			if($sqmt) { $const.="$crank\_$sqmt;"; }	
+			}
+		elsif($taxbinmode eq "c") {
+			if($checkmt) { $const.="$crank\_$checkmt;"; }	
+			}
+				
+		}
+	return($const);
+	}
