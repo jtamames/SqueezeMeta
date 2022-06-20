@@ -96,7 +96,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "b|block_size=i" => \$blocksize,
 		     "x|partialhits" => \$partialhits,
 		     "c|readlen=i" => \$minreadlen,
-		     "force_overwrite=s" => $force_overwrite,
+		     "force_overwrite=s" => \$force_overwrite,
 		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
