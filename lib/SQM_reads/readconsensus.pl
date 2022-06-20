@@ -88,12 +88,12 @@ foreach my $tfile(keys %filtlist) {
 my($outputlong,$outputshort);
 foreach my $tfile(keys %filtlist) {
 	if($tfile eq "filter") {
-		$outputlong="$projectdir/readconsensus.log";
-		$outputshort="$projectdir/readconsensus.txt";
+		$outputlong="$projectdir/$projectname.readconsensus.log";
+		$outputshort="$projectdir/$projectname.readconsensus.txt";
 		}
 	else {
-		$outputlong="$projectdir/readconsensus\_nofilter.log";
-		$outputshort="$projectdir/readconsensus\_nofilter.txt";
+		$outputlong="$projectdir/$projectname.readconsensus\_nofilter.log";
+		$outputshort="$projectdir/$projectname.readconsensus\_nofilter.txt";
 		}
 
 	print "  Output for $tfile in $outputshort\n";

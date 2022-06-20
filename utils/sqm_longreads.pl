@@ -49,7 +49,7 @@ do "$scriptdir/parameters.pl";
 #-- Configuration variables from conf file
 our($databasepath);
 
-my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$partialhits,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$euknofilter,$methodsfile,$evaluetax4,$minidentax4);
+my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$partialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$euknofilter,$methodsfile,$evaluetax4,$minidentax4);
 
 my $helpshort="Usage: SQM_longreads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -75,6 +75,7 @@ Arguments:
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
    -x|-partialhits: Allows partial hits in middle of the read (Default: no)
    -c|-readlen <size>: Minimum length of reads (Default: 200)
+   --force_overwrite: Overwrite previous results
    -v|version: Print version
    -h: this help
 
@@ -95,6 +96,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "b|block_size=i" => \$blocksize,
 		     "x|partialhits" => \$partialhits,
 		     "c|readlen=i" => \$minreadlen,
+		     "force_overwrite=s" => $force_overwrite,
 		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
@@ -208,7 +210,7 @@ if(!$nokegg) { print outall "\tKEGG"; }
 if($opt_db) {  foreach my $extdb(sort keys %allext) { print outall "\t$extdb"; } }
 print outall "\n";
 print outcount "# Created by $0 from data in $equivfile, ", scalar localtime,"\n";
-print outcount "# Sample\tFile\tTotal Reads\tReads with hits\tTotal number of hits\n";
+print outcount "# Sample\tFile\tTotal Reads\tFiltered reads\tReads with hits\tTotal number of hits\n";
 
 	
 my(%cogaccum,%keggaccum,%rblast,%iblast,%store,%inputfile,%strand);
@@ -226,7 +228,7 @@ foreach my $thissample(keys %allsamples) {
 	foreach my $thisfile(sort keys %{ $allsamples{$thissample} }) {                
 		(%iblast,%rblast,%strand)=();
 		my $numseqs=0;
-		print "   File: $thisfile\n";
+		print BOLD "\n   File: $thisfile\n"; print RESET;
 		print outsyslog "   File: $thisfile\n";
 		my $idenf=$allsamples{$thissample}{$thisfile};
 
@@ -249,6 +251,7 @@ foreach my $thissample(keys %allsamples) {
 				$header=~s/^\@//;
 				$header=~s/\s+.*//;
 				chomp $header;
+				$stats{$thisfile}{original}++;
 				$inputfile{$header}=$thisfile;
 				$seqline=<infastq>;
 				$_=<infastq>;
@@ -291,13 +294,13 @@ foreach my $thissample(keys %allsamples) {
 			print CYAN "[",$currtime->pretty,"]: Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for taxa (GenBank nr, Clark et al 2016, Nucleic Acids Res 44, D67-D72)\n"; print RESET;
 			print outsyslog "[",$currtime->pretty,"]: Running Diamond for taxa\n";
 			print outmet "GenBank (Clark et al 2016, Nucleic Acids Res 44, D67-D72), ";
-			if(-s $blastxout>0) { print "  Diamond result found in $blastxout, not running it again\n"; }
+			if((-s $blastxout>0) && (!$force_overwrite)) { print "  Diamond result found in $blastxout, not running it again\n"; }
 			else { run_blastx($fastafile,$blastxout); }
-			if(-s $collapsed>0) { print "  Diamond collapsed result found in $collapsed, not running it again\n"; }
+			if((-s $collapsed>0) && (!$force_overwrite)) { print "  Diamond collapsed result found in $collapsed, not running it again\n"; }
 			else { collapse($blastxout,$collapsed); }
-			if(-s $collapsedmerged>0) { print "  Diamond collapsed and merged result found in $collapsedmerged, not running it again\n"; }
+			if((-s $collapsedmerged>0) && (!$force_overwrite)) { print "  Diamond collapsed and merged result found in $collapsedmerged, not running it again\n"; }
 			else { merge($collapsed,$collapsedmerged); }
-			if(-s $ntseqs>0) { print "  ORFs sequences found in $ntseqs, not running it again\n"; }
+			if((-s $ntseqs>0) && (!$force_overwrite)) { print "  ORFs sequences found in $ntseqs, not running it again\n"; }
 			else { getseqs($collapsedmerged,$fastaname,$ntseqs); }
 			}
 
@@ -340,7 +343,7 @@ foreach my $thissample(keys %allsamples) {
 		#-- Run consensus annotation of reads
 
 		my $outconsensus="$thissampledir/$thisfile.readconsensus.txt";
-		if(-s $outconsensus>0) { print "  Consensus annotations found in $outconsensus, not running it again\n"; }
+		if((-s $outconsensus>0) && (!$force_overwrite)) { print "  Consensus annotations found in $outconsensus, not running it again\n"; }
 		else {
 			print "  Running consensus annotation: Output in $outconsensus\n";
 			my $command="$installpath/lib/SQM_reads/readconsensus.pl $thisfile $thissampledir $euknofilter $installpath $databasepath";
@@ -361,7 +364,7 @@ foreach my $thissample(keys %allsamples) {
 			my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run for COGs because of --nodiamond flag)\n"; print outsyslog"   (Skipping Diamond run for COGs because of --nodiamond flag)\n"; } 
-			elsif(-s $outfile > 0) { print "   COG Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   COG Diamond result found in $outfile, skipping Diamond\n"   } 
+			elsif((-s $outfile > 0)  && (!$force_overwrite)) { print "   COG Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   COG Diamond result found in $outfile, skipping Diamond\n"   } 
 			else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for COGs\n"; print RESET;
 				print outsyslog "[",$currtime->pretty,"]: Running Diamond for COGs: $blastx_command\n";
@@ -373,7 +376,7 @@ foreach my $thissample(keys %allsamples) {
 			my $outfile_cog="$thissampledir/$thisfile.cogs";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_cog";
 			$currtime=timediff();
-			if(-s $outfile_cog > 0) { print "   COG assignments found in $outfile_cog, skipping step\n"; print outsyslog "   COG assignments found in $outfile_cog, skipping step\n"   } 
+			if((-s $outfile_cog > 0)  && (!$force_overwrite)) { print "   COG assignments found in $outfile_cog, skipping step\n"; print outsyslog "   COG assignments found in $outfile_cog, skipping step\n"   } 
 			else {
 				print "[",$currtime->pretty,"]: Running functional annotations for COGs\n"; print RESET;
 				print outsyslog "[",$currtime->pretty,"]: Running functional annotations for COGs: $func_command\n";
@@ -403,7 +406,7 @@ foreach my $thissample(keys %allsamples) {
 			my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run for KEGG because of --nodiamond flag)\n"; print outsyslog "   (Skipping Diamond run for KEGG because of --nodiamond flag)\n"; }
-			elsif(-s $outfile > 0) { print "   KEGG Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   KEGG Diamond result found in $outfile, skipping Diamond\n"   } 
+			elsif((-s $outfile > 0)  && (!$force_overwrite)) { print "   KEGG Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   KEGG Diamond result found in $outfile, skipping Diamond\n"   } 
 			else { 
 				print CYAN "[",$currtime->pretty,"]: Running Diamond for KEGG\n"; print RESET;
 				print outsyslog "[",$currtime->pretty,"]: Running Diamond for KEGG: $blastx_command\n";
@@ -414,7 +417,7 @@ foreach my $thissample(keys %allsamples) {
 			my $outfile_kegg="$thissampledir/$thisfile.kegg";
 			my $func_command="perl $auxdir/func.pl $outfile $outfile_kegg";
 			$currtime=timediff();
-			if(-s $outfile_kegg > 0) { print "   KEGG assignments found in $outfile_kegg, skipping step\n"; print outsyslog "   KEGG assignments found in $outfile_kegg, skipping step\n"   } 
+			if((-s $outfile_kegg > 0)  && (!$force_overwrite)) { print "   KEGG assignments found in $outfile_kegg, skipping step\n"; print outsyslog "   KEGG assignments found in $outfile_kegg, skipping step\n"   } 
 			else {
 				print CYAN "[",$currtime->pretty,"]: Running functional annotation for KEGG\n"; print RESET;
 				print outsyslog "[",$currtime->pretty,"]: Running functional annotation for KEGG: $func_command\n"; 
@@ -448,7 +451,7 @@ foreach my $thissample(keys %allsamples) {
 				my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 				#print "Running BlastX: $blastx_command\n";
 				if($nodiamond) { print "   (Skipping Diamond run for $extdbname because of --nodiamond flag)\n"; }
-				elsif(-s $outfile > 0) { print "   $extdbname Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   $extdbname Diamond result found in $outfile, skipping Diamond\n"   } 
+				elsif((-s $outfile > 0)  && (!$force_overwrite)) { print "   $extdbname Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   $extdbname Diamond result found in $outfile, skipping Diamond\n"   } 
 				else { 
 					print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;
 					print outsyslog "[",$currtime->pretty,"]: Running Diamond for $extdbname: $blastx_command\n";
@@ -460,7 +463,7 @@ foreach my $thissample(keys %allsamples) {
 				my $outfile_opt="$thissampledir/$thisfile.$extdbname";
 				my $func_command="perl $auxdir/func.pl $outfile $outfile_opt";
 				$currtime=timediff();
-				if(-s $outfile_opt > 0) { print "   $extdbname assignments found in $outfile_opt, skipping step\n"; print outsyslog "   $extdbname assignments found in $outfile_opt, skipping step\n"   } 
+				if((-s $outfile_opt > 0)  && (!$force_overwrite)) { print "   $extdbname assignments found in $outfile_opt, skipping step\n"; print outsyslog "   $extdbname assignments found in $outfile_opt, skipping step\n"   } 
 				else {
 					print "[",$currtime->pretty,"]: Running functional annotation for $extdbname\n"; print RESET;
 					print outsyslog "[",$currtime->pretty,"]: Running functional annotation for $extdbname: $func_command\n"; 
@@ -494,7 +497,7 @@ foreach my $thissample(keys %allsamples) {
         my $numtotalhits=($#y)+1;
 	print outsyslog "  Counting ORFs\n";
 	print outsyslog "Counting mapped counts\n";
-        print outcount "$thissample\t$thisfile\t$numseqs\t$numhits\t$numtotalhits\n";
+        print outcount "$thissample\t$thisfile\t$stats{$thisfile}{original}\t$numseqs\t$numhits\t$numtotalhits\n";
 #	system("rm $thissampledir/diamond_collapse*; rm $thissampledir/collapsed*m8; rm $thissampledir/rc.txt; rm $thissampledir/wc;");
 # 	system("rm -r $thissampledir/temp");
 
@@ -506,25 +509,33 @@ foreach my $thissample(keys %allsamples) {
 
 	#-- Global statistics
 
+	system("cat $thissampledir/*readconsensus.txt > $thissampledir/readconsensus.txt");
+	system("cat $thissampledir/*readconsensus.log > $thissampledir/readconsensus.log");
+	system("cat $thissampledir/*readconsensus_nofilter.txt > $thissampledir/readconsensus_nofilter.txt");
+	system("cat $thissampledir/*readconsensus_nofilter.log > $thissampledir/readconsensus_nofilter.log");
+
 	my $gfffile="$thissampledir/$thissample.gff";
 	my %consannot;
 	my $consannotation="$thissampledir/readconsensus.txt";
 	print outsyslog "Making global statistics: Reading from $consannotation\n";
 	print "   Making global statistics: Reading from $consannotation\n";
 	
-	open(outgff,">$gfffile") || warn "Cannot write gff file in $gfffile\n";
-	print outgff "##gff-version  3\n";
-	open(infile5,$consannotation) || die "Cannot open consensus annotation in $consannotation\n";
-	while(<infile5>) {
-		chomp;
-		next if !$_;
-		my($readname,$constax)=split(/\t/,$_);
-		my @tfields=split(/\;/,$constax);        #-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
-               	my $lastconstax=$tfields[$#tfields];
-		$consannot{$readname}=$lastconstax;
-		$accum{$thissample}{taxread}{$constax}++;
+	if((-s $gfffile>0) && (!$force_overwrite)) { print "  gff file found in $gfffile, not running it again\n"; }
+	else {
+		open(outgff,">$gfffile") || warn "Cannot write gff file in $gfffile\n";
+		print outgff "##gff-version  3\n";
+		open(infile5,$consannotation) || die "Cannot open consensus annotation in $consannotation\n";
+		while(<infile5>) {
+			chomp;
+			next if !$_;
+			my($readname,$constax)=split(/\t/,$_);
+			my @tfields=split(/\;/,$constax);        #-- As this will be a huge file, we do not report the full taxonomy, just the deepest taxon
+              	 	my $lastconstax=$tfields[$#tfields];
+			$consannot{$readname}=$lastconstax;
+			$accum{$thissample}{taxread}{$constax}++;
+			}
+		close infile5;
 		}
-	close infile5;
 		
 	if(!$nodiamond) { print outmet " were done using Diamond (Buchfink et al 2015, Nat Methods 12, 59-60)\n"; }		
 	my(@listorfs,@listpos);
@@ -596,10 +607,11 @@ foreach my $thissample(keys %allsamples) {
 		}
 	close outgff;
 	
+
 	#-- Run prinseq_lite for statistics
 
 	my $statsfile="$thissampledir/$thissample.stats";
-	if(-s $statsfile>10) { print "   Read statistics found in $statsfile, skipping\n"; }
+	if((-s $statsfile>10) && (!$force_overwrite)) { print "   Read statistics found in $statsfile, skipping\n"; }
 	else {
 		my $command="$prinseq_soft -fasta $tempfasta -stats_len -stats_info -stats_assembly > $statsfile";
 		print outsyslog "Running prinseq for contig statistics: $command\n  ";
@@ -621,6 +633,7 @@ foreach my $thissample(keys %allsamples) {
 		elsif($k[1] eq "min") { $stats{$thissample}{min}= $k[2]; }
 		}
 	close instats;	
+		
 				
 	}	#-- End of sample
 		
