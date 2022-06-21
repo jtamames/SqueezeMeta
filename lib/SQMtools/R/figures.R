@@ -468,7 +468,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 #'
 #' This function selects the most abundant bins across all samples in a SQM object and represents their abundances in a barplot. Alternatively, a custom set of bins can be represented.
 #' @param SQM A SQM or a SQMlite object.
-#' @param count character. Either \code{"percent"} for percentages, or \code{"abund"} for raw abundances (default \code{"percent"}).
+#' @param count character. Either \code{"percent"} for percentages, \code{"cov"} for coverages or \code{"abund"} for raw abundances (default \code{"percent"}).
 #' @param N integer Plot the \code{N} most abundant bins (default \code{15}).
 #' @param bins character. Custom bins to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant bins, and include the result in the plot (default \code{TRUE}).
@@ -490,9 +490,9 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = T, samples = NULL, ignore_unmapped = F, ignore_nobin = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
 {
     if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
-    if (!count %in% c('abund', 'percent'))
+    if (!count %in% c('abund', 'percent', 'cov'))
     {
-        stop('count must be either "abund" or "percent"')
+        stop('count must be either "abund", "percent" or "cov"')
     }
     if ('Other' %in% rownames(SQM[['bins']][[count]]))
     {
