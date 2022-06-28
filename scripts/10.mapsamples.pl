@@ -82,7 +82,7 @@ if($mapper eq "bowtie") {
 elsif($mapper eq "bwa") {
 	print "  Mapping with BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
 	print outmet "Read mapping against contigs was performed using BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
-        if(-e "$bowtieref.bwt") { print "Found reference in $bowtieref.bwt, Skipping\n"; }
+        if(-e "$bowtieref.bwt") { print "  Found reference in $bowtieref.bwt, Skipping\n"; }
         else {
         	print("Creating reference.\n");
                 my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
@@ -100,9 +100,9 @@ elsif($mapper=~/minimap/i) {
 #if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
 #if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
-open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
-print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
-print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
+#open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
+#print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
+#print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
 open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
 print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
 print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
@@ -408,33 +408,33 @@ sub contigcov {
 		}
 	close infilelen;
 	
-	#-- Count bases mapped from the sam file
+	#-- Count bases mapped from the sam file (THIS IS NOW BEING DONE IN STEP 01)
 	
-	my($thisr,$lastr);
-	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
-	while(<infile4>) {
-		chomp;
-		my @t=split(/\t/,$_);
-		next if($_=~/^\@/);
+	# my($thisr,$lastr);
+	# open(infile4,$outsam) || die "Can't open $outsam\n"; ;
+	# while(<infile4>) {
+	# 	chomp;
+	# 	my @t=split(/\t/,$_);
+	#	next if($_=~/^\@/);
+	#
+	#	#-- Use the mapped reads to sum base coverage
+	#
+	#	if($t[5]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+	#		$thisr=$t[0];
+	#		next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
+	#		$lastr=$thisr;
+	#		$readcount{$t[2]}{reads}++;
+	#		$readcount{$t[2]}{lon}+=length $t[9];
+	#		$mappedreads++;
+	#	}       
+	#	$totalreadcount++;
+	#	$totalreadlength+=length $t[9];
+	# }
+	# close infile4;
 	
-		#-- Use the mapped reads to sum base coverage
-
-		if($t[5]!~/\*/) { 			#-- If the read mapped, accum reads and bases
-			$thisr=$t[0];
-			next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
-			$lastr=$thisr;
-			$readcount{$t[2]}{reads}++;
-			$readcount{$t[2]}{lon}+=length $t[9];
-			$mappedreads++;
-		}       
-		$totalreadcount++;
-		$totalreadlength+=length $t[9];
-	}
-	close infile4;
-	
-	my $mapperc=($mappedreads/$totalreadcount)*100;
-	if($mapperc<50) { $warnmes=1; }
-	printf outfile1 "$thissample\t$totalreadcount\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics
+	# my $mapperc=($mappedreads/$totalreadcount)*100;
+	# if($mapperc<50) { $warnmes=1; }
+	# printf outfile1 "$thissample\t$totalreadcount\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics
 
 	#-- Output RPKM/coverage values
 

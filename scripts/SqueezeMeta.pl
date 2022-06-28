@@ -706,7 +706,6 @@ sub pipeline {
 				if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
 				}
 		}
-	}
 		
 			
  
@@ -745,6 +744,7 @@ sub pipeline {
 				close(outfile4); open(outfile4,">>$syslogfile");
 				}
 		}
+		
 			
     #-------------------------------- STEP16: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
@@ -819,6 +819,9 @@ sub pipeline {
 			else { print RED; print "Skipping BIN TABLE CREATION: (You already know: DAS_Tool did not predict bins.)\n"; print RESET; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 	 }
+
+	}		#-- End of --nobins option
+
 
     #-------------------------------- STEP19: Make contig table		
 

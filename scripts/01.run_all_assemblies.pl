@@ -21,12 +21,13 @@ do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
 our(%assemblers);
 my $project=$projectname;
+do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$installpath,$userdir,$assembler,$outassembly,$mode,$megahit_soft,$assembler_options,$extassembly,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile,$norename,$force_overwrite);
+our($datapath,$installpath,$userdir,$assembler,$outassembly,$mode,$megahit_soft,$mapper,$bowtie2_x_soft,$bowtieref,$bowtie2_build_soft,$mapping_options,$mappingstat, $bwa_soft, $minimap2_soft,$assembler_options,$extassembly,$contigid,$numthreads,$keepsam10,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile,$norename,$force_overwrite);
 
-my($seqformat,$gzipped,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name,%extassemblies,%datasamples);
+my($seqformat,$gzipped,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name,$warnmes,%extassemblies,%datasamples);
 
 my $assemblerdir="$installpath/lib/SqueezeMeta";
 
@@ -37,6 +38,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 #-- Read samples from samples file
 
+	my %allsamples;
 	open(infile1,$mappingfile);  #-- To check for extassemblies in sequential mode
 	while(<infile1>) {
 		chomp;
@@ -45,8 +47,16 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 		my($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 		if($mapreq!~/noassembly/) {
 			if($mapreq=~/extassembly\=(.*)/) { $extassemblies{$sample}=$1; }  #-- Store external assemblies if specified in the samples file
-			elsif(($mode eq "sequential") && ($sample eq $projectname)) { $datasamples{$sample}{$iden}{$file}=1; }  #-- If in sequential mode, only assemble the current sample
-			else { $datasamples{$sample}{$iden}{$file}=1; }
+			elsif(($mode eq "sequential") && ($sample eq $projectname)) {   #-- If in sequential mode, only assemble the current sample
+				$datasamples{$sample}{$iden}{$file}=1; 
+				if($iden eq "pair1") { $allsamples{$sample}{"$userdir/$file"}=1; } 
+				elsif ($iden eq "pair2") { $allsamples{$sample}{"$userdir/file"}=2; }
+				}  
+			else { 
+				$datasamples{$sample}{$iden}{$file}=1; 
+				if($iden eq "pair1") { $allsamples{$sample}{"$userdir/$file"}=1; } 
+				elsif ($iden eq "pair2") { $allsamples{$sample}{"$userdir/$file"}=2; }				
+				}
 			}
 		}
 	close infile1;
@@ -277,6 +287,7 @@ my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 print outmet "Contig statistics were done using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 
+mapping();
 	
 #-- Counts length of the contigs (we will need it later)
 
@@ -328,6 +339,172 @@ if($wsize<2)         { error_out(1,$scriptname,$contigsfna); }
 close outsyslog;
 close outmet;
 
+
+sub mapping {
+	print "NOW MAPPING DATA\n";
+	my $fastqdir="$datapath/raw_fastq";
+	my $samdir="$datapath/sam";
+	if(-d $samdir) {} else { system("mkdir $samdir"); }
+
+
+        #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
+
+	if($mapper eq "bowtie") {
+		print "  Mapping with Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n";
+		print outmet "Read mapping against contigs was performed using Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n"; 
+        	if(-e "$bowtieref.1.bt2") { print "  Found reference in $bowtieref.1.bt2, skipping\n"; }
+        	else {
+        		print("  Creating reference from contigs\n");
+              	  my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
+			print outsyslog "Creating Bowtie reference: $bowtie_command\n";
+               	 system($bowtie_command);
+                	}
+      	  }
+	elsif($mapper eq "bwa") {
+		print "  Mapping with BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
+		print outmet "Read mapping against contigs was performed using BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
+        	if(-e "$bowtieref.bwt") { print "Found reference in $bowtieref.bwt, Skipping\n"; }
+       	 else {
+        	print("Creating reference.\n");
+               	my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
+		print outsyslog "Creating BWA reference: $bwa_command\n";
+               	system($bwa_command);
+               }
+        }
+	elsif($mapper=~/minimap/i) { 
+		print "  Mapping with Minimap2 (Li 2018, Bioinformatics 34(18), 3094-3100)\n"; 
+		print outmet "Read mapping against contigs was performed using Minimap2 (Li 2018, Bioinformatics 34(18), 3094-3100)\n"; 
+		}
+
+	#-- Prepare output files
+
+	open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
+	print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
+	print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
+
+	my $nums;
+	foreach my $thissample(keys %allsamples) {
+		next if(($mode eq "sequential") && ($thissample ne $projectname));   #-- If in sequential mode, only assemble the current sample
+		my($formatseq,$command,$outsam,$formatoption);
+		$nums++;
+		my (@pair1,@pair2)=();
+		print "  Working with sample $nums: $thissample\n";
+		foreach my $ifile(sort keys %{ $allsamples{$thissample} }) {
+			if(!$formatseq) {
+				if($ifile=~/fasta|fa$/) { $formatseq="fasta"; }
+				else { $formatseq="fastq"; }
+				}
+		
+		#-- Get reads from samples
+		
+			if($allsamples{$thissample}{$ifile}==1) { push(@pair1,$ifile); } else { push(@pair2,$ifile); }
+			}
+		my($par1name,$par2name);
+		if($pair1[0]=~/gz/) { $par1name="$projectname.$thissample.current_1.gz"; } 
+		else { $par1name="$projectname.$thissample.current_1"; }
+		if($pair2[0]=~/gz/) { $par2name="$projectname.$thissample.current_2.gz"; }
+		else { $par2name="$projectname.$thissample.current_2";}
+		my $a1=join(" ",@pair1);	
+		if($#pair1>0) {	$command="cat $a1 > $tempdir/$par1name; "; } else { $command="cp $a1 $tempdir/$par1name; "; }	
+		if($#pair2>=0) { 
+			my $a2=join(" ",@pair2);	
+			if($#pair2>0) {	$command.="cat $a2 > $tempdir/$par2name; "; } else { $command.="cp $a2 $tempdir/$par2name; "; }	
+			}
+		print "  Getting raw reads\n";
+		#print "$command\n";
+		print outsyslog "Getting raw reads for $thissample: $command\n";
+		system $command; 
+	
+		#-- Now we start mapping reads against contigs
+	
+		print "  Aligning to reference with $mapper\n";
+		if($keepsam10) { $outsam="$samdir/$projectname.$thissample.sam"; } else { $outsam="$samdir/$projectname.$thissample.current.sam"; }
+		if(-e $outsam) { print "  SAM file already found in $outsam, skipping\n"; }
+		else {
+
+			#-- Support for single reads
+       			if(!$mapper || ($mapper eq "bowtie")) {
+           			if($formatseq eq "fasta") { $formatoption="-f"; }
+				if($mapping_options eq "") { $mapping_options = "--very-sensitive-local"; } # very-sensitive-local would interfere with custom mapping options so add it here 
+    	    			if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam $mapping_options"; }
+	    			else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name  --quiet -p $numthreads -S $outsam $mapping_options"; } }
+        		elsif($mapper eq "bwa") {
+            			#Apparently bwa works seamlesly with fasta files as input.
+            			if(-e "$tempdir/$par2name") { $command="$bwa_soft mem $bowtieref $tempdir/$par1name $tempdir/$par2name -v 1 -t $numthreads $mapping_options > $outsam"; }
+            			else { $command="$bwa_soft mem $bowtieref $tempdir/$par1name -v 1 -t $numthreads $mapping_options > $outsam"; } }
+        		elsif($mapper eq "minimap2-ont") {
+            			#Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
+            			if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $outsam"; }
+            			else { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $outsam"; } }
+        		elsif($mapper eq "minimap2-pb") {
+            			#Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
+            			if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $outsam"; }
+            			else { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $outsam"; } }
+        		elsif($mapper eq "minimap2-sr") {
+            			#Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
+            			if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $outsam"; }
+            			else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $outsam"; } 
+				}
+			}
+                                  
+		# print "$command\n";
+		print outsyslog "Aligning with $mapper: $command\n";
+		system($command);
+        	my $ecode = 0;
+		if(-e $outsam) {} else { $ecode = system $command; }
+        	if($ecode!=0)     { die "An error occurred during mapping!"; }
+		
+			#-- Counting mapping percentage
+			
+		my($thisr,$lastr,$mappedreads,$totalreadcount,$totalreadlength);
+		my %readcount;
+		open(infile4,$outsam) || die "Can't open $outsam\n"; 
+		while(<infile4>) {
+			chomp;
+			my @t=split(/\t/,$_);
+			next if($_=~/^\@/);
+	
+			#-- Use the mapped reads to sum base coverage
+
+			if($t[5]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+				$thisr=$t[0];
+				next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
+				$lastr=$thisr;
+				$readcount{$t[2]}{reads}++;
+				$readcount{$t[2]}{lon}+=length $t[9];
+				$mappedreads++;
+			}       
+			$totalreadcount++;
+			$totalreadlength+=length $t[9];
+		}
+		close infile4;
+	
+		my $mapperc=($mappedreads/$totalreadcount)*100;
+		printf outfile1 "$thissample\t$totalreadcount\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics
+		}
+		 
+		if($warnmes) { 
+			print outfile1 "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
+			print RED "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
+			if($mincontiglen>200) { 
+			print outfile1 "# Notice also that you set the minimum contig length to $mincontiglen. In this way you are removing the contigs shorter than that size. This can be, at least partially, the cause of this low mapping percentage\n";
+			print outfile1 "# It is likely that redoing the analysis with the default minimum contig length (200) will improve the results\n";
+			print outfile1 "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n";
+			print RED "# Notice also that you set the minimum contig length to $mincontiglen. In this way you are removing the contigs shorter than that size. This can be, at least partially, the cause of this low mapping percentage\n";
+			print RED "# It is likely that redoing the analysis with the default minimum contig length (200) will improve the results\n";
+			print RED "# If not, you could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n";
+			}
+		else { 
+			print outfile1 "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n"; 
+			print RED "# You could redo your analysis using assignment of the raw reads instead of relying on the assembly. Use sqm_reads.pl or sqm_longreads.pl for this purpose. That strategy will not provide bins\n"; 
+			}
+		print RESET;	
+		}
+
+	
+	}
+
+	
 
 sub assembly {	
 
