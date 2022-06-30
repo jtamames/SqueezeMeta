@@ -50,7 +50,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 			elsif(($mode eq "sequential") && ($sample eq $projectname)) {   #-- If in sequential mode, only assemble the current sample
 				$datasamples{$sample}{$iden}{$file}=1; 
 				if($iden eq "pair1") { $allsamples{$sample}{"$userdir/$file"}=1; } 
-				elsif ($iden eq "pair2") { $allsamples{$sample}{"$userdir/file"}=2; }
+				elsif ($iden eq "pair2") { $allsamples{$sample}{"$userdir/$file"}=2; }
 				}  
 			else { 
 				$datasamples{$sample}{$iden}{$file}=1; 
@@ -341,7 +341,7 @@ close outmet;
 
 
 sub mapping {
-	print "NOW MAPPING DATA\n";
+	print "  Now mapping reads to contigs to assess mapping percentage\n";
 	my $fastqdir="$datapath/raw_fastq";
 	my $samdir="$datapath/sam";
 	if(-d $samdir) {} else { system("mkdir $samdir"); }
@@ -456,7 +456,7 @@ sub mapping {
 		
 			#-- Counting mapping percentage
 			
-		my($thisr,$lastr,$mappedreads,$totalreadcount,$totalreadlength);
+		my($thisr,$lastr,$mappedreads,$totalreadcount,$totalreadlength,$mapperc);
 		my %readcount;
 		open(infile4,$outsam) || die "Can't open $outsam\n"; 
 		while(<infile4>) {
@@ -479,10 +479,11 @@ sub mapping {
 		}
 		close infile4;
 	
-		my $mapperc=($mappedreads/$totalreadcount)*100;
-		printf outfile1 "$thissample\t$totalreadcount\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics
-		}
+		$mapperc=($mappedreads/$totalreadcount)*100;
+		printf outfile1 "$thissample\t$totalreadcount\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics		
+		printf "$thissample\t$totalreadcount reads\t%.2f\% mapping\n",$mapperc;	
 		 
+		if($mapperc<50) { $warnmes=1; }
 		if($warnmes) { 
 			print outfile1 "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
 			print RED "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
@@ -500,6 +501,7 @@ sub mapping {
 			}
 		print RESET;	
 		}
+	}
 
 	
 	}

@@ -309,7 +309,7 @@ sub current_thread {
 	my %accum;
 	my $initline=$tolines*($thread-1);
 	my $endline=$tolines*($thread);
-	# print "   Thread $thread opening $samfile\n";
+	 print "   Thread $thread opening $samfile: $initline $endline $tolines\n";
 	open(infile3,$samfile) || die "Can't open sam file $samfile\n"; ;
 	while(<infile3>) { 
 		chomp;
@@ -410,12 +410,12 @@ sub contigcov {
 	
 	#-- Count bases mapped from the sam file (THIS IS NOW BEING DONE IN STEP 01)
 	
-	# my($thisr,$lastr);
-	# open(infile4,$outsam) || die "Can't open $outsam\n"; ;
-	# while(<infile4>) {
+	 my($thisr,$lastr);
+	 open(infile4,$outsam) || die "Can't open $outsam\n"; ;
+	 while(<infile4>) {
 	# 	chomp;
 	# 	my @t=split(/\t/,$_);
-	#	next if($_=~/^\@/);
+		next if($_=~/^\@/);
 	#
 	#	#-- Use the mapped reads to sum base coverage
 	#
@@ -427,10 +427,10 @@ sub contigcov {
 	#		$readcount{$t[2]}{lon}+=length $t[9];
 	#		$mappedreads++;
 	#	}       
-	#	$totalreadcount++;
+		$totalreadcount++;
 	#	$totalreadlength+=length $t[9];
-	# }
-	# close infile4;
+	 }
+	 close infile4;
 	
 	# my $mapperc=($mappedreads/$totalreadcount)*100;
 	# if($mapperc<50) { $warnmes=1; }

@@ -155,7 +155,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "norename" => \$norename,
 		     "restart" => \$restart,
 		     "step=i" => \$rpoint,
-		     "force_overwrite" => \$force_overwrite,
+		     "force_overwrite|force-overwrite" => \$force_overwrite,
 		     "cleaning" => \$cleaning,
 		     "cleaning_options=s" => \$cleaningoptions,
 		     "mapping_options=s" => \$mapping_options,
@@ -320,7 +320,7 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 	
 		print "--- SAMPLE $thissample --------\n";
 	
-		$projectdir="$rootdir/$thissample";
+		if(!$restart) { $projectdir="$rootdir/$thissample"; }
 		$conf{'projectname'}=$thissample;
 	
 		#-- Creation of the new configuration file, syslog, and directories
@@ -617,6 +617,7 @@ sub pipeline {
 			my $scriptname="11.mcount.pl";
 			print outfile3 "11\t$scriptname\n";
 			$currtime=timediff();
+			print "----------$projectdir----\n";
 			print outfile4 "\n[",$currtime->pretty,"]: STEP11 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP11 -> COUNTING TAX ABUNDANCES: $scriptname\n"; print RESET;
 			if($verbose) { print " (This will count the abundances of each taxon, to infer the composition of the community)\n"; }
