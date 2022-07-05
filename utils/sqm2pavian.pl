@@ -11,24 +11,53 @@ use strict;
 use Cwd;
 use lib ".";
 
+###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
+use File::Basename;
+use Cwd 'abs_path';
+
 my $pwd=cwd();
-my $feature=$ARGV[1];
 my $projectpath=$ARGV[0];
-if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
-if(-s "$projectpath/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectpath. Is the project path ok?"; }
-do "$projectpath/SqueezeMeta_conf.pl";
-our($projectname);
-my $project=$projectname;
+my $utilsdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $utilsdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $utilsdir = abs_path(dirname(__FILE__));
+        }
+my $installpath = abs_path("$utilsdir/..");
+my $scriptdir = "$installpath/scripts";
+my $auxdir = "$installpath/lib/SQM_reads";
 
-do "$projectpath/parameters.pl";
+###
 
-our($installpath,$resultpath,$databasepath,$mcountfile);
+open(inv,"$installpath/VERSION") || die;
+my $version=<inv>;
+chomp $version;
+close inv;
+
+my $start_run = time();
+
+do "$scriptdir/SqueezeMeta_conf.pl";
+do "$scriptdir/parameters.pl";
+#-- Configuration variables from conf file
+our($databasepath);
+
+my @w=split(/\//,$projectpath);
+my $project=$w[$#w];
+my $mcountfile="$projectpath/$project.out.allreads.mcount"; 
+if(-e $mcountfile) {} else { $mcountfile="$projectpath/results/11.$project.mcount"; }
+my $mappingstat="$projectpath/$project.out.mappingstat";
+if(-e $mappingstat) {} else { $mappingstat="$projectpath/results/10.$project.mappingstat"; }
 
 my %rankequival=('k','D','p','P','c','C','o','O','f','F','g','G','s','S');
 my %spaces=('D',2,'P',4,'C',6,'O',8,'F',10,'G',12,'S',14);
 my(%totalreads,%ncbitax);
 
-if(!$feature) { $feature="reads"; }
+my $feature="reads";
 my $parentfile="$databasepath/LCA_tax/parents.txt";
 open(in,$parentfile) || die "Cannot open $parentfile\n";
 while(<in>) {
@@ -39,25 +68,23 @@ while(<in>) {
 	}
 close in;
 
-open(in,"$resultpath/10.$project.mappingstat") || die;
+open(in,$mappingstat) || die "Cannot open mappingstat file in $mappingstat\n";
 while(<in>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my @k=split(/\t/,$_);
-	if($feature eq "reads") { $totalreads{$k[0]}=$k[1]; }
-	elsif($feature eq "bases") { $totalreads{$k[0]}=$k[4]; }
-	else { die "Bad feature: Use reads or bases\n"; }
-	print "*$k[0]*$totalreads{$k[0]}*\n";
+	if($feature eq "reads") { $totalreads{$k[0]}+=$k[2]; }
+	# print "*$k[0]*$totalreads{$k[0]}*\n";
 	}
 close in;
 
-open(in,$mcountfile) || die;
+open(in,$mcountfile) || die "Cannot open mcount file in $mcountfile\n";
 my($header,$sample,$r);
 my(%store,%abundance,%accum);
 my @header;
 while(<in>) {
 	chomp;
-	next if !$_;
+	next if(!$_ || ($_=~/^\#/));
 	if(!$header) { 
 		$header=$_;
 		@header=split(/\t/,$header);
@@ -68,7 +95,8 @@ while(<in>) {
 	my $tax=$fields[1];
 	for(my $pos=2; $pos<=$#fields; $pos++) {
 		if($header[$pos]=~/ $feature$/) {
-			($sample,$r)=split(/\s+/,$header[$pos]);	 
+			($sample,$r)=split(/\s+/,$header[$pos]);
+			next if(!$totalreads{$sample});	 
 			my $abun=$fields[$pos];
 			$store{$sample}{$tax}=1;
 			$abundance{$sample}{$tax}=$abun;
@@ -86,7 +114,7 @@ foreach my $insample(sort keys %store) {
 	open(outfile1,">$outfile") || die;
 	my $tabun_unclas=$abundance{$insample}{'Unknown'};
 	my $tperc=($tabun_unclas/$totalreads{$insample})*100;
-	next if($tperc<0.01);
+	# next if($tperc<0.01);
 	# printf outfile1 " %.2f\%\t$tabun_unclas\t$tabun_unclas\tU\t0\tunclassified\n",$tperc;
 	my $tabun_root=$totalreads{$insample}-$tabun_unclas;
 	my $tperc=($tabun_root/$totalreads{$insample})*100;
