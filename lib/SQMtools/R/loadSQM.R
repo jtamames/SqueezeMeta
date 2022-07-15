@@ -210,6 +210,10 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     SQM$orfs$tpm                 = as.matrix(SQM$orfs$table[,grepl('TPM', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$tpm)       = gsub('TPM ', '', colnames(SQM$orfs$tpm), fixed=T)
     SQM$misc$samples             = colnames(SQM$orfs$abund)
+
+    goodORFcols                  = colnames(SQM$orfs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$orfs$table))]
+    SQM$orfs$table               = SQM$orfs$table[,goodORFcols]
+
     
     cat('    sequences\n')    
     SQM$orfs$seqs                = read.namedvector(sprintf('%s/results/tables/%s.orf.sequences.tsv', project_path, project_name), engine=engine)
@@ -245,6 +249,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         SQM$contigs$table         = data.table::fread(sprintf('%s/results/19.%s.contigtable', project_path, project_name), header=T, sep='\t')
         }
     SQM$contigs$table             = generic.table(SQM$contigs$table)
+
     cat('    abundances...\n')
     abunds                        = as.matrix(SQM$contigs$table[,grepl('Raw read count', colnames(SQM$contigs$table)),drop=F])
     storage.mode(abunds)          = 'numeric'
@@ -256,6 +261,9 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     colnames(SQM$contigs$cov)     = gsub('Coverage ', '', colnames(SQM$contigs$cov), fixed=T)
     SQM$contigs$tpm               = as.matrix(SQM$contigs$table[,grepl('TPM', colnames(SQM$contigs$table)),drop=F])
     colnames(SQM$contigs$tpm)     = gsub('TPM ', '', colnames(SQM$contigs$tpm), fixed=T)
+
+    goodContigCols                = colnames(Hadza$contigs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$contigs$table))]
+    SQM$contigs$table             = SQM$contigs$table[,goodContigCols]
 
     cat('    sequences...\n')                                                 
     SQM$contigs$seqs              = read.namedvector(sprintf('%s/results/tables/%s.contig.sequences.tsv', project_path, project_name), engine=engine)
