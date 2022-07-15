@@ -23,7 +23,7 @@ plotBins(
 \arguments{
 \item{SQM}{A SQM or a SQMlite object.}
 
-\item{count}{character. Either \code{"percent"} for percentages, or \code{"abund"} for raw abundances (default \code{"percent"}).}
+\item{count}{character. Either \code{"percent"} for percentages, \code{"cov"} for coverages or \code{"abund"} for raw abundances (default \code{"percent"}).}
 
 \item{N}{integer Plot the \code{N} most abundant bins (default \code{15}).}
 
