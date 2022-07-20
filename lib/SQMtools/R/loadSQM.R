@@ -263,16 +263,26 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         cat('    binning info...\n')
         inBins                    = read.table(sprintf('%s/intermediate/18.%s.contigsinbins', project_path, project_name),
                                                header=T, sep='\t', quote='', comment.char='', skip=1, as.is=T)
-	if(max(table(inBins$X..Contig))>1) { warning('Some contigs are asigned to more than one bin, something went wrong...') }
-        inBins                    = reshape2::dcast(inBins, X..Contig~Method, value.var="Bin.ID")
-        rownames(inBins)          = inBins[,1]
-        SQM$contigs$bins          = as.matrix(inBins[,-1,drop=F])
+        binmethods                = unique(inBins$Method)
+
+        if(max(table(paste(inBins$X..Contig, inBins$Method)))>1) { 
+	    warning('Some contigs are assigned to more than one bin with the same method, something went wrong...')
+	}
+
+        SQM$contigs$bins          = matrix(NA, nrow = nrow(inBins), ncol = length(binmethods),
+					   dimnames = list(inBins$X..Contig, binmethods))
+
+        for(bm in binmethods)
+	    {
+            ibm = inBins[inBins$Method == bm,]
+            SQM$contigs$bins[ibm$X..Contig,] = ibm$Bin.ID
+            }
+ 
         notInBins                 = setdiff(rownames(SQM$contigs$table), rownames(SQM$contigs$bins))
         notInBins                 = matrix(NA, nrow=length(notInBins), ncol=ncol(SQM$contigs$bins), dimnames=list(notInBins, colnames(SQM$contigs$bins)))
         SQM$contigs$bins          = rbind(SQM$contigs$bins, notInBins)
         SQM$contigs$bins          = SQM$contigs$bins[rownames(SQM$contigs$table),,drop=F]
         SQM$contigs$bins[is.na(SQM$contigs$bins)] = 'No_bin'
-
         cat('Loading bins\n')
         cat('    table...\n')
         SQM$bins                  = list()
