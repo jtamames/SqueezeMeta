@@ -194,6 +194,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$orfs$abund                 = SQM$orfs$abund[orfs      ,,drop=F]
     subSQM$orfs$bases                 = SQM$orfs$bases[orfs      ,,drop=F]
     subSQM$orfs$cov                   = SQM$orfs$cov[orfs        ,,drop=F]
+    subSQM$orfs$cpm                   = SQM$orfs$cpm[orfs        ,,drop=F]
     subSQM$orfs$tpm                   = SQM$orfs$tpm[orfs        ,,drop=F]
     subSQM$orfs$seqs                  = SQM$orfs$seqs[orfs]
     subSQM$orfs$tax                   = SQM$orfs$tax[orfs        ,,drop=F]
@@ -202,6 +203,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$contigs$abund              = SQM$contigs$abund[contigs,,drop=F]
     subSQM$contigs$bases              = SQM$contigs$bases[contigs,,drop=F]
     subSQM$contigs$cov                = SQM$contigs$cov[contigs  ,,drop=F]
+    subSQM$contigs$cpm                = SQM$contigs$cpm[contigs  ,,drop=F]
     subSQM$contigs$tpm                = SQM$contigs$tpm[contigs  ,,drop=F]
     subSQM$contigs$seqs               = SQM$contigs$seqs[contigs]
     subSQM$contigs$tax                = SQM$contigs$tax[contigs  ,,drop=F]
@@ -227,7 +229,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 	l = l[rownames(subSQM$bin$table)]
 	subSQM$bins$length            = l
 	subSQM$bins$cov               = subSQM$bins$bases / subSQM$bins$length
-
+	subSQM$bins$cpm               = t(t(subSQM$bins$cov) / (subSQM$total_reads/1000000))
         subSQM$bins$tax               = subSQM$bins$tax[bins     ,,drop=F]
         }
 
@@ -253,6 +255,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$KEGG$abund   = KEGG$abund
         subSQM$functions$KEGG$bases   = KEGG$bases
         subSQM$functions$KEGG$cov     = KEGG$cov
+	subSQM$functions$KEGG$cpm     = t(t(KEGG$cov) /  (subSQM$total_reads/1000000))
         }
     
     if('COG' %in% names(subSQM$functions))
@@ -261,6 +264,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$COG$abund    = COG$abund
         subSQM$functions$COG$bases    = COG$bases
         subSQM$functions$COG$cov      = COG$cov
+	subSQM$functions$COG$cpm      = t(t(COG$cov) /  (subSQM$total_reads/1000000))
         }
 
 
@@ -270,6 +274,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$PFAM$abund   = PFAM$abund
         subSQM$functions$PFAM$bases   = PFAM$bases
         subSQM$functions$PFAM$cov     = PFAM$cov
+	subSQM$functions$PFAM$cpm     = t(t(PFAM$cov) /  (subSQM$total_reads/1000000))
         }
 
     ext_annots = list()
@@ -279,6 +284,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions[[method]]$abund = ext_annots[[method]]$abund
         subSQM$functions[[method]]$bases = ext_annots[[method]]$bases
         subSQM$functions[[method]]$cov   = ext_annots[[method]]$cov
+	subSQM$functions[[method]]$cpm   = t(t(subSQM$functions[[method]]$cov) /  (subSQM$total_reads/1000000))
         }
 
     if(rescale_tpm)

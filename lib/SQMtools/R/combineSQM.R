@@ -52,6 +52,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     colnames(combSQM$orfs$bases)       = gsub('Raw base count ', '', colnames(combSQM$orfs$abund), fixed=T)
     combSQM$orfs$cov                   = as.matrix(combSQM$orfs$table[,grepl('Coverage', colnames(combSQM$orfs$table)),drop=F])
     colnames(combSQM$orfs$cov)         = gsub('Coverage ', '', colnames(combSQM$orfs$abund), fixed=T)
+    combSQM$orfs$cpm                   = t(t(combSQM$orfs$cov) / (combSQM$total_reads / 1000000))
     combSQM$orfs$tpm                   = as.matrix(combSQM$orfs$table[,grepl('TPM', colnames(combSQM$orfs$table)),drop=F])
     colnames(combSQM$orfs$tpm)         = gsub('TPM ', '', colnames(combSQM$orfs$tpm), fixed=T)
     #    Sequences
@@ -73,6 +74,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     colnames(combSQM$contigs$bases)    = gsub('Raw base count ', '', colnames(combSQM$contigs$abund), fixed=T)
     combSQM$contigs$cov                = as.matrix(combSQM$contigs$table[,grepl('Coverage', colnames(combSQM$contigs$table)),drop=F])
     colnames(combSQM$contigs$cov)      = gsub('Coverage ', '', colnames(combSQM$contigs$abund), fixed=T)
+    combSQM$contigs$cpm                = t(t(combSQM$contigs$cov) / (combSQM$total_reads / 1000000))
     combSQM$contigs$tpm                = as.matrix(combSQM$contigs$table[,grepl('TPM', colnames(combSQM$contigs$table)),drop=F])
     colnames(combSQM$contigs$tpm)      = gsub('TPM ', '', colnames(combSQM$contigs$tpm), fixed=T)
     #    Sequences
@@ -113,6 +115,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         l = l[rownames(combSQM$bin$table)]
         combSQM$bins$length            = l
         combSQM$bins$cov               = combSQM$bins$bases / combSQM$bins$length
+	combSQM$bins$cpm               = t(t(combSQM$bins$cov) / (combSQM$total_reads / 1000000))
 
         #    Taxonomy
         combSQM$bins$tax               = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=F])
@@ -143,6 +146,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         combSQM$functions$KEGG$abund   = KEGG$abund
         combSQM$functions$KEGG$bases   = KEGG$bases
         combSQM$functions$KEGG$cov     = KEGG$cov
+	combSQM$functions$KEGG$cpm     = t(t(combSQM$functions$KEGG$cov) / (combSQM$total_reads / 1000000))
         }
 
     if('COG' %in% names(combSQM$functions))
@@ -151,6 +155,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         combSQM$functions$COG$abund    = COG$abund
         combSQM$functions$COG$bases    = COG$bases
         combSQM$functions$COG$cov      = COG$cov
+	combSQM$functions$COG$cpm      = t(t(combSQM$functions$COG$cov) / (combSQM$total_reads / 1000000))
         }
 
 
@@ -160,15 +165,17 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         combSQM$functions$PFAM$abund   = PFAM$abund
         combSQM$functions$PFAM$bases   = PFAM$bases
         combSQM$functions$PFAM$cov     = PFAM$cov
+	combSQM$functions$PFAM$cpm     = t(t(combSQM$functions$PFAM$cov) / (combSQM$total_reads / 1000000))
         }
 
     ext_annots = list()
     for(method in combSQM$misc$ext_annot_sources)
         {
-        ext_annots[[method]]             = aggregate.fun(combSQM, method, trusted_functions_only, ignore_unclassified_functions)
+        ext_annots[[method]]              = aggregate.fun(combSQM, method, trusted_functions_only, ignore_unclassified_functions)
         combSQM$functions[[method]]$abund = ext_annots[[method]]$abund
         combSQM$functions[[method]]$bases = ext_annots[[method]]$bases
         combSQM$functions[[method]]$cov   = ext_annots[[method]]$cov
+	combSQM$functions[[method]]$cpm   = t(t(combSQM$functions[[method]]$cov) / (combSQM$total_reads / 1000000))
         }
 
     if(rescale_tpm)
