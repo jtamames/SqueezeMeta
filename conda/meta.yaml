@@ -7,7 +7,7 @@ source:
 
 requirements:
   build:
-    - r=4.1.1
+    - r-base=4.1.1
     - r-ggplot2
     - r-reshape2
     - r-doMC
@@ -57,7 +57,7 @@ requirements:
     - perl-xml-parser
     - openjdk
     - ruby=2.5
-    - r=4.1.1
+    - r-base=4.1.1
     - r-ggplot2
     - r-reshape2
     - r-doMC

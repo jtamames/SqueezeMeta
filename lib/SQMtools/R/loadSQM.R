@@ -155,7 +155,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
 	}
 
     ### Check whether we need to create the projectdir/results/tables directory.
-    if(!file.exists(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode, project_name)))
+    if(!file.exists(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode)))
         {
 	cat(sprintf('Generating tabular outputs for project in %s\n', project_path))
         lines = readLines(sprintf('%s/SqueezeMeta_conf.pl', project_path))
