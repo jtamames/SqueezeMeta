@@ -46,15 +46,15 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     combSQM$orfs$table                 = rbind(combSQM$orfs$table, SQM2$orfs$table[extraORFs,,drop=F])
     combSQM$orfs$table                 = combSQM$orfs$table[sort(rownames(combSQM$orfs$table)),,drop=F]
     #    Abundances
-    combSQM$orfs$abund                 = as.matrix(combSQM$orfs$table[,grepl('Raw read count', colnames(combSQM$orfs$table)),drop=F])
-    colnames(combSQM$orfs$abund)       = gsub('Raw read count ', '', colnames(combSQM$orfs$abund), fixed=T)
-    combSQM$orfs$bases                 = as.matrix(combSQM$orfs$table[,grepl('Raw base count', colnames(combSQM$orfs$table)),drop=F])
-    colnames(combSQM$orfs$bases)       = gsub('Raw base count ', '', colnames(combSQM$orfs$abund), fixed=T)
-    combSQM$orfs$cov                   = as.matrix(combSQM$orfs$table[,grepl('Coverage', colnames(combSQM$orfs$table)),drop=F])
-    colnames(combSQM$orfs$cov)         = gsub('Coverage ', '', colnames(combSQM$orfs$abund), fixed=T)
+    combSQM$orfs$abund                 = rbind(combSQM$orfs$abund, SQM2$orfs$abund[extraORFs,,drop=F])
+    combSQM$orfs$abund                 = combSQM$orfs$abund[rownames(combSQM$orfs$table),,drop=F]
+    combSQM$orfs$bases                 = rbind(combSQM$orfs$bases, SQM2$orfs$bases[extraORFs,,drop=F])
+    combSQM$orfs$bases                 = combSQM$orfs$bases[rownames(combSQM$orfs$table),,drop=F]
+    combSQM$orfs$cov                   = rbind(combSQM$orfs$cov, SQM2$orfs$cov[extraORFs,,drop=F])
+    combSQM$orfs$cov                   = combSQM$orfs$cov[rownames(combSQM$orfs$table),,drop=F]
     combSQM$orfs$cpm                   = t(t(combSQM$orfs$cov) / (combSQM$total_reads / 1000000))
-    combSQM$orfs$tpm                   = as.matrix(combSQM$orfs$table[,grepl('TPM', colnames(combSQM$orfs$table)),drop=F])
-    colnames(combSQM$orfs$tpm)         = gsub('TPM ', '', colnames(combSQM$orfs$tpm), fixed=T)
+    combSQM$orfs$tpm                   = rbind(combSQM$orfs$tpm, SQM2$orfs$tpm[extraORFs,,drop=F])
+    combSQM$orfs$tpm                   = combSQM$orfs$tpm[rownames(combSQM$orfs$table),,drop=F]
     #    Sequences
     combSQM$orfs$seqs                  = c(combSQM$orfs$seqs, SQM2$orfs$seqs[extraORFs])
     combSQM$orfs$seqs                  = combSQM$orfs$seqs[rownames(combSQM$orfs$table)]
@@ -68,15 +68,15 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     combSQM$contigs$table              = rbind(combSQM$contigs$table, SQM2$contigs$table[extraContigs,,drop=F])
     combSQM$contigs$table              = combSQM$contigs$table[sort(rownames(combSQM$contigs$table)),]
     #    Abundances
-    combSQM$contigs$abund              = as.matrix(combSQM$contigs$table[,grepl('Raw read count', colnames(combSQM$contigs$table)),drop=F])
-    colnames(combSQM$contigs$abund)    = gsub('Raw read count ', '', colnames(combSQM$contigs$abund), fixed=T)
-    combSQM$contigs$bases              = as.matrix(combSQM$contigs$table[,grepl('Raw base count', colnames(combSQM$contigs$table)),drop=F])
-    colnames(combSQM$contigs$bases)    = gsub('Raw base count ', '', colnames(combSQM$contigs$abund), fixed=T)
-    combSQM$contigs$cov                = as.matrix(combSQM$contigs$table[,grepl('Coverage', colnames(combSQM$contigs$table)),drop=F])
-    colnames(combSQM$contigs$cov)      = gsub('Coverage ', '', colnames(combSQM$contigs$abund), fixed=T)
+    combSQM$contigs$abund              = rbind(combSQM$contigs$abund, SQM2$contigs$abund[extraContigs,,drop=F])
+    combSQM$contigs$abund              = combSQM$contigs$abund[rownames(combSQM$contigs$table),,drop=F]
+    combSQM$contigs$bases              = rbind(combSQM$contigs$bases, SQM2$contigs$bases[extraContigs,,drop=F])
+    combSQM$contigs$bases              = combSQM$contigs$bases[rownames(combSQM$contigs$table),,drop=F]
+    combSQM$contigs$cov                = rbind(combSQM$contigs$cov, SQM2$contigs$cov[extraContigs,,drop=F])
+    combSQM$contigs$cov                = combSQM$contigs$cov[rownames(combSQM$contigs$table),,drop=F]
     combSQM$contigs$cpm                = t(t(combSQM$contigs$cov) / (combSQM$total_reads / 1000000))
-    combSQM$contigs$tpm                = as.matrix(combSQM$contigs$table[,grepl('TPM', colnames(combSQM$contigs$table)),drop=F])
-    colnames(combSQM$contigs$tpm)      = gsub('TPM ', '', colnames(combSQM$contigs$tpm), fixed=T)
+    combSQM$contigs$tpm                = rbind(combSQM$contigs$tpm, SQM2$contigs$tpm[extraContigs,,drop=F])
+    combSQM$contigs$tpm                = combSQM$contigs$tpm[rownames(combSQM$contigs$table),,drop=F]
     #    Sequences
     combSQM$contigs$seqs               = c(combSQM$contigs$seqs, SQM2$contigs$seqs[extraContigs])
     combSQM$contigs$seqs               = combSQM$contigs$seqs[rownames(combSQM$contigs$table)]
