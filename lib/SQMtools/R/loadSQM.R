@@ -270,7 +270,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     SQM$contigs$tpm               = as.matrix(SQM$contigs$table[,grepl('TPM', colnames(SQM$contigs$table)),drop=F])
     colnames(SQM$contigs$tpm)     = gsub('TPM ', '', colnames(SQM$contigs$tpm), fixed=T)
 
-    goodContigCols                = colnames(Hadza$contigs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$contigs$table))]
+    goodContigCols                = colnames(SQM$contigs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$contigs$table))]
     SQM$contigs$table             = SQM$contigs$table[,goodContigCols]
 
     cat('    sequences...\n')                                                 
