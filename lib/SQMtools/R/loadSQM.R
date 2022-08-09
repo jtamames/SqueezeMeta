@@ -328,7 +328,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         cat('    abundances...\n')
         x = aggregate(SQM$contigs$abund, by=list(SQM$contigs$bins[,1]), FUN=sum)
         rownames(x)               = x[,1]
-        x = x[rownames(SQM$bin$table),-1]
+        x = x[rownames(SQM$bin$table),-1, drop=F]
         nobin                     = colSums(SQM$contigs$abund) - colSums(x)
         if(sum(nobin)>0)          { x['No_bin',] = nobin }
         x['Unmapped',]            = SQM$total_reads - colSums(x)
