@@ -49,7 +49,7 @@ do "$scriptdir/parameters.pl";
 #-- Configuration variables from conf file
 our($databasepath);
 
-my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$partialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$euknofilter,$methodsfile,$evaluetax4,$minidentax4);
+my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$nopartialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$euknofilter,$methodsfile,$evaluetax4,$minidentax4);
 
 my $helpshort="Usage: SQM_longreads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -73,7 +73,7 @@ Arguments:
    -i|-miniden: minimum identity for the hits (Default: 30)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
-   -x|-partialhits: Allows partial hits in middle of the read (Default: no)
+   -n|-nopartialhits: Ignores partial hits in middle of the read (Default: no)
    -c|-readlen <size>: Minimum length of reads (Default: 200)
    --force_overwrite: Overwrite previous results
    -v|version: Print version
@@ -94,7 +94,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
-		     "x|partialhits" => \$partialhits,
+		     "n|nopartialhits" => \$nopartialhits,
 		     "c|readlen=i" => \$minreadlen,
 		     "force_overwrite=s" => \$force_overwrite,
 		     "v|version" => \$printversion,
@@ -105,7 +105,7 @@ if(!$numthreads) { $numthreads=12; }
 if(!$evalue) { $evalue=0.001; }
 if(!$miniden) { $miniden=30; }         #-- Minimum identity for the hit
 if(!$euknofilter) { $euknofilter="0"; }
-if(!$partialhits) { $partialhits="0"; }
+if(!$nopartialhits) { $nopartialhits="0"; }
 if(!$minreadlen) { $minreadlen=200; }
 my $querycover=0;	#-- Minimum coverage of hit in query
 
@@ -132,7 +132,7 @@ if(!$project) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
 if(!$rawseqs) { $dietext.="MISSING ARGUMENT: -f|-seq:Read files' directory\n"; }
 if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; }
-if($partialhits) { print "Partial hits allowed\n"; }
+if($nopartialhits) { print "Partial hits not allowed\n"; }
 	
 
 my(%allsamples,%ident,%noassembly,%accum,%totalseqs,%optaccum,%allext,%readlen,%stats);
@@ -918,7 +918,7 @@ sub collapse {
 	my($blastxout,$collapsed)=@_;
 	print "  Collapsing hits with blastxcollapse.pl\n";
 	my $partialflag;
-	if($partialhits) { $partialflag="-x"; }
+	if(!$nopartialhits) { $partialflag="-x"; }
 	my $collapse_command="$installpath/lib/SqueezeMeta/blastxcollapse.pl -n -s -f -m 50 -l 70 $partialflag -p $numthreads $blastxout > $collapsed";
 	print outsyslog "Collapsing hits with blastxcollapse.pl: $collapse_command\n";
 	print "Collapsing hits with blastxcollapse.pl: $collapse_command\n" if $verbose;
