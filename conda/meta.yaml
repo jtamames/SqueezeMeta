@@ -7,7 +7,7 @@ source:
 
 requirements:
   build:
-    - r-base=4.1.1
+    - r=3.6
     - r-ggplot2
     - r-reshape2
     - r-doMC
@@ -57,14 +57,14 @@ requirements:
     - perl-xml-parser
     - openjdk
     - ruby=2.5
-    - r-base=4.1.1
+    - r=3.6
     - r-ggplot2
     - r-reshape2
     - r-doMC
     - r-data.table
     - bioconductor-pathview
     - tree
-    - readline>=8
+    - readline >=8
 
 build:
   noarch: generic
