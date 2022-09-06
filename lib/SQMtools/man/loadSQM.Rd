@@ -46,8 +46,8 @@ The SQM object is a nested list which contains the following information:
                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances (reads) \cr
                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances (bases) \cr
                     \tab \bold{$cov}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab coverages          \cr
-                    \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
                     \tab \bold{$cpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab covs. / 10^6 reads \cr
+                    \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
 \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr

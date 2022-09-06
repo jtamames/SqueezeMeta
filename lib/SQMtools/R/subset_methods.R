@@ -1,3 +1,95 @@
+#' Filter results by sample
+#'
+#' Create a SQM object containing only samples specified by the user, and the ORFs, contigs, bins, taxa and functions present in those samples.
+#' @param SQM SQM object to be subsetted.
+#' @param samples character. Samples to be included in the subset.
+#' @param remove_missing bool. If \code{TRUE}, ORFs, contigs, bins, taxa and functions absent from the selected samples will be removed from the subsetted object (default \code{TRUE}).
+#' @seealso \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetORFs]{subsetORFs}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
+#' @return SQM object containing only the requested samples.
+#' @export
+subsetSamples = function(SQM, samples, remove_missing = T)
+    {
+    if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
+    check.samples(SQM, samples)
+    subSQM = SQM
+    subSQM$misc$samples = samples
+    subSQM$total_reads = subSQM$total_reads[samples]
+    
+    # ORFs
+    if(remove_missing) {
+        presentORFs = rownames(subSQM$orfs$abund)[ rowSums(subSQM$orfs$abund[,samples,drop=F]) > 0 ]
+    } else {
+        presentORFs = rownames(subSQM$orfs$abund)
+    }
+    subSQM$orfs$table = subSQM$orfs$table[presentORFs,,drop=F]
+    subSQM$orfs$abund = subSQM$orfs$abund[presentORFs,samples,drop=F]
+    subSQM$orfs$bases = subSQM$orfs$bases[presentORFs,samples,drop=F]
+    subSQM$orfs$cov   = subSQM$orfs$cov  [presentORFs,samples,drop=F]
+    subSQM$orfs$cpm   = subSQM$orfs$cpm  [presentORFs,samples,drop=F]
+    subSQM$orfs$tpm   = subSQM$orfs$tpm  [presentORFs,samples,drop=F]
+    subSQM$orfs$seqs  = subSQM$orfs$seqs [presentORFs,drop=F]
+    subSQM$orfs$tax   = subSQM$orfs$tax  [presentORFs,,drop=F]
+
+    # Contigs
+    if(remove_missing) {
+        presentContigs = rownames(subSQM$contigs$abund)[ rowSums(subSQM$contigs$abund[,samples,drop=F]) > 0 ]
+    } else {
+        presentContigs = rownames(subSQM$contigs$abund)
+    }
+    subSQM$contigs$table = subSQM$contigs$table[presentContigs,,drop=F]
+    subSQM$contigs$abund = subSQM$contigs$abund[presentContigs,samples,drop=F]
+    subSQM$contigs$bases = subSQM$contigs$bases[presentContigs,samples,drop=F]
+    subSQM$contigs$cov   = subSQM$contigs$cov  [presentContigs,samples,drop=F]
+    subSQM$contigs$cpm   = subSQM$contigs$cpm  [presentContigs,samples,drop=F]
+    subSQM$contigs$tpm   = subSQM$contigs$tpm  [presentContigs,samples,drop=F]
+    subSQM$contigs$seqs  = subSQM$contigs$seqs [presentContigs,drop=F]
+    subSQM$contigs$tax   = subSQM$contigs$tax  [presentContigs,,drop=F]
+    subSQM$contigs$bins  = subSQM$contigs$bins [presentContigs,drop=F]
+    
+    # Bins
+    if('bins' %in% names(subSQM)) {
+        if(remove_missing) {
+            presentBins = rownames(subSQM$bins$abund)[ rowSums(subSQM$bins$abund[,samples,drop=F]) > 0 ]
+        } else {
+            presentBins = rownames(subSQM$bins$abund)
+        }
+        subSQM$bins$table   = subSQM$bins$table  [presentBins,,drop=F]
+        subSQM$bins$length  = subSQM$bins$length [presentBins,drop=F]
+        subSQM$bins$abund   = subSQM$bins$abund  [presentBins,samples,drop=F]
+	subSQM$bins$percent = subSQM$bins$percent[presentBins,samples,drop=F]
+        subSQM$bins$bases   = subSQM$bins$bases  [presentBins,samples,drop=F]
+        subSQM$bins$cov     = subSQM$bins$cov    [presentBins,samples,drop=F]
+        subSQM$bins$cpm     = subSQM$bins$cpm    [presentBins,samples,drop=F]
+        subSQM$bins$tax     = subSQM$bins$tax    [presentBins,,drop=F]
+    }
+
+    # Taxa
+    for(rank in names(subSQM$taxa)) {
+        if(remove_missing) {
+            presentTaxa = rownames(subSQM$taxa[[rank]]$abund)[ rowSums(subSQM$taxa[[rank]]$abund[,samples,drop=F]) > 0 ]
+        } else {
+            presentTaxa = rownames(subSQM$taxa[[rank]]$abund)
+	}
+        for(count in names(subSQM$taxa[[rank]])) {
+	    subSQM$taxa[[rank]][[count]] = subSQM$taxa[[rank]][[count]][presentTaxa,samples,drop=F]
+	}
+    }
+
+    # Functions
+    for(method in names(subSQM$functions)) {
+        if(remove_missing) {
+            presentFuns = rownames(subSQM$functions[[method]]$abund)[ rowSums(subSQM$functions[[method]]$abund[,samples,drop=F]) > 0 ]
+        } else {
+            presentFuns = rownames(subSQM$functions[[method]]$abund)
+        }
+        for(count in names(subSQM$functions[[method]])) {
+            subSQM$functions[[method]][[count]] = subSQM$functions[[method]][[count]][presentFuns,samples,drop=F]
+        }
+    }
+    return(subSQM)
+}
+
+
 #' Filter results by function
 #'
 #' Create a SQM object containing only the ORFs with a given function, and the contigs and bins that contain them.
@@ -10,7 +102,7 @@
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
-#' @seealso \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.
+#' @seealso \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \link[subsetSamples]{subsetSamples}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
 #' @return SQM object containing only the requested function.
 #' @examples
 #' data(Hadza)
@@ -57,7 +149,7 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_f
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected taxon}.
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected taxon}.
 #' @return SQM object containing only the requested taxon.
-#' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetContigs]{subsetContigs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.
+#' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetContigs]{subsetContigs}}, \link[subsetSamples]{subsetSamples}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
 #' @examples
 #' data(Hadza)
 #' Hadza.Escherichia = subsetTax(Hadza, "genus", "Escherichia")
