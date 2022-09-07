@@ -21,14 +21,14 @@ subsetSamples = function(SQM, samples, remove_missing = T)
     } else {
         presentORFs = rownames(subSQM$orfs$abund)
     }
-    subSQM$orfs$table = subSQM$orfs$table[presentORFs,,drop=F]
-    subSQM$orfs$abund = subSQM$orfs$abund[presentORFs,samples,drop=F]
-    subSQM$orfs$bases = subSQM$orfs$bases[presentORFs,samples,drop=F]
-    subSQM$orfs$cov   = subSQM$orfs$cov  [presentORFs,samples,drop=F]
-    subSQM$orfs$cpm   = subSQM$orfs$cpm  [presentORFs,samples,drop=F]
-    subSQM$orfs$tpm   = subSQM$orfs$tpm  [presentORFs,samples,drop=F]
-    subSQM$orfs$seqs  = subSQM$orfs$seqs [presentORFs,drop=F]
-    subSQM$orfs$tax   = subSQM$orfs$tax  [presentORFs,,drop=F]
+    subSQM$orfs$table = subSQM$orfs$table[intersect(presentORFs, rownames(subSQM$orfs$table)),       ,drop=F]
+    subSQM$orfs$abund = subSQM$orfs$abund[intersect(presentORFs, rownames(subSQM$orfs$abund)),samples,drop=F]
+    subSQM$orfs$bases = subSQM$orfs$bases[intersect(presentORFs, rownames(subSQM$orfs$bases)),samples,drop=F]
+    subSQM$orfs$cov   = subSQM$orfs$cov  [intersect(presentORFs, rownames(subSQM$orfs$cov  )),samples,drop=F]
+    subSQM$orfs$cpm   = subSQM$orfs$cpm  [intersect(presentORFs, rownames(subSQM$orfs$cpm  )),samples,drop=F]
+    subSQM$orfs$tpm   = subSQM$orfs$tpm  [intersect(presentORFs, rownames(subSQM$orfs$tpm  )),samples,drop=F]
+    subSQM$orfs$seqs  = subSQM$orfs$seqs [intersect(presentORFs,    names(subSQM$orfs$seqs )),        drop=F]
+    subSQM$orfs$tax   = subSQM$orfs$tax  [intersect(presentORFs, rownames(subSQM$orfs$tax  )),       ,drop=F]
 
     # Contigs
     if(remove_missing) {
@@ -36,15 +36,15 @@ subsetSamples = function(SQM, samples, remove_missing = T)
     } else {
         presentContigs = rownames(subSQM$contigs$abund)
     }
-    subSQM$contigs$table = subSQM$contigs$table[presentContigs,,drop=F]
-    subSQM$contigs$abund = subSQM$contigs$abund[presentContigs,samples,drop=F]
-    subSQM$contigs$bases = subSQM$contigs$bases[presentContigs,samples,drop=F]
-    subSQM$contigs$cov   = subSQM$contigs$cov  [presentContigs,samples,drop=F]
-    subSQM$contigs$cpm   = subSQM$contigs$cpm  [presentContigs,samples,drop=F]
-    subSQM$contigs$tpm   = subSQM$contigs$tpm  [presentContigs,samples,drop=F]
-    subSQM$contigs$seqs  = subSQM$contigs$seqs [presentContigs,drop=F]
-    subSQM$contigs$tax   = subSQM$contigs$tax  [presentContigs,,drop=F]
-    subSQM$contigs$bins  = subSQM$contigs$bins [presentContigs,drop=F]
+    subSQM$contigs$table = subSQM$contigs$table[intersect(presentContigs, rownames(subSQM$contigs$table)),       ,drop=F]
+    subSQM$contigs$abund = subSQM$contigs$abund[intersect(presentContigs, rownames(subSQM$contigs$abund)),samples,drop=F]
+    subSQM$contigs$bases = subSQM$contigs$bases[intersect(presentContigs, rownames(subSQM$contigs$bases)),samples,drop=F]
+    subSQM$contigs$cov   = subSQM$contigs$cov  [intersect(presentContigs, rownames(subSQM$contigs$cov  )),samples,drop=F]
+    subSQM$contigs$cpm   = subSQM$contigs$cpm  [intersect(presentContigs, rownames(subSQM$contigs$cpm  )),samples,drop=F]
+    subSQM$contigs$tpm   = subSQM$contigs$tpm  [intersect(presentContigs, rownames(subSQM$contigs$tpm  )),samples,drop=F]
+    subSQM$contigs$seqs  = subSQM$contigs$seqs [intersect(presentContigs, rownames(subSQM$contigs$seqs )),        drop=F]
+    subSQM$contigs$tax   = subSQM$contigs$tax  [intersect(presentContigs, rownames(subSQM$contigs$tax  )),       ,drop=F]
+    subSQM$contigs$bins  = subSQM$contigs$bins [intersect(presentContigs, rownames(subSQM$contigs$bins )),        drop=F]
     
     # Bins
     if('bins' %in% names(subSQM)) {
@@ -53,14 +53,14 @@ subsetSamples = function(SQM, samples, remove_missing = T)
         } else {
             presentBins = rownames(subSQM$bins$abund)
         }
-        subSQM$bins$table   = subSQM$bins$table  [presentBins,,drop=F]
-        subSQM$bins$length  = subSQM$bins$length [presentBins,drop=F]
-        subSQM$bins$abund   = subSQM$bins$abund  [presentBins,samples,drop=F]
-	subSQM$bins$percent = subSQM$bins$percent[presentBins,samples,drop=F]
-        subSQM$bins$bases   = subSQM$bins$bases  [presentBins,samples,drop=F]
-        subSQM$bins$cov     = subSQM$bins$cov    [presentBins,samples,drop=F]
-        subSQM$bins$cpm     = subSQM$bins$cpm    [presentBins,samples,drop=F]
-        subSQM$bins$tax     = subSQM$bins$tax    [presentBins,,drop=F]
+        subSQM$bins$table   = subSQM$bins$table  [intersect(presentBins, rownames(subSQM$bins$table  )),       ,drop=F]
+        subSQM$bins$length  = subSQM$bins$length [intersect(presentBins, rownames(subSQM$bins$length )),        drop=F]
+        subSQM$bins$abund   = subSQM$bins$abund  [intersect(presentBins, rownames(subSQM$bins$abund  )),samples,drop=F]
+	subSQM$bins$percent = subSQM$bins$percent[intersect(presentBins, rownames(subSQM$bins$percent)),samples,drop=F]
+        subSQM$bins$bases   = subSQM$bins$bases  [intersect(presentBins, rownames(subSQM$bins$bases  )),samples,drop=F]
+        subSQM$bins$cov     = subSQM$bins$cov    [intersect(presentBins, rownames(subSQM$bins$cov    )),samples,drop=F]
+        subSQM$bins$cpm     = subSQM$bins$cpm    [intersect(presentBins, rownames(subSQM$bins$cpm    )),samples,drop=F]
+        subSQM$bins$tax     = subSQM$bins$tax    [intersect(presentBins, rownames(subSQM$bins$tax    )),       ,drop=F]
     }
 
     # Taxa
@@ -71,7 +71,8 @@ subsetSamples = function(SQM, samples, remove_missing = T)
             presentTaxa = rownames(subSQM$taxa[[rank]]$abund)
 	}
         for(count in names(subSQM$taxa[[rank]])) {
-	    subSQM$taxa[[rank]][[count]] = subSQM$taxa[[rank]][[count]][presentTaxa,samples,drop=F]
+	    ta = subSQM$taxa[[rank]][[count]]
+	    subSQM$taxa[[rank]][[count]] = ta[intersect(presentTaxa, rownames(ta)), samples, drop=F]
 	}
     }
 
@@ -83,7 +84,8 @@ subsetSamples = function(SQM, samples, remove_missing = T)
             presentFuns = rownames(subSQM$functions[[method]]$abund)
         }
         for(count in names(subSQM$functions[[method]])) {
-            subSQM$functions[[method]][[count]] = subSQM$functions[[method]][[count]][presentFuns,samples,drop=F]
+	    ta = subSQM$functions[[method]][[count]]
+            subSQM$functions[[method]][[count]] = ta[intersect(presentFuns, rownames(ta)), samples, drop=F]
         }
     }
     return(subSQM)
@@ -305,7 +307,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$bins$table             = SQM$bins$table[bins      ,,drop=F]
         x = aggregate(subSQM$contigs$abund, by=list(subSQM$contigs$bins[,1]), FUN=sum)
         rownames(x)                   = x[,1]
-        x = x[rownames(subSQM$bin$table),-1]
+        x = x[rownames(subSQM$bin$table),-1,drop=F]
 	nobin                         = colSums(subSQM$contigs$abund) - colSums(x)
 	if(sum(nobin)>0)              { x['No_bin',] = nobin }
 	subSQM$bins$abund             = as.matrix(x)
