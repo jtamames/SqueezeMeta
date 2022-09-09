@@ -1,6 +1,6 @@
 package:
   name: squeezemeta-dev
-  version: '1.6.0beta3'
+  version: '1.6.0post1'
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
