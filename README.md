@@ -126,6 +126,11 @@ The command for running SqueezeMeta has the following syntax:
 * *-p* \<string\>: Project name (REQUIRED in coassembly and merged modes) 
 * *-s*|*-samples* \<path\>: Samples file (REQUIRED) 
 * *-f*|*-seq* \<path\>: Fastq read files' directory (REQUIRED) 
+
+*Restarting*
+* *--restart: Restarts the given project where it stopped (project must be speciefied with -p option) (will NOT overwite previous results, unless --force-overwrite is also provided)
+* *-step* [int]: In combination with _--restart_, restarts the project starting in the given step number (combine with --force_overwrite to regenerate results)
+* *--force_overwrite*: Do not check for previous results, and overwrite existing ones
  
 *Filtering* 
 * *--cleaning*: Filters with Trimmomatic (Default: no) 
@@ -137,16 +142,16 @@ The command for running SqueezeMeta has the following syntax:
 
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
 * *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
-* *--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
+* *--sq/--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
 * *-contigid* [string]: Nomenclature for contigs (Default: assembler´s name)
 * *--norename*: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
-
  
 *Annotation* 
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
-* *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details.
+* *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details
+* *-consensus* [float]: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
 * *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual
 * *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
  
@@ -156,8 +161,9 @@ The command for running SqueezeMeta has the following syntax:
 
 *Binning*
 * *--nobins*: Skip all binning  (Default: no). Overrides -binners 
-* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: maxbin,metabat)
- 
+* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
+* *-taxbinmode* [string]: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
+
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 
 * *-b*|*-block-size* [number]: Block size for DIAMOND against the nr database (Default: calculate automatically) 
@@ -168,7 +174,6 @@ The command for running SqueezeMeta has the following syntax:
 * *--minion*: Run on MinION reads (Default: no). Equivalent to -a canu -map minimap2-ont 
 * *-test* [step]: For testing purposes, stops AFTER the given step number
 * *--empty*: Creates an empty directory structure and configuration files. It does not run the pipeline
-
  
 *Information* 
 * *-v*: Version number 
@@ -202,17 +207,19 @@ The first column indicates the sample id (this will be the project name in seque
 
 ### Restart
 
-Any interrupted SqueezeMeta run can be restarted using the program restart.pl. It has the syntax:
+Any interrupted SqueezeMeta run can be restarted using the program the flag `--restart`. It has the syntax:
 
-`restart.pl <projectname>`
+`SqueezeMeta.pl -p <projectname> --restart`
 
 This command will restart the run of that project by reading the progress.txt file to find out the point where the run stopped. 
  
 Alternatively, the run can be restarted from a specific step by issuing the command:
 
-`restart.pl <projectname> -step <step_to_restart_from>`
+`SqueezeMeta.pl -p <projectname> --restart -step <step_to_restart_from>`
 
 e.g. `restart.pl <projectname> -step 6` would restart the pipeline from the taxonomic assignment of genes. The different steps of the pipeline are listed in section 1.
+
+By default, already completed steps will not be repeated when restarting, even if requested with `-step`. In order to repeat already completed steps you must also provide the flag `--force-overwrite`.
 
 ### Running scripts
 Also, any individual script of the pipeline can be run using the same syntax: 
@@ -287,7 +294,7 @@ In addition to the main SqueezeMeta pipeline, we provide two extra modes that en
 
 **3) sqm_hmm_reads.pl**: This script provides a wrapper to the [Short-Pair](https://sourceforge.net/projects/short-pair/) software, which allows to screen the reads for particular functions using an ultra-sensitive HMM algorithm.
 
-**4) sqm_mapper.pl**: This script maps reads to a given reference using one of the included sequence aligners (Bowtie2, BWA), and provides estimation of the abundance of the contigs and ORFs in the reference.
+**4) sqm_mapper.pl**: This script maps reads to a given reference using one of the included sequence aligners (Bowtie2, BWA), and provides estimation of the abundance of the contigs and ORFs in the reference. Alternatively, it can be used to filter out the reads mapping to a given reference.
 
 **5) sqm_annot.pl**: This script performs functional and taxonomic annotation for a set of genes, for instance these encoded in a genome (or sets of contigs).
 

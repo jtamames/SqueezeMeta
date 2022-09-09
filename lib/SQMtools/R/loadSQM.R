@@ -22,17 +22,27 @@ library(data.table)
 #' \bold{$orfs}        \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab orfs              \tab misc. data     \tab misc. data         \cr
 #'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances (reads) \cr
 #'                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab abundances (bases) \cr
+#'                     \tab \bold{$cov}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab coverages          \cr
+#'                     \tab \bold{$cpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab covs. / 10^6 reads \cr
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
 #' \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr
 #'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (reads) \cr
+#'                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (bases) \cr
+#'                     \tab \bold{$cov}               \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab coverages          \cr
+#'                     \tab \bold{$cpm}               \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab covs. / 10^6 reads \cr
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab contigs           \tab (n/a)          \tab sequences          \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab contigs           \tab tax. ranks     \tab taxonomies         \cr
 #'                     \tab \bold{$bins}              \tab                      \tab \emph{character matrix} \tab contigs           \tab bin. methods   \tab bins               \cr
 #' $bins               \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab bins              \tab misc. data     \tab misc. data         \cr
-#'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab tpm                \cr
+#'                     \tab \bold{$length}            \tab                      \tab \emph{numeric vector}   \tab bins              \tab (n/a)          \tab length             \cr
+#'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (reads) \cr
+#'                     \tab \bold{$percent}           \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (reads) \cr
+#'                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab abundances (bases) \cr
+#'                     \tab \bold{$cov}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab coverages          \cr
+#'                     \tab \bold{$cpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab covs. / 10^6 reads \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy           \cr
 #' \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages        \cr
@@ -51,16 +61,19 @@ library(data.table)
 #' \bold{$functions}   \tab \bold{$KEGG}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab abundances (bases) \cr
 #'                     \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab coverages          \cr
+#'                     \tab                           \tab \bold{$cpm}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab covs. / 10^6 reads \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab KEGG ids          \tab samples        \tab avg. copies        \cr
 #'                     \tab \bold{$COG}               \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab abundances (bases) \cr
-#'                     \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab COG ids          \tab samples        \tab coverages          \cr
+#'                     \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab coverages          \cr
+#'                     \tab                           \tab \bold{$cpm}          \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab covs. / 10^6 reads \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab COG ids           \tab samples        \tab avg. copies        \cr
 #'                     \tab \bold{$PFAM}              \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$bases}        \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab abundances (bases) \cr
 #'                     \tab                           \tab \bold{$cov}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab coverages          \cr
+#'                     \tab                           \tab \bold{$cpm}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab covs. / 10^6 reads \cr
 #'                     \tab                           \tab \bold{$tpm}          \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab tpm                \cr
 #'                     \tab                           \tab \bold{$copy_number}  \tab \emph{numeric matrix}   \tab PFAM ids          \tab samples        \tab avg. copies        \cr
 #' \bold{$total_reads} \tab                           \tab                      \tab \emph{numeric vector}   \tab samples           \tab (n/a)          \tab total reads        \cr
@@ -142,7 +155,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
 	}
 
     ### Check whether we need to create the projectdir/results/tables directory.
-    if(!file.exists(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode, project_name)))
+    if(!file.exists(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode)))
         {
 	cat(sprintf('Generating tabular outputs for project in %s\n', project_path))
         lines = readLines(sprintf('%s/SqueezeMeta_conf.pl', project_path))
@@ -169,6 +182,15 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     SQM$misc                     = list()
     SQM$misc$project_name        = project_name
 
+    cat('Loading total reads\n')
+    lines           = readLines(sprintf('%s/results/10.%s.mappingstat', project_path, project_name))
+    evilLines       = (substr(lines,1,1) == '#' & substr(lines,1,8) != '# Sample') | substr(lines,1,1) == ''
+    lines           = lines[!evilLines]
+    SQM$total_reads = as.matrix(
+                                read.table(text = lines,
+                                           header=T, sep='\t', row.names=1, comment.char='')
+                               )[,'Total.reads']
+
     cat('Loading orfs\n')
     SQM$orfs                     = list()
 
@@ -191,9 +213,14 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     storage.mode(SQM$orfs$bases) = 'numeric'
     SQM$orfs$cov                 = as.matrix(SQM$orfs$table[,grepl('Coverage', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$cov)       = gsub('Coverage ', '', colnames(SQM$orfs$cov), fixed=T)
+    SQM$orfs$cpm                 = t(t(SQM$orfs$cov) / (SQM$total_reads / 1000000))
     SQM$orfs$tpm                 = as.matrix(SQM$orfs$table[,grepl('TPM', colnames(SQM$orfs$table)),drop=F])
     colnames(SQM$orfs$tpm)       = gsub('TPM ', '', colnames(SQM$orfs$tpm), fixed=T)
     SQM$misc$samples             = colnames(SQM$orfs$abund)
+
+    goodORFcols                  = colnames(SQM$orfs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$orfs$table))]
+    SQM$orfs$table               = SQM$orfs$table[,goodORFcols]
+
     
     cat('    sequences\n')    
     SQM$orfs$seqs                = read.namedvector(sprintf('%s/results/tables/%s.orf.sequences.tsv', project_path, project_name), engine=engine)
@@ -229,15 +256,22 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         SQM$contigs$table         = data.table::fread(sprintf('%s/results/19.%s.contigtable', project_path, project_name), header=T, sep='\t')
         }
     SQM$contigs$table             = generic.table(SQM$contigs$table)
+
     cat('    abundances...\n')
     abunds                        = as.matrix(SQM$contigs$table[,grepl('Raw read count', colnames(SQM$contigs$table)),drop=F])
     storage.mode(abunds)          = 'numeric'
     SQM$contigs$abund             = abunds
     colnames(SQM$contigs$abund)   = gsub('Raw read count ', '', colnames(SQM$contigs$abund), fixed=T)
+    SQM$contigs$bases             = as.matrix(SQM$contigs$table[,grepl('Raw base count', colnames(SQM$contigs$table)),drop=F])
+    colnames(SQM$contigs$bases)   = gsub('Raw base count ', '', colnames(SQM$contigs$bases), fixed=T)
     SQM$contigs$cov               = as.matrix(SQM$contigs$table[,grepl('Coverage', colnames(SQM$contigs$table)),drop=F])
     colnames(SQM$contigs$cov)     = gsub('Coverage ', '', colnames(SQM$contigs$cov), fixed=T)
+    SQM$contigs$cpm               = t(t(SQM$contigs$cov) / (SQM$total_reads / 1000000))
     SQM$contigs$tpm               = as.matrix(SQM$contigs$table[,grepl('TPM', colnames(SQM$contigs$table)),drop=F])
     colnames(SQM$contigs$tpm)     = gsub('TPM ', '', colnames(SQM$contigs$tpm), fixed=T)
+
+    goodContigCols                = colnames(SQM$contigs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$contigs$table))]
+    SQM$contigs$table             = SQM$contigs$table[,goodContigCols]
 
     cat('    sequences...\n')                                                 
     SQM$contigs$seqs              = read.namedvector(sprintf('%s/results/tables/%s.contig.sequences.tsv', project_path, project_name), engine=engine)
@@ -288,9 +322,29 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         SQM$bins                  = list()
         SQM$bins$table            = read.table(sprintf('%s/results/18.%s.bintable', project_path, project_name),
                                                header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
+	SQM$bins$length           = SQM$bins$table$Length
+	names(SQM$bins$length)    = rownames(SQM$bins$table)
+
         cat('    abundances...\n')
-        SQM$bins$tpm              = as.matrix(SQM$bins$table[,grepl('TPM', colnames(SQM$bins$table)),drop=F])
-        colnames(SQM$bins$tpm)    = gsub('TPM ', '', colnames(SQM$bins$tpm), fixed=T)
+        x = aggregate(SQM$contigs$abund, by=list(SQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)               = x[,1]
+        x = x[rownames(SQM$bin$table),-1, drop=F]
+        nobin                     = colSums(SQM$contigs$abund) - colSums(x)
+        if(sum(nobin)>0)          { x['No_bin',] = nobin }
+        x['Unmapped',]            = SQM$total_reads - colSums(x)
+        # add unbinned!
+        SQM$bins$abund            = as.matrix(x)
+
+        SQM$bins$percent          = 100*t(t(SQM$bins$abund) / colSums(SQM$bins$abund))
+
+	x = aggregate(SQM$contigs$bases, by=list(SQM$contigs$bins[,1]), FUN=sum)
+        rownames(x)               = x[,1]
+        x = x[rownames(SQM$bin$table),-1,drop=F]
+        SQM$bins$bases            = as.matrix(x)
+
+        SQM$bins$cov              = as.matrix(SQM$bins$table[,grepl('Coverage', colnames(SQM$bins$table)),drop=F])
+        colnames(SQM$bins$cov)    = gsub('Coverage ', '', colnames(SQM$bins$cov), fixed=T)
+	SQM$bins$cpm              = t(t(SQM$bins$cov) / (SQM$total_reads / 1000000))
         cat('    taxonomy...\n')
         SQM$bins$tax              = as.matrix(read.table(sprintf('%s/results/tables/%s.bin.tax.tsv', project_path, project_name),
 							 header=T, row.names=1, sep='\t'))
@@ -406,6 +460,8 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$KEGG$cov                 = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.cov.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+	SQM$functions$KEGG$cpm                 = t(t(SQM$functions$KEGG$cov) / (SQM$total_reads / 1000000))
+
         SQM$functions$KEGG$tpm                 = as.matrix(read.table(sprintf('%s/results/tables/%s.KO.tpm.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
 	funinfo                                = read.table(sprintf('%s/results/tables/%s.KO.names.tsv', project_path, project_name),
@@ -430,6 +486,8 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$COG$cov                  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.cov.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+	SQM$functions$COG$cpm                  = t(t(SQM$functions$COG$cov) / (SQM$total_reads / 1000000))
+
         SQM$functions$COG$tpm                  = as.matrix(read.table(sprintf('%s/results/tables/%s.COG.tpm.tsv', project_path, project_name),
                                                                       header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         funinfo                                = read.table(sprintf('%s/results/tables/%s.COG.names.tsv', project_path, project_name),
@@ -455,6 +513,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions$PFAM$cov             = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.cov.tsv', project_path, project_name),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+	SQM$functions$PFAM$cpm             = t(t(SQM$functions$PFAM$cov) / (SQM$total_reads / 1000000))
         SQM$functions$PFAM$tpm             = as.matrix(read.table(sprintf('%s/results/tables/%s.PFAM.tpm.tsv', project_path, project_name),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
     }else
@@ -473,6 +532,8 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
         SQM$functions[[method]]$cov        = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.cov.tsv', project_path, project_name, method),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+	SQM$functions[[method]]$cpm        = t(t(SQM$functions[[method]]$cov) / (SQM$total_reads / 1000000))
+
         SQM$functions[[method]]$tpm        = as.matrix(read.table(sprintf('%s/results/tables/%s.%s.tpm.tsv', project_path, project_name, method),
                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
 	funinfo                            = read.table(sprintf('%s/results/tables/%s.%s.names.tsv', project_path, project_name, method),
@@ -486,7 +547,8 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
     SQM$misc$coding_fraction               = list()
     for(method in names(SQM$functions))
         {
-        SQM$misc$coding_fraction[[method]] = 1 - (SQM$functions[[method]]$tpm['Unmapped',] / colSums(SQM$functions[[method]]$tpm))
+        #SQM$misc$coding_fraction[[method]] = 1 - (SQM$functions[[method]]$tpm['Unmapped',] / colSums(SQM$functions[[method]]$tpm))
+	SQM$misc$coding_fraction[[method]] = 1 # this was used to correct TPMs ignoring the effect of unmapped reads, but is not needed anymore since we don't track unmapped reads for functions anymore
         }
 
     ### COPY NUMBERS
@@ -531,15 +593,6 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
         SQM$misc$RecA_cov                  = NULL # Just being explicit here
         }
 
-
-    cat('Loading total reads\n')
-    lines           = readLines(sprintf('%s/results/10.%s.mappingstat', project_path, project_name))
-    evilLines       = (substr(lines,1,1) == '#' & substr(lines,1,8) != '# Sample') | substr(lines,1,1) == ''
-    lines           = lines[!evilLines]
-    SQM$total_reads = as.matrix(
-                                read.table(text = lines,
-                                           header=T, sep='\t', row.names=1, comment.char='')
-                               )[,'Total.reads']
 
     class(SQM)      = 'SQM'
 

@@ -22,9 +22,12 @@ $extpath     = "$projectdir/ext_tables";                                 #-- Dir
 $tempdir     = "$projectdir/temp";                                       #-- Temp directory
 $interdir    = "$projectdir/intermediate";                               #-- Temp directory
 $binresultsdir = "$resultpath/bins";						   #-- Directory for bins
-%bindirs     = ("maxbin","$resultpath/maxbin","metabat2","$resultpath/metabat2");  #-- Directories for bins
 %dasdir      = ("DASTool","$resultpath/DAS/$projectname\_DASTool\_bins");	   #-- Directory for DASTool results
 
+#-- Customizable binning and assembly
+
+%assemblers  = ("megahit","assembly_megahit.pl","spades","assembly_spades.pl","canu","assembly_canu.pl","flye","assembly_flye.pl");
+%binscripts  = ("maxbin","$installpath/lib/SqueezeMeta/bin_maxbin.pl","metabat2","$installpath/lib/SqueezeMeta/bin_metabat2.pl","concoct","$installpath/lib/SqueezeMeta/bin_concoct.pl");
 
 #-- Result files
 
@@ -95,7 +98,7 @@ $singletons      = 0;
 $cleaning        = 0;
 $cleaningoptions = "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
 $mapper          = "bowtie";
-$binners	 = "maxbin,metabat2";
+$binners	 = "metabat2,concoct";
 $mapping_options = "";
 
 
@@ -107,7 +110,7 @@ $concoct_dir        = "$installpath/bin/CONCOCT-1.1.0";
 $spades_soft        = "$installpath/bin/SPAdes/spades.py";
 $barrnap_soft       = "$installpath/bin/barrnap";
 $rdpclassifier_soft = "java -jar $installpath/lib/classifier/classifier.jar";
-$bowtie2_build_soft = "$installpath/bin/bowtie2/bowtie2-build";
+$bowtie2_build_soft = "python3 $installpath/bin/bowtie2/bowtie2-build";
 $bowtie2_x_soft     = "$installpath/bin/bowtie2/bowtie2";
 $bwa_soft           = "$installpath/bin/bwa";
 $minimap2_soft      = "$installpath/bin/minimap2";
@@ -128,5 +131,4 @@ $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "LD_LIBRARY_PATH=$installpath/lib $installpath/bin/kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";
-%binscripts	    = ('maxbin',"$installpath/lib/SqueezeMeta/bin_maxbin.pl",'metabat2',"$installpath/lib/SqueezeMeta/bin_metabat2.pl",'concoct',"$installpath/lib/SqueezeMeta/bin_concoct.pl");
 $mothur_soft        = "$installpath/bin/mothur";

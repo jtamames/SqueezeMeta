@@ -24,7 +24,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
+our($datapath,$userdir,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
     $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
@@ -55,8 +55,8 @@ while(<infile1>) {
 	next if !$_;
 	my @t=split(/\t/,$_);
 	next if(($mode eq "sequential") && ($t[0] ne $projectname));
-	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } 
-	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
+	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$userdir/$t[1]"}=1; } 
+	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$userdir/$t[1]"}=2; }
 	}
 close infile1;
 
@@ -136,7 +136,7 @@ foreach my $thissample(keys %allsamples) {
 		if($#pair2>0) {	$command.="cat $a2 > $tempdir/$par2name; "; } else { $command.="cp $a2 $tempdir/$par2name; "; }	
 		}
 	print "  Getting raw reads\n";
-	# print "$command\n";
+	#print "$command\n";
 	print outsyslog "Getting raw reads for $thissample: $command\n";
 	system $command; 
 	
@@ -150,8 +150,9 @@ foreach my $thissample(keys %allsamples) {
 		#-- Support for single reads
        		if(!$mapper || ($mapper eq "bowtie")) {
            		if($formatseq eq "fasta") { $formatoption="-f"; }
-    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --very-sensitive-local --quiet -p $numthreads -S $outsam $mapping_options"; }
-	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name --very-sensitive-local --quiet -p $numthreads -S $outsam $mapping_options"; } }
+			if($mapping_options eq "") { $mapping_options = "--very-sensitive-local"; } # very-sensitive-local would interfere with custom mapping options so add it here 
+    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam $mapping_options"; }
+	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name  --quiet -p $numthreads -S $outsam $mapping_options"; } }
         	elsif($mapper eq "bwa") {
             		#Apparently bwa works seamlesly with fasta files as input.
             		if(-e "$tempdir/$par2name") { $command="$bwa_soft mem $bowtieref $tempdir/$par1name $tempdir/$par2name -v 1 -t $numthreads $mapping_options > $outsam"; }
@@ -169,7 +170,6 @@ foreach my $thissample(keys %allsamples) {
             		if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $outsam"; }
             		else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $outsam"; } 
 			}
-		}
                                   
 	# print "$command\n";
 	print outsyslog "Aligning with $mapper: $command\n";
@@ -177,6 +177,7 @@ foreach my $thissample(keys %allsamples) {
         my $ecode = 0;
 	if(-e $outsam) {} else { $ecode = system $command; }
         if($ecode!=0)     { die "An error occurred during mapping!"; }
+		}
 
 	#-- Calculating contig coverage/RPKM
 
@@ -215,7 +216,7 @@ system("rm $tempdir/count.*");
 
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
 	
-my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
 print outsyslog "Sorting mapcount table: $command\n";
 system($command);	
 
@@ -418,7 +419,7 @@ sub contigcov {
 	
 		#-- Use the mapped reads to sum base coverage
 
-		if($t[2]!~/\*/) { 			#-- If the read mapped, accum reads and bases
+		if($t[5]!~/\*/) { 			#-- If the read mapped, accum reads and bases
 			$thisr=$t[0];
 			next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
 			$lastr=$thisr;

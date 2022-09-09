@@ -181,6 +181,7 @@ foreach my $thissample(keys %allsamples) {
 		}
 	close infilesam;
 	close outsingletons;
+	system("rm $outsam"); #-- We don't need the original sam any longer, deleting it for avoiding clash with step 10
  }
 my $command="cat $contigsfna $tempdir/contigs.*.fasta > $tempdir/prov.fasta; mv $tempdir/prov.fasta $contigsfna";
 system ($command); 
@@ -245,5 +246,5 @@ close outsyslog;
 
 print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");
-system("rm $bowtieref.1.bt2; rm $bowtieref.bwt; rm $outsam");
+system("rm $bowtieref.1.bt2; rm $bowtieref.bwt");
 

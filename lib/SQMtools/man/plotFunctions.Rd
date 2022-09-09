@@ -23,7 +23,7 @@ plotFunctions(
 
 \item{fun_level}{character. Either \code{"KEGG"}, \code{"COG"}, \code{"PFAM"} or any other custom database used for annotation (default \code{"KEGG"}).}
 
-\item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"tpm"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
+\item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"cpm"} for coverages per million reads, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"tpm"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
 
 \item{N}{integer Plot the \code{N} most abundant functions (default \code{25}).}
 
@@ -31,7 +31,7 @@ plotFunctions(
 
 \item{samples}{character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).}
 
-\item{ignore_unmapped}{logical. Don't include unmapped ORFs in the plot (default \code{TRUE}).}
+\item{ignore_unmapped}{logical. Don't include unmapped reads in the plot (default \code{TRUE}).}
 
 \item{ignore_unclassified}{logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).}
 

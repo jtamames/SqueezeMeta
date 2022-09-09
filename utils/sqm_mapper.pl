@@ -47,7 +47,7 @@ print BOLD "\nSQM_mapper v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC
 
 	#-- Configuration variables from conf file
 
-my($mappingfile,$fastqdir,$gff_file,$mapper,$outdir,$reference,$hel,$project,$numthreads,$funfile);
+my($mappingfile,$fastqdir,$gff_file,$mapper,$outdir,$reference,$hel,$project,$numthreads,$funfile,$filter);
 my $verbose=0;
 my $fullmap=1;		#-- Creates a file with the mapping of all reads
 my $bowtie2_build_soft = "$installpath/bin/bowtie2/bowtie2-build";
@@ -62,12 +62,13 @@ Usage: SQM_mapper.pl -r <reference file> -g <GFF file> -s <samples file> -f <raw
 
 Mandatory parameters:
    -r|-reference: Reference (meta)genome (REQUIRED)
-   -g: GFF file with ORF positions for the reference (REQUIRED)
+   -g: GFF file with ORF positions for the reference (REQUIRED unless --filter)
    -s: Samples file, same format than standard SqueezeMeta (REQUIRED)
    -f|-seq: Read files (fastq/fasta) directory (REQUIRED)
    -o|-outdir: Output directory (REQUIRED)
    
  Options:
+   --filter: Use to remove reads mapping to a reference genome
    -n|-name: Prefix name for the results (Default: sqm)
    -t: Number of threads (Default: 12)
    -m: Mapper to be used (Bowtie, BWA, minimap2-ont, minimap2-pb, minimap2-sr) (Default: Bowtie)
@@ -85,6 +86,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "r|reference=s"  => \$reference,
 		     "n|name=s"  => \$project,
 		     "fun=s" => \$funfile,
+		     "filter" => \$filter,
 		     "h" => \$hel
 		    );
 
@@ -93,7 +95,7 @@ if(!$numthreads) { $numthreads=12; }
 if(!$mapper) { $mapper="bowtie"; }
 if(!$project) { $project="sqm"; }
 if(!$reference) { die "Missing argument -r\n $helpshort\n"; }
-if(!$gff_file) { die "Missing argument -g\n $helpshort\n"; } 
+if((!$gff_file) && (!$filter)) { die "Missing argument -g\n $helpshort\n"; } 
 if(!$fastqdir) { die "Missing argument -f\n $helpshort\n"; } 
 if(!$outdir) { die "Missing argument -o\n $helpshort\n"; }
 $mapper=~tr/A-Z/a-z/;
@@ -113,7 +115,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 	#-- Read the sample's file names
 
-my %allsamples;
+my(%allsamples,%pairs);
 tie %allsamples,"Tie::IxHash";
 open(infile1,$mappingfile) || die "Can't open mappingfile $mappingfile\n";
 print "  Reading mapping file from $mappingfile\n";
@@ -121,8 +123,8 @@ while(<infile1>) {
 	chomp;
 	next if !$_;
 	my @t=split(/\t/,$_);
-	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } 
-	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
+	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; $pairs{$t[0]}{pair1}="$fastqdir/$t[1]"; } 
+	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; $pairs{$t[0]}{pair2}="$fastqdir/$t[1]"; }
 	}
 close infile1;
 
@@ -162,28 +164,31 @@ elsif($mapper=~/minimap/i) {
 
 	#-- Prepare output files
 
+
 my $mappingstat="$outdir/$project.mappingstat";
 my $mapcountfile="$outdir/$project.mapcount";
 my $contigcov="$outdir/$project.contigcov";
 my $mapfunfile="$outdir/$project.mapcount.fun";
 my $fullmapfile="$outdir/$project.fullmap";
 
-open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
-print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
-print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
-if($fullmap) {
-	open(outfile2,">$fullmapfile") || die "Can't open fullmap file $fullmapfile for writing\n";	
-	print outfile2 "#-- Created by $0, ",scalar localtime,"\n";
-	print outfile2 "# Read\tGene\tBases\n";
-	}
+if(!$filter) {
+	open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
+	print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
+	print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
+	if($fullmap) {
+		open(outfile2,">$fullmapfile") || die "Can't open fullmap file $fullmapfile for writing\n";	
+		print outfile2 "#-- Created by $0, ",scalar localtime,"\n";
+		print outfile2 "# Read\tGene\tBases\n";
+		}
 	
-open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
-print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
-print outfile3 "Gen\tTotal length\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
-if($funfile) {
-	open(outfilefun,">$mapfunfile") || die "Can't open mapcount file $mapcountfile for writing\n";
-	print outfilefun "# Created by $0 from $gff_file and $funfile, ",scalar localtime,"\n";
-	print outfilefun "Function\tSample\tCopy number\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\n";
+	open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
+	print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
+	print outfile3 "Gen\tTotal length\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
+	if($funfile) {
+		open(outfilefun,">$mapfunfile") || die "Can't open mapcount file $mapcountfile for writing\n";
+		print outfilefun "# Created by $0 from $gff_file and $funfile, ",scalar localtime,"\n";
+		print outfilefun "Function\tSample\tCopy number\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\n";
+		}
 	}
 
 	#-- Now we start mapping the reads of each sample against the reference
@@ -257,9 +262,13 @@ foreach my $thissample(keys %allsamples) {
        		if($ecode!=0)     { die "An error occurred during mapping!"; }
 	}
 
+	#-- If in filtering mode, read the SAM, skip mapping reads, and exit
+	
+	if($filter) { filter($thissample,$outsam,$outdir,$pairs{$thissample}{pair1},$pairs{$thissample}{pair2}); exit; } 
+
 	#-- Calculating contig coverage/RPKM
 
-	  my $totalreads=contigcov($thissample,$outsam);
+	my $totalreads=contigcov($thissample,$outsam);
 	
 	#-- And then we call the counting
 	
@@ -567,3 +576,97 @@ sub contigcov {
 	return $totalreadcount;
 }
 
+
+
+#----------------- Filter reads
+
+
+sub filter {
+	print "  Filtering reads\n";
+	my($thissample,$outsam,$outdir,$par1,$par2)=@_;
+	# print "$thissample,$outsam,$outdir,$par1,$par2\n";
+	my %remove;
+	
+	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
+	while(<infile4>) {
+		chomp;
+		next if($_=~/^\@/);
+		my @t=split(/\t/,$_);
+		if($t[2]=~/\*/) { } else { $remove{$t[0]}=1; }	#-- If the read mapped, remove it
+		}
+	close infile4;	
+				
+	my $pair1=$par1;
+	my $pair2=$par2;
+	$pair1=~s/.*\///;
+	$pair2=~s/.*\///;
+	my @flist1=split(/\./,$pair1);
+	my @flist2=split(/\./,$pair2);
+	my $pair1_filtered=$flist1[0].".filtered.fastq";
+	my $pair2_filtered=$flist2[0].".filtered.fastq";
+	my $pair1_removed=$flist1[0].".removed.fastq";
+	my $pair2_removed=$flist2[0].".removed.fastq";
+	my $fileout1="$outdir/$pair1_filtered";
+	my $fileremoved1="$outdir/$pair1_removed";
+	open(outf1,">$fileout1") || die "Cannot open output $fileout1\n";
+	open(outr1,">$fileremoved1") || die "Cannot open output $fileremoved1\n";
+	if($par1=~/gz$/) { open(inf1,"zcat $par1 |") || die "Cannot open input file $par1\n"; }
+	else { open(inf1,$par1) || die "Cannot open input file $par1\n"; }
+	my $string;
+	while(<inf1>) {
+		$string=$_;
+		my($id,$rest)=split(/\s+/,$string);
+		chomp $id;
+		$id=~s/^\@//;
+		$string.=<inf1>;
+		$string.=<inf1>;
+		$string.=<inf1>;
+		if($remove{$id}) { print outr1 $string; }
+		else {  print outf1 $string; }
+		}
+	if($par1=~/gz$/) { 
+		system("gzip $fileout1"); 
+		$fileout1.=".gz"; 
+		system("gzip $fileremoved1"); 
+		$fileremoved1.=".gz"; 
+		}
+	print "Filtered pair1 file for sample $thissample written in $fileout1\n";
+	print "Removed pair1 reads written in $fileremoved1\n";
+	close inf1;
+	close outf1;
+	close outr1;
+	
+	my $fileout2;
+	if($pair2_filtered) { 
+		$fileout2="$outdir/$pair2_filtered"; 
+		my $fileremoved2="$outdir/$pair2_removed";
+		open(outf2,">$fileout2") || die "Cannot open output $fileout2\n";
+		open(outr2,">$fileremoved2") || die "Cannot open output $fileremoved2\n";
+		if($par2=~/gz$/) { open(inf2,"zcat $par2 |") || die "Cannot open input file $par2\n"; }
+		else { open(inf2,$par2) || die "Cannot open input file $par2\n"; }
+		my $string;
+		while(<inf2>) {
+			$string=$_;
+			my($id,$rest)=split(/\s+/,$string);
+			chomp $id;
+			$id=~s/^\@//;
+			$string.=<inf2>;
+			$string.=<inf2>;
+			$string.=<inf2>;
+			if($remove{$id}) { print outr2 $string; }
+			else {  print outf2 $string; }
+			}
+	if($par2=~/gz$/) { 
+		system("gzip $fileout2"); 
+		$fileout2.=".gz"; 
+		system("gzip $fileremoved2"); 
+		$fileremoved2.=".gz"; 
+		}
+	print "Filtered pair2 file for sample $thissample written in $fileout2\n";
+	print "Removed pair2 reads written in $fileremoved2\n";
+	close inf2;
+	close outf2;
+	close outr2;
+		}	
+						
+	}
