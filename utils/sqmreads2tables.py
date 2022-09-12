@@ -5,7 +5,7 @@ Part of the SqueezeMeta distribution. 22/07/2021.
 
 Generate tabular outputs from sqm_reads.pl or sqm_longreads.pl results.
 
-USAGE: sqm_reads2tables.py [-h] project_path output_dir [-q "QUERY"]
+USAGE: sqmreads2tables.py [-h] project_path output_dir [-q "QUERY"]
                      [--trusted-functions] [--ignore-unclassified]
                      [--doc]
 
