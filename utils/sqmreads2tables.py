@@ -60,6 +60,8 @@ QUERY SYNTAX:
     - SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES:
           search within the taxonomic annotation at the requested
           taxonomic rank.
+- Posible relational operators are "==", "!=", ">=", "<=", ">", "<", "IN", "NOT IN",
+"CONTAINS", "DOES NOT CONTAIN"
 """
 
 from os.path import abspath, dirname, realpath
