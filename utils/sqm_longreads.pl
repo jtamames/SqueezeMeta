@@ -148,6 +148,7 @@ my $prinseq_soft="$installpath/bin/prinseq-lite.pl";
 my $coglist="$installpath/data/coglist.txt";    #-- COG equivalence file (COGid -> Function -> Functional class)
 my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
 my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
+my @ranklist=('k','p','c','o','f','g','s');
 
 my $resultsdir="$pwd/$project";
 print "----$resultsdir---\n";
@@ -584,7 +585,14 @@ foreach my $thissample(keys %allsamples) {
 		for(my $pl1=$orf->{'posinit'}; $pl1<=$orf->{'posend'}; $pl1++) { $listpos[$pl1]=1; }
 		$store{$k}{cog}=~s/\*//;
 		$store{$k}{kegg}=~s/\*//;
-		if($lasttax) { $accum{$thissample}{tax}{$store{$k}{tax}}++; $stats{$thissample}{tax}++; }
+		if($lasttax) { 
+			$accum{$thissample}{tax}{$store{$k}{tax}}++; 
+			$stats{$thissample}{tax}++;
+			foreach my $tr1(@tfields) { 
+				my($rank,$rest)=split(/\_/,$tr1);
+				$stats{$thissample}{rank}{$rank}++;
+				}
+			}
 		if($store{$k}{cog}) { 
 			$accum{$thissample}{cog}{$store{$k}{cog}}++; 
 			$cogaccum{$store{$k}{cog}}++;
@@ -843,6 +851,16 @@ foreach my $sprint(sort keys %accum) {
 	printf outstats "\t%.2f",$perc; 
 	}
 print outstats "\n\n";
+
+print outstats "#-- Statistics on taxa\n\n";
+foreach my $sprint(sort keys %accum) { print outstats "\t$sprint"; }
+print outstats "\n";
+foreach my $trank(@ranklist) {
+	print outstats "ORFs at $trank rank\t";
+	foreach my $sprint(sort keys %accum) { print outstats "\t$stats{$sprint}{rank}{$trank}"; }
+	print outstats "\n";
+	}
+
 
 print outstats "#-- Statistics on functions\n\n";
 foreach my $sprint(sort keys %accum) { print outstats "\t$sprint"; }
