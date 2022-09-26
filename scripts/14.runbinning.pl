@@ -43,7 +43,7 @@ foreach my $tbinner(@binner) { #-- For all the specified binners
 	
 	#-- Skip the binning if results are already present
 		
-       	if($wsize>2)         { print "Binning result $firstfile already found for binner $tbinner, skipping\n"; next; }		
+       	# if($wsize>2)         { print "Binning result $firstfile already found for binner $tbinner, skipping\n"; next; }		
 	
 	#-- Run the binner
 	
