@@ -339,7 +339,7 @@ loadSQM = function(project_path, tax_mode = 'allfilter', trusted_functions_only 
 
 	x = aggregate(SQM$contigs$bases, by=list(SQM$contigs$bins[,1]), FUN=sum)
         rownames(x)               = x[,1]
-        x = x[rownames(SQM$bin$table),-1]
+        x = x[rownames(SQM$bin$table),-1,drop=F]
         SQM$bins$bases            = as.matrix(x)
 
         SQM$bins$cov              = as.matrix(SQM$bins$table[,grepl('Coverage', colnames(SQM$bins$table)),drop=F])

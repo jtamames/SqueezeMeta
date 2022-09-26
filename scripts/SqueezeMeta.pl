@@ -68,8 +68,9 @@ Arguments:
    -p <project name>: Project name (REQUIRED in coassembly and merged modes)
   
  Restarting
-   --restart: Restarts the given project where it stopped (project must be speciefied with -p option) (will NOT overwite previous results)
+   --restart: Restarts the given project where it stopped (project must be speciefied with -p option) (will NOT overwite previous results, unless --force-overwrite is also provided)
    -step <step number>: In combination with --restart, restarts the project starting in the given step number (combine with --force_overwrite to regenerate results)
+   --force_overwrite: Do not check for previous results, and overwrite existing ones
    
  Filtering: 
    --cleaning: Filters with Trimmomatic (Default: No)
@@ -115,7 +116,6 @@ Arguments:
  Other:
    -test <step>: Running in test mode, stops AFTER the given step number
    --empty: Creates a empty directory structure and conf files, does not run the pipeline
-   --force_overwrite: Do not check for previous results, and overwrite existing ones
    
  Information:
    -v: Version number  
