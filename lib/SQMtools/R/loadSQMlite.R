@@ -115,7 +115,7 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
         }
 
     
-    SQM$taxa$superkingdom$abund   = as.matrix(read.table(sprintf('%s/%s.superkingdom.%s.abund.tsv', tables_path, project_name, tax_mode, project_name),
+    SQM$taxa$superkingdom$abund   = as.matrix(read.table(sprintf('%s/%s.superkingdom.%s.abund.tsv', tables_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))
     SQM$taxa$phylum$abund         = as.matrix(read.table(sprintf('%s/%s.phylum.%s.abund.tsv', tables_path, project_name, tax_mode),
                                                          header=T, sep='\t', row.names=1, check.names=F))

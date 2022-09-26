@@ -170,7 +170,6 @@ foreach my $thissample(keys %allsamples) {
             		if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $outsam"; }
             		else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $outsam"; } 
 			}
-		}
                                   
 	# print "$command\n";
 	print outsyslog "Aligning with $mapper: $command\n";
@@ -178,6 +177,7 @@ foreach my $thissample(keys %allsamples) {
         my $ecode = 0;
 	if(-e $outsam) {} else { $ecode = system $command; }
         if($ecode!=0)     { die "An error occurred during mapping!"; }
+		}
 
 	#-- Calculating contig coverage/RPKM
 

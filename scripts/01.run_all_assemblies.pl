@@ -130,7 +130,7 @@ elsif($mode ne "coassembly") {		#-- Sequential, merged or seqmerge: Assembly all
 			if((-e $provname) && (!$force_overwrite)) { print "  Assembly results already present in file $provname, skipping\n"; }
 			else {
 				if($mode eq "sequential") { $projectname=$asamples; }
-				if($p2) { assembly($projectname,$asamples,$filen1,$filen2); } else { assembly($projectname,$asamples,$filen1); }
+				if($p2) { assembly($projectdir,$asamples,$filen1,$filen2); } else { assembly($projectdir,$asamples,$filen1); }
 				}
 					
 					#-- Now we need to rename the contigs for minimus2, otherwise there will be contigs with same names in different assemblies
@@ -215,7 +215,7 @@ else {      #-- For coassembly: join all samples to assembly them as an unique s
 				
 			#-- Call the assemblers	
 				
-	if($p2) { assembly($projectname,$projectname,$filen1,$filen2); } else { assembly($projectname,$projectname,$filen1); }
+	if($p2) { assembly($projectdir,$projectname,$filen1,$filen2); } else { assembly($projectdir,$projectname,$filen1); }
 	}
 	
 #-- If we are in merged or seqmerge modes, do the merging now

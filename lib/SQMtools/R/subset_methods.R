@@ -1,3 +1,97 @@
+#' Filter results by sample
+#'
+#' Create a SQM object containing only samples specified by the user, and the ORFs, contigs, bins, taxa and functions present in those samples.
+#' @param SQM SQM object to be subsetted.
+#' @param samples character. Samples to be included in the subset.
+#' @param remove_missing bool. If \code{TRUE}, ORFs, contigs, bins, taxa and functions absent from the selected samples will be removed from the subsetted object (default \code{TRUE}).
+#' @seealso \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetORFs]{subsetORFs}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
+#' @return SQM object containing only the requested samples.
+#' @export
+subsetSamples = function(SQM, samples, remove_missing = T)
+    {
+    if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
+    check.samples(SQM, samples)
+    subSQM = SQM
+    subSQM$misc$samples = samples
+    subSQM$total_reads = subSQM$total_reads[samples]
+    
+    # ORFs
+    if(remove_missing) {
+        presentORFs = rownames(subSQM$orfs$abund)[ rowSums(subSQM$orfs$abund[,samples,drop=F]) > 0 ]
+    } else {
+        presentORFs = rownames(subSQM$orfs$abund)
+    }
+    subSQM$orfs$table = subSQM$orfs$table[intersect(presentORFs, rownames(subSQM$orfs$table)),       ,drop=F]
+    subSQM$orfs$abund = subSQM$orfs$abund[intersect(presentORFs, rownames(subSQM$orfs$abund)),samples,drop=F]
+    subSQM$orfs$bases = subSQM$orfs$bases[intersect(presentORFs, rownames(subSQM$orfs$bases)),samples,drop=F]
+    subSQM$orfs$cov   = subSQM$orfs$cov  [intersect(presentORFs, rownames(subSQM$orfs$cov  )),samples,drop=F]
+    subSQM$orfs$cpm   = subSQM$orfs$cpm  [intersect(presentORFs, rownames(subSQM$orfs$cpm  )),samples,drop=F]
+    subSQM$orfs$tpm   = subSQM$orfs$tpm  [intersect(presentORFs, rownames(subSQM$orfs$tpm  )),samples,drop=F]
+    subSQM$orfs$seqs  = subSQM$orfs$seqs [intersect(presentORFs,    names(subSQM$orfs$seqs )),        drop=F]
+    subSQM$orfs$tax   = subSQM$orfs$tax  [intersect(presentORFs, rownames(subSQM$orfs$tax  )),       ,drop=F]
+
+    # Contigs
+    if(remove_missing) {
+        presentContigs = rownames(subSQM$contigs$abund)[ rowSums(subSQM$contigs$abund[,samples,drop=F]) > 0 ]
+    } else {
+        presentContigs = rownames(subSQM$contigs$abund)
+    }
+    subSQM$contigs$table = subSQM$contigs$table[intersect(presentContigs, rownames(subSQM$contigs$table)),       ,drop=F]
+    subSQM$contigs$abund = subSQM$contigs$abund[intersect(presentContigs, rownames(subSQM$contigs$abund)),samples,drop=F]
+    subSQM$contigs$bases = subSQM$contigs$bases[intersect(presentContigs, rownames(subSQM$contigs$bases)),samples,drop=F]
+    subSQM$contigs$cov   = subSQM$contigs$cov  [intersect(presentContigs, rownames(subSQM$contigs$cov  )),samples,drop=F]
+    subSQM$contigs$cpm   = subSQM$contigs$cpm  [intersect(presentContigs, rownames(subSQM$contigs$cpm  )),samples,drop=F]
+    subSQM$contigs$tpm   = subSQM$contigs$tpm  [intersect(presentContigs, rownames(subSQM$contigs$tpm  )),samples,drop=F]
+    subSQM$contigs$seqs  = subSQM$contigs$seqs [intersect(presentContigs, rownames(subSQM$contigs$seqs )),        drop=F]
+    subSQM$contigs$tax   = subSQM$contigs$tax  [intersect(presentContigs, rownames(subSQM$contigs$tax  )),       ,drop=F]
+    subSQM$contigs$bins  = subSQM$contigs$bins [intersect(presentContigs, rownames(subSQM$contigs$bins )),        drop=F]
+    
+    # Bins
+    if('bins' %in% names(subSQM)) {
+        if(remove_missing) {
+            presentBins = rownames(subSQM$bins$abund)[ rowSums(subSQM$bins$abund[,samples,drop=F]) > 0 ]
+        } else {
+            presentBins = rownames(subSQM$bins$abund)
+        }
+        subSQM$bins$table   = subSQM$bins$table  [intersect(presentBins, rownames(subSQM$bins$table  )),       ,drop=F]
+        subSQM$bins$length  = subSQM$bins$length [intersect(presentBins, rownames(subSQM$bins$length )),        drop=F]
+        subSQM$bins$abund   = subSQM$bins$abund  [intersect(presentBins, rownames(subSQM$bins$abund  )),samples,drop=F]
+	subSQM$bins$percent = subSQM$bins$percent[intersect(presentBins, rownames(subSQM$bins$percent)),samples,drop=F]
+        subSQM$bins$bases   = subSQM$bins$bases  [intersect(presentBins, rownames(subSQM$bins$bases  )),samples,drop=F]
+        subSQM$bins$cov     = subSQM$bins$cov    [intersect(presentBins, rownames(subSQM$bins$cov    )),samples,drop=F]
+        subSQM$bins$cpm     = subSQM$bins$cpm    [intersect(presentBins, rownames(subSQM$bins$cpm    )),samples,drop=F]
+        subSQM$bins$tax     = subSQM$bins$tax    [intersect(presentBins, rownames(subSQM$bins$tax    )),       ,drop=F]
+    }
+
+    # Taxa
+    for(rank in names(subSQM$taxa)) {
+        if(remove_missing) {
+            presentTaxa = rownames(subSQM$taxa[[rank]]$abund)[ rowSums(subSQM$taxa[[rank]]$abund[,samples,drop=F]) > 0 ]
+        } else {
+            presentTaxa = rownames(subSQM$taxa[[rank]]$abund)
+	}
+        for(count in names(subSQM$taxa[[rank]])) {
+	    ta = subSQM$taxa[[rank]][[count]]
+	    subSQM$taxa[[rank]][[count]] = ta[intersect(presentTaxa, rownames(ta)), samples, drop=F]
+	}
+    }
+
+    # Functions
+    for(method in names(subSQM$functions)) {
+        if(remove_missing) {
+            presentFuns = rownames(subSQM$functions[[method]]$abund)[ rowSums(subSQM$functions[[method]]$abund[,samples,drop=F]) > 0 ]
+        } else {
+            presentFuns = rownames(subSQM$functions[[method]]$abund)
+        }
+        for(count in names(subSQM$functions[[method]])) {
+	    ta = subSQM$functions[[method]][[count]]
+            subSQM$functions[[method]][[count]] = ta[intersect(presentFuns, rownames(ta)), samples, drop=F]
+        }
+    }
+    return(subSQM)
+}
+
+
 #' Filter results by function
 #'
 #' Create a SQM object containing only the ORFs with a given function, and the contigs and bins that contain them.
@@ -10,7 +104,7 @@
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
-#' @seealso \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.
+#' @seealso \code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \link[subsetSamples]{subsetSamples}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
 #' @return SQM object containing only the requested function.
 #' @examples
 #' data(Hadza)
@@ -57,7 +151,7 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=T, fixed=F, trusted_f
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected taxon}.
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected taxon}.
 #' @return SQM object containing only the requested taxon.
-#' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetContigs]{subsetContigs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be eselected with \code{\link[mostAbundant]{mostAbundant}}.
+#' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetContigs]{subsetContigs}}, \link[subsetSamples]{subsetSamples}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
 #' @examples
 #' data(Hadza)
 #' Hadza.Escherichia = subsetTax(Hadza, "genus", "Escherichia")
@@ -194,6 +288,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$orfs$abund                 = SQM$orfs$abund[orfs      ,,drop=F]
     subSQM$orfs$bases                 = SQM$orfs$bases[orfs      ,,drop=F]
     subSQM$orfs$cov                   = SQM$orfs$cov[orfs        ,,drop=F]
+    subSQM$orfs$cpm                   = SQM$orfs$cpm[orfs        ,,drop=F]
     subSQM$orfs$tpm                   = SQM$orfs$tpm[orfs        ,,drop=F]
     subSQM$orfs$seqs                  = SQM$orfs$seqs[orfs]
     subSQM$orfs$tax                   = SQM$orfs$tax[orfs        ,,drop=F]
@@ -202,6 +297,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$contigs$abund              = SQM$contigs$abund[contigs,,drop=F]
     subSQM$contigs$bases              = SQM$contigs$bases[contigs,,drop=F]
     subSQM$contigs$cov                = SQM$contigs$cov[contigs  ,,drop=F]
+    subSQM$contigs$cpm                = SQM$contigs$cpm[contigs  ,,drop=F]
     subSQM$contigs$tpm                = SQM$contigs$tpm[contigs  ,,drop=F]
     subSQM$contigs$seqs               = SQM$contigs$seqs[contigs]
     subSQM$contigs$tax                = SQM$contigs$tax[contigs  ,,drop=F]
@@ -211,7 +307,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$bins$table             = SQM$bins$table[bins      ,,drop=F]
         x = aggregate(subSQM$contigs$abund, by=list(subSQM$contigs$bins[,1]), FUN=sum)
         rownames(x)                   = x[,1]
-        x = x[rownames(subSQM$bin$table),-1]
+        x = x[rownames(subSQM$bin$table),-1,drop=F]
 	nobin                         = colSums(subSQM$contigs$abund) - colSums(x)
 	if(sum(nobin)>0)              { x['No_bin',] = nobin }
 	subSQM$bins$abund             = as.matrix(x)
@@ -227,7 +323,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 	l = l[rownames(subSQM$bin$table)]
 	subSQM$bins$length            = l
 	subSQM$bins$cov               = subSQM$bins$bases / subSQM$bins$length
-
+	subSQM$bins$cpm               = t(t(subSQM$bins$cov) / (subSQM$total_reads/1000000))
         subSQM$bins$tax               = subSQM$bins$tax[bins     ,,drop=F]
         }
 
@@ -253,6 +349,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$KEGG$abund   = KEGG$abund
         subSQM$functions$KEGG$bases   = KEGG$bases
         subSQM$functions$KEGG$cov     = KEGG$cov
+	subSQM$functions$KEGG$cpm     = t(t(KEGG$cov) /  (subSQM$total_reads/1000000))
         }
     
     if('COG' %in% names(subSQM$functions))
@@ -261,6 +358,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$COG$abund    = COG$abund
         subSQM$functions$COG$bases    = COG$bases
         subSQM$functions$COG$cov      = COG$cov
+	subSQM$functions$COG$cpm      = t(t(COG$cov) /  (subSQM$total_reads/1000000))
         }
 
 
@@ -270,6 +368,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions$PFAM$abund   = PFAM$abund
         subSQM$functions$PFAM$bases   = PFAM$bases
         subSQM$functions$PFAM$cov     = PFAM$cov
+	subSQM$functions$PFAM$cpm     = t(t(PFAM$cov) /  (subSQM$total_reads/1000000))
         }
 
     ext_annots = list()
@@ -279,6 +378,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
         subSQM$functions[[method]]$abund = ext_annots[[method]]$abund
         subSQM$functions[[method]]$bases = ext_annots[[method]]$bases
         subSQM$functions[[method]]$cov   = ext_annots[[method]]$cov
+	subSQM$functions[[method]]$cpm   = t(t(subSQM$functions[[method]]$cov) /  (subSQM$total_reads/1000000))
         }
 
     if(rescale_tpm)
