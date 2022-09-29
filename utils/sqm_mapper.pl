@@ -264,7 +264,7 @@ foreach my $thissample(keys %allsamples) {
 
 	#-- If in filtering mode, read the SAM, skip mapping reads, and exit
 	
-	if($filter) { filter($thissample,$outsam,$outdir,$pairs{$thissample}{pair1},$pairs{$thissample}{pair2}); exit; } 
+	if($filter) { filter($thissample,$outsam,$outdir,$pairs{$thissample}{pair1},$pairs{$thissample}{pair2}); next; } 
 
 	#-- Calculating contig coverage/RPKM
 
