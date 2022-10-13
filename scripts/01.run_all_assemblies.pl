@@ -334,7 +334,8 @@ sub assembly {
 
 	my($prname,$samplename,$p1name,$p2name)=@_;
 	my $par1name="$datapath/raw_fastq/$p1name";
-	my $par2name="$datapath/raw_fastq/$p2name";
+	my $par2name="";
+	if($p2name) { my $par2name="$datapath/raw_fastq/$p2name"; } 
 
 	#-- Checks the assembler and call to the appropriate script (as specified in SqueezeMeta_conf.pl)
 

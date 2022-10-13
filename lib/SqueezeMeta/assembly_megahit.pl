@@ -29,7 +29,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 system("rm -r $datapath/megahit > /dev/null 2>&1"); 
 $outassembly="$datapath/megahit/final.contigs.fa";
-if(-e $par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name -t $numthreads -o $datapath/megahit >> $syslogfile 2>&1"; }
+if($par2name) { $command="$megahit_soft $assembler_options -1 $par1name -2 $par2name -t $numthreads -o $datapath/megahit >> $syslogfile 2>&1"; }
 else {  $command="$megahit_soft $assembler_options -r $par1name -t $numthreads -o $datapath/megahit >> $syslogfile 2>&1"; }  #-- Support for single reads
 
 my $ecode = system $command;
