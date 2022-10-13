@@ -77,6 +77,7 @@ elsif($mode ne "coassembly") {		#-- Sequential, merged or seqmerge: Assembly all
 		
 			#-- Concatenate all pair1 and pair2 files
 		
+			$p2=0;
 			print "  Working for sample $asamples\n";
 			my $cat1="cat ";
 			my $cat2="cat ";
