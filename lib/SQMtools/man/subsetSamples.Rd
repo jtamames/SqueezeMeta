@@ -20,5 +20,5 @@ SQM object containing only the requested samples.
 Create a SQM object containing only samples specified by the user, and the ORFs, contigs, bins, taxa and functions present in those samples.
 }
 \seealso{
-
+\code{\link[subsetTax]{subsetTax}}, \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
 }

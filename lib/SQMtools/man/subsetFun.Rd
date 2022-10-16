@@ -49,5 +49,5 @@ Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=F)
 }
 \seealso{
-
+\code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[subsetSamples]{subsetSamples}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
 }

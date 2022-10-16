@@ -7,7 +7,7 @@
 exportTable(table, output_name)
 }
 \arguments{
-\item{table}{vector, matrix or data.frame. The table to be written.logical.}
+\item{table}{vector, matrix or data.frame. The table to be written.}
 
 \item{output_name}{character. Name of the output file.}
 }

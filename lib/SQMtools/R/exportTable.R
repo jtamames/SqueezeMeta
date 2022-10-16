@@ -1,7 +1,7 @@
 #' Export results in tabular format
 #'
 #' This function is a wrapper for R's write.table function.
-#' @param table vector, matrix or data.frame. The table to be written.logical.
+#' @param table vector, matrix or data.frame. The table to be written.
 #' @param output_name character. Name of the output file.
 #' @examples
 #' data(Hadza)
