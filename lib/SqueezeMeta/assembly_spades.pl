@@ -32,7 +32,7 @@ elsif($assembler eq "rnaspades") { $outassembly="$datapath/spades/transcripts.fa
 my($command,$command_start);
 if($assembler eq 'spades') { $command_start="$spades_soft --meta"; }
 elsif($assembler eq 'rnaspades') { $command_start="$spades_soft --rna" }
-if(-e $par2name) { $command="$command_start --pe1-1 $par1name --pe1-2 $par2name -m 400 -k 21,33,55,77,99,127 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile 2>&1"; }
+if(-e $par2name) { $command="$command_start --pe1-1 $par1name --pe1-2 $par2name -k 21,33,55,77,99,127 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile 2>&1"; }
 else { $command="$command_start --s1 $par1name  -m 400 -k 21,33,55,77,99,127 $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile"; } #-- Support for single reads
 
 my $ecode = system $command;
