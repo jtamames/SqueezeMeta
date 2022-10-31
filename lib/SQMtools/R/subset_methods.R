@@ -44,7 +44,7 @@ subsetSamples = function(SQM, samples, remove_missing = T)
     subSQM$contigs$tpm   = subSQM$contigs$tpm  [intersect(presentContigs, rownames(subSQM$contigs$tpm  )),samples,drop=F]
     subSQM$contigs$seqs  = subSQM$contigs$seqs [intersect(presentContigs, rownames(subSQM$contigs$seqs )),        drop=F]
     subSQM$contigs$tax   = subSQM$contigs$tax  [intersect(presentContigs, rownames(subSQM$contigs$tax  )),       ,drop=F]
-    subSQM$contigs$bins  = subSQM$contigs$bins [intersect(presentContigs, rownames(subSQM$contigs$bins )),        drop=F]
+    subSQM$contigs$bins  = subSQM$contigs$bins [intersect(presentContigs, rownames(subSQM$contigs$bins )),       ,drop=F]
     
     # Bins
     if('bins' %in% names(subSQM)) {
