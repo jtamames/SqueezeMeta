@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #-- Part of the SqueezeMeta distribution. (c) J Tamames Aug 2020
 
