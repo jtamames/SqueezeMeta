@@ -25,7 +25,7 @@ else
 	$utilsdir = abs_path(dirname(__FILE__));
 	}
 our $installpath = abs_path("$utilsdir/..");
-if(-s "$installpath/scripts/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $installpath/scriptsls \n"; }
+if(-s "$installpath/scripts/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $installpath/scripts \n"; }
 do "$installpath/scripts/SqueezeMeta_conf.pl";
 
 our($scriptdir,$databasepath,$cdhit_soft,$rdpclassifier_soft, $mothur_soft, $mothur_r, $mothur_t);
