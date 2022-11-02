@@ -319,43 +319,45 @@ if(!$nopfam) {
 		next; 
 	}
 
-	my(%pfamname,%hits);
-	open(infile3,$pfamlist) || die "Can't open $pfamlist\n";
-	while(<infile3>) {
-		chomp;
-		next if(!$_ || ($_=~/^\#/));
-		my @k=split(/\t/,$_);
-		$pfamname{$k[0]}=$k[2];
-		}
-	close infile3;	   
+	else {
+		my(%pfamname,%hits);
+		open(infile3,$pfamlist) || die "Can't open $pfamlist\n";
+		while(<infile3>) {
+			chomp;
+			next if(!$_ || ($_=~/^\#/));
+			my @k=split(/\t/,$_);
+			$pfamname{$k[0]}=$k[2];
+			}
+		close infile3;	   
 
-	#-- We start reading the hmmer results
+		#-- We start reading the hmmer results
 
-	print syslogfile "  Reading pfam hits from $pfamhmmer\n";	
-	open(outfile3,">$fun3pfam") || warn "Can't open $fun3pfam for writing\n";
-	print outfile3 "# Created by $0, ",scalar localtime,"\n";
-	open(infile4,$pfamhmmer) || die "Can't open $pfamhmmer\n";
-	while(<infile4>) { 
-		chomp;
-		next if(!$_ || ($_=~/^\#/));
-		my @k=split(/\s+/,$_);
-		my $pfam=$k[4];
-		$pfam=~s/\.\d+//;
-		$hits{$k[0]}{$pfam}=1;		#-- Simply store the pfam(s) for that ORF
-		}
-	close infile4;
+		print syslogfile "  Reading pfam hits from $pfamhmmer\n";	
+		open(outfile3,">$fun3pfam") || warn "Can't open $fun3pfam for writing\n";
+		print outfile3 "# Created by $0, ",scalar localtime,"\n";
+		open(infile4,$pfamhmmer) || die "Can't open $pfamhmmer\n";
+		while(<infile4>) { 
+			chomp;
+			next if(!$_ || ($_=~/^\#/));
+			my @k=split(/\s+/,$_);
+			my $pfam=$k[4];
+			$pfam=~s/\.\d+//;
+			$hits{$k[0]}{$pfam}=1;		#-- Simply store the pfam(s) for that ORF
+			}
+		close infile4;
 
-	foreach my $y(sort keys %hits) {
-		print outfile3 "$y";
-		my $string="\t";
-		foreach my $n(sort keys %{ $hits{$y} }) { $string.="$n [$pfamname{$n}];"; }
-		chop $string;
-		print outfile3 "$string\n";
-		}
+		foreach my $y(sort keys %hits) {
+			print outfile3 "$y";
+			my $string="\t";
+			foreach my $n(sort keys %{ $hits{$y} }) { $string.="$n [$pfamname{$n}];"; }
+			chop $string;
+			print outfile3 "$string\n";
+			}
 			      
-	close outfile3;
-	print syslogfile "  Output in $fun3pfam\n";	
-	}		#-- END of Pfam assignment
+		close outfile3;
+		print syslogfile "  Output in $fun3pfam\n";	
+		}		#-- END of Pfam assignment
+	}
 
 print "\n";
 close syslogfile;
