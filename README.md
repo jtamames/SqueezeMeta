@@ -64,7 +64,7 @@ SqueezeMeta is intended to be run in a x86-64 Linux OS (tested in Ubuntu and Cen
 
 and then use `mamba` to install SqueezeMeta
 
-`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
+`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.6`
 
 This will create a new conda environment named SqueezeMeta, which must then be activated.
 
