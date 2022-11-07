@@ -301,7 +301,7 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 	if(!$empty) {
  	
 		#-- CALL TO THE STANDARD PIPELINE
-	
+		if($cleaning) { cleaning($projectdir,$scriptdir,$projectname,%conf); }
 		pipeline();
 		}
 		
@@ -315,25 +315,27 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		
 	else {      #-- FOR SEQUENTIAL MODES
 	
-	my $rootdir=$projectdir;
+	# my $rootdir=$projectdir;
 	foreach my $thissample(keys %allsamples) { 
 	
 		print "--- SAMPLE $thissample --------\n";
 	
-		$projectdir="$rootdir/$thissample";
+		# $projectdir.="/$thissample";
 		$conf{'projectname'}=$thissample;
 	
 		#-- Creation of the new configuration file, syslog, and directories
 	
 	  
-		if(!$restart) { writeconf($projectdir,$scriptdir,%conf); } 
+		if(!$restart) { writeconf($projectdir,$scriptdir,$thissample,%conf); } 
 
 		
 		if(!$empty) {
  	
 			#-- CALL TO THE STANDARD PIPELINE
-	
+			
+			if($cleaning) { cleaning($projectdir,$scriptdir,%conf); }
 			pipeline();
+			
 			}
 		else { die "  Directory structure and conf files created. Exiting\n"; }  #-- If --empty invoked
 		close outfile4;  #-- Closing log file for the sample
@@ -944,12 +946,16 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	print outfile5 "\$mode = \"$conf{mode}\";\n";
 	print outfile5 "\$date = \"",scalar localtime,"\";\n\n";
 	print outfile5 "\$installpath = \"$installpath\";\n";
-	print outfile5 "\$userdir = \"$rawfastq\";\n";
+	# print outfile5 "\$userdir = \"$rawfastq\";\n";
 
 	while(<infile2>) {
 		chomp;
-		next if !$_;
+		next if !$_;		
 		if   ($_=~/^\$projectname/)     { print outfile5 "\$projectname = \"$conf{projectname}\";\n";         }
+		elsif($_=~/^\$scriptdir/)       {   #-- Setting the appropriate $userdir if cleaning was invoked
+			if($cleaning) { print outfile5 "\$userdir       = \$projectdir/data/raw_fastq;\n";           }
+			else { print outfile5 "\$userdir       = $userdir;\n";    }       
+			}			
 		elsif($_=~/^\$blocksize/)       { print outfile5 "\$blocksize       = $conf{blocksize};\n";           }
 		elsif($_=~/^\$nodiamond/)       { print outfile5 "\$nodiamond       = $conf{nodiamond};\n";           }
 		elsif($_=~/^\$singletons/)      { print outfile5 "\$singletons      = $conf{singletons};\n";          }
@@ -1076,6 +1082,49 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
         close infile0;
 
 
+	}	
+
+
+sub cleaning  {
+
+	my $projectdir=shift;
+	my $scriptdir=shift;
+	my $thissample=shift;
+	my %conf=@_;
+	my $newuserdir="$projectdir/data/raw_fastq";
+	 			
+	my($par1files,$par2files)=0;
+	my($par1name,$par2name);
+	my %prepsamples;
+
+	#-- NOW FILTERING READS
+			
+	my $trimmomatic_command;
+	open(infile4,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET; die; };
+	if($cleaning) {
+		while(<infile4>) {
+ 			chomp;
+ 			next if(!$_ || ($_=~/^\#/));
+			$_=~s/\r//g;			#-- Deleting \r in samples file for windows compatibility
+			my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+			if($sample eq $thissample) { $prepsamples{$sample}{$iden}=$file; }
+			}
+		close infile4;
+		foreach my $ts(sort keys %prepsamples) {
+			my $par1name="$userdir/".$prepsamples{$ts}{pair1};
+			my $par2name="$userdir/".$prepsamples{$ts}{pair2};
+			my $trimmedpar1name="$newuserdir/".$prepsamples{$ts}{pair1};
+			my $trimmedpar2name="$newuserdir/".$prepsamples{$ts}{pair2};
+			if(-e $par2name) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $par1name $par2name $trimmedpar1name $trimmedpar1name.removed $trimmedpar2name $trimmedpar2name.removed $cleaningoptions > /dev/null 2>&1"; }
+			else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $par1name $trimmedpar1name $cleaningoptions > /dev/null 2>&1"; }
+	
+			print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n  Parameters: $cleaningoptions\n";
+			print outfile4 "Running trimmomatic: $trimmomatic_command";
+			my $ecode = system $trimmomatic_command;
+			if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
+			print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
+			}
+		}
 	}	
 
 

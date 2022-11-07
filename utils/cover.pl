@@ -285,7 +285,7 @@ if($targetdepth>=1000000000) { $humanread/=1000000000; $humanmag="Gb"; }
 elsif($targetdepth>=1000000) { $humanread/=1000000; $humanmag="Mb"; }
 else { $humanmag="pb"; }
 printf "Correcting by unobserved: %.2f $humanmag\n\n",$humanread;
-print out "Correcting by unobserved: $corrected_depth bases\n";
+printf out "Correcting by unobserved: $corrected_depth bases (%.2f $humanmag)\n",$humanread;
 print RESET; 
 
 #-- Calculating coverage for all OTUs
