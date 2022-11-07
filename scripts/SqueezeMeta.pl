@@ -313,12 +313,13 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 
 	#-- Sequential mode
 		
-	else {      #-- FOR SEQUENTIAL MODES
-	
+else {      #-- FOR SEQUENTIAL MODES
+	my $rootdir;
+	if(!$restart) { $rootdir=$projectdir; }
 	foreach my $thissample(keys %allsamples) { 
 	
 		print "--- SAMPLE $thissample --------\n";
-	
+	        if(!$restart) { $projectdir="$rootdir/$thissample"; }
 		$conf{'projectname'}=$thissample;
 	
 		#-- Creation of the new configuration file, syslog, and directories
