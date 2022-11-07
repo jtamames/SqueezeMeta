@@ -19,10 +19,10 @@ do "$project/parameters.pl";
 
 my $verbose=0;
 
-our($alllog,%bindir,%dasdir,$installpath,$checkm_soft,$numthreads,$datapath,$tempdir,$taxlist);
+our($alllog,%bindir,%dasdir,$installpath,$checkm_soft,$numthreads,$datapath,$tempdir,$taxlist,$binresultsdir);
 my %branks=('k','domain','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 my(%tax,%consensus,%alltaxa,%goodseeds,%allc,%genes,%count,%contigs,%newcount,%newgenes,%provseeds,%removed,%taxcontig,%sizes);
-my($highscore,$provhighscore,$round,$score,$markers,$changes,$marker,$removed,$binname,$fastaname,$refined,$skip,$finalresult);
+my($highscore,$provhighscore,$round,$score,$markers,$changes,$marker,$removed,$binname,$fastaname,$refined,$skip,$finalresult,);
 my @binlist;
 
 my $markerdir="$datapath/checkm_markers";
@@ -34,7 +34,8 @@ if(-e $finalresult) { system "rm $finalresult"; }
 if(-d $markerdir) {} else { system "mkdir $markerdir"; }
 if(-d $checktemp) {} else { system "mkdir $checktemp"; print "Creating $checktemp\n";  }
 
-my $bindir=$dasdir{DASTool};
+#my $bindir=$dasdir{DASTool};
+my $bindir=$binresultsdir;
 my $bintax;
 if($binreq) { push(@binlist,$binreq); }
 else {
