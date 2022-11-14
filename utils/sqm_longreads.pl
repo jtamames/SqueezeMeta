@@ -151,7 +151,7 @@ my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa wi
 my @ranklist=('k','p','c','o','f','g','s');
 
 my $resultsdir="$pwd/$project";
-print "----$resultsdir---\n";
+# print "----$resultsdir---\n";
 my @fields=split(/\//, $resultsdir);
 my $project=$fields[-1];
 if (-d $resultsdir) { print RED "WARNING: Project name $resultsdir already exists\n"; print RESET; print outsyslog "WARNING: Project name $resultsdir already exists\n"; } else { system("mkdir $resultsdir"); }
@@ -160,6 +160,9 @@ open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for 
 print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
 open(outsyslog,">$resultsdir/syslog") || warn "Cannot open syslog file in $resultsdir/syslog\n";
 print outsyslog "Created by $0, ",scalar localtime,"\nCommand: $commandline\n";
+open(outcreator,">$resultsdir/creator.txt");
+print outcreator "SQM_longreads v$version\n";
+close outcreator;
 
 if(!$nodiamond) { print outmet "Similarity searches for"; }
 

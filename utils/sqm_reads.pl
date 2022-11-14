@@ -137,6 +137,11 @@ if (-d $resultsdir) { print RED "WARNING: Project name $resultsdir already exist
 $methodsfile="$resultsdir/methods.txt";
 open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Analysis done with SqueezeMeta on Reads v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
+open(outcreator,">$resultsdir/creator.txt");
+print outcreator "SQM_reads v$version\n";
+close outcreator;
+
+
 if(!$nodiamond) { print outmet "Similarity searches for"; }
 
 my $output_all="$project.out.allreads";

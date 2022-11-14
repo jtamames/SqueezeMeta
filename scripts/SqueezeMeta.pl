@@ -1034,6 +1034,9 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	open(outmet,">$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 	print outmet "Analysis done with SqueezeMeta v$version (Tamames & Puente-Sanchez 2019, Frontiers in Microbiology 9, 3349)\n";
 	close outmet;
+	open(outcreator,">$projectdir/creator.txt");
+	print outcreator "SqueezeMeta v$version\n";
+	close outcreator;
 	if(!$nobins) {
 		my $validbinners=join(",",keys %binscripts);
 		my @binner=split(/\,/,$binners);
