@@ -92,7 +92,7 @@ Alternatively, the script *make_databases.pl* can be run to download from source
 
 `/path/to/SqueezeMeta/utils/install_utils/make_databases.pl /download/path`
 
-Note that in some cases data download (e.g. from the NCBI server) can be interrupted, leading to a corrupted database. Always run `test_install.pl` to check that the database was properly created. Otherwise, you can try re-running `make_databases.pl`, or just run `download_databases.pl` instead.
+Generally, `donwload_databases.pl` is the safest choice for getting your databases set up. When running `make_databases.pl`, data download (e.g. from the NCBI server) can be interrupted, leading to a corrupted database. Always run `test_install.pl` to check that the database was properly created. Otherwise, you can try re-running `make_databases.pl`, or just run `download_databases.pl` instead.
 
 The databases occupy 200Gb, but we recommend having at least 350Gb free disk space during the building process.
 
