@@ -229,13 +229,15 @@ if(($mode eq "merged") || ($mode eq "seqmerge")) {
 	print BLUE " STEP1 -> MERGING ASSEMBLIES: $scriptname\n"; print RESET;
 	#if($verbose) { print " (This will take all the individual assemblies and merge them in a single, combined assembly)\n"; }
 	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
-	if($ecode!=0)   { error_out(1,$scriptname); }
+	if($ecode!=0)   { 
+		 print RED; print "Stopping in STEP1 -> $scriptname. Program finished abnormally\n"; print RESET; print outsyslog "Stopping in STEP1 -> $scriptname. Program finished abnormally\n"; die; 
+		 }
 	}
 
 #-- Run prinseq_lite for removing short contigs
 
 if($extassembly) { system("cp $extassembly $contigsfna"); }
-else {
+elsif(-e $contigsfna) {
 	$command="$prinseq_soft -fasta $contigsfna -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
 	print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
 	print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n  ";
@@ -243,7 +245,7 @@ else {
 	if($ecode!=0) { die "Error running command:    $command"; }
 	print outmet "Short contigs (<$mincontiglen bps) were removed using prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4)\n";
 	}
-	
+else { die "Assembly not present in $contigsfna, exiting\n"; }	
 	
 #-- Standardization of contig names
 
@@ -324,7 +326,9 @@ if($singletons) {
 	my($wsize,$rest)=split(/\s+/,$wc);
 	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname. File $contigsfna is empty!\n"; print RESET; die; }
 }
-if($wsize<2)         { error_out(1,$scriptname,$contigsfna); }
+if($wsize<2)      { 
+		 print RED; print "Stopping in STEP1 -> $scriptname. Program finished abnormally\n"; print RESET; print outsyslog "Stopping in STEP1 -> $scriptname. Program finished abnormally\n"; die; 
+		 }
 
 close outsyslog;
 close outmet;
