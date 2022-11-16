@@ -7,7 +7,7 @@ use Cwd 'abs_path';
 my $databasedir=abs_path($ARGV[0]);
 
 if(!$databasedir) { die "Usage: perl configure_nodb_alt.pl <database dir>\n"; }
-print("Make sure that $databasedir contains all the database files (nr.dmnd, etc...)\n\n");
+print("\nMake sure that $databasedir contains all the database files (nr.dmnd, etc...)\n\n");
 
 
 ###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
@@ -29,10 +29,13 @@ my $libpath = "$installpath/lib";
 require "$libpath/install_utils/download_confirm.pl";
 ###
 
-
-system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
+###Check that the databases are present in the requested dir.
+unless(-e "$databasedir/nr.dmnd"){
+        die "The file $databasedir/nr.dmnd does not exist. Please check that you provided the right database directory. If you are running configure_nodb.pl directly, this probably means that you did not provide the right database directory. If this happened while running download_databases.pl or make_databases.pl, this probably means that your download got interrupted.\n\n";
+}
 
 ###Download rdp classifier.
+system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
 print("Downloading and unpacking RDP classifier...\n");
 system("wget -P $libpath -O $libpath/classifier.tar.gz https://saco.csic.es/index.php/s/D46ieFfdFZirXK5/download");
 system("tar -xvzf $libpath/classifier.tar.gz -C $libpath; rm $libpath/classifier.tar.gz");
@@ -58,4 +61,7 @@ close infile1;
 close outfile2;
 
 print("Done\n");
+###Test environment.
+print("\nTesting environment...\n");
+system("perl $installpath/utils/install_utils/test_install.pl");
 

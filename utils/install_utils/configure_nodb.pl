@@ -7,7 +7,7 @@ use Cwd 'abs_path';
 my $databasedir=abs_path($ARGV[0]);
 
 if(!$databasedir) { die "Usage: perl configure_nodb.pl <database dir>\n"; }
-print("Make sure that $databasedir contains all the database files (nr.dmnd, etc...)\n\n");
+print("\nMake sure that $databasedir contains all the database files (nr.dmnd, etc...)\n\n");
 
 
 ###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
@@ -30,11 +30,16 @@ require "$libpath/install_utils/download_confirm.pl";
 require "$libpath/install_utils/get_host.pl";
 ###
 
+###Check that the databases are present in the requested dir.
+unless(-e "$databasedir/nr.dmnd"){
+	die "The file $databasedir/nr.dmnd does not exist. Please check that you provided the right database directory. If you are running configure_nodb.pl directly, this probably means that you did not provide the right database directory. If this happened while running download_databases.pl or make_databases.pl, this probably means that your download got interrupted.\n\n";
+}	
+
+###Get host.
 my $host = get_host();
 
-system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
-
 ###Download rdp classifier.
+system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
 print("Downloading and unpacking RDP classifier...\n");
 download_confirm("classifier.tar.gz", "classifier.md5", "$host/SqueezeMeta/", $libpath);
 system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar . > /dev/null 2>&1"); # Add symlink
@@ -60,3 +65,6 @@ close outfile2;
 
 print("Done\n");
 
+###Test environment.
+print("\nTesting environment...\n");
+system("perl $installpath/utils/install_utils/test_install.pl");
