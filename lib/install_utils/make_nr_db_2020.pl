@@ -26,7 +26,7 @@ my $md5file="$databasedir/nr.md5";
 my $bindir="$installpath/bin";
 
 #-- Getting the raw files from NCBI. This can take long and need 100 Gb disk space
-my $command="wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz -nc -P $databasedir";
+my $command="wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz -P $databasedir";
 system $command;
 
 #-- Format the database
