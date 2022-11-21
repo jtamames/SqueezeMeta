@@ -67,6 +67,8 @@ close outfile1;
 print "Removing datafiles\n";
 system("rm $databasedir/eggnog4.proteins.all.fa.gz; rm $databasedir/NOG.members.tsv.gz;");
 print "Formatting database\n";
-system("$software_dir/diamond makedb --in $outegg -d $databasedir/eggnog -p 8");
+my $command = "$software_dir/diamond makedb --in $outegg -d $databasedir/eggnog -p 8";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary"; }
 system("rm $outegg");
 print "FINISHED: eggnog database created in $databasedir/eggnog.dmnd\n";

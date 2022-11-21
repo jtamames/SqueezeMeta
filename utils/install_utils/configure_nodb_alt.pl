@@ -38,7 +38,9 @@ unless(-e "$databasedir/nr.dmnd"){
 system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
 print("Downloading and unpacking RDP classifier...\n");
 system("wget -P $libpath -O $libpath/classifier.tar.gz https://saco.csic.es/index.php/s/D46ieFfdFZirXK5/download");
-system("tar -xvzf $libpath/classifier.tar.gz -C $libpath; rm $libpath/classifier.tar.gz");
+my $command = "tar -xvzf $libpath/classifier.tar.gz -C $libpath; rm $libpath/classifier.tar.gz";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, or that you ran out of disk space"; }
 system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar . > /dev/null 2>&1"); # Add symlink
 
 ###Update configuration files to reflect new db path.
