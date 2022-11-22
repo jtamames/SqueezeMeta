@@ -26,11 +26,16 @@ my $md5file="$databasedir/nr.md5";
 my $bindir="$installpath/bin";
 
 #-- Getting the raw files from NCBI. This can take long and need 100 Gb disk space
-my $command="wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz -nc -P $databasedir";
+my $command="wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz -P $databasedir";
 system $command;
 
 #-- Format the database
-system("gunzip $databasedir/nr.gz && mv $databasedir/nr $fastadb");
+my $command = "gunzip $databasedir/nr.gz && mv $databasedir/nr $fastadb";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, or that you ran out of disk space"; }
 
-system("$bindir/diamond makedb --in $fastadb -d $databasedir/nr -p 8");
+my $command = "$bindir/diamond makedb --in $fastadb -d $databasedir/nr -p 8";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary"; }
+
 system("md5sum $dbfile > $md5file");

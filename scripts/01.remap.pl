@@ -21,7 +21,7 @@ my $project=$projectname;
 #-- Configuration variables from conf file
 
 our($datapath,$assembler,$outassembly,$megahit_soft,$mappingfile,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile,$mincotiglen);
-our($bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigid,$contigcov,$bowtie2_x_soft,$mapper,$bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+our($bowtieref,$bowtie2_build_soft,$project,$userdir,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigid,$contigcov,$bowtie2_x_soft,$mapper,$bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 my $fastqdir="$datapath/raw_fastq";
@@ -72,8 +72,8 @@ while(<infile1>) {
 	next if !$_;
 	my @t=split(/\t/,$_);
 	next if(($mode eq "sequential") && ($t[0] ne $projectname));
-	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } 
-	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
+	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$userdir/$t[1]"}=1; } 
+	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$userdir/$t[1]"}=2; }
 	}
 close infile1;
 

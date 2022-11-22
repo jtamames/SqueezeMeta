@@ -61,8 +61,12 @@ system("gunzip $database_dir/silva.nr_v132.tax.gz");
 ### Download and create kegg db.
 print "\nDownloading and creating kegg database...\n\n";
 system("wget -P $database_dir -O $database_dir/kegg.db.gz https://saco.csic.es/index.php/s/AkiPW2k2wtwRNcY/download");
-system("gunzip $database_dir/kegg.db.gz");
-system("$installpath/bin/diamond makedb --in $database_dir/kegg.db -d $database_dir/keggdb -p 8");
+my $command = "gunzip $database_dir/kegg.db.gz";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, or you ran out of disk space"; }
+my $command = "$installpath/bin/diamond makedb --in $database_dir/kegg.db -d $database_dir/keggdb -p 8";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary"; }
 system("rm $database_dir/kegg.db");
 
 
@@ -98,15 +102,26 @@ system "sed -i \"s/['\\\"]//g\" $lca_dir/taxid_tree.txt"; # Remove quotes for sq
 
 print "\n  Creating sqlite databases\n\n";
 
-system "sqlite3 $lca_dir/taxid.db < $libpath/install_utils/taxid.sql";
-system "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db -cmd '.separator \"\\t\"'";
+my $command = "sqlite3 $lca_dir/taxid.db < $libpath/install_utils/taxid.sql";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n"; }
+
+my $command = "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db -cmd '.separator \"\\t\"'";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n"; }
+
 my $textrows = `wc -l $lca_dir/taxid_tree.txt`;
 my $dbrows = `echo 'SELECT count(*) FROM taxid;' | sqlite3 $lca_dir/taxid.db`;
 if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!" }
 system("md5sum $lca_dir/taxid.db > $lca_dir/taxid.md5");
 
-system "sqlite3 $lca_dir/parents.db < $libpath/install_utils/parents.sql";
-system "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/parents.db -cmd '.separator \"\\t\"'";
+my $command = "sqlite3 $lca_dir/parents.db < $libpath/install_utils/parents.sql";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n"; }
+
+my $command = "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/parents.db -cmd '.separator \"\\t\"'";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n"; }
 
 if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
 if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }

@@ -64,7 +64,7 @@ SqueezeMeta is intended to be run in a x86-64 Linux OS (tested in Ubuntu and Cen
 
 and then use `mamba` to install SqueezeMeta
 
-`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
+`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.6`
 
 This will create a new conda environment named SqueezeMeta, which must then be activated.
 
@@ -91,6 +91,8 @@ The script *download_databases.pl* can be run to download a pre-formatted versio
 Alternatively, the script *make_databases.pl* can be run to download from source and format the latest version of the databases.
 
 `/path/to/SqueezeMeta/utils/install_utils/make_databases.pl /download/path`
+
+Generally, `donwload_databases.pl` is the safest choice for getting your databases set up. When running `make_databases.pl`, data download (e.g. from the NCBI server) can be interrupted, leading to a corrupted database. Always run `test_install.pl` to check that the database was properly created. Otherwise, you can try re-running `make_databases.pl`, or just run `download_databases.pl` instead.
 
 The databases occupy 200Gb, but we recommend having at least 350Gb free disk space during the building process.
 

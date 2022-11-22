@@ -132,7 +132,7 @@ if(!$nokegg) {
 		print syslogfile "  Found KEGG annotation file in $fun3kegg, skipping\n";
 		}
 	else {	
-		print syslogfile "  Reading COGs hits from $cogdiamond\n";	
+		print syslogfile "  Reading KEGG hits from $keggdiamond\n";	
 		open(infile2,$keggdiamond) || die "Can't open $keggdiamond\n";
 		open(outfile2,">$fun3kegg") || die "Can't open $fun3kegg\n";
 		print outfile2 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";

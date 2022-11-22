@@ -1,6 +1,6 @@
 package:
   name: squeezemeta-dev
-  version: '1.6.0post1'
+  version: '1.6.1alpha1'
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
@@ -29,7 +29,7 @@ requirements:
     - openmp
     - samtools==1.11
     - blas=*=mkl # To avoid openmp
-    - readline>=8
+    - readline=8
   run:
     - python=3.6
     - setuptools
@@ -65,7 +65,7 @@ requirements:
     - r-data.table
     - bioconductor-pathview
     - tree
-    - readline >=8
+    - readline=8
 
 build:
   noarch: generic

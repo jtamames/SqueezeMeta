@@ -5,7 +5,7 @@ Part of the SqueezeMeta distribution. 22/07/2021.
 
 Generate tabular outputs from sqm_reads.pl or sqm_longreads.pl results.
 
-USAGE: sqm_reads2tables.py [-h] project_path output_dir [-q "QUERY"]
+USAGE: sqmreads2tables.py [-h] project_path output_dir [-q "QUERY"]
                      [--trusted-functions] [--ignore-unclassified]
                      [--doc]
 
@@ -60,6 +60,8 @@ QUERY SYNTAX:
     - SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES:
           search within the taxonomic annotation at the requested
           taxonomic rank.
+- Posible relational operators are "==", "!=", ">=", "<=", ">", "<", "IN", "NOT IN",
+"CONTAINS", "DOES NOT CONTAIN"
 """
 
 from os.path import abspath, dirname, realpath
