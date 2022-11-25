@@ -296,13 +296,15 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		
 	#-- Creation of the new configuration file, syslog, directories
 		  
-	if(!$restart) { writeconf($projectdir,$scriptdir,%conf); }
+	if(!$restart) { 
+		writeconf($projectdir,$scriptdir,%conf); 
+		if($cleaning) { cleaning($projectdir,$scriptdir,"",%conf); }
+		}
 	  		
 
 	if(!$empty) {
  	
 		#-- CALL TO THE STANDARD PIPELINE
-		if($cleaning) { cleaning($projectdir,$scriptdir,"",%conf); }
 		pipeline();
 		}
 		
@@ -328,14 +330,16 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		#-- Creation of the new configuration file, syslog, and directories
 	
 	  
-		if(!$restart) { writeconf($projectdir,$scriptdir,%conf); } 
+		if(!$restart) { 
+			writeconf($projectdir,$scriptdir,%conf); 
+			cleaning($projectdir,$scriptdir,$thissample,%conf);
+			} 
 
 		
 		if(!$empty) {
  	
 			#-- CALL TO THE STANDARD PIPELINE
 			
-			cleaning($projectdir,$scriptdir,$thissample,%conf);
 			pipeline();
 			
 			}
