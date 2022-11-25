@@ -316,7 +316,6 @@ if(!$nopfam) {
 	if(-e $fun3pfam) { 
 		print "  Found COG annotation file in $fun3cog, skipping\n"; 	
 		print syslogfile "  Found COG annotation file in $fun3cog, skipping\n";
-		next; 
 	}
 
 	else {
