@@ -410,9 +410,9 @@ sub pipeline {
     #-------------------------------- STEP2: Run RNA prediction
 
 	if(($rpoint<=2) && ((!$test) || ($test>=2))) {
-		my $masked="$interdir/02.$projectname.maskedrna.fasta";
+		my $masked="$interdir/02.$projectname.rna.gff";
                 my $wsize=checksize($masked);
-                if(($wsize>2) && (!$force_overwrite)) { print "RNA file $masked already found, skipping step 2\n"; }
+                if(($wsize>2) && (!$force_overwrite)) { print "RNA gff file $masked already found, skipping step 2\n"; }
 		else {		
 			if($verbose) { print " At this point, we already have contigs\n"; }
 			my $scriptname="02.rnas.pl";
