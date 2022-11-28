@@ -65,7 +65,7 @@ if($ecode!=0) { warn "Error running command:     $command"; }
 #-- nr database
 
 if(!$notax) {
-	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize -o $taxdiamond 2>&1 $tempdir/diamond.nr.log";
+	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize -o $taxdiamond > $tempdir/diamond.nr.log 2>&1";
 	print " taxa";
 	print outsyslog "Running Diamond for taxa: $command\n";
 	my $ecode = system $command;
