@@ -21,6 +21,7 @@ my $pwd=cwd();
 my $verbose=0;
 
 my $projectdir=$ARGV[0];
+my $force_overwrite=$ARGV[1];
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -326,7 +327,7 @@ sub functions {
 			}
 		}
 	print "  Assigning with fun3\n";
-	my $command="perl $scriptdir/07.fun3assign.pl $projectdir blastx";
+	my $command="perl $scriptdir/07.fun3assign.pl $projectdir blastx $force_overwrite";
 	print outsyslog  "Assigning with fun3: $command\n"; 
 	system($command);
 	}

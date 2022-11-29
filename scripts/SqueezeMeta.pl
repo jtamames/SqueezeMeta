@@ -528,7 +528,7 @@ sub pipeline {
 				print outfile4 "\n[",$currtime->pretty,"]: STEP7 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n"; print RESET;
 				if($verbose) { print " (This will use fun3 algorithm to annotate putative functions for each ORF, from the homologues found in step 5)\n"; }
-				my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir 0 $force_overwrite");
 				if($ecode!=0)   {  error_out(7,$scriptname); }
 				my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB,$rest);
 				if(!$nocog) { $wsizeCOG=checksize($fun3cog); }
@@ -565,7 +565,7 @@ sub pipeline {
 				print outfile4 "\n[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP8 -> DOUBLEPASS, Blastx analysis: $scriptname\n"; print RESET;
 				if($verbose) { print " (This will do many things: it will mask the parts of the contigs where an ORF has been found, and will run blastx in the remaining gaps, to identify possible genes missed in gene prediction. This is intended to be useful when dealing with eukaryotic or viral sequences, for which gene prediction is less accurate)\n"; }
-				my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 				if($ecode!=0)  { error_out(8,$scriptname); }
 				my $wsize=checksize($gff_file_blastx);
 				if($wsize<2)         { error_out(8,$scriptname,$gff_file_blastx); }
