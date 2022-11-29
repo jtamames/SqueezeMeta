@@ -258,12 +258,28 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
     SQM$contigs$table             = generic.table(SQM$contigs$table)
 
     cat('    abundances...\n')
-    abunds                        = as.matrix(SQM$contigs$table[,grepl('Raw read count', colnames(SQM$contigs$table)),drop=F])
-    storage.mode(abunds)          = 'numeric'
-    SQM$contigs$abund             = abunds
-    colnames(SQM$contigs$abund)   = gsub('Raw read count ', '', colnames(SQM$contigs$abund), fixed=T)
-    SQM$contigs$bases             = as.matrix(SQM$contigs$table[,grepl('Raw base count', colnames(SQM$contigs$table)),drop=F])
-    colnames(SQM$contigs$bases)   = gsub('Raw base count ', '', colnames(SQM$contigs$bases), fixed=T)
+    
+    # In issue #589 we found out that bin bases and coverages were not being calculated correctly
+    # This was because data.table::fread was storing some columns containing large values as integer64
+    # When casted from generic.data.frame to matrix with as.matrix, some integer64 became very small numerics (like e-318)
+    # In theory data.table::fread has the option `integer64="double"` to avoid integer64 being created in the first place
+    # But it fails in some cases as described in https://github.com/Rdatatable/data.table/issues/2607
+    # Thus I manually cast all columns containing abund and bases to numeric before casting to matrixz
+    abundcols = colnames(SQM$contigs$table)[grepl('Raw read count', colnames(SQM$contigs$table), fixed=T)]
+    abund = SQM$contigs$table[,abundcols,drop=F]
+    for(col in abundcols) { abund[,col] = as.numeric(abund[,col]) }
+    abund = as.matrix(abund)
+    colnames(abund) = colnames(abund) = gsub('Raw read count ', '', abundcols, fixed = T)
+    SQM$contigs$abund             = abund
+
+    basescols = colnames(SQM$contigs$table)[grepl('Raw base count', colnames(SQM$contigs$table), fixed=T)]
+    bases = SQM$contigs$table[,basescols,drop=F]
+    for(col in basescols) { bases[,col] = as.numeric(bases[,col]) }
+    bases = as.matrix(bases)
+    colnames(bases) = gsub('Raw base count ', '', basescols, fixed = T)
+    SQM$contigs$bases             = bases
+
+    # I treat the cov, cpm and tpm matrices normally, as I don't expect them to contain very large values
     SQM$contigs$cov               = as.matrix(SQM$contigs$table[,grepl('Coverage', colnames(SQM$contigs$table)),drop=F])
     colnames(SQM$contigs$cov)     = gsub('Coverage ', '', colnames(SQM$contigs$cov), fixed=T)
     SQM$contigs$cpm               = t(t(SQM$contigs$cov) / (SQM$total_reads / 1000000))
