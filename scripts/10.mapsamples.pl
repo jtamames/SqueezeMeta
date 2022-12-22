@@ -25,7 +25,7 @@ do "$projectdir/parameters.pl";
 #-- Configuration variables from conf file
 
 our($datapath,$userdir,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
-    $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+    $mapper, $mapping_options, $cleaning, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
 
@@ -55,6 +55,7 @@ while(<infile1>) {
 	next if !$_;
 	my @t=split(/\t/,$_);
 	next if(($mode eq "sequential") && ($t[0] ne $projectname));
+	if($cleaning) { $userdir=$fastqdir; }
 	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$userdir/$t[1]"}=1; } 
 	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$userdir/$t[1]"}=2; }
 	}
