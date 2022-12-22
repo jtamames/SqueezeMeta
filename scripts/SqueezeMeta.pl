@@ -46,7 +46,7 @@ our $pwd=cwd();
 
 our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
-our($binresultsdir,$databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
+our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
 our(%bindirs,%dasdir,%binscripts);  
 
 #-- Define help text
@@ -93,6 +93,7 @@ Arguments:
    --minion: Run on MinION reads (assembler: canu; mapper: minimap2-ont; consensus: 20) (Default: no)
 
  Annotation:  
+   -db <file>: Specify a new taxonomic database
    --nodiamond: Check if Diamond results are already in place, and just in that case skips the Diamond run (Default: no)
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
@@ -139,6 +140,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "f|seq=s" => \$rawfastq,
 		     "nodiamond" => \$nodiamond,
                      "sg|singletons" => \$singletons,
+		     "db=s" => \$newtaxdb,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nopfam" => \$nopfam,  
@@ -196,6 +198,7 @@ if($consensus) { $consensus/=100; }
 
 $mode=~tr/A-Z/a-z/;
 if($opt_db) { $opt_db = abs_path($opt_db); }
+if($newtaxdb) { $newtaxdb = abs_path($newtaxdb); }
 
 #-- Override settings if running on lowmem or MinION mode.
 if($lowmem) { $blocksize=3; $canumem=15; }
@@ -227,6 +230,7 @@ else {
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
 	if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
 	if(($assembler=~/flye/i) && ($mode=~/merge/i)) { $dietext.="Invalid combination of mode and assembler\n (We are sorry for this, the low number of contigs provided by Flye prevents minimus2 needed in $mode mode to work correctly\n Please use coassembly, or a different assembler)\n"; }
+	if(($newtaxdb) && (-e "$newtaxdb.dmnd")) {} else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
 	}
@@ -289,7 +293,7 @@ my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectnam
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
   'extassembly',$extassembly,'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,'miniden',$miniden,
-  'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite);
+  'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite,'newtaxdb',$newtaxdb);
 
 
 if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
@@ -991,6 +995,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	if($assembler_options) { print outfile5 "\$assembler_options  = \"$conf{assembler_options}\";\n"; }
 	if($extassembly)       { print outfile5 "\$extassembly        = \"$conf{extassembly}\";\n";       }
 	if($opt_db)            { print outfile5 "\$opt_db             = \"$conf{opt_db}\";\n";            }
+	if($newtaxdb)          { print outfile5 "\$newtaxdb             = \"$conf{newtaxdb}\";\n";            }
 	if($taxbinmode) { print outfile5 "\$taxbinmode             = \"$taxbinmode\";\n";            }
 	close outfile5;
 	
