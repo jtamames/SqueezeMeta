@@ -149,7 +149,7 @@ The command for running SqueezeMeta has the following syntax:
 * *--norename*: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
  
 *Annotation* 
-* * -db <file>: Specifies the location of a new taxonomy database (in Diamond format, .dmnd)
+* *-db* <file>: Specifies the location of a new taxonomy database (in Diamond format, .dmnd)
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no) 
