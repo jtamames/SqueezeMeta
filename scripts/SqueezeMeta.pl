@@ -230,7 +230,7 @@ else {
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
 	if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
 	if(($assembler=~/flye/i) && ($mode=~/merge/i)) { $dietext.="Invalid combination of mode and assembler\n (We are sorry for this, the low number of contigs provided by Flye prevents minimus2 needed in $mode mode to work correctly\n Please use coassembly, or a different assembler)\n"; }
-	if(($newtaxdb) && (-e "$newtaxdb.dmnd")) {} else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; }
+	if($newtaxdb) { if(-e "$newtaxdb.dmnd") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
 	}
