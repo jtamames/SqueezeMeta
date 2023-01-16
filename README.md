@@ -18,7 +18,7 @@ SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, c
 5) Internal checks for the assembly and binning steps inform about the consistency of contigs and bins, allowing to spot potential chimeras. 
 6) Metatranscriptomic support via mapping of cDNA reads against reference metagenomes 
 
-SqueezeMeta can be run in three different modes, depending of the type of multi-metagenome support. These modes are:
+SqueezeMeta can be run in four different modes, depending of the type of multi-metagenome support. These modes are:
 
 - Sequential mode: All samples are treated individually and analysed sequentially.
 
@@ -27,6 +27,8 @@ SqueezeMeta can be run in three different modes, depending of the type of multi-
 - Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
 
 - Seqmerge mode: This is intended to work with more samples than the merged mode. Instead of merging all individual assemblies in a single step, which can be very computationally demanding, seqmerge works sequentially. First, it assembles individually all samples, as in merged mode. But then it will merge the two most similar assemblies. Similarity is measured as Amino Acid Identity values using the wonderful CompareM software by Donovan Parks. After this first merging, it again evaluates similarity and merge, and proceeds this way until all metagenomes have been merged in one. Therefore, for n metagenomes, it will need n-1 merging steps.
+
+Note that the merged and seqmerge modes work well as a substitute of coassembly for running small datasets in computers with low memory (e.g. 16S Gb) but are very slow for analizing large datasets (>10 samples) even in workstations with plenty of resources. So in case you have a large dataset, we recommend to use either the sequential or the co-assembly modes.
 
 
 SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
