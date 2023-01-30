@@ -60,23 +60,29 @@ print "\nDownloading and creating kegg database...\n\n";
 download_confirm("kegg.db.gz", "kegg.db.md5", "$host/SqueezeMeta/", $database_dir);
 my $command = "$installpath/bin/diamond makedb --in $database_dir/kegg.db -d $database_dir/keggdb -p 8";
 my $ecode = system $command;
-if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary"; }
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary\n\n"; }
 system("rm $database_dir/kegg.db");
 
 
 ### Download and create nr db.
 print "Downloading and creating nr database. This may take a several hours...\n";
-system "perl $libpath/install_utils/make_nr_db_2020.pl $database_dir";
+my $command = "perl $libpath/install_utils/make_nr_db_2020.pl $database_dir";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary\n\n"; }
 
 
 ### Download and create eggnog db.
 print "\nDownloading and creating eggnog database...\n\n";
-system "perl $libpath/install_utils/make_eggnog_db.pl $database_dir";
+my $command = "perl $libpath/install_utils/make_eggnog_db.pl $database_dir";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary\n\n"; }
 
 
 ### Download and create Pfam db.
 print "\nDownloading Pfam database...\n\n";
-system "wget -P $database_dir ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz; gunzip $database_dir/Pfam-A.hmm.gz";
+my $command = "wget -P $database_dir ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz; gunzip $database_dir/Pfam-A.hmm.gz";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted or you ran out of disk space\n\n"; }
 
 
 ### Create LCA database from nr data.
@@ -85,37 +91,48 @@ system "rm $lca_dir";
 system "mkdir $lca_dir";
 
 print "\n  Running rectaxa.pl\n";
-system "perl $libpath/install_utils/rectaxa.pl $lca_dir";
+my $command = "perl $libpath/install_utils/rectaxa.pl $lca_dir";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\n"; }
 
 print "\n  Running nrindex.pl\n";
-system "perl $libpath/install_utils/nrindex.pl $database_dir";
+my $command = "perl $libpath/install_utils/nrindex.pl $database_dir";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\n"; }
 
 print "\n  Running taxid_tree.pl\n";
-system "perl $libpath/install_utils/taxid_tree.pl $lca_dir";
-system "sed -i \"s/['\\\"]//g\" $lca_dir/taxid_tree.txt"; # Remove quotes for sqlite3.
+my $command = "perl $libpath/install_utils/taxid_tree.pl $lca_dir";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\n"; }
+my $command = "sed -i \"s/['\\\"]//g\" $lca_dir/taxid_tree.txt"; # Remove quotes for sqlite3.
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:     $command\n\n"; }
 
-print "\n  Creating sqlite databases\n\n";
+
+print "\n  Creating sqlite database taxid.db\n\n";
 
 my $command = "sqlite3 $lca_dir/taxid.db < $libpath/install_utils/taxid.sql";
 my $ecode = system $command;
-if($ecode!=0) { die "Error running command:     $command\n"; }
+if($ecode!=0) { die "Error running command:     $command\n\n"; }
 
 my $command = "echo '.import $lca_dir/taxid_tree.txt taxid' | sqlite3 $lca_dir/taxid.db -cmd '.separator \"\\t\"'";
 my $ecode = system $command;
-if($ecode!=0) { die "Error running command:     $command\n"; }
+if($ecode!=0) { die "Error running command:     $command\n\n"; }
 
 my $textrows = `wc -l $lca_dir/taxid_tree.txt`;
 my $dbrows = `echo 'SELECT count(*) FROM taxid;' | sqlite3 $lca_dir/taxid.db`;
-if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!" }
+if($textrows != $dbrows) { die "Error creating taxid.db, please contact us!\n\n" }
 system("md5sum $lca_dir/taxid.db > $lca_dir/taxid.md5");
+
+print "\n  Creating sqlite database parents.db\n\n";
 
 my $command = "sqlite3 $lca_dir/parents.db < $libpath/install_utils/parents.sql";
 my $ecode = system $command;
-if($ecode!=0) { die "Error running command:     $command\n"; }
+if($ecode!=0) { die "Error running command:     $command\n\n"; }
 
 my $command = "echo '.import $lca_dir/parents.txt parents' | sqlite3 $lca_dir/parents.db -cmd '.separator \"\\t\"'";
 my $ecode = system $command;
-if($ecode!=0) { die "Error running command:     $command\n"; }
+if($ecode!=0) { die "Error running command:     $command\n\n"; }
 
 if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
 if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
