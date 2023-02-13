@@ -31,7 +31,7 @@ if(-d $bindir) {} else { print "  Creating $bindir directory\n"; print outsyslog
 
 my %skip;
 print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "nobinning" flag
-open(infile0,$mappingfile) || die "Can't open $alllog\n";
+open(infile0,$mappingfile) || die "Can't open $mappingfile\n";
 while(<infile0>) {
 	chomp;
 	next if !$_;

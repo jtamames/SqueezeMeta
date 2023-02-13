@@ -463,3 +463,40 @@ sub contigcov {
 	return $totalreadcount;
 }
 
+
+sub sortedbam {
+	my $command;
+	my $samdir="$datapath/sam";
+	my %skip;
+	#-- We will exclude samples with the "nobinning" flag
+	open(infile0,$mappingfile) || die "Can't open $mappingfile\n";
+	while(<infile0>) {
+		chomp;
+		next if !$_;
+		my @t=split(/\t/,$_);
+		if($_=~/nobinning/) { $skip{$t[0]}=1; }
+		}
+	close infile0;
+
+	opendir(indir,$samdir) || die;
+	my @samfiles=grep(/sam$/,readdir indir);
+	closedir indir;
+	foreach my $sam(@samfiles) {
+		my @w=split(/\./,$sam);
+		if($skip{$w[1]}) { print "  Sample $w[1] flagged for nobinning, skipping\n"; next; }
+		print "  Working for $sam\n";
+		print outsyslog "  Working for $sam\n";
+		my $samfile="$samdir/$sam";
+		my $sorted="$tempdir/$sam";
+		$sorted=~s/sam$/sorted.bam/;
+		$command="$samtools_soft sort $samfile -o $sorted -\@$numthreads > /dev/null 2>&1";
+		print outsyslog "  Creating sorted BAM for $sam: $command\n";
+		print "  Creating sorted BAM for $sam\n";
+		system $command;
+		$command="$samtools_soft index $sorted > /dev/null 2>&1";
+		print outsyslog "  Indexing sorted BAM: $command\n";
+		print "  Indexing sorted BAM\n";
+		system $command;
+		}
+	}	
+
