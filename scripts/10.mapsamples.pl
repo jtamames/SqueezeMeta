@@ -24,7 +24,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$userdir,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
+our($datapath,$userdir,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,$nobins,
     $mapper, $mapping_options, $cleaning, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
@@ -221,6 +221,9 @@ my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcoun
 print outsyslog "Sorting mapcount table: $command\n";
 system($command);	
 
+	#-- Producing sorted.bam for binning programs later
+
+if(!$nobins) { sortedbam(); }	
 
 
 #----------------- sqm_counter counting 
@@ -468,6 +471,7 @@ sub sortedbam {
 	my $command;
 	my $samdir="$datapath/sam";
 	my %skip;
+	print "  Producing sorted BAM files for binning programs\n";
 	#-- We will exclude samples with the "nobinning" flag
 	open(infile0,$mappingfile) || die "Can't open $mappingfile\n";
 	while(<infile0>) {
