@@ -75,23 +75,23 @@ my @samfiles=grep(/sam$/,readdir indir);
 closedir indir;
 
 my $command;
-foreach my $sam(@samfiles) {
-	my @w=split(/\./,$sam);
-	if($skip{$w[1]}) { print "  Sample $w[1] flagged for nobinning, skipping\n"; next; }
-	print "  Working for $sam\n";
-	print outsyslog "  Working for $sam\n";
-	my $samfile="$samdir/$sam";
-	my $sorted="$tempdir/$sam";
-	$sorted=~s/sam$/sorted.bam/;
-	$command="$samtools_soft sort $samfile -o $sorted -\@$numthreads > /dev/null 2>&1";
-	print outsyslog "  Creating sorted BAM for $sam: $command\n";
-	print "  Creating sorted BAM for $sam\n";
-	system $command;
-	$command="$samtools_soft index $sorted > /dev/null 2>&1";
-	print outsyslog "  Indexing sorted BAM: $command\n";
-	print "  Indexing sorted BAM\n";
-	system $command;
-	}
+#foreach my $sam(@samfiles) {           #-- Transformation to sorted BAM in now being done in step 10
+#	my @w=split(/\./,$sam);
+#	if($skip{$w[1]}) { print "  Sample $w[1] flagged for nobinning, skipping\n"; next; }
+#	print "  Working for $sam\n";
+#	print outsyslog "  Working for $sam\n";
+#	my $samfile="$samdir/$sam";
+#	my $sorted="$tempdir/$sam";
+#	$sorted=~s/sam$/sorted.bam/;
+#	$command="$samtools_soft sort $samfile -o $sorted -\@$numthreads > /dev/null 2>&1";
+#	print outsyslog "  Creating sorted BAM for $sam: $command\n";
+#	print "  Creating sorted BAM for $sam\n";
+#	system $command;
+#	$command="$samtools_soft index $sorted > /dev/null 2>&1";
+#	print outsyslog "  Indexing sorted BAM: $command\n";
+#	print "  Indexing sorted BAM\n";
+#	system $command;
+#	}
 	
 print "\n  Cutting contigs in pieces!\n";
 my $bedfile="$tempdir/$project.contigs.bed";
