@@ -620,7 +620,7 @@ sub pipeline {
 			print outfile4 "\n[",$currtime->pretty,"]: STEP10 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP10 -> MAPPING READS: $scriptname\n"; print RESET;
 			if($verbose) { print " (This will map reads back to the contigs using $mapper and count how many map to each ORF, to estimate their abundances)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 			if($ecode!=0)        { error_out(10,$scriptname); }
 			my $wsize=checksize($mapcountfile);
 			if($wsize<3)         { error_out(10,$scriptname,$mapcountfile); }

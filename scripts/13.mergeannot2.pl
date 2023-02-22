@@ -81,7 +81,6 @@ print outfile1 "\n";
 
 	#-- CREATING GENE TABLE
 
-print "  Creating table in $mergedfile\n";
 open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
 
 	#-- Headers
