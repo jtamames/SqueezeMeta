@@ -11,7 +11,6 @@ Run this script in the project directory:
     - Run sqm2anvio.pl in case there is none. 
     It contains:
         - Text files: contigs, genes, functions, taxonomy (contigs and genes) and bins (optional).
-        - bam: directory with bam files. Bam files' names must finish with '-RAW.bam'.
     
 USAGE: anvi-load-sqm.py [-h] -p PROJECT -o OUTPUT [--num-threads NUM_THREADS]
                         [--run-HMMS] [--run-scg-taxonomy] [--min-contig-length MIN_CONTIG_LENGTH]
@@ -278,27 +277,28 @@ def create_contigsDB(project, contigs, genes, functions, tax_genes, tax_contigs,
 def create_profileDB(project, outputDir, min_contig_length, min_mean_coverage, num_threads, skip_SNV_profiling, profile_SCVs, version, logfile = None):
     """ Make profiles.db. Load bam files, important: distinguish number of samples """
     print('Loading bam files')
-    samples = [f for f in os.listdir('{}/results/sqm2anvio/bam'.format(project)) if f.endswith('-RAW.bam')]
+    samples = [f for f in os.listdir('{}/data/bam'.format(project)) if f.endswith('.bam')]
     if logfile:
         logfile.write('2. Creating the PROFILE.DB\n')
     for f in samples:
         #print(f)
         print('Processing {}'.format(f))
-        f_in = project + '/results/sqm2anvio/bam/' + f
-        f_out = f_in.replace('-RAW','')
-        # Order & Index bam file
-        command = ['anvi-init-bam', f_in, '-o', f_out]
-        if version >= 7:
-            command.append('-T')
-            command.append(num_threads)
-        run_command(command)
-        if logfile:
-            logfile.write('2.1 BAM {} | INITIALIZED BAM: {}\n'.format(f_in, ' '.join(map(str,command))))
+        #f_in = project + '/results/sqm2anvio/bam/' + f
+        #f_out = f_in.replace('-RAW','')
+        f_out = project + '/data/bam/' + f
+        ## Order & Index bam file ### NO LONGER NEEDED SINCE WE NOW PRODUCE SORTED/INDEXES BAM FILES AS PART AS THE MAIN SQUEEZEMETA PIPELINE
+        #command = ['anvi-init-bam', f_in, '-o', f_out]
+        #if version >= 7:
+        #    command.append('-T')
+        #    command.append(num_threads)
+        #run_command(command)
+        #if logfile:
+        #    logfile.write('2.1 BAM {} | INITIALIZED BAM: {}\n'.format(f_in, ' '.join(map(str,command))))
         #print(f_out)
         print('Profiling {}'.format(f))
         # Profile bam file
 
-        profile_name = '{}/{}_temp'.format(outputDir,f.replace('-RAW.bam',''))
+        profile_name = '{}/{}_temp'.format(outputDir,f.replace('.bam',''))
         command_base = ['anvi-profile','-i',f_out, '-o', profile_name, '-c', '{}/CONTIGS.db'.format(outputDir), '--min-contig-length', min_contig_length ,'--min-mean-coverage', min_mean_coverage,'--num-threads' , num_threads,'--skip-hierarchical-clustering']
         if skip_SNV_profiling:
             command_base.append('--skip-SNV-profiling')
@@ -306,15 +306,15 @@ def create_profileDB(project, outputDir, min_contig_length, min_mean_coverage, n
             command_base.append('--profile-SCVs')
         run_command(command_base)
         if logfile:
-            logfile.write('2.2 BAM: {} | PROFILED BAM: {}\n'.format(f_in, ' '.join(map(str,command_base))))
-        print('Removing sort and index bam file')
-        command = ['rm',f_out,'{}.bai'.format(f_out) ]
-        run_command(command)
-        if logfile:
-            logfile.write('2.3 BAM: {} | REMOVED TEMPORAL FILES: {}\n'.format(f_in, ' '.join(map(str,command))))
+            logfile.write('2.2 BAM: {} | PROFILED BAM: {}\n'.format(f_out, ' '.join(map(str,command_base))))
+        #print('Removing sort and index bam file')
+        #command = ['rm',f_out,'{}.bai'.format(f_out) ]
+        #run_command(command)
+        #if logfile:
+        #    logfile.write('2.3 BAM: {} | REMOVED TEMPORAL FILES: {}\n'.format(f_out, ' '.join(map(str,command))))
         
     
-    profiles_names = ['{}/{}_temp'.format(outputDir, f.replace('-RAW.bam','')) for f in samples]
+    profiles_names = ['{}/{}_temp'.format(outputDir, f.replace('.bam','')) for f in samples]
     if not samples:
         # Make a blank profile
         profile_name ='{}/temp'.format(outputDir)

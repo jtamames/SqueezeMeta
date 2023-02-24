@@ -26,7 +26,7 @@ $binresultsdir = "$resultpath/bins";						   #-- Directory for bins
 
 #-- Customizable binning and assembly
 
-%assemblers  = ("megahit","assembly_megahit.pl","spades","assembly_spades.pl","canu","assembly_canu.pl","flye","assembly_flye.pl");
+%assemblers  = ("megahit","assembly_megahit.pl","spades","assembly_spades.pl","rnaspades", "assembly_rnaspades.pl", "spades-base", "assembly_spades-base.pl", "canu","assembly_canu.pl","flye","assembly_flye.pl");
 %binscripts  = ("maxbin","$installpath/lib/SqueezeMeta/bin_maxbin.pl","metabat2","$installpath/lib/SqueezeMeta/bin_metabat2.pl","concoct","$installpath/lib/SqueezeMeta/bin_concoct.pl");
 
 #-- Result files

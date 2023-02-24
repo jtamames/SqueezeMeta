@@ -19,10 +19,50 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$metabat_soft,$alllog,$tempdir,$interdir,$singletons,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile,$numthreads);
-my %skip;
+our($contigsfna,$contigcov,$bindir,$installpath,$metabat_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile,$numthreads);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+
+
+#-- Creating binning directory
+
+my $dirbin="$interdir/binners/metabat2";
+if(-d $dirbin) {} else { system "mkdir $dirbin"; }
+
+
+#-- Calculate average coverages and variances for each contig
+
+# Exclude samples with the nobinning flag
+my %samples;
+my %skip;
+print "  Reading samples from $mappingfile\n";
+open(infile0,$mappingfile) || die "Can't open $alllog\n";
+while(<infile0>) {
+        chomp;
+        next if !$_;
+        my @t=split(/\t/,$_);
+	$samples{$t[0]}=1;
+        if($_=~/nobinning/) { $skip{$t[0]}=1; }
+        }
+close infile0;
+
+my $bamlist = "";
+foreach my $sample (keys %samples) {
+	next if($skip{$sample});
+	$bamlist = "$bamlist $datapath/bam/$projectname.$sample.bam";
+}
+
+# Call jgi_summarize_bam_contig_depths
+my $depthfile="$dirbin/contigs.depth.txt";
+my $depthfileprov="$depthfile.PROV";
+print "  Creating coverage file in $depthfile\n";
+print outsyslog "Creating coverage file in $depthfile\n";
+my $command = "$installpath/bin/jgi_summarize_bam_contig_depths $bamlist --outputDepth $depthfileprov >> $syslogfile 2>&1";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
+
+
+#-- Exclude singleton raw reads from binning
 
 my %singletonlist;
 if($singletons) {               #-- Excluding singleton raw reads from binning
@@ -39,20 +79,10 @@ if($singletons) {               #-- Excluding singleton raw reads from binning
         close infile0;
         }
 
-print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
-open(infile0,$mappingfile) || die "Can't open $alllog\n";
-while(<infile0>) {
-	chomp;
-	next if !$_;
-	my @t=split(/\t/,$_);
-	if($_=~/nobinning/) { $skip{$t[0]}=1; }
-	}
-close infile0;
 
-	#-- Reading contigs
-
+#-- Reading contigs
 my @allcontigs;
-my(%abun,%allsets,%contiglen,%sumaver,%allcontigs);
+my %allcontigs;
 
 open(infile1,$alllog) || die "Can't open $alllog\n";
 while(<infile1>) { 
@@ -69,65 +99,38 @@ while(<infile1>) {
 	}
 close infile1;
 
+
+#-- Create a temp fasta excluding the singleton contigs
 my $tempfasta="$tempdir/bincontigs.fasta";
 open(outfile1,">$tempfasta") || die "Can't open $tempfasta for writing\n";
 open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
 my $ingood=0;
 while(<infile1>) {
-	chomp;
-	if($_=~/^\>([^ ]+)/) { 
-		my $tc=$1;
-		if($allcontigs{$tc}) { $ingood=1; } else { $ingood=0; } 
-		if($singletonlist{$tc}) { $ingood=0; }
-		}
-	if($ingood) { print outfile1 "$_\n"; }
-	}
+        chomp;
+        if($_=~/^\>([^ ]+)/) {
+                my $tc=$1;
+                if($allcontigs{$tc}) { $ingood=1; } else { $ingood=0; }
+                if($singletonlist{$tc}) { $ingood=0; }
+                }
+        if($ingood) { print outfile1 "$_\n"; }
+        }
 close infile1;
-close outfile1; 
-
-
-	#-- Creating binning directory
-
-my $dirbin="$interdir/binners/metabat2";
-if(-d $dirbin) {} else { system "mkdir $dirbin"; }
-
-	#-- Reading contig abundances
-
-open(infile2,$contigcov) || die "Can't find contig coverage file $contigcov\n";
-while(<infile2>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	my @k=split(/\t/,$_);
-	next if($skip{$k[$#k]});
-	next if($singletonlist{$k[0]});
-	$abun{$k[0]}{$k[$#k]}=$k[1];
-	$allsets{$k[$#k]}++;
-	$contiglen{$k[0]}=$k[3];
-	$sumaver{$k[0]}+=$k[1];
-	}
-close infile2;
-
-	#-- Creating abundance file
-
-my $depthfile="$dirbin/contigs.depth.txt";
-print outsyslog "Creating abundance file in $depthfile\n";
-open(outfile1,">$depthfile") || die "Can't open $depthfile for writing\n";
-print outfile1 "contigName\tcontigLen\ttotalAvgDepth";
-foreach my $dataset(sort keys %allsets) { print outfile1 "\t$dataset.bam\t$dataset.bam-var"; }
-print outfile1 "\n";
-foreach my $contig(@allcontigs) {
-	printf outfile1 "$contig\t$contiglen{$contig}\t%.4f",$sumaver{$contig};
-	foreach my $dataset(sort keys %allsets) { 
-		my $dat=$abun{$contig}{$dataset} || "0";
-		printf outfile1 "\t%.4f\t0",$dat;
-		}
-print outfile1 "\n";
-				   }
-
 close outfile1;
 
-	#-- Running metabat2
 
+#-- Create a contig depth file excluding the singleton contigs
+open(outfile2,">$depthfile") || die "Can't open $depthfile for writing\n";
+open(infile2,$depthfileprov) || die "Can't open $depthfileprov\n";
+while(<infile2>) {
+	chomp;
+	next if !$_;
+	my @z=split(/\t/,$_);
+	unless($allcontigs{$z[0]} or $z[0] eq "contigName") { next; } # Skip if the contigs is low quality (except if this is the first line)
+	unless($singletonlist{$z[0]}) { print outfile2 "$_\n"; }      # Write only if this is not a singleton
+}
+
+
+#-- Run metabat2
 my $command="$metabat_soft -t $numthreads -i $tempfasta -a $depthfile -o $dirbin/metabat2 --saveTNF saved_1500.tnf --saveDistance saved_1500.dist";
 print outsyslog "Running metabat2 : $command\n";
 print "  Running metabat2 (Kang et al 2019, PeerJ 7, e7359)\n";
@@ -136,3 +139,5 @@ if($ecode!=0) { die "Error running command:    $command"; }
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Binning was done using Metabat2 (Kang et al 2019, PeerJ 7, e7359)\n";
 close outmet;
+
+

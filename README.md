@@ -18,20 +18,7 @@ SqueezeMeta is a full automatic pipeline for metagenomics/metatranscriptomics, c
 5) Internal checks for the assembly and binning steps inform about the consistency of contigs and bins, allowing to spot potential chimeras. 
 6) Metatranscriptomic support via mapping of cDNA reads against reference metagenomes 
 
-SqueezeMeta can be run in four different modes, depending of the type of multi-metagenome support. These modes are:
-
-- Sequential mode: All samples are treated individually and analysed sequentially.
-
-- Coassembly mode: Reads from all samples are pooled and a single assembly is performed. Then reads from individual samples are mapped to the coassembly to obtain gene abundances in each sample. Binning methods allow to obtain genome bins.
-
-- Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
-
-- Seqmerge mode: This is intended to work with more samples than the merged mode. Instead of merging all individual assemblies in a single step, which can be very computationally demanding, seqmerge works sequentially. First, it assembles individually all samples, as in merged mode. But then it will merge the two most similar assemblies. Similarity is measured as Amino Acid Identity values using the wonderful CompareM software by Donovan Parks. After this first merging, it again evaluates similarity and merge, and proceeds this way until all metagenomes have been merged in one. Therefore, for n metagenomes, it will need n-1 merging steps.
-
-Note that the merged and seqmerge modes work well as a substitute of coassembly for running small datasets in computers with low memory (e.g. 16S Gb) but are very slow for analizing large datasets (>10 samples) even in workstations with plenty of resources. So in case you have a large dataset, we recommend to use either the sequential or the co-assembly modes.
-
-
-SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
+SqueezeMeta supports different assembly strategies (co-assembly, sequential, assembly merging, and sequential-merging) and different assemblers (see below for details). SqueezeMeta uses a combination of custom scripts and external software packages for the different steps of the analysis:
 
 1)  Assembly
 2)  RNA prediction and classification
@@ -74,7 +61,7 @@ This will create a new conda environment named SqueezeMeta, which must then be a
 
 When using conda, all the scripts from the SqueezeMeta distribution will be available on `$PATH`.
 
-Alternatively, just download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 16.04 or CentOS7 (DVD iso) installation.
+Alternatively, just download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 20.04 or higher Ubuntu installation.
 
 The `test_install.pl` script can be run in order to check whether the required dependencies are available in your environment.
 
@@ -113,7 +100,23 @@ If the SqueezeMeta databases are already built in another location in the system
 After configuring the databases, the `test_install.pl` can be run in order to check that SqueezeMeta is ready to work (see previous section).
 
 
-## 4. Execution, restart and running scripts
+## 4. Choosing an assembly strategy
+SqueezeMeta can be run in four different modes, depending of the type of multi-metagenome support. These modes are:
+
+- Sequential mode: All samples are treated individually and analysed sequentially.
+
+- Coassembly mode: Reads from all samples are pooled and a single assembly is performed. Then reads from individual samples are mapped to the coassembly to obtain gene abundances in each sample. Binning methods allow to obtain genome bins.
+
+- Merged mode: if many big samples are available, co-assembly could crash because of memory requirements. This mode allows the co-assembly of an unlimited number of samples, using a procedure inspired by the one used by Benjamin Tully for analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw). Briefly, samples are assembled individually and the resulting contigs are merged in a single co-assembly. Then the analysis proceeds as in the co-assembly mode. This is not the recommended procedure (use co-assembly if possible) since the possibility of creating chimeric contigs is higher. But it is a viable alternative when standard co-assembly is not possible.
+
+- Seqmerge mode: This is intended to work with more samples than the merged mode. Instead of merging all individual assemblies in a single step, which can be very computationally demanding, seqmerge works sequentially. First, it assembles individually all samples, as in merged mode. But then it will merge the two most similar assemblies. Similarity is measured as Amino Acid Identity values using the wonderful CompareM software by Donovan Parks. After this first merging, it again evaluates similarity and merge, and proceeds this way until all metagenomes have been merged in one. Therefore, for n metagenomes, it will need n-1 merging steps.
+
+Note that the *merged* and *seqmerge* modes work well as a substitute of coassembly for running small datasets in computers with low memory (e.g. 16 Gb) but are very slow for analising large datasets (>10 samples) even in workstations with plenty of resources. Still, setting `-contiglen` to 1000 or higher can make *seqmerge* a viable strategy even in those cases. Otherwise, we recommend to use either the sequential or the co-assembly modes.
+
+Regarding the choice of assembler, MEGAHIT and SPAdes work better with short Illumina reads, while Canu and Flye support long reads from PacBio or ONT-Minion. MEGAHIT (the default in SqueezeMeta) is more resource-efficient than SPAdes, consuming less memory, but SPAdes supports more analysis modes and produces slightly better assembly statistics. SqueezeMeta can call SPAdes in three different ways. The option *-a spades* is meant for metagenomic datasets, and will automatically add the flags *--meta -k 21,33,55,77,99,127* to the *spades.py* call. Conversely, *-a rnaspades* will add the flags *--rna -k 21,33,55,77,99,127*. Finally, the option *-a spades_base* will add no additional flags to the *spades.py* call. This can be used in conjunction with *--assembly options* when one wants to fully customize the call to SPAdes, e.g. for assembling single cell genomes.
+
+
+## 5. Execution, restart and running scripts
 
 ### Scripts location
 The scripts composing the SqueezeMeta pipeline can be found in the `/path/to/SqueezeMeta/scripts` directory. Other utility scripts can be found in the `/path/to/SqueezeMeta/utils` directory. See the PDF manual for more information on utility scripts.
@@ -141,9 +144,8 @@ The command for running SqueezeMeta has the following syntax:
 * *-cleaning_options* [string]: Options for Trimmomatic (default: "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"). Please provide all options as a single quoted string.
  
 *Assembly*  
-* *-a* [megahit,spades,rnaspades,canu,flye]: assembler (Default:megahit) 
+* *-a* [megahit,spades,rnaspades,spades-base,canu,flye]: assembler. (default: megahit).
 * *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). Please provide all the extra options as a single quoted string (e.g. _-assembly_options “--opt1 foo --opt2 bar”_)
-
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
 * *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
 * *--sq/--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
@@ -172,7 +174,7 @@ The command for running SqueezeMeta has the following syntax:
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 
 * *-b*|*-block-size* [number]: Block size for DIAMOND against the nr database (Default: calculate automatically) 
-* *-canumem* [number]: Memory for canu in Gb (Default: 32) 
+* *-canumem* [number]: Memory for Canu in Gb (Default: 32) 
 * *--lowmem*: Run on less than 16 Gb of RAM memory (Default: no). Equivalent to: -b 3 -canumem 15 
  
 *Other* 
@@ -232,19 +234,19 @@ Also, any individual script of the pipeline can be run using the same syntax:
 `script <projectname>` (for instance, `04.rundiamond.pl <projectname>` to repeat the DIAMOND run for the project)
 
 
-## 5. Analizing an user-supplied assembly
+## 6. Analizing an user-supplied assembly
 An user-supplied assembly can be passed to SqueezeMeta with the flag *-extassembly <your_assembly.fasta>*. The contigs in that fasta file will be analyzed by the SqueezeMeta pipeline starting from step 2.
 
 
-## 6. Using external databases for functional annotation
+## 7. Using external databases for functional annotation
 Version 1.0 implements the possibility of using one or several user-provided databases for functional annotation. This is invoked using the *-extdb* option. Please refer to the manual for details.
 
 
-## 7. Extra sensitive detection of ORFs
+## 8. Extra sensitive detection of ORFs
 Version 1.0 implements the *--D* option (*doublepass*), that attempts to provide a more sensitive ORF detection by combining the Prodigal prediction with a BlastX search on parts of the contigs where no ORFs were predicted, or where predicted ORFs did not match anything in the taxonomic and functional databases.
 
 
-## 8. Testing SqueezeMeta
+## 9. Testing SqueezeMeta
 The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `/download/path` as its target the test run can be executed with
 
 `cd </download/path/test>`  
@@ -253,18 +255,18 @@ The *download_databases.pl* and *make_databases.pl* scripts also download two da
 Alternatively, `-m sequential` or `-m merged` can be used.
 
 
-## 9. Working with Oxford Nanopore MinION and PacBio reads
-Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads agains the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
-We also include the canu assembler, which is specially tailored to work with long, noisy reads. It can be selected by including the -a *canu* flag when calling SqueezeMeta.
-As a shortcut, the *--minion* flag will use both canu and minimap2 for Oxford Nanopore MinION reads. Since version 1.3 we also include flye as an optional assembler for long reads.
-As an alternative to assembly, we also provide the sqm_longreads.pl script, which will predict and annotate ORFs within individual long reads.
+## 10. Working with Oxford Nanopore MinION and PacBio reads
+Since version 0.3.0, SqueezeMeta is able to seamlessly work with single-end reads. In order to obtain better mappings of MinION and PacBio reads against the assembly, we advise to use minimap2 for read counting, by including the *-map minimap2-ont* (MinION) or *-map minimap2-pb* (PacBio) flags when calling SqueezeMeta.
+We also include the Canu and Flye assemblers, which are specially tailored to work with long, noisy reads. They can be selected by including the *-a canu* or *-a flye* flag when calling SqueezeMeta. As a shortcut, the *--minion* flag will use both Canu and minimap2 for Oxford Nanopore MinION reads.
+As an alternative to assembly, we also provide the *sqm_longreads.pl* script, which will predict and annotate ORFs within individual long reads.
 
 
-## 10. Working in a low-memory environment
-In our experience, assembly and DIAMOND against the nr database are the most memory-hungry parts of the pipeline. By default SqueezeMeta will set up the right parameters for DIAMOND and the canu assembler based on the available memory in the system. DIAMOND memory usage can be manually controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory according to the documentation, but to be safe we set *-b* to *free_ram/8*). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
-We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limitations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
+## 11. Working in a low-memory environment
+In our experience, assembly and DIAMOND alignment against the nr database are the most memory-hungry parts of the pipeline. By default SqueezeMeta will set up the right parameters for DIAMOND and the Canu assembler based on the available memory in the system. DIAMOND memory usage can be manually controlled via the *-b* parameter (DIAMOND will consume ~5\**b* Gb of memory according to the documentation, but to be safe we set *-b* to *free_ram/8*). Assembly memory usage is trickier, as memory requirements increase with the number of reads in a sample. We have managed to run SqueezeMeta with as much as 42M 2x100 Illumina HiSeq pairs on a virtual machine with only 16Gb of memory. Conceivably, larger samples could be split an assembled in chunks using the merged mode.
+We include the shortcut flag *--lowmem*, which will set DIAMOND block size to 3, and Canu memory usage to 15Gb. This is enough to make SqueezeMeta run on 16Gb of memory, and allows the *in situ* analysis of Oxford Nanopore MinION reads. Under such computational limitations, we have been able to coassemble and analyze 10 MinION metagenomes (taken from SRA project [SRP163045](https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045)) in less than 4 hours.
 
-## 11. Tips for working in a computing cluster
+
+## 12. Tips for working in a computing cluster
 SqueezeMeta will work fine inside a computing cluster, but there are some extra things that must be taken into account. Here is a list in progress based on frequent issues that have been reported.
 - Run `test_install.pl` to make sure that everything is properly configured.
 - If using the conda environment, make sure that it is properly activated by your batch script.
@@ -272,13 +274,14 @@ SqueezeMeta will work fine inside a computing cluster, but there are some extra 
 - Make sure to request enough memory. See the previous section for a rough guide on what is "enough". If you get a crash during the assembly or during the annotation step, it will be likely because you ran out of memory.
 - Make sure to manually set the `-b` parameter so that it matches the amount of memory that you requested divided by 8. Otherwise, SqueezeMeta will assume that it can use all the free memory in the node in which it is running. This is fine if you got a full node for yourself, but will lead to crashes otherwise.
 
-## 12. Updating SqueezeMeta
+
+## 13. Updating SqueezeMeta
 Assuming your databases are not inside the SqueezeMeta directory, just remove it, download the new version and configure it with
 
 `/path/to/SqueezeMeta/utils/install_utils/configure_nodb.pl /path/to/db`
 
 
-## 13. Downstream analysis of SqueezeMeta results
+## 14. Downstream analysis of SqueezeMeta results
 SqueezeMeta comes with a variety of options to explore the results and generate different plots. These are fully described in the PDF manual and in the [wiki](https://github.com/jtamames/SqueezeMeta/wiki). Briefly, the three main ways to analyze the output of SqueezeMeta are the following:
 
 <img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/Figure_1_readmeSQM.png" width="50%">
@@ -290,7 +293,7 @@ SqueezeMeta comes with a variety of options to explore the results and generate 
 We also include utility scripts for generating [itol](https://itol.embl.de/) and [pavian](https://ccb.jhu.edu/software/pavian/) -compatible outputs.
 
 
-## 14. Alternative analysis modes
+## 15. Alternative analysis modes
 In addition to the main SqueezeMeta pipeline, we provide two extra modes that enable the analysis of individual reads.
 
 **1) sqm_reads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs. This can be useful when the assembly quality is low, or when looking for low abundance functions that might not have enough coverage to be assembled.
@@ -304,7 +307,11 @@ In addition to the main SqueezeMeta pipeline, we provide two extra modes that en
 **5) sqm_annot.pl**: This script performs functional and taxonomic annotation for a set of genes, for instance these encoded in a genome (or sets of contigs).
 
 
-## 15. License and third-party software
+## 16. Adding new binners and assemblers
+With some extra scripting, you can integrate other assembly and binning programs into the SqueezeMeta pipeline. See the PDF manual for details.
+
+
+## 17. License and third-party software
 SqueezeMeta is distributed under a GPL-3 license.
 Additionally, SqueezeMeta redistributes the following third-party software:
 * [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
@@ -339,7 +346,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [Flye](https://github.com/fenderglass/Flye)
 
 
-## 15. About
+## 18. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fernando.puente.sanchez@slu.se).
 
 

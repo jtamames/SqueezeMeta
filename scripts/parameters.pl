@@ -28,8 +28,6 @@ $minconsperc_asig9=0.7;   #-- STEP9: Ratio genes for the taxon/sum(genes all tax
 $minconsperc_total9=0.5;  #-- STEP9: Ratio genes for the taxon/number of genes.
                           #     Therefore it considers all (assigned+unassigned) genes
 			  #-- THIS ONE can be set by arguments, because of its influence when using long reads
-	
-$keepsam10=1;             #-- STEP10: Set to one, it keeps SAM files. Set to zero, it deletes them when no longer needed
 
 $minraw12=200;  	  #-- STEP12: Minimum number of raw counts to be included in the STAMP files
 

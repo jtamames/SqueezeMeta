@@ -78,7 +78,7 @@ Arguments:
    -cleaning_options [options]: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
    
  Assembly: 
-   -a: assembler <megahit,spades,rnaspades,canu, flye> (Default: megahit)
+   -a: assembler <megahit, spades, rnaspades, spades-base, canu, flye> (Default: megahit)
    -assembly_options [options]: Extra options to be passed when calling the mapper
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
@@ -241,7 +241,7 @@ $projectdir = abs_path($projectdir);
 $projectname = (split '/', $projectdir)[-1];
 my $syslogfile="$projectdir/syslog";
 if (($mode!~/sequential$/i) && (-d $projectdir) && (!$restart)) { print RED; print "Project name $projectdir already exists. Please remove it or change the project name\n"; print RESET; die; } 
-elsif(!$restart) { system("mkdir $projectdir"); }
+elsif(!$restart && $mode ne "sequential") { system("mkdir $projectdir"); }
 
 my(%allsamples,%ident,%noassembly,%pairsample);
 my($sample,$file,$iden,$mapreq);
@@ -620,7 +620,7 @@ sub pipeline {
 			print outfile4 "\n[",$currtime->pretty,"]: STEP10 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP10 -> MAPPING READS: $scriptname\n"; print RESET;
 			if($verbose) { print " (This will map reads back to the contigs using $mapper and count how many map to each ORF, to estimate their abundances)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 			if($ecode!=0)        { error_out(10,$scriptname); }
 			my $wsize=checksize($mapcountfile);
 			if($wsize<3)         { error_out(10,$scriptname,$mapcountfile); }
