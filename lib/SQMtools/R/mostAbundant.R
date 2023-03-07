@@ -1,12 +1,13 @@
-#' Get the N most abundant rows from a numeric table
+#' Get the N most abundant rows (or columns) from a numeric table
 #'
-#' Return a subset of an input matrix or data frame, containing only the N most abundant rows, sorted. Alternatively, a custom set of rows can be returned.
+#' Return a subset of an input matrix or data frame, containing only the N most abundant rows (or columns), sorted. Alternatively, a custom set of rows can be returned.
 #' @param data numeric matrix or data frame
 #' @param N integer Number of rows to return (default \code{10}).
 #' @param items Character vector. Custom row names to return. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. If \code{TRUE}, an extra row will be returned containing the aggregated abundances of the elements not selected with \code{N} or \code{items} (default \code{FALSE}).
 #' @param rescale logical. Scale result to percentages column-wise (default \code{FALSE}).
-#' @return A matrix or data frame (same as input) with the selected rows.
+#' @param bycol logical. Operate on columns instead of rows (default \code{FALSE}).
+#' @return A matrix or data frame (same as input) with the selected rows (or columns).
 #' @examples
 #' data(Hadza)
 #' Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
@@ -21,17 +22,20 @@
 #' plotHeatmap(topCarb, label_y="TPM")
 #' plotBars(topCarb, label_y="TPM")
 #' @export
-mostAbundant = function(data, N = 10, items = NULL, others = F, rescale = F)
+mostAbundant = function(data, N = 10, items = NULL, others = F, rescale = F, bycol = F)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
     type = typeof(data)
+
+    if(bycol) { data = t(data) }
 
     if(!is.null(items))  # User selects custom data.
         {
         # Check that items selection is possible and user have not ask for unknown things!
         if(any(!items %in% rownames(data)))
             {
-            stop('At least one of your custom items is not in the rows')
+            if(bycol) { s = 'columns' } else { s = 'rows' }
+            stop(sprintf('At least one of your custom items is not in the rows', x))
             }
         } else
         {
@@ -67,6 +71,9 @@ mostAbundant = function(data, N = 10, items = NULL, others = F, rescale = F)
         {
         data = as.data.frame(data)
         }
+
+    if(bycol) { data = t(data) }
+
     return(data)
     }
 

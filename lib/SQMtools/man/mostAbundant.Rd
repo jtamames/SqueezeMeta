@@ -2,9 +2,9 @@
 % Please edit documentation in R/mostAbundant.R
 \name{mostAbundant}
 \alias{mostAbundant}
-\title{Get the N most abundant rows from a numeric table}
+\title{Get the N most abundant rows (or columns) from a numeric table}
 \usage{
-mostAbundant(data, N = 10, items = NULL, others = F, rescale = F)
+mostAbundant(data, N = 10, items = NULL, others = F, rescale = F, bycol = F)
 }
 \arguments{
 \item{data}{numeric matrix or data frame}
@@ -16,12 +16,14 @@ mostAbundant(data, N = 10, items = NULL, others = F, rescale = F)
 \item{others}{logical. If \code{TRUE}, an extra row will be returned containing the aggregated abundances of the elements not selected with \code{N} or \code{items} (default \code{FALSE}).}
 
 \item{rescale}{logical. Scale result to percentages column-wise (default \code{FALSE}).}
+
+\item{bycol}{logical. Operate on columns instead of rows (default \code{FALSE}).}
 }
 \value{
-A matrix or data frame (same as input) with the selected rows.
+A matrix or data frame (same as input) with the selected rows (or columns).
 }
 \description{
-Return a subset of an input matrix or data frame, containing only the N most abundant rows, sorted. Alternatively, a custom set of rows can be returned.
+Return a subset of an input matrix or data frame, containing only the N most abundant rows (or columns), sorted. Alternatively, a custom set of rows can be returned.
 }
 \examples{
 data(Hadza)

@@ -2,20 +2,22 @@
 % Please edit documentation in R/mostVariable.R
 \name{mostVariable}
 \alias{mostVariable}
-\title{Get the N most variable rows from a numeric table}
+\title{Get the N most variable rows (or columns) from a numeric table}
 \usage{
-mostVariable(data, N = 10)
+mostVariable(data, N = 10, bycol = F)
 }
 \arguments{
 \item{data}{numeric matrix or data frame}
 
 \item{N}{integer Number of rows to return (default \code{10}).}
+
+\item{bycol}{logical. Operate on columns instead of rows (default \code{FALSE}).}
 }
 \value{
-A matrix or data frame (same as input) with the selected rows.
+A matrix or data frame (same as input) with the selected rows or columns.
 }
 \description{
-Return a subset of an input matrix or data frame, containing only the N most variable rows, sorted. Variability is calculated as the Coefficient of Variation (sd/mean).
+Return a subset of an input matrix or data frame, containing only the N most variable rows (or columns), sorted. Variability is calculated as the Coefficient of Variation (sd/mean).
 }
 \examples{
 data(Hadza)

@@ -1,9 +1,10 @@
-#' Get the N most variable rows from a numeric table
+#' Get the N most variable rows (or columns) from a numeric table
 #'
-#' Return a subset of an input matrix or data frame, containing only the N most variable rows, sorted. Variability is calculated as the Coefficient of Variation (sd/mean).
+#' Return a subset of an input matrix or data frame, containing only the N most variable rows (or columns), sorted. Variability is calculated as the Coefficient of Variation (sd/mean).
 #' @param data numeric matrix or data frame
 #' @param N integer Number of rows to return (default \code{10}).
-#' @return A matrix or data frame (same as input) with the selected rows.
+#' @param bycol logical. Operate on columns instead of rows (default \code{FALSE}).
+#' @return A matrix or data frame (same as input) with the selected rows or columns.
 #' @examples
 #' data(Hadza)
 #' Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
@@ -18,9 +19,11 @@
 #' plotHeatmap(topCarb, label_y="TPM")
 #' plotBars(topCarb, label_y="TPM")
 #' @export
-mostVariable = function(data, N = 10)
+mostVariable = function(data, N = 10, bycol = F)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
+
+    if(bycol) { data = t(data) }
 
     total_items = nrow(data)
 
@@ -39,6 +42,8 @@ mostVariable = function(data, N = 10)
         
 
     data = data[items,]
+
+    if(bycol) { data = t(data) }
 
     return(data)
     }
