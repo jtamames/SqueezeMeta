@@ -148,11 +148,24 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
 
     project_name = tail(unlist(strsplit(project_path, split='/')), 1)
 
-    ### Check whether this project was created with an old version of SQM
+    ### Check whether this project was created with an old version SQM
+    sqmtools_version = sprintf('v%s', .__NAMESPACE__.$spec['version'])
+    creator_file = sprintf('%s/creator.txt', project_path)
     if(file.exists(sprintf('%s/results/20.%s.contigtable', project_path, project_name)))
         {
-        stop("Your project was created with an older version of SqueezeMeta. Running utils/versionchange.pl might fix this.")
+        stop('Your project was created with a version of SqueezeMeta prior to 1.5. Running utils/versionchange.pl might fix this.')
+    } else if(!file.exists(creator_file))
+        {
+	warning(sprintf('Your project was created with SqueezeMeta v1.5, while this is SQMtools %s. You can ignore this message if things are working fine for you, but if you experience any issue consider using the right version of SQMtools for this project', sqmtools_version)
+	    )
+    } else {
+	project_version = gsub(',','',scan(creator_file, what = 'character')[2])
+        if(project_version != sqmtools_version)
+	    {
+	    warning(sprintf('Your project was created with SqueezeMeta %s, while this is SQMtools %s. You can ignore this message if things are working fine for you, but if you experience any issue consider using the right version of SQMtools for this project', project_version, sqmtools_version))	
+            }
 	}
+
 
     ### Check whether we need to create the projectdir/results/tables directory.
     if(!file.exists(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode)))
@@ -260,7 +273,7 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
     cat('    abundances...\n')
     
     # In issue #589 we found out that bin bases and coverages were not being calculated correctly
-    # This was because data.table::fread was storing some columns containing large values as integer64
+    # This was because data.table::fread was stoif(bycol) { data = t(data) }ring some columns containing large values as integer64
     # When casted from generic.data.frame to matrix with as.matrix, some integer64 became very small numerics (like e-318)
     # In theory data.table::fread has the option `integer64="double"` to avoid integer64 being created in the first place
     # But it fails in some cases as described in https://github.com/Rdatatable/data.table/issues/2607
