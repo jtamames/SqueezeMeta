@@ -85,6 +85,12 @@ TAXRANKS   = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'sp
 FUNMETHODS = {'kegg': 'KO', 'cogs': 'COG'}
 
 def main(args):
+    ### Check that the output dir is valid
+    if 'fun' in args.output_dir.split('/')[-1] and dirname(abspath(args.project_path)) == dirname(abspath(args.output_dir)):
+        print('\nThe output directory can not contain the substring "fun" if it will be a subdirectory of the project directory.')
+        print('Please choose a different output directory\n')
+        exit(1)
+
     ### Create output dir.
     try:
        mkdir(args.output_dir)
