@@ -66,6 +66,7 @@ requirements:
     - bioconductor-pathview
     - tree
     - readline=8
+    - krona
 
 build:
   noarch: generic
