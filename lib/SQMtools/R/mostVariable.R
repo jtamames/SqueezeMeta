@@ -11,15 +11,17 @@
 #' # Which are the 20 most variable KEGG functions in the ORFs related to carbohydrate metabolism?
 #' topCarb = mostVariable(Hadza.carb$functions$KEGG$tpm, N=20)
 #' # Now print them with nice names
-#' rownames(topCarb) = paste(rownames(topCarb), Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
+#' rownames(topCarb) = paste(rownames(topCarb),
+#'                           Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
 #' topCarb
-#' We can pass this to any R function
+#' # We can pass this to any R function
 #' heatmap(topCarb)
-#' But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots
+#' # But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots
 #' plotHeatmap(topCarb, label_y="TPM")
 #' plotBars(topCarb, label_y="TPM")
+#' @importFrom stats sd
 #' @export
-mostVariable = function(data, N = 10, bycol = F)
+mostVariable = function(data, N = 10, bycol = FALSE)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
 

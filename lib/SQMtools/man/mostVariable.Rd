@@ -4,7 +4,7 @@
 \alias{mostVariable}
 \title{Get the N most variable rows (or columns) from a numeric table}
 \usage{
-mostVariable(data, N = 10, bycol = F)
+mostVariable(data, N = 10, bycol = FALSE)
 }
 \arguments{
 \item{data}{numeric matrix or data frame}
@@ -25,11 +25,12 @@ Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 # Which are the 20 most variable KEGG functions in the ORFs related to carbohydrate metabolism?
 topCarb = mostVariable(Hadza.carb$functions$KEGG$tpm, N=20)
 # Now print them with nice names
-rownames(topCarb) = paste(rownames(topCarb), Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
+rownames(topCarb) = paste(rownames(topCarb),
+                          Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
 topCarb
-We can pass this to any R function
+# We can pass this to any R function
 heatmap(topCarb)
-But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots
+# But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots
 plotHeatmap(topCarb, label_y="TPM")
 plotBars(topCarb, label_y="TPM")
 }

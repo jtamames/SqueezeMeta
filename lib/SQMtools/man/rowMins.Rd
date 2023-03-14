@@ -6,6 +6,12 @@
 \usage{
 rowMins(table)
 }
+\arguments{
+\item{table}{matrix or dataframe.}
+}
+\value{
+a vector with the row-wise minima.
+}
 \description{
 Return a vector with the row-wise minima of a matrix or dataframe.
 }

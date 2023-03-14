@@ -20,6 +20,9 @@
 #'
 #' @source \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3798274/bin/pcbi.1003292.s016.xls}{Carr \emph{et al.}, 2013. Table S1}.
 #'
+#' @seealso \code{\link{MGOGs}} and \code{\link{MGKOs}} for an alternative set of single copy genes, and for examples on how to generate copy numbers.
+#'
+#'
 #' @examples
 #' data(Hadza)
 #' data(USiCGs)

@@ -34,10 +34,12 @@ Create a SQM object containing only the requested bins, and the contigs and ORFs
 }
 \examples{
 data(Hadza)
-# Which are the two most complete bins?
-topBinNames = rownames(Hadza$bins$table)[order(Hadza$bins$table[,"Completeness"], decreasing=T)][1:2]
-topBins = subsetBins(Hadza, topBinNames)
+# Which are the most complete bins?
+topBinNames = rownames(Hadza$bins$table)[order(Hadza$bins$table[,"Completeness"],
+                                         decreasing=TRUE)][1:2]
+# Subset with the most complete bin.
+topBin = subsetBins(Hadza, topBinNames[1])
 }
 \seealso{
-\code{\link[subsetContigs]{subsetContigs}}, \code{\link[subsetORFs]{subsetORFs}}
+\code{\link{subsetContigs}}, \code{\link{subsetORFs}}
 }

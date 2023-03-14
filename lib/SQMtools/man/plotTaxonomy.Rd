@@ -69,5 +69,5 @@ Hadza.amin = subsetFun(Hadza, "Amino acid metabolism")
 plotTaxonomy(Hadza.amin, "family")
 }
 \seealso{
-\code{\link[plotFunctions]{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+\code{\link{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 }

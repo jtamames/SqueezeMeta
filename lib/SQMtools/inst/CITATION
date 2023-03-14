@@ -1,0 +1,14 @@
+bibentry(
+  bibtype='Article',
+  title='SQMtools: automated processing and visual analysis of \'omics data with R and anvi\'o',
+  author='Puente-S\u00e1nchez, Fernando and Garc\u00eda-Garc\u00eda, Natalia and Tamames, Javier',
+  journal='BMC bioinformatics',
+  volume='21',
+  number='1',
+  pages='1--11',
+  year='2020',
+  publisher='BioMed Central',
+  textVersion = 'Puente-S\u00e1nchez F., Garc\u00eda-Garc\u00eda N. and Tamames J., SQMtools: automated
+processing and visual analysis of \'omics data with R and anvi\'o.
+BMC Bioinformatics 21, 358 (2020). doi: 10.1186/s12859-020-03703-2.')
+

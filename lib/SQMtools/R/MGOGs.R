@@ -18,5 +18,5 @@
 #' \emph{Cell} \bold{179}:1068-1083.
 #' (\href{https://pubmed.ncbi.nlm.nih.gov/31730850/}{PubMed}).
 #'
-#' @seealso \code{\link[MGKOs]{MGKOs}} for an equivalent list using KOs instead of OGs; \code{\link[USiCGs.R]{USiCGs}} for an alternative set of single copy genes, and for examples on how to generate copy numbers.
+#' @seealso \code{\link{MGKOs}} for an equivalent list using KOs instead of OGs; \code{\link{USiCGs}} for an alternative set of single copy genes, and for examples on how to generate copy numbers.
 "MGOGs"

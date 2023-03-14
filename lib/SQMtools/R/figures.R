@@ -12,7 +12,7 @@ require(reshape2)
 #' @param base_size numeric. Base font size (default \code{11}).
 #' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return A ggplot2 plot object.
-#' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the top functional categories of a SQM object; \code{\link[plotBars]{plotBars}} for plotting a barplot with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
+#' @seealso \code{\link{plotFunctions}} for plotting the top functional categories of a SQM object; \code{\link{plotBars}} for plotting a barplot with arbitrary data; \code{\link{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 #' @examples
 #' data(Hadza)
 #' topPFAM = mostAbundant(Hadza$functions$PFAM$tpm)
@@ -21,6 +21,7 @@ require(reshape2)
 #' @export
 plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fill = 'Abundance', gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
     {
+    sample = item = abun = NULL # to appease R CMD check (they are later used by ggplot2's aes in the context of data_melt, but that syntax bother's R CMD check)
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
     if(length(gradient_col) < 2)
         {
@@ -82,14 +83,16 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
 #' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
 #' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
-#' @seealso \code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotHeatmap}} for plotting a heatmap with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
+#' @seealso \code{\link{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link{plotHeatmap}} for plotting a heatmap with arbitrary data; \code{\link{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 #' @examples
 #' data(Hadza)
 #' sk = Hadza$taxa$superkingdom$abund
 #' plotBars(sk, label_y = "Raw reads", label_fill = "Superkingdom")
+#' @importFrom stats setNames 
 #' @export
 plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fill = 'Features', color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
     {
+    sample = item = abun = NULL # to appease R CMD check (they are later used by ggplot2's aes in the context of data_melt, but that syntax bother's R CMD check)
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
     if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
     data=t(data)
@@ -166,14 +169,14 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' @param base_size numeric. Base font size (default \code{11}).
 #' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
-#' @seealso \code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+#' @seealso \code{\link{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
 plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unmapped = T, ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
     {
-    if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!fun_level %in% names(SQM$functions))
         {
         intro = 'Select function category among'
@@ -285,7 +288,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
 #' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
-#' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+#' @seealso \code{\link{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
 #' data(Hadza)
 #' Hadza.amin = subsetFun(Hadza, "Amino acid metabolism")
@@ -294,7 +297,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' @export
 plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, nocds = 'treat_separately', ignore_unmapped = F, ignore_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
     {
-    if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
         {
         stop('Select rank among "superkingdom", "phylum", "class", "order", "family", "genus" or "species". and count between \'percent\' or \'abund\'')
@@ -484,15 +487,15 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 #' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
 #' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
-#' @seealso \code{\link[plotBins]{plotBins}} for plotting the most abundant bins of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+#' @seealso \code{\link{plotBins}} for plotting the most abundant bins of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
 #' data(Hadza)
 #' # Bins distribution.
 #' plotBins(Hadza)
 #' @export
-plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = T, samples = NULL, ignore_unmapped = F, ignore_nobin = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
+plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, samples = NULL, ignore_unmapped = FALSE, ignore_nobin = FALSE, rescale = FALSE, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
 {
-    if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!count %in% c('abund', 'percent', 'cov', 'cpm'))
     {
         stop('count must be either "abund", "percent", "cov", "cpm"')

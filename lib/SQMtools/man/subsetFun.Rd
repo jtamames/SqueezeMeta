@@ -46,8 +46,8 @@ data(Hadza)
 Hadza.iron = subsetFun(Hadza, "iron")
 Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 # Search for multiple patterns using regular expressions
-Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=F)
+Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=FALSE)
 }
 \seealso{
-\code{\link[subsetTax]{subsetTax}}, \code{\link[subsetORFs]{subsetORFs}}, \code{\link[subsetSamples]{subsetSamples}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
+\code{\link{subsetTax}}, \code{\link{subsetORFs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 }

@@ -37,9 +37,9 @@ Create a SQM object containing only the contigs with a given consensus taxonomy,
 }
 \examples{
 data(Hadza)
-Hadza.Escherichia = subsetTax(Hadza, "genus", "Escherichia")
-Hadza.Bacteroidetes = subsetTax(Hadza, "phylum", "Bacteroidetes")
+Hadza.Prevotella = subsetTax(Hadza, "genus", "Prevotella")
+Hadza.Proteobacteria = subsetTax(Hadza, "phylum", "Proteobacteria")
 }
 \seealso{
-\code{\link[subsetFun]{subsetFun}}, \code{\link[subsetContigs]{subsetContigs}}, \code{\link[subsetSamples]{subsetSamples}}, \code{\link[combineSQM]{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link[mostAbundant]{mostAbundant}}.
+\code{\link{subsetFun}}, \code{\link{subsetContigs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 }

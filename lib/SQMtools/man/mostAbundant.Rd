@@ -4,7 +4,14 @@
 \alias{mostAbundant}
 \title{Get the N most abundant rows (or columns) from a numeric table}
 \usage{
-mostAbundant(data, N = 10, items = NULL, others = F, rescale = F, bycol = F)
+mostAbundant(
+  data,
+  N = 10,
+  items = NULL,
+  others = FALSE,
+  rescale = FALSE,
+  bycol = FALSE
+)
 }
 \arguments{
 \item{data}{numeric matrix or data frame}
@@ -30,12 +37,13 @@ data(Hadza)
 Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 # Which are the 20 most abundant KEGG functions in the ORFs related to carbohydrate metabolism?
 topCarb = mostAbundant(Hadza.carb$functions$KEGG$tpm, N=20)
-# Now print them with nice names
-rownames(topCarb) = paste(rownames(topCarb), Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
+# Now print them with nice names.
+rownames(topCarb) = paste(rownames(topCarb),
+                          Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
 topCarb
-We can pass this to any R function
+# We can pass this to any R function.
 heatmap(topCarb)
-But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots
+# But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots.
 plotHeatmap(topCarb, label_y="TPM")
 plotBars(topCarb, label_y="TPM")
 }

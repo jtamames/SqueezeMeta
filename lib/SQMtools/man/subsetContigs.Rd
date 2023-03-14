@@ -40,5 +40,5 @@ lowGCcontigs = subsetContigs(Hadza, lowGCcontigNames)
 hist(lowGCcontigs$contigs$table[,"GC perc"])
 }
 \seealso{
-\code{\link[subsetORFs]{subsetORFs}}
+\code{\link{subsetORFs}}
 }

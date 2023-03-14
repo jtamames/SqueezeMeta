@@ -14,16 +14,24 @@
 #' @param max_scale_value numeric. Maximum value to include in the color scale. By default it is the maximum value in the selected samples (if plotting abundances in samples) or the maximum absolute log2 fold-change (if plotting fold changes) (default \code{NULL}).
 #' @param color_bins numeric. Number of bins used to generate the gradient in the color scale (default \code{10}).
 #' @param output_suffix character. Suffix to be added to the output files (default \code{"pathview"}).
-#' @seealso \code{\link[plotFunctions]{plotFunctions}} for plotting the most functions taxa of a SQM object.
+#' @return No return value, but Pathview figures are produced in the current working directory.
+#' @seealso \code{\link{plotFunctions}} for plotting the most functions taxa of a SQM object.
 #' @examples
+#' \donttest{
 #' data(Hadza)
-#' exportPathway(Hadza, "00910", count = 'copy_number', output_suffix = "nitrogen_metabolism", sample_colors = c("red", "blue"))
-#' exportPathway(Hadza, "00250", count = 'tpm', output_suffix = "ala_asp_glu_metabolism_FoldChange", fold_change_groups = list(c("H1"), c("H12")), max_scale_value=2)
+#' exportPathway(Hadza, "00910", count = 'copy_number', 
+#'               output_suffix = "nitrogen_metabolism", sample_colors = c("red", "blue"))
+#' exportPathway(Hadza, "00250", count = 'tpm', 
+#'               output_suffix = "ala_asp_glu_metabolism_FoldChange", 
+#'               fold_change_groups = list(c("H1"), c("H12")), max_scale_value=2)
+#'}
+#' @importFrom graphics plot rasterImage text
+#' @importFrom grDevices colorRampPalette dev.off png
 #' @export
-exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_samples = F, sample_colors = NULL, log_scale = F, fold_change_groups = NULL, fold_change_colors = NULL, max_scale_value = NULL, color_bins = 10, output_suffix = 'pathview')
+exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_samples = FALSE, sample_colors = NULL, log_scale = FALSE, fold_change_groups = NULL, fold_change_colors = NULL, max_scale_value = NULL, color_bins = 10, output_suffix = 'pathview')
     {
     ### Check params.
-    if(!class(SQM) %in% c('SQM', 'SQMlite')) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
     if(!count %in% c('abund', 'percent', 'bases', 'tpm', 'copy_number'))
         {
         stop('count must be "abund", "percent", "bases", "tpm" or "copy_number"')
@@ -77,14 +85,13 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
         if(length(sample_colors) != ncol(mat)) { stop('The number of samples does not correspond with the number of sample colors') }
     } else { sample_colors = rep('red', ncol(mat)) }
 
-    library(pathview)
     # Taken from https://support.bioconductor.org/p/58110/
     # Download and parse pathway info.
-    download.kegg(pathway.id = pathway_id, species = 'ko')
+    pathview::download.kegg(pathway.id = pathway_id, species = 'ko')
     xml.file = sprintf('ko%s.xml', pathway_id)
-    node.data = node.info(xml.file)
+    node.data = pathview::node.info(xml.file)
     # Map our data.
-    plot.data.gene = node.map(mol.data=mat, node.data, node.types="ortholog", entrez.gnodes=F)
+    plot.data.gene = pathview::node.map(mol.data=mat, node.data, node.types="ortholog", entrez.gnodes=F)
      
     # This also added the abundances of the different KOs mapping to the same reaction, and assigned it to one of the KOs (the first one?)
     # So plot.data.gene is missing KOs, but has the abundances for each reaction right. We will use that data.
@@ -155,10 +162,10 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
         }
     cols.ts.gene[zeros] = bg.col # In log2FC plots, if we have an even number of color bins, rxns with zero FC (i.e. absent rxns) will not be exactly white.
     # KEGG view
-    keggview.native(plot.data.gene = plot.data.gene,
-                    cols.ts.gene = cols.ts.gene, node.data=node.data,
-                    pathway.name = sprintf('ko%s', pathway_id),
-                    same.layer = T, plot.col.key = F, multi.state=!split_samples, out.suffix = output_suffix)
+    pathview::keggview.native(plot.data.gene = plot.data.gene,
+                             cols.ts.gene = cols.ts.gene, node.data=node.data,
+                             pathway.name = sprintf('ko%s', pathway_id),
+                             same.layer = T, plot.col.key = F, multi.state=!split_samples, out.suffix = output_suffix)
     }
 
 

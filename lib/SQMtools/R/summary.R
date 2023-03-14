@@ -1,11 +1,16 @@
 #' summary method for class SQM
 #'
 #' Computes different statistics of the data contained in the SQM object.
+#' @param object SQM object to be summarized.
+#' @param ... Additional parameters (ignored).
 #' @return A list of summary statistics.
 #' @export
-summary.SQM = function(SQM)
+summary.SQM = function(object, ...)
     {
-    if(!class(SQM)=='SQM') { stop('The first argument must be a SQM object') }
+
+    SQM = object # so that CRAN is happy
+
+    if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
 
     res = list()
 
@@ -77,8 +82,9 @@ summary.SQM = function(SQM)
 
 #' @export
 #' @noRd
-print.summary.SQM = function(summ)
+print.summary.SQM = function(x, ...)
     {
+    summ = x # so that CRAN is happy
     cat('\n')
     cat( sprintf('\tBASE PROJECT NAME: %s\n', summ$project_name) )
     cat('\n\t----------------------------------------------------------\n\n')

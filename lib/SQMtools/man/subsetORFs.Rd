@@ -29,6 +29,8 @@ subsetORFs(
 \item{rescale_tpm}{logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).}
 
 \item{rescale_copy_number}{logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.}
+
+\item{contigs_override}{character. Optional vector of contigs to be included in the subsetted object.}
 }
 \value{
 SQM object containing the requested ORFs.
@@ -44,6 +46,6 @@ While this function selects the contigs and bins that contain the desired orfs, 
 \examples{
 data(Hadza)
 # Select the 100 most abundant ORFs in our dataset.
-mostAbundantORFnames = names(sort(rowSums(Hadza$orfs$tpm), decreasing=T))[1:100]
+mostAbundantORFnames = names(sort(rowSums(Hadza$orfs$tpm), decreasing=TRUE))[1:100]
 mostAbundantORFs = subsetORFs(Hadza, mostAbundantORFnames)
 }

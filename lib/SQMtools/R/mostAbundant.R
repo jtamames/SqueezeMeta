@@ -13,16 +13,17 @@
 #' Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 #' # Which are the 20 most abundant KEGG functions in the ORFs related to carbohydrate metabolism?
 #' topCarb = mostAbundant(Hadza.carb$functions$KEGG$tpm, N=20)
-#' # Now print them with nice names
-#' rownames(topCarb) = paste(rownames(topCarb), Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
+#' # Now print them with nice names.
+#' rownames(topCarb) = paste(rownames(topCarb),
+#'                           Hadza.carb$misc$KEGG_names[rownames(topCarb)], sep="; ")
 #' topCarb
-#' We can pass this to any R function
+#' # We can pass this to any R function.
 #' heatmap(topCarb)
-#' But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots
+#' # But for convenience we provide wrappers for plotting ggplot2 heatmaps and barplots.
 #' plotHeatmap(topCarb, label_y="TPM")
 #' plotBars(topCarb, label_y="TPM")
 #' @export
-mostAbundant = function(data, N = 10, items = NULL, others = F, rescale = F, bycol = F)
+mostAbundant = function(data, N = 10, items = NULL, others = FALSE, rescale = FALSE, bycol = FALSE)
     {
     if (!is.data.frame(data) & !is.matrix(data)) { stop('The first argument must be a matrix or a data frame') }
     type = typeof(data)
@@ -35,7 +36,7 @@ mostAbundant = function(data, N = 10, items = NULL, others = F, rescale = F, byc
         if(any(!items %in% rownames(data)))
             {
             if(bycol) { s = 'columns' } else { s = 'rows' }
-            stop(sprintf('At least one of your custom items is not in the rows', x))
+            stop(sprintf('At least one of your custom items is not in the rows'))
             }
         } else
         {
