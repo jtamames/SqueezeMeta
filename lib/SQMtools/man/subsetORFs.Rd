@@ -8,10 +8,10 @@ subsetORFs(
   SQM,
   orfs,
   tax_source = "orfs",
-  trusted_functions_only = F,
-  ignore_unclassified_functions = F,
-  rescale_tpm = F,
-  rescale_copy_number = F,
+  trusted_functions_only = FALSE,
+  ignore_unclassified_functions = FALSE,
+  rescale_tpm = FALSE,
+  rescale_copy_number = FALSE,
   contigs_override = NULL
 )
 }

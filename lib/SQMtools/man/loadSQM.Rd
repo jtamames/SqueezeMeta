@@ -124,13 +124,13 @@ If external databases for functional classification were provided to SqueezeMeta
 \dontrun{
 ## (outside R)
 ## Run SqueezeMeta on the test data.
-# /path/to/SqueezeMeta/scripts/SqueezeMeta.pl -p Hadza -f raw -m coassembly -s test.samples
+ /path/to/SqueezeMeta/scripts/SqueezeMeta.pl -p Hadza -f raw -m coassembly -s test.samples
 ## Now go into R.
-# library(SQMtools)
-# Hadza = loadSQM("Hadza") # Where Hadza is the path to the SqueezeMeta output directory.
-# }
+library(SQMtools)
+Hadza = loadSQM("Hadza") # Where Hadza is the path to the SqueezeMeta output directory.
+}
 
-data(Hadza)
+data(Hadza) # We will illustrate the structure of the SQM object on the test data
 # Which are the ten most abundant KEGG IDs in our data?
 topKEGG = names(sort(rowSums(Hadza$functions$KEGG$tpm), decreasing=TRUE))[1:11]
 topKEGG = topKEGG[topKEGG!="Unclassified"]

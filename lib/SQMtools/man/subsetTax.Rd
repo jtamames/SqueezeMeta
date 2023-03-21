@@ -8,10 +8,10 @@ subsetTax(
   SQM,
   rank,
   tax,
-  trusted_functions_only = F,
-  ignore_unclassified_functions = F,
-  rescale_tpm = T,
-  rescale_copy_number = T
+  trusted_functions_only = FALSE,
+  ignore_unclassified_functions = FALSE,
+  rescale_tpm = TRUE,
+  rescale_copy_number = TRUE
 )
 }
 \arguments{

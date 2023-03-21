@@ -297,7 +297,7 @@ We also include utility scripts for generating [itol](https://itol.embl.de/) and
 Many users run SqueezeMeta remotely (e.g. in a computing cluster). However it is easier to explore the results interactively from your own computer. Since version 1.6.2, we provide an easy way to achieve this.
 1) In the system in which you ran SqueezeMeta, run the utility script `sqm2zip.py /path/to/my_project /output/dir`, where `/path/to/my_project` is the path to the output of SqueezeMeta, and `/output/dir` an arbitrary output directory.
 2) This will generate a file in `/output/dir` named `my_project.zip`, which contains the essential files needed to load your project into SQMtools. Transfer this file to your desktop computer.
-3) Assuming R is present in your desktop computer, you can install SQMtools with `install.packages("SQMtools")`. This will work seamlessly in Windows and Mac computers, for Linux you may need to previously install the *libcurl* development library.
+3) Assuming R is present in your desktop computer, you can install SQMtools with `if (!require("BiocManager", quietly = TRUE)) { install.packages("BiocManager")}; BiocManager::install("SQMtools")`. This will work seamlessly in Windows and Mac computers, for Linux you may need to previously install the *libcurl* development library.
 4) You can load the project directly from the zip file (no need for decompressing) with `import(SQMtools); SQM = loadSQM("/path/to/my_project.zip")`.
 
 
@@ -354,7 +354,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [Flye](https://github.com/fenderglass/Flye)
 
 
-## 18. About
+## 20. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fernando.puente.sanchez@slu.se).
 
 

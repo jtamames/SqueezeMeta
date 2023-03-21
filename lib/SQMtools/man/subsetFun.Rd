@@ -8,12 +8,12 @@ subsetFun(
   SQM,
   fun,
   columns = NULL,
-  ignore_case = T,
-  fixed = F,
-  trusted_functions_only = F,
-  ignore_unclassified_functions = F,
-  rescale_tpm = F,
-  rescale_copy_number = F
+  ignore_case = TRUE,
+  fixed = FALSE,
+  trusted_functions_only = FALSE,
+  ignore_unclassified_functions = FALSE,
+  rescale_tpm = FALSE,
+  rescale_copy_number = FALSE
 )
 }
 \arguments{

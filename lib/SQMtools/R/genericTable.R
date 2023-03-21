@@ -22,9 +22,9 @@ read.generic.table.zip = function(project_path, file_path, engine = 'data.frame'
             res = do.call(data.table::fread, extra_args)
         } else
             {
-            unzip(project_path, file_path, exdir = tempdir(), junkpaths = T) # junkpaths=T so the file is extracted directly into tempdir()
-            f = tail(unlist(strsplit(file_path, split = '/')), 1)            #  instead of creating "results" or "intermediate" directories
-            f = sprintf('%s/%s', tempdir(), f)                               #  mostly so we can remove it easily after using it
+            unzip(project_path, file_path, exdir = tempdir(), junkpaths = TRUE) # junkpaths=TRUE so the file is extracted directly into tempdir()
+            f = tail(unlist(strsplit(file_path, split = '/')), 1)               #  instead of creating "results" or "intermediate" directories
+            f = sprintf('%s/%s', tempdir(), f)                                  #  mostly so we can remove it easily after using it
             extra_args$file = f
             res = do.call(data.table::fread, extra_args)
             unlink(f)
@@ -52,7 +52,7 @@ generic.table = function(x)
 
 #' @export
 #' @noRd
-`[.generic.data.table` = function(x,i,j, drop = T)
+`[.generic.data.table` = function(x,i,j, drop = TRUE)
     {
     
     class(x) = class(x)[class(x) != 'generic.data.table']

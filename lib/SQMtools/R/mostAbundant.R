@@ -52,10 +52,10 @@ mostAbundant = function(data, N = 10, items = NULL, others = FALSE, rescale = FA
                 warning(sprintf('N=%s but only %s items exist. Returning %s items', N, total_items, total_items))
                 N = total_items
             }
-        items = names(sort(rowSums(data), decreasing = T)[1:N])
+        items = names(sort(rowSums(data), decreasing = TRUE)[1:N])
         }
-    other_items = colSums(data[!rownames(data) %in% items,, drop = F])
-    data = data[items, ,drop = F]
+    other_items = colSums(data[!rownames(data) %in% items,, drop = FALSE])
+    data = data[items, ,drop = FALSE]
     # Sum the abundances of the non-selected taxa
     if (others)
         {

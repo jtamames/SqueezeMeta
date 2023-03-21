@@ -31,7 +31,7 @@ combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = FALSE, 
 
 
 #' @importFrom stats aggregate
-combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only = F, ignore_unclassified_functions = F, rescale_tpm = T, rescale_copy_number = T)
+combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE)
     {
 
     if(!inherits(SQM1, 'SQM') | !inherits(SQM2, 'SQM')) { stop('This function only accepts SQM objects') }
@@ -45,58 +45,58 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     ### ORFs
     extraORFs                          = setdiff(rownames(SQM2$orfs$table), rownames(SQM1$orfs$table))
     #    Table
-    combSQM$orfs$table                 = rbind(combSQM$orfs$table, SQM2$orfs$table[extraORFs,,drop=F])
-    combSQM$orfs$table                 = combSQM$orfs$table[sort(rownames(combSQM$orfs$table)),,drop=F]
+    combSQM$orfs$table                 = rbind(combSQM$orfs$table, SQM2$orfs$table[extraORFs,,drop=FALSE])
+    combSQM$orfs$table                 = combSQM$orfs$table[sort(rownames(combSQM$orfs$table)),,drop=FALSE]
     #    Abundances
-    combSQM$orfs$abund                 = rbind(combSQM$orfs$abund, SQM2$orfs$abund[extraORFs,,drop=F])
-    combSQM$orfs$abund                 = combSQM$orfs$abund[rownames(combSQM$orfs$table),,drop=F]
-    combSQM$orfs$bases                 = rbind(combSQM$orfs$bases, SQM2$orfs$bases[extraORFs,,drop=F])
-    combSQM$orfs$bases                 = combSQM$orfs$bases[rownames(combSQM$orfs$table),,drop=F]
-    combSQM$orfs$cov                   = rbind(combSQM$orfs$cov, SQM2$orfs$cov[extraORFs,,drop=F])
-    combSQM$orfs$cov                   = combSQM$orfs$cov[rownames(combSQM$orfs$table),,drop=F]
+    combSQM$orfs$abund                 = rbind(combSQM$orfs$abund, SQM2$orfs$abund[extraORFs,,drop=FALSE])
+    combSQM$orfs$abund                 = combSQM$orfs$abund[rownames(combSQM$orfs$table),,drop=FALSE]
+    combSQM$orfs$bases                 = rbind(combSQM$orfs$bases, SQM2$orfs$bases[extraORFs,,drop=FALSE])
+    combSQM$orfs$bases                 = combSQM$orfs$bases[rownames(combSQM$orfs$table),,drop=FALSE]
+    combSQM$orfs$cov                   = rbind(combSQM$orfs$cov, SQM2$orfs$cov[extraORFs,,drop=FALSE])
+    combSQM$orfs$cov                   = combSQM$orfs$cov[rownames(combSQM$orfs$table),,drop=FALSE]
     combSQM$orfs$cpm                   = t(t(combSQM$orfs$cov) / (combSQM$total_reads / 1000000))
-    combSQM$orfs$tpm                   = rbind(combSQM$orfs$tpm, SQM2$orfs$tpm[extraORFs,,drop=F])
-    combSQM$orfs$tpm                   = combSQM$orfs$tpm[rownames(combSQM$orfs$table),,drop=F]
+    combSQM$orfs$tpm                   = rbind(combSQM$orfs$tpm, SQM2$orfs$tpm[extraORFs,,drop=FALSE])
+    combSQM$orfs$tpm                   = combSQM$orfs$tpm[rownames(combSQM$orfs$table),,drop=FALSE]
     #    Sequences
     combSQM$orfs$seqs                  = c(combSQM$orfs$seqs, SQM2$orfs$seqs[extraORFs])
     combSQM$orfs$seqs                  = combSQM$orfs$seqs[rownames(combSQM$orfs$table)]
     #    Taxonomy
-    combSQM$orfs$tax                   = rbind(combSQM$orfs$tax, SQM2$orfs$tax[extraORFs,,drop=F])
-    combSQM$orfs$tax                   = combSQM$orfs$tax[rownames(combSQM$orfs$table),,drop=F]
+    combSQM$orfs$tax                   = rbind(combSQM$orfs$tax, SQM2$orfs$tax[extraORFs,,drop=FALSE])
+    combSQM$orfs$tax                   = combSQM$orfs$tax[rownames(combSQM$orfs$table),,drop=FALSE]
     
     ### Contigs
     extraContigs                       = setdiff(rownames(SQM2$contigs$table), rownames(SQM1$contigs$table))
     #    Table
-    combSQM$contigs$table              = rbind(combSQM$contigs$table, SQM2$contigs$table[extraContigs,,drop=F])
+    combSQM$contigs$table              = rbind(combSQM$contigs$table, SQM2$contigs$table[extraContigs,,drop=FALSE])
     combSQM$contigs$table              = combSQM$contigs$table[sort(rownames(combSQM$contigs$table)),]
     #    Abundances
-    combSQM$contigs$abund              = rbind(combSQM$contigs$abund, SQM2$contigs$abund[extraContigs,,drop=F])
-    combSQM$contigs$abund              = combSQM$contigs$abund[rownames(combSQM$contigs$table),,drop=F]
-    combSQM$contigs$bases              = rbind(combSQM$contigs$bases, SQM2$contigs$bases[extraContigs,,drop=F])
-    combSQM$contigs$bases              = combSQM$contigs$bases[rownames(combSQM$contigs$table),,drop=F]
-    combSQM$contigs$cov                = rbind(combSQM$contigs$cov, SQM2$contigs$cov[extraContigs,,drop=F])
-    combSQM$contigs$cov                = combSQM$contigs$cov[rownames(combSQM$contigs$table),,drop=F]
+    combSQM$contigs$abund              = rbind(combSQM$contigs$abund, SQM2$contigs$abund[extraContigs,,drop=FALSE])
+    combSQM$contigs$abund              = combSQM$contigs$abund[rownames(combSQM$contigs$table),,drop=FALSE]
+    combSQM$contigs$bases              = rbind(combSQM$contigs$bases, SQM2$contigs$bases[extraContigs,,drop=FALSE])
+    combSQM$contigs$bases              = combSQM$contigs$bases[rownames(combSQM$contigs$table),,drop=FALSE]
+    combSQM$contigs$cov                = rbind(combSQM$contigs$cov, SQM2$contigs$cov[extraContigs,,drop=FALSE])
+    combSQM$contigs$cov                = combSQM$contigs$cov[rownames(combSQM$contigs$table),,drop=FALSE]
     combSQM$contigs$cpm                = t(t(combSQM$contigs$cov) / (combSQM$total_reads / 1000000))
-    combSQM$contigs$tpm                = rbind(combSQM$contigs$tpm, SQM2$contigs$tpm[extraContigs,,drop=F])
-    combSQM$contigs$tpm                = combSQM$contigs$tpm[rownames(combSQM$contigs$table),,drop=F]
+    combSQM$contigs$tpm                = rbind(combSQM$contigs$tpm, SQM2$contigs$tpm[extraContigs,,drop=FALSE])
+    combSQM$contigs$tpm                = combSQM$contigs$tpm[rownames(combSQM$contigs$table),,drop=FALSE]
     #    Sequences
     combSQM$contigs$seqs               = c(combSQM$contigs$seqs, SQM2$contigs$seqs[extraContigs])
     combSQM$contigs$seqs               = combSQM$contigs$seqs[rownames(combSQM$contigs$table)]
     #    Taxonomy
-    combSQM$contigs$tax                = rbind(combSQM$contigs$tax, SQM2$contigs$tax[extraContigs,,drop=F])
-    combSQM$contigs$tax                = combSQM$contigs$tax[rownames(combSQM$contigs$table),,drop=F]
+    combSQM$contigs$tax                = rbind(combSQM$contigs$tax, SQM2$contigs$tax[extraContigs,,drop=FALSE])
+    combSQM$contigs$tax                = combSQM$contigs$tax[rownames(combSQM$contigs$table),,drop=FALSE]
     #    Binning info
     if('bins' %in% names(combSQM))
         {
-        combSQM$contigs$bins           = rbind(combSQM$contigs$bins, SQM2$contigs$bins[extraContigs,,drop=F])
-        combSQM$contigs$bins           = combSQM$contigs$bins[rownames(combSQM$contigs$table),,drop=F]
+        combSQM$contigs$bins           = rbind(combSQM$contigs$bins, SQM2$contigs$bins[extraContigs,,drop=FALSE])
+        combSQM$contigs$bins           = combSQM$contigs$bins[rownames(combSQM$contigs$table),,drop=FALSE]
 
     ### Bins
 
         extraBins                      = setdiff(rownames(SQM2$bins$table), rownames(SQM1$bins$table))
         #    Table
-        combSQM$bins$table             = rbind(combSQM$bins$table, SQM2$bins$table[extraBins,,drop=F])
-        combSQM$bins$table             = combSQM$bins$table[sort(rownames(combSQM$bins$table)),,drop=F]
+        combSQM$bins$table             = rbind(combSQM$bins$table, SQM2$bins$table[extraBins,,drop=FALSE])
+        combSQM$bins$table             = combSQM$bins$table[sort(rownames(combSQM$bins$table)),,drop=FALSE]
         #    Abundances
 	x = aggregate(combSQM$contigs$abund, by=list(combSQM$contigs$bins[,1]), FUN=sum)
         rownames(x)                    = x[,1]
@@ -120,8 +120,8 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
 	combSQM$bins$cpm               = t(t(combSQM$bins$cov) / (combSQM$total_reads / 1000000))
 
         #    Taxonomy
-        combSQM$bins$tax               = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=F])
-        combSQM$bins$tax               = combSQM$bins$tax[rownames(combSQM$bins$table),,drop=F]
+        combSQM$bins$tax               = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=FALSE])
+        combSQM$bins$tax               = combSQM$bins$tax[rownames(combSQM$bins$table),,drop=FALSE]
         }
 
     ### Taxonomy   

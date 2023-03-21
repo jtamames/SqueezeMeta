@@ -104,13 +104,13 @@ library(data.table)
 #' \dontrun{
 #' ## (outside R)
 #' ## Run SqueezeMeta on the test data.
-#' # /path/to/SqueezeMeta/scripts/SqueezeMeta.pl -p Hadza -f raw -m coassembly -s test.samples
+#'  /path/to/SqueezeMeta/scripts/SqueezeMeta.pl -p Hadza -f raw -m coassembly -s test.samples
 #' ## Now go into R.
-#' # library(SQMtools)
-#' # Hadza = loadSQM("Hadza") # Where Hadza is the path to the SqueezeMeta output directory.
-#' # }
+#' library(SQMtools)
+#' Hadza = loadSQM("Hadza") # Where Hadza is the path to the SqueezeMeta output directory.
+#' }
 #'
-#' data(Hadza)
+#' data(Hadza) # We will illustrate the structure of the SQM object on the test data
 #' # Which are the ten most abundant KEGG IDs in our data?
 #' topKEGG = names(sort(rowSums(Hadza$functions$KEGG$tpm), decreasing=TRUE))[1:11]
 #' topKEGG = topKEGG[topKEGG!="Unclassified"]
@@ -181,7 +181,7 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         }
     else if(!file.exists(sprintf('%s/results/tables/%s.superkingdom.%s.abund.tsv', project_path, project_name, tax_mode)))
         {
-	cat(sprintf('Generating tabular outputs for project in %s\n', project_path))
+	message(sprintf('Generating tabular outputs for project in %s', project_path))
         lines = readLines(sprintf('%s/SqueezeMeta_conf.pl', project_path))
 	lines = trimws(lines)
         lines = gsub(pattern = "#[^\\\n]*", replacement = "", x = lines) # Remove comments.
@@ -206,7 +206,7 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
     SQM$misc                     = list()
     SQM$misc$project_name        = project_name
 
-    cat('Loading total reads\n')
+    message('Loading total reads')
     conn            = open.conn.zip(project_path, sprintf('results/10.%s.mappingstat', project_name))
     lines           = readLines(conn)
     close(conn)
@@ -214,99 +214,99 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
     lines           = lines[!evilLines]
     SQM$total_reads = as.matrix(
                                 read.table(text = lines,
-                                           header=T, sep='\t', row.names=1, comment.char='')
+                                           header=TRUE, sep='\t', row.names=1, comment.char='')
                                )[,'Total.reads']
 
-    cat('Loading orfs\n')
+    message('Loading orfs')
     SQM$orfs                     = list()
 
-    cat('    table...\n')        # option to remove table from memory after getting abund & TPM?
+    message('    table...')        # option to remove table from memory after getting abund & TPM?
     SQM$orfs$table               = read.generic.table.zip(project_path, sprintf('results/13.%s.orftable', project_name), engine = engine,
-                                                          header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
-    cat('    abundances...\n')
-    SQM$orfs$abund               = as.matrix(SQM$orfs$table[,grepl('Raw read count', colnames(SQM$orfs$table)),drop=F])
-    colnames(SQM$orfs$abund)     = gsub('Raw read count ', '', colnames(SQM$orfs$abund), fixed=T)
+                                                          header=TRUE, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=FALSE)
+    message('    abundances...')
+    SQM$orfs$abund               = as.matrix(SQM$orfs$table[,grepl('Raw read count', colnames(SQM$orfs$table)),drop=FALSE])
+    colnames(SQM$orfs$abund)     = gsub('Raw read count ', '', colnames(SQM$orfs$abund), fixed=TRUE)
     storage.mode(SQM$orfs$abund) = 'numeric'
-    SQM$orfs$bases               = as.matrix(SQM$orfs$table[,grepl('Raw base count', colnames(SQM$orfs$table)),drop=F])
-    colnames(SQM$orfs$bases)     = gsub('Raw base count ', '', colnames(SQM$orfs$abund), fixed=T)
+    SQM$orfs$bases               = as.matrix(SQM$orfs$table[,grepl('Raw base count', colnames(SQM$orfs$table)),drop=FALSE])
+    colnames(SQM$orfs$bases)     = gsub('Raw base count ', '', colnames(SQM$orfs$abund), fixed=TRUE)
     storage.mode(SQM$orfs$bases) = 'numeric'
-    SQM$orfs$cov                 = as.matrix(SQM$orfs$table[,grepl('Coverage', colnames(SQM$orfs$table)),drop=F])
-    colnames(SQM$orfs$cov)       = gsub('Coverage ', '', colnames(SQM$orfs$cov), fixed=T)
+    SQM$orfs$cov                 = as.matrix(SQM$orfs$table[,grepl('Coverage', colnames(SQM$orfs$table)),drop=FALSE])
+    colnames(SQM$orfs$cov)       = gsub('Coverage ', '', colnames(SQM$orfs$cov), fixed=TRUE)
     SQM$orfs$cpm                 = t(t(SQM$orfs$cov) / (SQM$total_reads / 1000000))
-    SQM$orfs$tpm                 = as.matrix(SQM$orfs$table[,grepl('TPM', colnames(SQM$orfs$table)),drop=F])
-    colnames(SQM$orfs$tpm)       = gsub('TPM ', '', colnames(SQM$orfs$tpm), fixed=T)
+    SQM$orfs$tpm                 = as.matrix(SQM$orfs$table[,grepl('TPM', colnames(SQM$orfs$table)),drop=FALSE])
+    colnames(SQM$orfs$tpm)       = gsub('TPM ', '', colnames(SQM$orfs$tpm), fixed=TRUE)
     SQM$misc$samples             = colnames(SQM$orfs$abund)
 
     goodORFcols                  = colnames(SQM$orfs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$orfs$table))]
     SQM$orfs$table               = SQM$orfs$table[,goodORFcols]
 
     
-    cat('    sequences\n')
+    message('    sequences...')
     SQM$orfs$seqs                = read.namedvector.zip(project_path, sprintf('results/tables/%s.orf.sequences.tsv', project_name), engine=engine)
     
-    cat('    taxonomy...\n')
+    message('    taxonomy...')
     SQM$orfs$tax                 = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.orf.tax.%s.tsv', project_name, tax_mode), engine = engine,
-							            header=T, row.names=1, sep='\t'))
+							            header=TRUE, row.names=1, sep='\t'))
     #SQM$orfs$tax                 = SQM$orfs$tax[rownames(SQM$orfs$table),]
     # THIS SHOULD NOT BE NEEDED ANYMORE (BUT ALAS IT IS! >_<)
     SQM$orfs$table               = SQM$orfs$table[rownames(SQM$orfs$table) %in% rownames(SQM$orfs$tax),]
-    SQM$orfs$abund               = SQM$orfs$abund[rownames(SQM$orfs$table),,drop=F]
-    SQM$orfs$tpm                 = SQM$orfs$tpm[rownames(SQM$orfs$table),,drop=F]
+    SQM$orfs$abund               = SQM$orfs$abund[rownames(SQM$orfs$table),,drop=FALSE]
+    SQM$orfs$tpm                 = SQM$orfs$tpm[rownames(SQM$orfs$table),,drop=FALSE]
     SQM$orfs$seqs                = SQM$orfs$seqs[rownames(SQM$orfs$table)[rownames(SQM$orfs$table) %in% names(SQM$orfs$seqs)]]
 
-    cat('Loading contigs\n')
+    message('Loading contigs')
     SQM$contigs                  = list()
 
-    cat('    table...\n')                    # option to remove table from memory after getting abund & TPM?
+    message('    table...')                    # option to remove table from memory after getting abund & TPM?
     SQM$contigs$table             = read.generic.table.zip(project_path, sprintf('results/19.%s.contigtable', project_name), engine = engine,
-                                                           header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
+                                                           header=TRUE, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=FALSE)
     
-    cat('    abundances...\n') 
+    message('    abundances...') 
     # In issue #589 we found out that bin bases and coverages were not being calculated correctly
     # This was because data.table::fread was stoif(bycol) { data = t(data) }ring some columns containing large values as integer64
     # When casted from generic.data.frame to matrix with as.matrix, some integer64 became very small numerics (like e-318)
     # In theory data.table::fread has the option `integer64="double"` to avoid integer64 being created in the first place
     # But it fails in some cases as described in https://github.com/Rdatatable/data.table/issues/2607
     # Thus I manually cast all columns containing abund and bases to numeric before casting to matrixz
-    abundcols = colnames(SQM$contigs$table)[grepl('Raw read count', colnames(SQM$contigs$table), fixed=T)]
-    abund = SQM$contigs$table[,abundcols,drop=F]
+    abundcols = colnames(SQM$contigs$table)[grepl('Raw read count', colnames(SQM$contigs$table), fixed=TRUE)]
+    abund = SQM$contigs$table[,abundcols,drop=FALSE]
     for(col in abundcols) { abund[,col] = as.numeric(abund[,col]) }
     abund = as.matrix(abund)
-    colnames(abund) = colnames(abund) = gsub('Raw read count ', '', abundcols, fixed = T)
+    colnames(abund) = colnames(abund) = gsub('Raw read count ', '', abundcols, fixed = TRUE)
     SQM$contigs$abund             = abund
 
-    basescols = colnames(SQM$contigs$table)[grepl('Raw base count', colnames(SQM$contigs$table), fixed=T)]
-    bases = SQM$contigs$table[,basescols,drop=F]
+    basescols = colnames(SQM$contigs$table)[grepl('Raw base count', colnames(SQM$contigs$table), fixed=TRUE)]
+    bases = SQM$contigs$table[,basescols,drop=FALSE]
     for(col in basescols) { bases[,col] = as.numeric(bases[,col]) }
     bases = as.matrix(bases)
-    colnames(bases) = gsub('Raw base count ', '', basescols, fixed = T)
+    colnames(bases) = gsub('Raw base count ', '', basescols, fixed = TRUE)
     SQM$contigs$bases             = bases
 
     # I treat the cov, cpm and tpm matrices normally, as I don't expect them to contain very large values
-    SQM$contigs$cov               = as.matrix(SQM$contigs$table[,grepl('Coverage', colnames(SQM$contigs$table)),drop=F])
-    colnames(SQM$contigs$cov)     = gsub('Coverage ', '', colnames(SQM$contigs$cov), fixed=T)
+    SQM$contigs$cov               = as.matrix(SQM$contigs$table[,grepl('Coverage', colnames(SQM$contigs$table)),drop=FALSE])
+    colnames(SQM$contigs$cov)     = gsub('Coverage ', '', colnames(SQM$contigs$cov), fixed=TRUE)
     SQM$contigs$cpm               = t(t(SQM$contigs$cov) / (SQM$total_reads / 1000000))
-    SQM$contigs$tpm               = as.matrix(SQM$contigs$table[,grepl('TPM', colnames(SQM$contigs$table)),drop=F])
-    colnames(SQM$contigs$tpm)     = gsub('TPM ', '', colnames(SQM$contigs$tpm), fixed=T)
+    SQM$contigs$tpm               = as.matrix(SQM$contigs$table[,grepl('TPM', colnames(SQM$contigs$table)),drop=FALSE])
+    colnames(SQM$contigs$tpm)     = gsub('TPM ', '', colnames(SQM$contigs$tpm), fixed=TRUE)
 
     goodContigCols                = colnames(SQM$contigs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$contigs$table))]
     SQM$contigs$table             = SQM$contigs$table[,goodContigCols]
 
-    cat('    sequences...\n')                                                 
+    message('    sequences...')                                                 
     SQM$contigs$seqs              = read.namedvector.zip(project_path, sprintf('results/tables/%s.contig.sequences.tsv', project_name), engine=engine)
     SQM$contigs$seqs              = SQM$contigs$seqs[rownames(SQM$contigs$table)]
 
-    cat('    taxonomy...\n')
+    message('    taxonomy...')
     SQM$contigs$tax               = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.contig.tax.%s.tsv', project_name, tax_mode), engine = engine,
-                                                                     header=T, row.names=1, sep='\t'))
+                                                                     header=TRUE, row.names=1, sep='\t'))
     SQM$contigs$tax               = SQM$contigs$tax[rownames(SQM$contigs$table),]
 
 					  
     if(file.exists.zip(project_path, sprintf('results/18.%s.bintable', project_name)))
         {
-        cat('    binning info...\n')
+        message('    binning info...')
         inBins                    = read.generic.table.zip(project_path, sprintf('intermediate/18.%s.contigsinbins', project_name), engine = 'data.frame',
-                                                           header=T, sep='\t', quote='', comment.char='', skip=1, as.is=T)
+                                                           header=TRUE, sep='\t', quote='', comment.char='', skip=1, as.is=TRUE)
         binmethods                = unique(inBins$Method)
 
         if(max(table(paste(inBins$X..Contig, inBins$Method)))>1) { 
@@ -325,20 +325,20 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         notInBins                 = setdiff(rownames(SQM$contigs$table), rownames(SQM$contigs$bins))
         notInBins                 = matrix(NA, nrow=length(notInBins), ncol=ncol(SQM$contigs$bins), dimnames=list(notInBins, colnames(SQM$contigs$bins)))
         SQM$contigs$bins          = rbind(SQM$contigs$bins, notInBins)
-        SQM$contigs$bins          = SQM$contigs$bins[rownames(SQM$contigs$table),,drop=F]
+        SQM$contigs$bins          = SQM$contigs$bins[rownames(SQM$contigs$table),,drop=FALSE]
         SQM$contigs$bins[is.na(SQM$contigs$bins)] = 'No_bin'
-        cat('Loading bins\n')
-        cat('    table...\n')
+        message('Loading bins')
+        message('    table...')
         SQM$bins                  = list()
         SQM$bins$table            = read.generic.table.zip(project_path, sprintf('results/18.%s.bintable', project_name), engine = 'data.frame',
-                                                           header=T, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=T, check.names=F)
+                                                           header=TRUE, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=FALSE)
 	SQM$bins$length           = SQM$bins$table$Length
 	names(SQM$bins$length)    = rownames(SQM$bins$table)
 
-        cat('    abundances...\n')
+        message('    abundances...')
         x = aggregate(SQM$contigs$abund, by=list(SQM$contigs$bins[,1]), FUN=sum)
         rownames(x)               = x[,1]
-        x = x[rownames(SQM$bin$table),-1, drop=F]
+        x = x[rownames(SQM$bin$table),-1, drop=FALSE]
         nobin                     = colSums(SQM$contigs$abund) - colSums(x)
         if(sum(nobin)>0)          { x['No_bin',] = nobin }
         x['Unmapped',]            = SQM$total_reads - colSums(x)
@@ -349,20 +349,20 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
 
 	x = aggregate(SQM$contigs$bases, by=list(SQM$contigs$bins[,1]), FUN=sum)
         rownames(x)               = x[,1]
-        x = x[rownames(SQM$bin$table),-1,drop=F]
+        x = x[rownames(SQM$bin$table),-1,drop=FALSE]
         SQM$bins$bases            = as.matrix(x)
 
-        SQM$bins$cov              = as.matrix(SQM$bins$table[,grepl('Coverage', colnames(SQM$bins$table)),drop=F])
-        colnames(SQM$bins$cov)    = gsub('Coverage ', '', colnames(SQM$bins$cov), fixed=T)
+        SQM$bins$cov              = as.matrix(SQM$bins$table[,grepl('Coverage', colnames(SQM$bins$table)),drop=FALSE])
+        colnames(SQM$bins$cov)    = gsub('Coverage ', '', colnames(SQM$bins$cov), fixed=TRUE)
 	SQM$bins$cpm              = t(t(SQM$bins$cov) / (SQM$total_reads / 1000000))
-        cat('    taxonomy...\n')
+        message('    taxonomy...')
         SQM$bins$tax              = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.bin.tax.tsv', project_name), engine = 'data.frame',
-							             header=T, row.names=1, sep='\t'))
+							             header=TRUE, row.names=1, sep='\t'))
     } else
         {
 	warning('    There are no binning results in your project. Skipping...')
 	}
-    cat('Loading taxonomies\n')                                   
+    message('Loading taxonomies')                                   
     SQM$taxa                      = list()
     SQM$taxa$superkingdom         = list()
     SQM$taxa$phylum               = list()
@@ -374,19 +374,19 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
     
 
     SQM$taxa$superkingdom$abund   = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.superkingdom.%s.abund.tsv', project_name, tax_mode),
-                                                                     header=T, sep='\t', row.names=1, check.names=F))
+                                                                     header=TRUE, sep='\t', row.names=1, check.names=FALSE))
     SQM$taxa$phylum$abund         = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.phylum.%s.abund.tsv'      , project_name, tax_mode),
-                                                                     header=T, sep='\t', row.names=1, check.names=F))
+                                                                     header=TRUE, sep='\t', row.names=1, check.names=FALSE))
     SQM$taxa$class$abund          = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.class.%s.abund.tsv'       , project_name, tax_mode),
-                                                                     header=T, sep='\t', row.names=1, check.names=F))
+                                                                     header=TRUE, sep='\t', row.names=1, check.names=FALSE))
     SQM$taxa$order$abund          = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.order.%s.abund.tsv'       , project_name, tax_mode),
-                                                                     header=T, sep='\t', row.names=1, check.names=F))
+                                                                     header=TRUE, sep='\t', row.names=1, check.names=FALSE))
     SQM$taxa$family$abund         = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.family.%s.abund.tsv'      , project_name, tax_mode),
-                                                                     header=T, sep='\t', row.names=1, check.names=F))
+                                                                     header=TRUE, sep='\t', row.names=1, check.names=FALSE))
     SQM$taxa$genus$abund          = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.genus.%s.abund.tsv'       , project_name, tax_mode),
-                                                                     header=T, sep='\t', row.names=1, check.names=F))
+                                                                     header=TRUE, sep='\t', row.names=1, check.names=FALSE))
     SQM$taxa$species$abund        = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.species.%s.abund.tsv'     , project_name, tax_mode),
-                                                                     header=T, sep='\t', row.names=1, check.names=F))
+                                                                     header=TRUE, sep='\t', row.names=1, check.names=FALSE))
                                                           
      
     SQM$taxa$superkingdom$percent = 100 * t(t(SQM$taxa$superkingdom$abund) / colSums(SQM$taxa$superkingdom$abund))
@@ -452,9 +452,9 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         }
 
 
-    cat('Loading functions\n')
+    message('Loading functions')
 
-    result_files                 = strsplit(list.files.zip(project_path, 'results/tables'), '.', fixed=T)
+    result_files                 = strsplit(list.files.zip(project_path, 'results/tables'), '.', fixed=TRUE)
     external_annotation_results  = result_files[sapply(result_files, FUN=function(x) x[3]=='abund' & !x[2] %in% c('COG', 'KO', 'PFAM'))]
     SQM$misc$ext_annot_sources   = sapply(external_annotation_results, FUN=function(x) x[2])
  
@@ -465,17 +465,17 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         has_KEGG                               = TRUE
 	SQM$functions$KEGG                     = list()
         SQM$functions$KEGG$abund               = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.KO.abund.tsv', project_name), engine = 'data.frame',
-                                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                  header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         SQM$functions$KEGG$bases               = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.KO.bases.tsv', project_name), engine = 'data.frame',
-                                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                  header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         SQM$functions$KEGG$cov                 = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.KO.cov.tsv',   project_name), engine = 'data.frame',
-                                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                  header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
 	SQM$functions$KEGG$cpm                 = t(t(SQM$functions$KEGG$cov) / (SQM$total_reads / 1000000))
 
         SQM$functions$KEGG$tpm                 = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.KO.tpm.tsv',   project_name), engine = 'data.frame',
-                                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                  header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
 	funinfo                                = read.generic.table.zip(project_path, sprintf('results/tables/%s.KO.names.tsv', project_name), engine = 'data.frame',
-                                                                        header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+                                                                        header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote='', as.is=TRUE)
 	SQM$misc$KEGG_names                    = funinfo[,1]
 	names(SQM$misc$KEGG_names)             = rownames(funinfo)
         SQM$misc$KEGG_paths                    = funinfo[,2]
@@ -491,17 +491,17 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         has_COG = TRUE
         SQM$functions$COG                      = list()
         SQM$functions$COG$abund                = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.COG.abund.tsv', project_name), engine = 'data.frame',
-                                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                  header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         SQM$functions$COG$bases                = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.COG.bases.tsv', project_name), engine = 'data.frame',
-                                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                  header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         SQM$functions$COG$cov                  = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.COG.cov.tsv',   project_name), engine = 'data.frame',
-                                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                  header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
 	SQM$functions$COG$cpm                  = t(t(SQM$functions$COG$cov) / (SQM$total_reads / 1000000))
 
         SQM$functions$COG$tpm                  = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.COG.tpm.tsv',   project_name), engine = 'data.frame',
-                                                                                  header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                  header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         funinfo                                = read.generic.table.zip(project_path, sprintf('results/tables/%s.COG.names.tsv', project_name), engine = 'data.frame',
-                                                                        header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+                                                                        header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote='', as.is=TRUE)
         SQM$misc$COG_names                     = funinfo[,1]
         names(SQM$misc$COG_names)              = rownames(funinfo)
         SQM$misc$COG_paths                     = funinfo[,2]
@@ -518,14 +518,14 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         has_PFAM = TRUE
         SQM$functions$PFAM                 = list()
         SQM$functions$PFAM$abund           = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.PFAM.abund.tsv', project_name), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         SQM$functions$PFAM$bases           = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.PFAM.bases.tsv', project_name), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         SQM$functions$PFAM$cov             = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.PFAM.cov.tsv',   project_name), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
 	SQM$functions$PFAM$cpm             = t(t(SQM$functions$PFAM$cov) / (SQM$total_reads / 1000000))
         SQM$functions$PFAM$tpm             = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.PFAM.tpm.tsv',   project_name), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
     }else
         {
         warning('    There are no PFAM results in your project. Skipping...')
@@ -537,17 +537,17 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         {
         SQM$functions[[method]] = list()
 	SQM$functions[[method]]$abund      = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.%s.abund.tsv', project_name, method), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         SQM$functions[[method]]$bases      = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.%s.bases.tsv', project_name, method), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         SQM$functions[[method]]$cov        = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.%s.cov.tsv',   project_name, method), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
 	SQM$functions[[method]]$cpm        = t(t(SQM$functions[[method]]$cov) / (SQM$total_reads / 1000000))
 
         SQM$functions[[method]]$tpm        = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.%s.tpm.tsv',   project_name, method), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
 	funinfo                            = read.generic.table.zip(project_path, sprintf('results/tables/%s.%s.names.tsv', project_name, method), engine = 'data.frame',
-                                                                    header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote='', as.is=T)
+                                                                    header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote='', as.is=TRUE)
 	field                              = sprintf('%s_names', method)
 	SQM$misc[[field]]                  = funinfo[,1]
         names(SQM$misc[[field]])           = rownames(funinfo)	
@@ -568,7 +568,7 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         if(has_KEGG)
             {
             SQM$functions$KEGG$copy_number = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.KO.copyNumber.tsv', project_name), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         }else
             {
             }
@@ -576,7 +576,7 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         if(has_COG)
             {
             SQM$functions$COG$copy_number  = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.COG.copyNumber.tsv', project_name), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         }else
             {
             }
@@ -584,7 +584,7 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         if(has_PFAM)
             {
             SQM$functions$PFAM$copy_number = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.PFAM.copyNumber.tsv', project_name), engine = 'data.frame',
-                                                                              header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                              header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
         }else
             {
             }
@@ -592,11 +592,11 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
 	for(method in SQM$misc$ext_annot_sources)
             {                              # :'(
             SQM$functions[[method]]$copy_number = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.%s.copyNumber.tsv', project_name, method), engine = 'data.frame',
-                                                                                   header=T, sep='\t', row.names=1, check.names=F, comment.char='', quote=''))
+                                                                                   header=TRUE, sep='\t', row.names=1, check.names=FALSE, comment.char='', quote=''))
             }
         ### RecA coverage
         SQM$misc$RecA_cov                       = unlist(read.generic.table.zip(project_path, sprintf('results/tables/%s.RecA.tsv', project_name), engine = 'data.frame',
-                                                                                header=T, row.names=1) ['COG0468',] )
+                                                                                header=TRUE, row.names=1) ['COG0468',] )
     }else
         {
         warning('    There are no copy number tables in your project, possibly because COG annotation was not performed or RecA was not present in the metagenome')

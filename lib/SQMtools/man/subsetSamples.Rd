@@ -4,7 +4,7 @@
 \alias{subsetSamples}
 \title{Filter results by sample}
 \usage{
-subsetSamples(SQM, samples, remove_missing = T)
+subsetSamples(SQM, samples, remove_missing = TRUE)
 }
 \arguments{
 \item{SQM}{SQM object to be subsetted.}

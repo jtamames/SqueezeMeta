@@ -4,7 +4,7 @@ read.namedvector = function(file, engine = 'data.frame')
     if(!engine %in% c('data.frame', 'data.table')) { stop('Engine must be "data.frame" or "data.table"') }
     if(engine == 'data.frame')
         {
-        ta = read.table(file, header=T, row.names=1, as.is=T)
+        ta = read.table(file, header=TRUE, row.names=1, as.is=TRUE)
         res = ta[,1]
         names(res) = rownames(ta)
     } else if (engine == 'data.table')
@@ -25,9 +25,9 @@ read.namedvector.zip = function(project_path, file_path, engine = 'data.frame')
         res = read.namedvector(sprintf('%s/%s', project_path, file_path), engine = engine)
     } else # since data.table::fread can't read from connections we need to do uncompress the file before reading it
         {
-        unzip(project_path, file_path, exdir = tempdir(), junkpaths = T) # junkpaths=T so the file is extracted directly into tempdir()
-	f = tail(unlist(strsplit(file_path, split = '/')), 1)            #  instead of creating "results" or "intermediate" directories
-	f = sprintf('%s/%s', tempdir(), f)                               #  mostly so we can remove it easily after using it
+        unzip(project_path, file_path, exdir = tempdir(), junkpaths = TRUE) # junkpaths=TRUE so the file is extracted directly into tempdir()
+	f = tail(unlist(strsplit(file_path, split = '/')), 1)               #  instead of creating "results" or "intermediate" directories
+	f = sprintf('%s/%s', tempdir(), f)                                  #  mostly so we can remove it easily after using it
 	res = read.namedvector(f, engine = engine)
 	unlink(f)
 	}
@@ -66,7 +66,7 @@ merge.numeric.matrices = function(m1, m2)
     notIn2 = setdiff(rownames(m1), rownames(m2))
     m2 = rbind(m2, matrix(0, nrow=length(notIn2), ncol=ncol(m2), dimnames=list(notIn2, colnames(m2))))
     allRows = sort(rownames(m1))
-    return(cbind(m1[allRows,,drop=F], m2[allRows,,drop=F]))
+    return(cbind(m1[allRows,,drop=FALSE], m2[allRows,,drop=FALSE]))
     }
 
 
@@ -106,17 +106,17 @@ check.samples = function(SQM, samples)
 file.exists.zip = function(project_path, file_path)
     {
     zipmode = endsWith(project_path, '.zip')
-    file_exists = T
+    file_exists = TRUE
     if(zipmode) { f = unz(project_path, file_path) } else { f = sprintf('%s/%s', project_path, file_path) }
     if(zipmode)
         {
-        res=try(suppressWarnings(scan(f, what = 'character', quiet = T, n = 1)), silent=T)
-        if(inherits(res, 'try-error')) { file_exists = F }
+        res=try(suppressWarnings(scan(f, what = 'character', quiet = TRUE, n = 1)), silent=TRUE)
+        if(inherits(res, 'try-error')) { file_exists = FALSE }
         close(f)
         }
     else
         {
-        if(!file.exists(f)) { file_exists = F }
+        if(!file.exists(f)) { file_exists = FALSE }
         }
     return(file_exists)
     }

@@ -20,6 +20,6 @@
 #' @export
 exportTable = function(table, output_name)
     {
-    write.table(table, output_name, col.names=NA, sep='\t', quote=F)
+    write.table(table, output_name, col.names=NA, sep='\t', quote=FALSE)
     }
 

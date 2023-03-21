@@ -28,7 +28,7 @@ plotHeatmap = function(data, label_x = 'Samples', label_y = 'Features', label_fi
         stop('gradient_col must be a vector with two colors representing the low and high ends of the color gradient')
         }
     data=t(data)
-    # data = data[, order(colSums(data), decreasing = T), drop = F] # Order functions according to their abundances
+    # data = data[, order(colSums(data), decreasing = TRUE), drop = F] # Order functions according to their abundances
     data_melt = reshape2::melt(as.matrix(data), value.name = 'abun')
     colnames(data_melt) = c('sample', 'item', 'abun')
     data_melt$sample = as.factor(data_melt$sample)
@@ -174,7 +174,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
-plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unmapped = T, ignore_unclassified = T, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
+plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unmapped = TRUE, ignore_unclassified = TRUE, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
     {
     if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!fun_level %in% names(SQM$functions))
@@ -222,11 +222,11 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
     # remove unclassified functions (only possible when not custom items)
     if (ignore_unclassified & is.null(fun) & N != 0)
         {
-        data = data[rownames(data) != 'Unclassified', , drop = F] # Remove 'Unclassified'
+        data = data[rownames(data) != 'Unclassified', , drop = FALSE] # Remove 'Unclassified'
         }
     if (ignore_unmapped & is.null(fun) & N != 0)
         {
-        data = data[rownames(data) != 'Unmapped', , drop = F] # Remove 'Unclassified'
+        data = data[rownames(data) != 'Unmapped', , drop = FALSE] # Remove 'Unclassified'
         }
 
 
@@ -255,7 +255,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
     nice_label = c(abund='Raw abundance', percent = 'Percentage', bases='Bases', cpm = 'Coverage per million reads', tpm='TPM', copy_number='Copy number')[count]
 
     # If requested, plot only the selected samples
-    if(!is.null(samples)) { data = data[,samples,drop=F] }
+    if(!is.null(samples)) { data = data[,samples,drop=FALSE] }
     if (!is.null(metadata_groups))
         {
             if(sum(sapply(metadata_groups, length)) != ncol(data))
@@ -295,7 +295,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, "family")
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = T, samples = NULL, nocds = 'treat_separately', ignore_unmapped = F, ignore_unclassified = F, no_partial_classifications = F, rescale = F, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = TRUE, samples = NULL, nocds = 'treat_separately', ignore_unmapped = FALSE, ignore_unclassified = FALSE, no_partial_classifications = FALSE, rescale = FALSE, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
     {
     if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
@@ -323,7 +323,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 
     #if(!is.null(ignore_taxa)) 
     #    {
-    #    remove_taxa = rep(T, length(ignore_taxa))
+    #    remove_taxa = rep(TRUE, length(ignore_taxa))
     #    names(remove_taxa) = ignore_taxa
     #    }
     check.samples(SQM, samples)
@@ -333,8 +333,8 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
     if(no_partial_classifications)
         {
         unclassified = grepl('[Uu]nclassified', rownames(data0))
-        unclassified_counts = colSums(data0[unclassified,,drop=F])
-	data0 = rbind(data0[!unclassified,,drop=F], 'Unclassified' = unclassified_counts)
+        unclassified_counts = colSums(data0[unclassified,,drop=FALSE])
+	data0 = rbind(data0[!unclassified,,drop=FALSE], 'Unclassified' = unclassified_counts)
         }
 
     # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df
@@ -345,20 +345,20 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 
 
 
-    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = F}
+    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = FALSE}
     if((nocds == 'ignore'| nocds == 'treat_as_unclassified') & !('No CDS' %in% rownames(data))) { nocds = 'treat_separately' }
     # Convert No CDS options in logical values
     if (nocds == 'treat_separately') 
         { 
-        ignore_nocds = F 
+        ignore_nocds = FALSE 
         } else if (nocds == 'ignore') 
         { 
-        ignore_nocds = T 
+        ignore_nocds = TRUE 
         } else if (nocds == 'treat_as_unclassified') 
         { 
-        ignore_nocds = T # at the end we ignore this class 'cause they're included in ignore_unclassified 
+        ignore_nocds = TRUE # at the end we ignore this class 'cause they're included in ignore_unclassified 
         }
-    if(ignore_unclassified & !('Unclassified' %in% rownames(data)) & nocds != 'treat_as_unclassified') {ignore_unclassified = F}
+    if(ignore_unclassified & !('Unclassified' %in% rownames(data)) & nocds != 'treat_as_unclassified') {ignore_unclassified = FALSE}
 
     ignore_cases = c('Unmapped' = ignore_unmapped, 'Unclassified' = ignore_unclassified, 'No CDS' = ignore_nocds)
     #if (!is.null(ignore_taxa)) {ignore_cases = c(ignore_cases, remove_taxa)}
@@ -371,7 +371,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         data = as.data.frame(data0) # Pick more taxa to complete N
         # how many taxa should we replace?
         rr = sum(ignore_cases) # count T cases
-        data = mostAbundant(data, N = N + rr, items = tax, others = others, rescale = F) # Create the data table again
+        data = mostAbundant(data, N = N + rr, items = tax, others = others, rescale = FALSE) # Create the data table again
         # If nocds == 'treat_as_unclassified' => Unclassified = Unclassified + nocds
         if (nocds == 'treat_as_unclassified') 
             {
@@ -380,13 +380,13 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
                 data['Unclassified', ] = data['Unclassified', ] + data['No CDS', ]
                 } else {data['Unclassified', ] = data['No CDS', ]}
             }
-	# Remove ignore_cases = T
+	# Remove ignore_cases = TRUE
         for (i in 1:length(ignore_cases))
             {
             if (ignore_cases[i])
-                { data = data[rownames(data) != names(ignore_cases)[i], , drop = F] } # Remove  ignore cases
+                { data = data[rownames(data) != names(ignore_cases)[i], , drop = FALSE] } # Remove  ignore cases
             }
-        data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
+        data = mostAbundant(data, items = rownames(data), others = FALSE, rescale = rescale) # Renormalize/Others
         }
 
 
@@ -432,7 +432,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         {
         if(!is.null(color)) { color = c(color, 'azure2') }
         niceOrder = c(rownames(data)[rownames(data)!='No CDS'], 'No CDS')
-        data = data[niceOrder,,drop=F]
+        data = data[niceOrder,,drop=FALSE]
         }
     
     # Add unclassified color and put Unclassified at the bottom
@@ -440,7 +440,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         {
         if(!is.null(color)) { color = c(color, 'azure3') }
         niceOrder = c(rownames(data)[rownames(data)!='Unclassified'], 'Unclassified')
-        data = data[niceOrder,,drop=F]
+        data = data[niceOrder,,drop=FALSE]
         }
 
     # Add unmapped color and put Unmapped at the bottom
@@ -448,14 +448,14 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         {
         if(!is.null(color)) { color = c(color, 'azure4') }
         niceOrder = c(rownames(data)[rownames(data)!='Unmapped'], 'Unmapped')
-        data = data[niceOrder,,drop=F]
+        data = data[niceOrder,,drop=FALSE]
         }
 
 
 
 
     # If requested, plot only the selected samples
-    if(!is.null(samples)) { data = data[,samples,drop=F] }
+    if(!is.null(samples)) { data = data[,samples,drop=FALSE] }
     if (!is.null(metadata_groups))
         {
             if(sum(sapply(metadata_groups, length)) != ncol(data))
@@ -520,8 +520,8 @@ plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, 
 
     # Verify whether there are no_bin or Unmapped
 
-    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = F}
-    if(ignore_nobin & !('No_bin' %in% rownames(data))) {ignore_nobin = F}
+    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = FALSE}
+    if(ignore_nobin & !('No_bin' %in% rownames(data))) {ignore_nobin = FALSE}
 
     ignore_cases = c('Unmapped' = ignore_unmapped, 'No_bin' = ignore_nobin)
 
@@ -532,14 +532,14 @@ plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, 
         data = as.data.frame(data0) # Pick more bins to complete N
         # how many bins should we replace?
         rr = sum(ignore_cases) # count T cases
-        data = mostAbundant(data, N = N + rr, items = bins, others = others, rescale = F) # Create the data table again
-        # Remove ignore_cases = T
+        data = mostAbundant(data, N = N + rr, items = bins, others = others, rescale = FALSE) # Create the data table again
+        # Remove ignore_cases = TRUE
         for (i in 1:length(ignore_cases))
         {
             if (ignore_cases[i])
-            { data = data[rownames(data) != names(ignore_cases)[i], , drop = F] } # Remove  ignore cases
+            { data = data[rownames(data) != names(ignore_cases)[i], , drop = FALSE] } # Remove  ignore cases
         }
-        data = mostAbundant(data, items = rownames(data), others = F, rescale = rescale) # Renormalize/Others
+        data = mostAbundant(data, items = rownames(data), others = FALSE, rescale = rescale) # Renormalize/Others
     }
 
     #print(data)
@@ -569,7 +569,7 @@ plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, 
     }else
     {
         # Use default colors from the beginning. User does not care about colors
-        if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'No_bin', 'Unmapped'), , drop=F])]
+        if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'No_bin', 'Unmapped'), , drop=FALSE])]
         }else{ color = NULL }
     }
 
@@ -584,7 +584,7 @@ plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, 
     {
         if(!is.null(color)) { color = c(color, 'azure3') }
         niceOrder = c(rownames(data)[rownames(data)!='No_bin'], 'No_bin')
-        data = data[niceOrder,,drop=F]
+        data = data[niceOrder,,drop=FALSE]
     }
 
     # Add unmapped color and put Unmapped at the bottom
@@ -592,11 +592,11 @@ plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, 
     {
         if(!is.null(color)) { color = c(color, 'azure4') }
         niceOrder = c(rownames(data)[rownames(data)!='Unmapped'], 'Unmapped')
-        data = data[niceOrder,,drop=F]
+        data = data[niceOrder,,drop=FALSE]
     }
 
     # If requested, plot only the selected samples
-    if(!is.null(samples)) { data = data[,samples,drop=F] }
+    if(!is.null(samples)) { data = data[,samples,drop=FALSE] }
     if (!is.null(metadata_groups))
     {
         if(sum(sapply(metadata_groups, length)) != ncol(data))

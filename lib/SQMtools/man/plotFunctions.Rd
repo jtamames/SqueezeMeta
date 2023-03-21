@@ -11,8 +11,8 @@ plotFunctions(
   N = 25,
   fun = NULL,
   samples = NULL,
-  ignore_unmapped = T,
-  ignore_unclassified = T,
+  ignore_unmapped = TRUE,
+  ignore_unclassified = TRUE,
   gradient_col = c("ghostwhite", "dodgerblue4"),
   base_size = 11,
   metadata_groups = NULL

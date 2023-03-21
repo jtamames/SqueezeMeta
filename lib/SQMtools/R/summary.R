@@ -61,14 +61,14 @@ summary.SQM = function(object, ...)
     res$orfs = list()
     res$orfs$total     = colSums(SQM$orfs$abund>0)
     res$orfs$KEGG      = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,'KEGG ID'] != '') )
-    res$orfs$KEGG_good = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,'KEGG ID'], fixed=T) )
+    res$orfs$KEGG_good = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,'KEGG ID'], fixed=TRUE) )
     res$orfs$COG       = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,'COG ID' ] != '') )
-    res$orfs$COG_good  = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,'COG ID' ], fixed=T) )
+    res$orfs$COG_good  = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,'COG ID' ], fixed=TRUE) )
     res$orfs$PFAM      = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,'PFAM'   ] != '') )
     for(method in SQM$misc$ext_annot_sources)
         {
         res$orfs[[method]]                     = colSums( (SQM$orfs$abund>0) * (SQM$orfs$table[,method] != '') )
-        res$orfs[[sprintf('%s_good', method)]] = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,method], fixed=T) )
+        res$orfs[[sprintf('%s_good', method)]] = colSums( (SQM$orfs$abund>0) * grepl('*', SQM$orfs$table[,method], fixed=TRUE) )
         }
 
     res$samples           = SQM$misc$samples
@@ -156,9 +156,9 @@ Npercent  = function(len, percent)
 
 #' Return the name of the most abundant row for all the colums of a taxa.
 #' @noRd
-most_abundant_row = function(table, ignore_unclassified=T)
+most_abundant_row = function(table, ignore_unclassified=TRUE)
     {
-    if(ignore_unclassified) { table = table[!grepl('Unclassified|Unmapped|^No CDS', rownames(table)),,drop=F] }
+    if(ignore_unclassified) { table = table[!grepl('Unclassified|Unmapped|^No CDS', rownames(table)),,drop=FALSE] }
     colMaxsIdx = apply(table, 2, which.max)
     res = rownames(table)[colMaxsIdx]
     if(is.null(res)) { res = rep('Unclassified', ncol(table)) }

@@ -24,7 +24,7 @@ exportKrona = function(SQM, output_name = NA)
 
 
     # Check that kronatools is present.
-    ecode = system('ktImportText', ignore.stdout = T, ignore.stderr = T)
+    ecode = system('ktImportText', ignore.stdout = TRUE, ignore.stderr = TRUE)
     if(ecode!=0) { stop('ktImportText (from KronaTools) is not present in your PATH. KronaTools can be downloaded from https://github.com/marbl/Krona') }
 
     # Should we use the default output name?
@@ -34,13 +34,13 @@ exportKrona = function(SQM, output_name = NA)
 	tempDir = 'kronaTemp'
 	}
     tempDir = sprintf('%s/SQMtools.krona.temp', tempdir())
-    system(sprintf('rm -r %s', tempDir)   , ignore.stdout = T, ignore.stderr = T)
-    system(sprintf('mkdir %s', tempDir), ignore.stdout = T, ignore.stderr = T)
+    system(sprintf('rm -r %s', tempDir)   , ignore.stdout = TRUE, ignore.stderr = TRUE)
+    system(sprintf('mkdir %s', tempDir), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
     # Prepare data.
     ta = SQM$taxa$species$abund
-    taxFields = strsplit(SQM$misc$tax_names_long$species[rownames(ta)], split=';', fixed = T )
-    taxFields = lapply(taxFields, function(x) sapply(strsplit(x, split='_', fixed=T), function(y) y[2]))
+    taxFields = strsplit(SQM$misc$tax_names_long$species[rownames(ta)], split=';', fixed = TRUE )
+    taxFields = lapply(taxFields, function(x) sapply(strsplit(x, split='_', fixed=TRUE), function(y) y[2]))
     taxFields = t(data.frame(taxFields))
 
     for(sample in SQM$misc$samples)
@@ -48,9 +48,9 @@ exportKrona = function(SQM, output_name = NA)
         idx = which(ta[,sample]>0) # Taxa that are present in this sample.
 	kronaTemp = cbind(ta[idx,sample], taxFields[idx,])
         write.table(kronaTemp, file = sprintf('%s/%s.tsv', tempDir, sample),
-                    sep='\t', quote=F, col.names=F, row.names=F) # Write temp file for this sample
+                    sep='\t', quote=FALSE, col.names=FALSE, row.names=FALSE) # Write temp file for this sample
         }
 
     # Create krona report.
-    system(sprintf('ktImportText -o %s %s/*.tsv', output_name, tempDir), ignore.stdout = T, ignore.stderr = T)
+    system(sprintf('ktImportText -o %s %s/*.tsv', output_name, tempDir), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }

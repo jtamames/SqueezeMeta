@@ -75,10 +75,9 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
     if(ncol(mat) > 24)
         {
         warning('We\'ve found that pathview fails when trying to display more than 24 different items, so unless you are grouping your samples with fold_change_groups this will likely not work')
-        cat('We\'ve found that pathview fails when trying to display more than 24 different items, so unless you are grouping your samples with fold_change_groups this will likely not work\n')
         }
     ### Do stuff.
-    if(!is.null(samples)) { mat = mat[,samples,drop=F] }
+    if(!is.null(samples)) { mat = mat[,samples,drop=FALSE] }
 
     if(!is.null(sample_colors))
         {
@@ -91,11 +90,11 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
     xml.file = sprintf('ko%s.xml', pathway_id)
     node.data = pathview::node.info(xml.file)
     # Map our data.
-    plot.data.gene = pathview::node.map(mol.data=mat, node.data, node.types="ortholog", entrez.gnodes=F)
+    plot.data.gene = pathview::node.map(mol.data=mat, node.data, node.types="ortholog", entrez.gnodes=FALSE)
      
     # This also added the abundances of the different KOs mapping to the same reaction, and assigned it to one of the KOs (the first one?)
     # So plot.data.gene is missing KOs, but has the abundances for each reaction right. We will use that data.
-    submat = as.matrix(plot.data.gene[,colnames(mat),drop=F])
+    submat = as.matrix(plot.data.gene[,colnames(mat),drop=FALSE])
     submat[is.na(submat)] = 0
 
     zeros = submat==0
@@ -109,7 +108,7 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
         {
         # Calculate fold change and overwrite submat and plot.data.gene.
         submat = submat + pseudocount
-	log2FC = log(rowMeans(submat[,fold_change_groups[[2]],drop=F]) / rowMeans(submat[,fold_change_groups[[1]],drop=F]), 2)
+	log2FC = log(rowMeans(submat[,fold_change_groups[[2]],drop=FALSE]) / rowMeans(submat[,fold_change_groups[[1]],drop=FALSE]), 2)
 	submat = cbind(submat[,0], log2FC = log2FC)
 	zeros = submat==0
 	plot.data.gene = cbind(plot.data.gene[,!colnames(plot.data.gene) %in% SQM$misc$samples], log2FC = log2FC)
@@ -153,9 +152,9 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
 	    }
         cols.ts.gene[,i] = gradient[submat_color[,i]]
 	filename = sprintf('ko%s.%s.%s.legend.png', pathway_id, output_suffix, colnames(cols.ts.gene)[i])
-	cat(sprintf('Info: Writing legend file %s\n', filename))
+	message(sprintf('Info: Writing legend file %s\n', filename))
 	png(filename)
-        plot(c(0,2),c(0,1),type = 'n', axes = F, xlab = '', ylab = '', main = sprintf('%s - %s', colnames(cols.ts.gene)[i], nice_label[count]))
+        plot(c(0,2),c(0,1),type = 'n', axes = FALSE, xlab = '', ylab = '', main = sprintf('%s - %s', colnames(cols.ts.gene)[i], nice_label[count]))
         text(x=1.5, y = seq(0,1,l=color_bins), labels = signif(true_breaks,3))
         rasterImage(rev(gradient), 0, 0, 1,1)
 	dev.off()
@@ -165,7 +164,7 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
     pathview::keggview.native(plot.data.gene = plot.data.gene,
                              cols.ts.gene = cols.ts.gene, node.data=node.data,
                              pathway.name = sprintf('ko%s', pathway_id),
-                             same.layer = T, plot.col.key = F, multi.state=!split_samples, out.suffix = output_suffix)
+                             same.layer = TRUE, plot.col.key = FALSE, multi.state=!split_samples, out.suffix = output_suffix)
     }
 
 

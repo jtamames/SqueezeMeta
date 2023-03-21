@@ -40,10 +40,10 @@ mostVariable = function(data, N = 10, bycol = FALSE)
             warning(sprintf('N=%s but only %s items exist. Returning %s items', N, total_items, total_items))
             N = total_items
         }
-        items = names(sort(apply(data,1,sd)/apply(data,1,mean), decreasing = T)[1:N])
+        items = names(sort(apply(data,1,sd)/apply(data,1,mean), decreasing = TRUE)[1:N])
         
 
-    data = data[items,]
+    data = data[items,,drop=FALSE]
 
     if(bycol) { data = t(data) }
 
