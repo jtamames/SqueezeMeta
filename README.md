@@ -315,11 +315,11 @@ In addition to the main SqueezeMeta pipeline, we provide two extra modes that en
 **5) sqm_annot.pl**: This script performs functional and taxonomic annotation for a set of genes, for instance these encoded in a genome (or sets of contigs).
 
 
-## 18. Adding new binners and assemblers
+## 17. Adding new binners and assemblers
 With some extra scripting, you can integrate other assembly and binning programs into the SqueezeMeta pipeline. See the PDF manual for details.
 
 
-## 19. License and third-party software
+## 18. License and third-party software
 SqueezeMeta is distributed under a GPL-3 license.
 Additionally, SqueezeMeta redistributes the following third-party software:
 * [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
@@ -354,7 +354,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [Flye](https://github.com/fenderglass/Flye)
 
 
-## 20. About
+## 19. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fernando.puente.sanchez@slu.se).
 
 
