@@ -10,13 +10,13 @@ plotTaxonomy(
   count = "percent",
   N = 15,
   tax = NULL,
-  others = T,
+  others = TRUE,
   samples = NULL,
   nocds = "treat_separately",
-  ignore_unmapped = F,
-  ignore_unclassified = F,
-  no_partial_classifications = F,
-  rescale = F,
+  ignore_unmapped = FALSE,
+  ignore_unclassified = FALSE,
+  no_partial_classifications = FALSE,
+  rescale = FALSE,
   color = NULL,
   base_size = 11,
   max_scale_value = NULL,
@@ -69,5 +69,5 @@ Hadza.amin = subsetFun(Hadza, "Amino acid metabolism")
 plotTaxonomy(Hadza.amin, "family")
 }
 \seealso{
-\code{\link[plotFunctions]{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+\code{\link{plotFunctions}} for plotting the most abundant functions of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 }

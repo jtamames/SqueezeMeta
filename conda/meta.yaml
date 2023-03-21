@@ -1,6 +1,6 @@
 package:
   name: squeezemeta
-  version: '1.6.1post1'
+  version: '1.6.2'
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
@@ -65,6 +65,7 @@ requirements:
     - bioconductor-pathview
     - tree
     - readline=8
+    - krona
 
 build:
   noarch: generic

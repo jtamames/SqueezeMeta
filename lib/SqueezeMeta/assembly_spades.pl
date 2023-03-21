@@ -32,7 +32,7 @@ if($assembler eq 'spades') { $command_start="$spades_soft --meta -k 21,33,55,77,
 elsif($assembler eq "spades-base") { $command_start="$spades_soft"; }
 elsif($assembler eq 'rnaspades') { $command_start="$spades_soft --rna -k 21,33,55,77,99,127"; }
 if($par2name) { $command="$command_start --pe1-1 $par1name --pe1-2 $par2name $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile 2>&1"; }
-else { $command="$command_start --s1 $par1name $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile"; } #-- Support for single reads
+else { $command="$command_start --s1 $par1name $assembler_options -t $numthreads -o $datapath/spades >> $syslogfile 2>&1"; } #-- Support for single reads
 
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }

@@ -11,6 +11,9 @@ exportKrona(SQM, output_name = NA)
 
 \item{output_name}{character. Name of the output file containing the Krona charts in html format (default \code{"<project_name>.krona.html")}.}
 }
+\value{
+No return value, but a krona chart is produced in the current working directory.
+}
 \description{
 Generate a krona chart containing the full taxonomy from a SQM object.
 }
@@ -18,9 +21,11 @@ Generate a krona chart containing the full taxonomy from a SQM object.
 Original code was kindly provided by Giuseppe D'Auria (dauria_giu@gva.es).
 }
 \examples{
+\donttest{
 data(Hadza)
 exportKrona(Hadza)
 }
+}
 \seealso{
-\code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object.
+\code{\link{plotTaxonomy}} for plotting the most abundant taxa of a SQM object.
 }

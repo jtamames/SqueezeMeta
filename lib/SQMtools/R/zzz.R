@@ -9,8 +9,8 @@
     packageStartupMessage('')
     packageStartupMessage('If using it in publications or products, please cite:')
     packageStartupMessage('')
-    packageStartupMessage('Puente-Sánchez F., García-García N. and Tamames J., SQMtools: automated')
-    packageStartupMessage('processing and visual analysis of ’omics data with R and anvi’o.')
+    packageStartupMessage('Puente-S\u00e1nchez F., Garc\u00eda-Garc\u00eda N. and Tamames J., SQMtools: automated')
+    packageStartupMessage('processing and visual analysis of \'omics data with R and anvi\'o.')
     packageStartupMessage('BMC Bioinformatics 21, 358 (2020). doi: 10.1186/s12859-020-03703-2.')
     packageStartupMessage('')
     }

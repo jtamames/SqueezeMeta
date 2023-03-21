@@ -7,10 +7,10 @@
 combineSQM(
   ...,
   tax_source = "orfs",
-  trusted_functions_only = F,
-  ignore_unclassified_functions = F,
-  rescale_tpm = T,
-  rescale_copy_number = T
+  trusted_functions_only = FALSE,
+  ignore_unclassified_functions = FALSE,
+  rescale_tpm = TRUE,
+  rescale_copy_number = TRUE
 )
 }
 \arguments{
@@ -30,17 +30,18 @@ combineSQM(
 A SQM object
 }
 \description{
-Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link[combineSQMlite]{combineSQMlite}}.
+Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link{combineSQMlite}}.
 }
 \examples{
 data(Hadza)
-# Select Carbohydrate metabolism ORFs in Bacteroidetes, and Amino acid metabolism ORFs in Proteobacteria
+# Select Carbohydrate metabolism ORFs in Bacteroidetes,
+#  and Amino acid metabolism ORFs in Proteobacteria
 bact = subsetTax(Hadza, "phylum", "Bacteroidetes")
 bact.carb = subsetFun(bact, "Carbohydrate metabolism")
 proteo = subsetTax(Hadza, "phylum", "Proteobacteria")
 proteo.amins = subsetFun(proteo, "Amino acid metabolism")
-bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=F)
+bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=FALSE)
 }
 \seealso{
-\code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}, \code{\link[combineSQMlite]{combineSQMlite}}
+\code{\link{subsetFun}}, \code{\link{subsetTax}}, \code{\link{combineSQMlite}}
 }

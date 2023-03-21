@@ -22,9 +22,10 @@ data(Hadza)
 other = loadSQMlite("/path/to/other/project/tables") # e.g. if the project was run using sqm_reads
 # (We could also use loadSQM to load the data as long as the data comes from a SqueezeMeta run)
 combined = combineSQMlite(Hadza, other)
-plotTaxonomy(combined, 'family') # Now we can plot together the samples from Hadza and the second project.
+# Now we can plot together the samples from Hadza and the second project
+plotTaxonomy(combined, 'family')
 }
 }
 \seealso{
-\code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}, \code{\link[combineSQM]{combineSQM}}
+\code{\link{combineSQM}}
 }
