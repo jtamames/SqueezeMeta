@@ -53,7 +53,7 @@ SqueezeMeta is intended to be run in a x86-64 Linux OS (tested in Ubuntu and Cen
 
 and then use `mamba` to install SqueezeMeta
 
-`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.6`
+`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.6 --no-channel-priority`
 
 This will create a new conda environment named SqueezeMeta, which must then be activated.
 
@@ -293,7 +293,15 @@ SqueezeMeta comes with a variety of options to explore the results and generate 
 We also include utility scripts for generating [itol](https://itol.embl.de/) and [pavian](https://ccb.jhu.edu/software/pavian/) -compatible outputs.
 
 
-## 15. Alternative analysis modes
+## 15. Analyzing SqueezeMeta results in your desktop computer
+Many users run SqueezeMeta remotely (e.g. in a computing cluster). However it is easier to explore the results interactively from your own computer. Since version 1.6.2, we provide an easy way to achieve this.
+1) In the system in which you ran SqueezeMeta, run the utility script `sqm2zip.py /path/to/my_project /output/dir`, where `/path/to/my_project` is the path to the output of SqueezeMeta, and `/output/dir` an arbitrary output directory.
+2) This will generate a file in `/output/dir` named `my_project.zip`, which contains the essential files needed to load your project into SQMtools. Transfer this file to your desktop computer.
+3) Assuming R is present in your desktop computer, you can install SQMtools with `if (!require("BiocManager", quietly = TRUE)) { install.packages("BiocManager")}; BiocManager::install("SQMtools")`. This will work seamlessly in Windows and Mac computers, for Linux you may need to previously install the *libcurl* development library.
+4) You can load the project directly from the zip file (no need for decompressing) with `import(SQMtools); SQM = loadSQM("/path/to/my_project.zip")`.
+
+
+## 16. Alternative analysis modes
 In addition to the main SqueezeMeta pipeline, we provide two extra modes that enable the analysis of individual reads.
 
 **1) sqm_reads.pl**: This script performs taxonomic and functional assignments on individual reads rather than contigs. This can be useful when the assembly quality is low, or when looking for low abundance functions that might not have enough coverage to be assembled.
@@ -307,11 +315,11 @@ In addition to the main SqueezeMeta pipeline, we provide two extra modes that en
 **5) sqm_annot.pl**: This script performs functional and taxonomic annotation for a set of genes, for instance these encoded in a genome (or sets of contigs).
 
 
-## 16. Adding new binners and assemblers
+## 18. Adding new binners and assemblers
 With some extra scripting, you can integrate other assembly and binning programs into the SqueezeMeta pipeline. See the PDF manual for details.
 
 
-## 17. License and third-party software
+## 19. License and third-party software
 SqueezeMeta is distributed under a GPL-3 license.
 Additionally, SqueezeMeta redistributes the following third-party software:
 * [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
@@ -346,7 +354,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [Flye](https://github.com/fenderglass/Flye)
 
 
-## 18. About
+## 20. About
 SqueezeMeta is developed by Javier Tamames and Fernando Puente-Sánchez. Feel free to contact us for support (jtamames@cnb.csic.es, fernando.puente.sanchez@slu.se).
 
 

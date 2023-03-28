@@ -11,8 +11,8 @@ plotFunctions(
   N = 25,
   fun = NULL,
   samples = NULL,
-  ignore_unmapped = T,
-  ignore_unclassified = T,
+  ignore_unmapped = TRUE,
+  ignore_unclassified = TRUE,
   gradient_col = c("ghostwhite", "dodgerblue4"),
   base_size = 11,
   metadata_groups = NULL
@@ -52,5 +52,5 @@ data(Hadza)
 plotFunctions(Hadza)
 }
 \seealso{
-\code{\link[plotTaxonomy]{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+\code{\link{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 }

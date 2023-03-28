@@ -6,6 +6,12 @@
 \usage{
 rowMaxs(table)
 }
+\arguments{
+\item{table}{matrix or dataframe.}
+}
+\value{
+a vector with the row-wise maxima.
+}
 \description{
 Return a vector with the row-wise maxima of a matrix or dataframe.
 }

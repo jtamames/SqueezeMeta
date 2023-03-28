@@ -3,7 +3,7 @@
 #' Combine an arbitrary number of SQM or SQMlite objects into a single SQMlite object. This function accepts objects originating from different projects (i.e. different SqueezeMeta runs).
 #' @param ... an arbitrary number of SQM or SQMlite objects. Alternatively, a single list containing an arbitrary number of SQMlite objects.
 #' @return A SQMlite object
-#' @seealso \code{\link[subsetFun]{subsetFun}}, \code{\link[subsetTax]{subsetTax}}, \code{\link[combineSQM]{combineSQM}}
+#' @seealso \code{\link{combineSQM}}
 #' @examples
 #' \dontrun{
 #' data(Hadza)
@@ -11,14 +11,15 @@
 #' other = loadSQMlite("/path/to/other/project/tables") # e.g. if the project was run using sqm_reads
 #' # (We could also use loadSQM to load the data as long as the data comes from a SqueezeMeta run)
 #' combined = combineSQMlite(Hadza, other)
-#' plotTaxonomy(combined, 'family') # Now we can plot together the samples from Hadza and the second project.
+#' # Now we can plot together the samples from Hadza and the second project
+#' plotTaxonomy(combined, 'family')
 #' }
 #' @export
 combineSQMlite = function(...)
     {
     inSQMlite = list(...)
     # if there is only one argument and this argument is a list, treat it as a list containing SQM objects
-    if(length(inSQMlite) == 1 & class(inSQMlite[[1]]) == 'list') { inSQMlite = list(...)[[1]] }
+    if(length(inSQMlite) == 1 & inherits(inSQMlite[[1]], 'list')) { inSQMlite = list(...)[[1]] }
     return(Reduce(combineSQMlite_, inSQMlite))
     }
 
@@ -26,7 +27,7 @@ combineSQMlite = function(...)
 combineSQMlite_ = function(SQM1, SQM2)
     {
 
-    if(!class(SQM1) %in% c('SQM', 'SQMlite') | !class(SQM2) %in% c('SQM', 'SQMlite')) { stop('This function only accepts SQM or SQMlite objects') }
+    if(!inherits(SQM1, c('SQM', 'SQMlite')) | !inherits(SQM2, c('SQM', 'SQMlite'))) { stop('This function only accepts SQM or SQMlite objects') }
 
     combSQM = list()
 

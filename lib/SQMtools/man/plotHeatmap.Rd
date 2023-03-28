@@ -42,5 +42,5 @@ topPFAM = topPFAM[rownames(topPFAM) != "Unclassified",] # Take out the Unclassif
 plotHeatmap(topPFAM, label_x = "Samples", label_y = "PFAMs", label_fill = "TPM")
 }
 \seealso{
-\code{\link[plotFunctions]{plotFunctions}} for plotting the top functional categories of a SQM object; \code{\link[plotBars]{plotBars}} for plotting a barplot with arbitrary data; \code{\link[mostAbundant]{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
+\code{\link{plotFunctions}} for plotting the top functional categories of a SQM object; \code{\link{plotBars}} for plotting a barplot with arbitrary data; \code{\link{mostAbundant}} for selecting the most abundant rows in a dataframe or matrix.
 }

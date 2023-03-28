@@ -1,11 +1,16 @@
 #' summary method for class SQMlite
 #'
 #' Computes different statistics of the data contained in the SQMlite object.
+#' @param object SQMlite object to be summarized.
+#' @param ... Additional parameters (ignored).
 #' @return A list of summary statistics.
 #' @export
-summary.SQMlite = function(SQM)
+summary.SQMlite = function(object, ...)
     {
-    if(!class(SQM)=='SQMlite') { stop('The first argument must be a SQMlite object') }
+
+    SQM = object # so that CRAN is happy
+
+    if(!inherits(SQM, 'SQMlite')) { stop('The first argument must be a SQMlite object') }
 
     res = list()
     res$project_name = SQM$misc$project_name
@@ -92,8 +97,9 @@ summary.SQMlite = function(SQM)
 
 #' @export
 #' @noRd
-print.summary.SQMlite = function(summ)
+print.summary.SQMlite = function(x, ...)
     {
+    summ = x # so that CRAN is happy
     cat('\n')
     cat( sprintf('\tBASE PROJECT NAME: %s\n', summ$project_name) )
     cat('\n')

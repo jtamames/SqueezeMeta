@@ -23,6 +23,6 @@ Gene Expression Changes and Community Turnover Differentially Shape the Global O
 (\href{https://pubmed.ncbi.nlm.nih.gov/31730850/}{PubMed}).
 }
 \seealso{
-\code{\link[MGKOs]{MGOGs}} for an equivalent list using OGs instead of KOs; \code{\link[USiCGs.R]{USiCGs}} for an alternative set of single copy genes, and for examples on how to generate copy numbers.
+\code{\link{MGOGs}} for an equivalent list using OGs instead of KOs; \code{\link{USiCGs}} for an alternative set of single copy genes, and for examples on how to generate copy numbers.
 }
 \keyword{datasets}

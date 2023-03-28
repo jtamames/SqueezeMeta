@@ -4,7 +4,12 @@
 \alias{summary.SQM}
 \title{summary method for class SQM}
 \usage{
-\method{summary}{SQM}(SQM)
+\method{summary}{SQM}(object, ...)
+}
+\arguments{
+\item{object}{SQM object to be summarized.}
+
+\item{...}{Additional parameters (ignored).}
 }
 \value{
 A list of summary statistics.

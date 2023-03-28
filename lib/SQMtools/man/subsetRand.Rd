@@ -18,5 +18,5 @@ SQM object containing a random subset of ORFs.
 Create a random subset of a SQM object.
 }
 \seealso{
-\code{\link[subsetORFs]{subsetORFs}}
+\code{\link{subsetORFs}}
 }

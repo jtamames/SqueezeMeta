@@ -9,6 +9,9 @@ seqvec2fasta(seqvec)
 \arguments{
 \item{seqvec}{vector. The vector to be written as a fasta string.}
 }
+\value{
+a character string with the sequence/s written in the fasta format.
+}
 \description{
 Print a named vector of sequences as a fasta-formatted string
 }

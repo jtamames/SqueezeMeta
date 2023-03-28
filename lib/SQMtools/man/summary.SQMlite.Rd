@@ -4,7 +4,12 @@
 \alias{summary.SQMlite}
 \title{summary method for class SQMlite}
 \usage{
-\method{summary}{SQMlite}(SQM)
+\method{summary}{SQMlite}(object, ...)
+}
+\arguments{
+\item{object}{SQMlite object to be summarized.}
+
+\item{...}{Additional parameters (ignored).}
 }
 \value{
 A list of summary statistics.

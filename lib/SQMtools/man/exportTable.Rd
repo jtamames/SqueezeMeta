@@ -11,16 +11,22 @@ exportTable(table, output_name)
 
 \item{output_name}{character. Name of the output file.}
 }
+\value{
+No return value, but a table is produced in the current working directory.
+}
 \description{
 This function is a wrapper for R's write.table function.
 }
 \examples{
+\donttest{
 data(Hadza)
 Hadza.iron = subsetFun(Hadza, "iron")
 # Write the taxonomic distribution at the genus level of all the genes related to iron.
 exportTable(Hadza.iron$taxa$genus$percent, "Hadza.ironGenes.genus.tsv")
-# Now write the distribution of the different iron-related COGs (Clusters of Orthologous Groups) across samples.
+# Now write the distribution of the different iron-related COGs
+#  (Clusters of Orthologous Groups) across samples.
 exportTable(Hadza.iron$functions$COG$tpm, "Hadza.ironGenes.COG.tsv")
 # Now write all the information contained in the ORF table.
 exportTable(Hadza.iron$orfs$table, "Hadza.ironGenes.orftable.tsv")
+}
 }

@@ -43,4 +43,7 @@ Reconstructing the Genomic Content of Microbiome Taxa through Shotgun Metagenomi
 \emph{PLoS Comput. Biol.} \bold{9}:e1003292.
 (\href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3798274/}{PubMed}).
 }
+\seealso{
+\code{\link{MGOGs}} and \code{\link{MGKOs}} for an alternative set of single copy genes, and for examples on how to generate copy numbers.
+}
 \keyword{datasets}
