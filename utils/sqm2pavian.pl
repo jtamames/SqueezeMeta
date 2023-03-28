@@ -3,6 +3,7 @@
 # (c) Javier Tamames, CNB-CSIC
 
 #-- This program prepares sqm output for being loaded in pavian
+#-- ALSO WORKS WITH SQM_READS_LONGREADS OUTPUT, run it normally 
 
 $|=1;
 
