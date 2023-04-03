@@ -94,7 +94,7 @@ Arguments:
    --minion: Run on MinION reads (assembler: canu; mapper: minimap2-ont; consensus: 20) (Default: no)
 
  Annotation:  
-   -db <file>: Specify a new taxonomic database
+   -db <directory>: Specify the location of a new taxonomic database
    --nodiamond: Check if Diamond results are already in place, and just in that case skips the Diamond run (Default: no)
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
@@ -230,7 +230,7 @@ else {
 	if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
 	# if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
-	if($newtaxdb) { if(-e "$newtaxdb.dmnd") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
+	if($newtaxdb) { if(-e "$newtaxdb/nr.dmnd") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
 	}
@@ -988,6 +988,9 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		elsif($_=~/^\$mapping_options/) { print outfile5 "\$mapping_options = \"$conf{mapping_options}\";\n"; }
 		elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $conf{cleaning};\n";            }
 		elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$conf{cleaningoptions}\";\n"; }
+		elsif(($_=~/^\$nr_db/) && $newtaxdb) { print outfile5 "\$nr_db             = \"$conf{newtaxdb}/nr.dmnd\";\n";            }
+		elsif(($_=~/^\$lca_db/) && $newtaxdb) { print outfile5 "\$lca_db             = \"$conf{newtaxdb}/LCA_tax/taxid.db\";\n";            }
+
 		else { print outfile5 "$_\n"; }
 		if($consensus) { print outfile5 "\$consensus=$conf{consensus};\n"; }
 		elsif($minion) { print outfile5 "\$consensus=0.2;\n"; }
@@ -1003,7 +1006,6 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	if($assembler_options) { print outfile5 "\$assembler_options  = \"$conf{assembler_options}\";\n"; }
 	if($extassembly)       { print outfile5 "\$extassembly        = \"$conf{extassembly}\";\n";       }
 	if($opt_db)            { print outfile5 "\$opt_db             = \"$conf{opt_db}\";\n";            }
-	if($newtaxdb)          { print outfile5 "\$newtaxdb             = \"$conf{newtaxdb}\";\n";            }
 	if($taxbinmode) { print outfile5 "\$taxbinmode             = \"$taxbinmode\";\n";            }
 	close outfile5;
 	
