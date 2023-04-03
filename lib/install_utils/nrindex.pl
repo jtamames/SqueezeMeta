@@ -9,13 +9,15 @@ use strict;
 #-- Output file. MUST POINT TO DATABASE DIRECTORY
 
 my $databasedir=$ARGV[0];
-my $nrfasta="$databasedir/nr.faa";	#-- Previously downloaded
+my $nrfasta=$ARGV[1];
+if(!$nrfasta) { $nrfasta="$databasedir/nr.faa";	} #-- Previously downloaded
 
 my $resdir="$databasedir/LCA_tax";
 if(-d $resdir) {} else { system("mkdir $resdir"); }
 my $outfile="$resdir/nr.taxlist.db";
 open(outfile1,">$outfile") || die;
-open(infile1,$nrfasta) || die "Cannot open $nrfasta\n";
+if($nrfasta=~/gz$/) { open(infile1,"zcat $nrfasta |") || die "Cannot open fasta file in $nrfasta\n"; }
+else { open(infile1,$nrfasta) || die "Cannot open fasta file in $nrfasta\n"; }
 my %accum;
 my $specname;
 while(<infile1>) {

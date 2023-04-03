@@ -105,7 +105,7 @@ print "Output created in $outfile\n";
 
 my %yseen;
 open(outfile2,">$parentfile") || die;
-open(infile3,"$outfile") || die "Cannot open file $outfile";
+open(infile3,$outfile) || die "Cannot open file $outfile";
 while(<infile3>) {
 	chomp;
 	next if !$_;
