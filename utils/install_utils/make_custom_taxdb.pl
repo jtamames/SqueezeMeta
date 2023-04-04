@@ -6,8 +6,6 @@ my $REMOVE_NR=1;
 my $REMOVE_TAXDUMP=1;
 my $REMOVE_LCA_TAX_INTERMEDIATE=1;
 
-if(!$ARGV[0]) { die "Please provide a download directory!   "; }
-
 use Cwd 'abs_path';
 my $download_dir = abs_path($ARGV[0]);
 my $newdb = $ARGV[1];
@@ -15,7 +13,7 @@ my $database_dir = "$download_dir/db";
 my $lca_dir = "$database_dir/LCA_tax";
 
 
-if(!$download_dir) { die "Usage: perl make_databases.pl <download dir>\n"; }
+if(!$newdb) { die "Usage: perl make_custom_taxdb.pl <directory for new database> <fasta file with sequences>\n"; }
 
 ###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
 use File::Basename;
@@ -40,7 +38,6 @@ print "Formatting database for Diamond\n";
 my $command = "$bindir/diamond makedb --in $newdb -d $database_dir -p 8 > /dev/null 2>&1";
 my $ecode = system $command;
 
-die;
 
 
 ### Create LCA database from nr data.
@@ -77,7 +74,7 @@ if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $lca_dir/nr.taxlist.db $lca_dir/ta
 
 ### Report db creation date.
 my $timestamp = scalar localtime;
-my $time_command = "echo \"Finished database creatin at > $database_dir";
+my $time_command = "echo \"Finished database creation at > $database_dir";
 system("echo  \"Finished database creation on $timestamp.\" > $database_dir/DB_BUILD_DATE");
 
 

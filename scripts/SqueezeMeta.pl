@@ -239,6 +239,7 @@ else {
 
 $projectdir = abs_path($projectdir);
 $projectname = (split '/', $projectdir)[-1];
+
 my $syslogfile="$projectdir/syslog";
 if (($mode!~/sequential$/i) && (-d $projectdir) && (!$restart)) { print RED; print "Project name $projectdir already exists. Please remove it or change the project name\n"; print RESET; die; } 
 elsif(!$restart && $mode ne "sequential") { system("mkdir $projectdir"); }
@@ -327,8 +328,8 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 	foreach my $thissample(keys %allsamples) { 
 	
 		print "--- SAMPLE $thissample ---\n";
-	
-		$projectdir="$rootdir/$thissample";
+			
+		if(!$restart) { $projectdir="$rootdir/$thissample"; }
 		$conf{'projectname'}=$thissample;
 	
 		#-- Creation of the new configuration file, syslog, and directories
@@ -989,7 +990,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $conf{cleaning};\n";            }
 		elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$conf{cleaningoptions}\";\n"; }
 		elsif(($_=~/^\$nr_db/) && $newtaxdb) { print outfile5 "\$nr_db             = \"$conf{newtaxdb}/nr.dmnd\";\n";            }
-		elsif(($_=~/^\$lca_db/) && $newtaxdb) { print outfile5 "\$lca_db             = \"$conf{newtaxdb}/LCA_tax/taxid.db\";\n";            }
+		elsif(($_=~/^\$lca_db/) && $newtaxdb) { print outfile5 "\$lca_db             = \"$conf{newtaxdb}/db/LCA_tax/taxid.db\";\n";            }
 
 		else { print outfile5 "$_\n"; }
 		if($consensus) { print outfile5 "\$consensus=$conf{consensus};\n"; }
