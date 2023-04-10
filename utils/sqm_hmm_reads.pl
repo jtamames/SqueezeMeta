@@ -12,6 +12,7 @@ use Getopt::Long;
 use Tie::IxHash;
 use lib ".";
 use strict;
+use Term::ANSIColor qw(:constants);
 
 
 ###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
@@ -86,6 +87,7 @@ if(!$pair1) { $dietext.="MISSING PAIR1\n"; }
 if(!$pair2) { $dietext.="MISSING PAIR2\n"; }
 if(!$pfam) { $dietext.="MISSING PFAM\n"; }
 if($dietext) { die "$dietext\n$helptext\n"; }
+if($pair1!~/\.fasta\b|\.fa\b/) { print RED; print "WARNING: This script requires FASTA files, and yours are not named that way\n"; print RESET; print "I will proceed assuming these are fasta files, but if I crash it will likely because of this (and you should feel very bad)\n\n"; }
 
 if(!$outfile) { $outfile="sqm_pfam.out"; }
 my $pfamfile="pfam.hmm";
@@ -111,7 +113,8 @@ sub rewrite_files {
 	my($hcount,$acount,$swc);
 	$tempfile1=$pair1."temp.1.fasta";
 	$tempfile2=$pair2."temp.2.fasta";
-	open(infile1,$pair1) || die;
+	if($pair1=~/gz$/) { open(infile1,"zcat $pair1 |") || die "Cannot open input file 1 in $pair1\n"; }
+	else { open(infile1,$pair1) || die "Cannot open input file 1 in $pair1\n"; }
 	while(<infile1>) {		#-- To know if the naming schema has .1, \1, _1 at the end of read names
 		chomp;			#-- We evaluate the first 10 headers to check if all follow the same pattern
 		next if(!$_);
@@ -124,8 +127,9 @@ sub rewrite_files {
 		}
 	close infile1;
 	if($acount==$hcount) { $swc=1; }	#-- If they do, we will remove that .1, \1, _1 and replace it for .1, which ShortPair wants
-	open(infile1,$pair1) || die;
-	open(outfile1,">$tempfile1") || die;
+	if($pair1=~/gz$/) { open(infile1,"zcat $pair1 |") || die "Cannot open input file 1 in $pair1\n"; }
+	else { open(infile1,$pair1) || die "Cannot open input file 1 in $pair1\n"; }
+	open(outfile1,">$tempfile1") || die "Cannot open pair1 OUTPUT file in $tempfile1, check if you have permissions in that directory\n";
 	while(<infile1>) {
 		chomp;
 		next if(!$_);
@@ -138,8 +142,9 @@ sub rewrite_files {
 		}
 	close infile1;
 	close outfile1;
-	open(infile2,$pair2) || die;
-	open(outfile2,">$tempfile2") || die;
+	if($pair2=~/gz$/) { open(infile2,"zcat $pair2 |") || die "Cannot open input file 2 in $pair2\n"; }
+	else { open(infile2,$pair2) || die "Cannot open input file 2 in $pair2\n"; }
+	open(outfile2,">$tempfile2") || die "Cannot open pair2 OUTPUT file in $tempfile2, check if you have permissions in that directory\n";
 	while(<infile2>) {
 		chomp;
 		next if(!$_);
@@ -159,11 +164,15 @@ sub get_pfam {		#-- Retrieving corresponding pfam from PFAM
 	my @plist=split(/\,/,$pfam);
 	foreach my $tpfam(@plist) {
 		print "Getting Pfam and alignment for $tpfam\n";
-		my $hmm_query="wget -nv http://pfam.xfam.org/family/$tpfam/hmm -O $tpfam.hmm";
+		
+		#-- WARNING: Pfam has been DISCONTINUED and it is now included in UniProt, which means that pfam.xfam.org no longer exists.
+		#-- for now, the pfam-legacy.xfam.org URL still works, but can cause trouble in the future.
+		
+		my $hmm_query="wget -nv http://pfam-legacy.xfam.org/family/$tpfam/hmm -O $tpfam.hmm";
 		system $hmm_query;
 		if(-e $pfamfile) { system("cat $pfamfile $tpfam.hmm > outh; mv outh $pfamfile; rm $tpfam.hmm"); }
 		else { system("mv $tpfam.hmm $pfamfile"); }
-		my $ali_query="wget -nv http://pfam.xfam.org/family/$tpfam/alignment/seed -O $tpfam.seed";
+		my $ali_query="wget -nv http://pfam-legacy.xfam.org/family/$tpfam/alignment/seed -O $tpfam.seed";
 		system $ali_query;
 		if(-e $pfamseed) { system("cat $pfamseed $tpfam.seed > outh; mv outh $pfamseed; rm $tpfam.seed"); }
 		else { system("mv $tpfam.seed $pfamseed"); }
