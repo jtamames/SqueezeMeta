@@ -19,21 +19,39 @@ my $project=$projectname;
 
 do "$projectdir/parameters.pl";
 
-our($installpath,$resultpath,$tempdir,$interdir,$aafile,$ntfile,$gff_file,$prodigal_soft,$methodsfile,$syslogfile);
+our($installpath,$resultpath,$tempdir,$interdir,$mode,$aafile,$ntfile,$gff_file,$prodigal_soft,$methodsfile,$syslogfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
-#-- Runs prodigal and cat the gff file with the RNA's one coming from barrnap (previous step)
+my @seqfiles;
+my $idir;
+opendir(indir,$interdir) || die;
+@seqfiles=grep(/02.*.maskedrna.fasta$/,readdir indir);
+closedir indir;
+if($mode eq "clustered") { $idir=$interdir; } else { $idir=$resultpath; }
+# print "**@seqfiles**\n";
+
+foreach my $rfiles(@seqfiles) {
+	my @k=split(/\./,$rfiles);
+	my $project=$k[1];
+	print "  Masked fasta file for $project found\n";
+
+#-- Runs prodigal and cat the gff file with the RNA's one(s) coming from barrnap (previous step)
 
 my $tempgff="$tempdir/02.$project.cds.gff.temp";
 my $tempgff2="$tempdir/02.$project.cds.gff";
 my $tempaa="$tempdir/02.$project.aa.temp";
 my $tempnt="$tempdir/02.$project.nt.temp";
+$aafile="$idir/03.$project.faa";          
+$ntfile="$idir/03.$project.fna";
+$gff_file="$idir/03.$project.gff";          
+	
+
 
 my $maskedcontigs="$interdir/02.$project.maskedrna.fasta";
 my $command="$prodigal_soft -q -m -p meta -i $maskedcontigs -a $aafile -d $ntfile -f gff -o $tempgff";
-print "  Running prodigal (Hyatt et al 2010, BMC Bioinformatics 11: 119) for predicting ORFs\n";
+print "  Running prodigal (Hyatt et al 2010, BMC Bioinformatics 11: 119) for predicting ORFs in $project\n";
 print outsyslog "Running prodigal for predicting ORFs: $command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
@@ -97,4 +115,12 @@ system("cat $tempgff2 $tempdir/02.$project.rna.gff > $gff_file");
 close outmet;
 close outsyslog;
 
-print "  ORFs predicted: $numgenes\n";
+print "  ORFs predicted in $project: $numgenes\n";
+	}
+
+if($mode eq "clustered") {
+	print "  Now clustering genes\n";
+	my $command="perl $installpath/utils/cluster_protein.pl $projectname";
+	system($command);
+	}
+	
