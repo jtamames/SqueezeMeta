@@ -37,7 +37,7 @@ foreach my $tbinner(@binner) { #-- For all the specified binners
 		@binfiles=grep(/fasta$|fa$/,readdir indir1);
 		closedir indir1;
 		$firstfile="$dirbin/$binfiles[0]";
-		$wsize=checksize($firstfile);
+		# $wsize=checksize($firstfile); #commented out since this was no longer used
 		}
 	else { system("mkdir $dirbin"); }
 	

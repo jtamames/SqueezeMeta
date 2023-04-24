@@ -21,7 +21,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath, $samtools_soft, $concoct_dir,$databasepath,$contigsfna,$singletons,$contigcov,$alllog,$tempdir,$interdir,$mappingfile,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($installpath, $samtools_soft, $concoct_dir,$databasepath,$contigsfna,$singletons,$contigcov,$tempdir,$interdir,$mappingfile,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
@@ -33,7 +33,7 @@ if(-d $bindir) {} else { print "  Creating $bindir directory\n"; print outsyslog
 my %samples;
 my %skip;
 print "  Reading samples from $mappingfile\n";
-open(infile0,$mappingfile) || die "Can't open $alllog\n";
+open(infile0,$mappingfile) || die "Can't open $mappingfile\n";
 while(<infile0>) {
         chomp;
         next if !$_;
