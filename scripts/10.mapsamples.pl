@@ -193,11 +193,20 @@ foreach my $thissample(keys %allsamples) {
 
 	my $totalreads=contigcov($thissample,$bamfile);
 	
+	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
+
 	#-- And then we call the counting
 	
-	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
-	print outsyslog "Calling sqm_counter: Sample $thissample, BAM $bamfile, Number of reads $totalreads, GFF $gff_file\n";
-	sqm_counter($thissample,$bamfile,$totalreads,$gff_file);
+	if(-e $gff_file) {	
+		print outsyslog "Calling sqm_counter: Sample $thissample, BAM $bamfile, Number of reads $totalreads, GFF $gff_file\n";
+		sqm_counter($thissample,$bamfile,$totalreads,$gff_file);
+		system("rm $tempdir/count.*");
+		#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
+		my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+		print outsyslog "Sorting mapcount table: $command\n";
+		system($command);
+
+	} else { print outsyslog "\nWARNING: $gff_file not found, will not do counting of gene abundances\n\n"; }
 
 
 }
@@ -213,18 +222,11 @@ if($warnmes) {
 
 close outfile1;
 
-print "  Output in $mapcountfile\n";
+print "  Output in $mappingstat\n";
 close outfile3;
 if($mapper eq "bowtie" or $mapper eq "bwa") {
 	system("rm $bowtieref.*");	#-- Deleting bowtie references
 }
-system("rm $tempdir/count.*");
-
-	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
-	
-my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
-print outsyslog "Sorting mapcount table: $command\n";
-system($command);	
 
 
 
