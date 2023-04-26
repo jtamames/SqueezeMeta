@@ -296,6 +296,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$orfs$tpm                   = SQM$orfs$tpm[orfs        ,,drop=FALSE]
     subSQM$orfs$seqs                  = SQM$orfs$seqs[orfs]
     subSQM$orfs$tax                   = SQM$orfs$tax[orfs        ,,drop=FALSE]
+    subSQM$orfs$markers               = SQM$orfs$markers[orfs]
 
     subSQM$contigs$table              = SQM$contigs$table[contigs,,drop=FALSE]
     subSQM$contigs$abund              = SQM$contigs$abund[contigs,,drop=FALSE]

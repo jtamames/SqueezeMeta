@@ -5,6 +5,8 @@ python utilities for working with SqueezeMeta results
 
 from collections import defaultdict
 from numpy import array, isnan, seterr
+from os import listdir
+from os.path import isdir
 seterr(divide='ignore', invalid='ignore')
 
 TAXRANKS = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
@@ -455,6 +457,93 @@ def parse_fasta(fasta):
                 seq += line.strip()
         res[header] = seq
     return res
+
+
+def map_checkm_marker_genes(orf_table, checkm_dir):
+    """
+    Parse the results from checkm in order to identify which of our ORFs
+     contained marker genes detected by CheckM
+    Return:
+        orf_markers: dictionary with ORFs as keys and sets of marker PFAMs as values
+    """
+    checkm_contigs = defaultdict(dict)
+    for d in listdir(f'{checkm_dir}/bins'):
+        if not isdir(f'{checkm_dir}/bins/{d}'):
+            continue
+        orf_se = {}
+        with open(f'{checkm_dir}/bins/{d}/genes.gff') as infile:
+            for line in infile:
+                if line.startswith('#'):
+                    continue
+                line = line.strip().split('\t')
+                contig, _, _, start, end, _, _, _, info = line
+                ID = info.split('ID=')[1].split(';')[0]
+                orf = contig + '_' + ID.split('_')[1]
+                start, end = int(start), int(end)
+                orf_se[orf] = start, end
+        with open(f'{checkm_dir}/bins/{d}/hmmer.analyze.txt') as infile:
+            for line in infile:
+                if line.startswith('#'):
+                    continue
+                line = [field for field in line.strip().split(' ') if field]
+                orf = line[0]                  # here we are using the start and end of the ORF
+                contig = orf.rsplit('_', 1)[0] # while in fairness we should use the start of end of the PFAM hit
+                start, end = orf_se[orf]       # but it is a good enough approximation
+                PFAM = line[4]
+                if orf not in checkm_contigs[contig]:
+                    checkm_contigs[contig][orf] = {'start': start, 'end': end, 'PFAMs': set([PFAM])}
+                else:
+                    checkm_contigs[contig][orf]['PFAMs'].add(PFAM) # we can have multiple annotations for the same ORF
+
+    sqm_contigs = defaultdict(dict)
+    with open(orf_table) as infile:
+        for line in infile:
+            if line.startswith('#') or line.startswith('ORF ID'):
+                continue
+            line = line.strip().split('\t')
+            orf = line[0]
+            contig, se = orf.rsplit('_', 1)
+            start, end = [int(p) for p in se.split('-')]
+            sqm_contigs[contig][orf] = {'start': start, 'end': end}
+
+
+    # Map annotations from checkm ORFs (made by CheckM running prodigal on its own) to SQM ORFs (made by SQM running prodigal on its own)
+    orf_markers = {orf: set() for contig, sqm_orfs in sqm_contigs.items() for orf in sqm_orfs}
+    for contig, checkm_orfs in checkm_contigs.items():
+        if contig not in sqm_contigs:
+            continue
+        sqm_orfs = sqm_contigs[contig]
+        # Get the biggest position in the contig that is covered by a SQM orf
+        maxs = max([data['start'] for data in sqm_orfs.values()])
+        maxe = max([data['end'] for data in sqm_orfs.values()])
+        maxp = max([maxs, maxe])
+        # Create an array of positions in the contigs and the CheckM ORF to which they map to
+        positions = [set() for i in range(maxp)]
+        for orf, data in checkm_orfs.items():
+            start, end = data['start'], data['end']
+            if end < start:
+                start, end = end, start
+            if end > maxp:
+                end = maxp
+            for i in range(start-1, end): # switch from one to zero-indexing
+                positions[i].add(orf)  # note that several orfs can overlap in the same position
+        # Assign each SQM ORF to a CheckM ORF and inherit its PFAM annotation
+        for orf, data in sqm_orfs.items():
+            start, end = data['start'], data['end']
+            if end < start:
+                start, end = end, start
+            checkmORFs = defaultdict(int)
+            PFAMs = set()
+            for i in range(start-1, end): # switch from one to zero-indexing
+                for cmo in positions[i]:
+                    checkmORFs[cmo] += 1
+            if checkmORFs: # we found annotated equivalents in CheckM
+                bestCheckmORF = max(checkmORFs, key=checkmORFs.get)
+                overlap = checkmORFs[bestCheckmORF] / (end-start+1)
+                if overlap > 0.75: # 75% or more overlap between the CheckM and SQM ORFs
+                    PFAMs = checkm_orfs[bestCheckmORF]['PFAMs']
+            orf_markers[orf] = PFAMs
+    return orf_markers
 
 
 def write_orf_seqs(orfs, aafile, fna_blastx, rrnafile, trnafile, outname):

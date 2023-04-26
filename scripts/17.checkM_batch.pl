@@ -30,7 +30,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 print "  Evaluating bins with CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n\n";
 
 my $markerdir="$datapath/checkm_markers";
-my $checktemp="$tempdir/checkm_batch";
+my $checktemp="$interdir/checkm_batch";
 my $tempc="$tempdir/checkm_prov.txt";
 my %branks=('k','domain','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 

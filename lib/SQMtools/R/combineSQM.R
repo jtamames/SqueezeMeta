@@ -63,6 +63,9 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     #    Taxonomy
     combSQM$orfs$tax                   = rbind(combSQM$orfs$tax, SQM2$orfs$tax[extraORFs,,drop=FALSE])
     combSQM$orfs$tax                   = combSQM$orfs$tax[rownames(combSQM$orfs$table),,drop=FALSE]
+    #    Markers
+    combSQM$orfs$markers               = c(combSQM$orfs$markers, SQM2$orfs$markers[extraORFs])
+    combSQM$orfs$markers               = combSQM$orfs$markers[rownames(combSQM$orfs$table)]
     
     ### Contigs
     extraContigs                       = setdiff(rownames(SQM2$contigs$table), rownames(SQM1$contigs$table))
@@ -100,7 +103,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         #    Abundances
 	x = aggregate(combSQM$contigs$abund, by=list(combSQM$contigs$bins[,1]), FUN=sum)
         rownames(x)                    = x[,1]
-        x = x[rownames(combSQM$bin$table),-1]
+        x = x[rownames(combSQM$bin$table),-1,drop=F]
         nobin                          = colSums(combSQM$contigs$abund) - colSums(x)
         if(sum(nobin)>0)               { x['No_bin',] = nobin }
 

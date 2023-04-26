@@ -33,7 +33,7 @@ utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
 data_dir = '{}/../data'.format(utils_home)
 
-from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_contig_tax, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
+from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_contig_tax, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, map_checkm_marker_genes, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
 
 
 def main(args):
@@ -183,6 +183,12 @@ def main(args):
         if not int(perlVars['$nobins']) and isfile(perlVars['$bintable']):
             bin_tpm, bin_tax, bin_tax_wranks = parse_bin_table(perlVars['$bintable'])
             write_row_dict(TAXRANKS, bin_tax, prefix + 'bin.tax.tsv')
+            orf_markers = map_checkm_marker_genes(perlVars['$mergedfile'], perlVars['$interdir']+'/checkm_batch')
+            with open(prefix + 'orf.marker.genes.tsv', 'w') as outfile:
+                for orf, markers in orf_markers.items():
+                    markers = '\t' + ','.join(markers) if markers else ''
+                    outfile.write(f'{orf}{markers}\n')
+
 
         for idx, rank in enumerate(TAXRANKS):
             unmapped_str = ';'.join([rs+'_Unmapped' for i, rs in enumerate(TAXRANKS_SHORT) if i <= idx])
