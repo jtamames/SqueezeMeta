@@ -39,23 +39,41 @@ if(-d $checktemp) {} else { system "mkdir $checktemp"; print "  Creating $checkt
 
 my(%tax,%bins,%consensus,%alltaxa);
 
-#-- Read NCBI's taxonomy 
+my $binmethod="DAS";
 
-open(infile1,$taxlist) || die "Can't find taxonomy list $taxlist\n";
-print "  Reading $taxlist\n";
-while(<infile1>) {
-	chomp;
-	next if !$_;
-	my @t=split(/\t/,$_);
-	my $nctax=$t[1];
-	$nctax=~s/ \<.*//;
-	$tax{$nctax}=$t[2];
+if(!-e $alllog) {
+	print "  Running CheckM for all bins\n";
+	my $command = "rm -r $checktemp";
+	my $ecode = system $command;
+        if($ecode!=0) { die "Error running command:    $command"; }
+	if(1) {
+		print outsyslog "\nWARNING: $alllog was not found. We will run CheckM using a universal (Life) marker set!\n\n";
+		$command = "$checkm_soft taxonomy_wf life Prokaryote $binresultsdir $checktemp -t $numthreads -x fa -f $checkmfile >> $syslogfile 2>&1";
+	} else {
+		print outsyslog "\nWARNING: $alllog was not found. We will use CheckM to estimate bin lineage!\n\n";
+                $command = "$checkm_soft lineage_wf $binresultsdir $checktemp -t $numthreads -x fa -f $checkmfile >> $syslogfile 2>&1";
 	}
-close infile1;
+        print outsyslog "$command\n";
+        my $ecode = system $command;
+        if($ecode!=0) { die "Error running command:    $command"; }
+} else {
+
+
+	#-- Read NCBI's taxonomy 
+
+	open(infile1,$taxlist) || die "Can't find taxonomy list $taxlist\n";
+	print "  Reading $taxlist\n";
+	while(<infile1>) {
+		chomp;
+		next if !$_;
+		my @t=split(/\t/,$_);
+		my $nctax=$t[1];
+		$nctax=~s/ \<.*//;
+		$tax{$nctax}=$t[2];
+		}
+	close infile1;
 
 	#-- Read bin directories
-
-	my $binmethod="DAS";
 	my $bindir=$binresultsdir;
 	print "  Looking for $binmethod bins in $bindir\n";
 	
@@ -72,106 +90,107 @@ close infile1;
 
 	#-- Read all bins
 
-opendir(indir,$bindir) || die "Can't open $bindir directory\n";
-my @files=grep(/tax$/,readdir indir);
-my $numbins=$#files+1;
-print "  $numbins bins found\n\n";
-closedir indir;
+	opendir(indir,$bindir) || die "Can't open $bindir directory\n";
+	my @files=grep(/tax$/,readdir indir);
+	my $numbins=$#files+1;
+	print "  $numbins bins found\n\n";
+	closedir indir;
 
 
-my $currentbin;
-if(-e $checkmfile) { system("rm $checkmfile"); }
+	my $currentbin;
+	if(-e $checkmfile) { system("rm $checkmfile"); }
 
-	#-- Working for each bin
+		#-- Working for each bin
 
-foreach my $m(@files) { 
-	$currentbin++;
-	#if($exclude{$m}) { print "**Excluding $m\n"; next; }
-	my $binname=$m;
-	my $binname=~s/\.tax//g;
-	my $thisfile="$bindir/$m";
-	$bins{$thisfile}=$binname;
-	print "  Bin $currentbin/$numbins: $m\n";
+	foreach my $m(@files) { 
+		$currentbin++;
+		#if($exclude{$m}) { print "**Excluding $m\n"; next; }
+		my $binname=$m;
+		my $binname=~s/\.tax//g;
+		my $thisfile="$bindir/$m";
+		$bins{$thisfile}=$binname;
+		print "  Bin $currentbin/$numbins: $m\n";
  
-	#-- Reading the consensus taxa for the bin
+		#-- Reading the consensus taxa for the bin
  
-	open(infile3,$thisfile) || die "Can't open $thisfile\n";
-	while(<infile3>) { 
-		chomp;
-		if($_=~/Consensus/) {
-			my($cons,$size,$chim,$chimlev)=split(/\t/,$_);
-			$cons=~s/Consensus\: //;
-			$size=~s/Total size\: //g;
-			if($size<$minsize17) { print "  Skipping bin because of low size ($size<$minsize17)\n"; next; }
-			$consensus{$thisfile}=$cons;
-			my @k=split(/\;/,$cons);
+		open(infile3,$thisfile) || die "Can't open $thisfile\n";
+		while(<infile3>) { 
+			chomp;
+			if($_=~/Consensus/) {
+				my($cons,$size,$chim,$chimlev)=split(/\t/,$_);
+				$cons=~s/Consensus\: //;
+				$size=~s/Total size\: //g;
+				if($size<$minsize17) { print "  Skipping bin because of low size ($size<$minsize17)\n"; next; }
+				$consensus{$thisfile}=$cons;
+				my @k=split(/\;/,$cons);
 		
-			#-- We store the full taxonomy for the bin because not all taxa have checkm markers
+				#-- We store the full taxonomy for the bin because not all taxa have checkm markers
 		
-			foreach my $ftax(reverse @k) { 
-				my($ntax,$rank);
-				if($ftax!~/\_/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\_/,$ftax); }
-				$ntax=~s/unclassified //gi;
-				$ntax=~s/ \<.*\>//gi; 
-				if(($tax{$ntax}) && ($rank ne "n") && ($rank ne "s") && ($branks{$rank})) { 
-				push( @{ $alltaxa{$thisfile} },"$branks{$rank}\_$ntax");
-				#   print "$m\t$ntax\t$tax{$ntax}\n";
+				foreach my $ftax(reverse @k) { 
+					my($ntax,$rank);
+					if($ftax!~/\_/) { $ntax=$ftax; } else { ($rank,$ntax)=split(/\_/,$ftax); }
+					$ntax=~s/unclassified //gi;
+					$ntax=~s/ \<.*\>//gi; 
+					if(($tax{$ntax}) && ($rank ne "n") && ($rank ne "s") && ($branks{$rank})) { 
+					push( @{ $alltaxa{$thisfile} },"$branks{$rank}\_$ntax");
+					#   print "$m\t$ntax\t$tax{$ntax}\n";
+					}
 				}
 			}
 		}
-	}
-	close infile3;
+		close infile3;
 
-	my $inloop=1;
+		my $inloop=1;
 
-	#-- We will find the deepest taxa with checkm markers
-	while($inloop) {  
-		my $taxf=shift(@{ $alltaxa{$thisfile}  }); 
-		if(!$taxf) { last; $inloop=0; }
-		my($rank,$tax)=split(/\_/,$taxf);
-		$tax=~s/ \<.*//g;
-                $tax=~s/\s+/\_/g;
-		# my $rank=$equival{$grank};
-		if($rank eq "superkingdom") { $rank="domain"; }
-		print "  Using profile for $rank rank : $tax\n";   
-		my $marker="$markerdir/$tax.ms"; 
+		#-- We will find the deepest taxa with checkm markers
+		while($inloop) {  
+			my $taxf=shift(@{ $alltaxa{$thisfile}  }); 
+			if(!$taxf) { last; $inloop=0; }
+			my($rank,$tax)=split(/\_/,$taxf);
+			$tax=~s/ \<.*//g;
+	                $tax=~s/\s+/\_/g;
+			# my $rank=$equival{$grank};
+			if($rank eq "superkingdom") { $rank="domain"; }
+			print "  Using profile for $rank rank : $tax\n";   
+			my $marker="$markerdir/$tax.ms"; 
 	
-		#-- Use already existing tax profile or create it
+			#-- Use already existing tax profile or create it
 	
-		if(-e $marker) {} else { 
-			my $command="$checkm_soft taxon_set $rank $tax $marker >> $syslogfile 2>&1";
-			print outsyslog "$command\n";
-                        my $ecode = system $command;
-			if($ecode!=0) { die "Error running command:    $command"; }
-			}
+			if(-e $marker) {} else { 
+				my $command="$checkm_soft taxon_set $rank $tax $marker >> $syslogfile 2>&1";
+				print outsyslog "$command\n";
+	                        my $ecode = system $command;
+				if($ecode!=0) { die "Error running command:    $command"; }
+				}
 	
-		#-- If it was not possible to create the profile, go for the upper rank
+			#-- If it was not possible to create the profile, go for the upper rank
 		
-		if(-e $marker) {} else { next; }
+			if(-e $marker) {} else { next; }
 	
-		my $fastafile=$thisfile;
-		$fastafile=~s/\.tax//;
-		$fastafile=~s/.*\///;
-		# print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
-		# system("$checkm_soft analyze -t $numthreads -x $bins{$thisfile} $marker $bindir $checktemp > /dev/null");
-		my $command = "$checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp >> $syslogfile 2>&1";
-		print outsyslog "$command\n";
-		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
+			my $fastafile=$thisfile;
+			$fastafile=~s/\.tax//;
+			$fastafile=~s/.*\///;
+			# print ">>> $checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp > /dev/null\n";
+			# system("$checkm_soft analyze -t $numthreads -x $bins{$thisfile} $marker $bindir $checktemp > /dev/null");
+			my $command = "$checkm_soft analyze -t $numthreads -x $fastafile $marker $bindir $checktemp >> $syslogfile 2>&1";
+			print outsyslog "$command\n";
+			my $ecode = system $command;
+			if($ecode!=0) { die "Error running command:    $command"; }
 
-		my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc >> $syslogfile 2>&1";
-		print outsyslog "$command\n";
-		my $ecode = system $command;
-		if($ecode!=0) { die "Error running command:    $command"; }
-	#	system("rm -r $checktemp");
-		$inloop=0;
-		if(-e $checkmfile) { system("cat $checkmfile $tempc > $checkmfile.prov; mv $checkmfile.prov $checkmfile"); }
-		else { system("mv $tempc $checkmfile"); }
-		}
+			my $command = "$checkm_soft qa -t $numthreads $marker $checktemp -f $tempc >> $syslogfile 2>&1";
+			print outsyslog "$command\n";
+			my $ecode = system $command;
+			if($ecode!=0) { die "Error running command:    $command"; }
+		#	system("rm -r $checktemp");
+			$inloop=0;
+			if(-e $checkmfile) { system("cat $checkmfile $tempc > $checkmfile.prov; mv $checkmfile.prov $checkmfile"); }
+			else { system("mv $tempc $checkmfile"); }
+			}
  	} 
+	print "\n  Storing results for $binmethod in $checkmfile\n";
+}
+
 print "\n  Storing results for $binmethod in $checkmfile\n";
-
-
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Bin statistics were computed using CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n";
 close outmet;
