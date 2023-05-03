@@ -47,7 +47,7 @@ requirements:
     - future
     - matplotlib
     - dendropy
-    - pysam
+    - pysam==0.20
     - biopython
     - perl=5.26
     - perl-tie-ixhash
