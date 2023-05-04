@@ -25,14 +25,31 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$resultpath,$extpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass,$minraw12,$syslogfile);
+our($installpath,$datapath,$resultpath,$tempdir,$extpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mode,$mapcountfile,$doublepass,$minraw12,$syslogfile);
 
 print "  Calculating coverage for functions\n";
-my(%funs,%taxf,%validid,%tfun,%totalbases,%totalreads,%allsamples,%funstat,%longorfs,%taxcount,%optdb);
+my(%funs,%taxf,%validid,%tfun,%totalbases,%totalreads,%allsamples,%funstat,%longorfs,%taxcount,%optdb,%incluster);
 
 	#-- Reading KEGG functions and pathways
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+
+if($mode eq "clustered") {	#-- Reading reporesentatives if in clustering mode
+	my $clusterfile="$tempdir/allfaa.clus.rep.tsv";
+	print "  Reading representatives from $clusterfile\n";
+	open(inclus,$clusterfile) || die;
+	while(<inclus>) {
+		chomp;
+		next if !$_;
+		my($repr,$member)=split(/\t/,$_);
+		my @u=split(/\_/,$member);
+		my @o=split(/\-/,$u[$#u]);
+		my $insample=$u[0];
+		$incluster{$repr}{$member}=$insample;
+		$longorfs{$member}=$o[1]-$o[0]+1;
+		}
+	close(inclus);
+	}
 
 open(infile1,$kegglist) || warn "Missing KEGG equivalence file $kegglist\n";
 while(<infile1>) {
@@ -104,9 +121,11 @@ while(<infile3>) {
 		my ($rank,$ttax)=split(/\_/,$cm);
 		my $cortax=$equival{$rank};
 		next if(!$cortax);
-		$taxf{$k[0]}{$cortax}=$ttax;
-		if($taxreq && ($ttax eq $taxreq)) { $validid{$k[0]}=1; }
-		# print "$k[0] $cortax $ttax\n";
+		foreach my $alrep(keys %{ $incluster{$k[0]}; }) {
+			$taxf{$alrep}{$cortax}=$ttax;
+			if($taxreq && ($ttax eq $taxreq)) { $validid{$alrep}=1; }
+			# print "$k[0] $cortax $ttax\n";
+			}
 		}
 	}
 close infile3;
@@ -121,7 +140,9 @@ if(!$nokegg) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
 		my @k=split(/\t/,$_);
-		$tfun{$k[0]}{kegg}=$k[1];
+		foreach my $alrep(keys %{ $incluster{$k[0]}; }) {
+			$tfun{$alrep}{kegg}=$k[1];
+			}
 		}
 	close infile4;
 	}
@@ -135,7 +156,9 @@ if(!$nocog) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
 		my @k=split(/\t/,$_);
-		$tfun{$k[0]}{cog}=$k[1];
+		foreach my $alrep(keys %{ $incluster{$k[0]}; }) {
+			$tfun{$alrep}{cog}=$k[1];
+			}
 		}
 	close infile5;
 	}
@@ -157,7 +180,9 @@ if($opt_db) {
 			chomp;
 			next if(!$_ || ($_=~/\#/));
 			my @k=split(/\t/,$_);
-			$tfun{$k[0]}{$dbname}=$k[1];
+			foreach my $alrep(keys %{ $incluster{$k[0]}; }) {
+				$tfun{$alrep}{$dbname}=$k[1];
+				}
 			}
 		close infile10;  
 		}
@@ -173,17 +198,19 @@ while(<infile6>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my @k=split(/\t/,$_);
-	my $cfun_kegg=$tfun{$k[0]}{kegg};	#-- Corresponding KEGG for this gene
-	my $cfun_cog=$tfun{$k[0]}{cog}; 	#-- Corresponding COG for this gene
-	# foreach my $odb(sort keys %optdb) { my $cfun_opt{$k[0]}{$odb}=$tfun{$k[0]}{$o};
-	my $sample=$k[$#k];
-	$longorfs{$k[0]}=$k[1];		#-- Length of the gene
-	my $mapbases=$k[3];
-	# print "$k[0] $cfun_kegg $cfun_cog $sample $longorfs{$k[0]}\n";
-	$totalbases{$sample}+=$mapbases;
-	next if($taxreq && (!$validid{$k[0]}));
-	$allsamples{$sample}++;
-	if($mapbases) {
+	foreach my $alrep(keys %{ $incluster{$k[0]}; }) {
+		my $cfun_kegg=$tfun{$k[0]}{kegg};	#-- Corresponding KEGG for this gene
+		my $cfun_cog=$tfun{$k[0]}{cog}; 	#-- Corresponding COG for this gene
+		# foreach my $odb(sort keys %optdb) { my $cfun_opt{$k[0]}{$odb}=$tfun{$k[0]}{$o};
+		# my $sample=$k[$#k];
+		my $sample=$incluster{$k[0]}{$alrep};
+		# $longorfs{$alrep}=$longrep{$alrep};		#-- Length of the gene
+		my $mapbases=$k[3];
+		# print "$k[0] $cfun_kegg $cfun_cog $sample $longorfs{$k[0]}\n";
+		$totalbases{$sample}+=$mapbases;
+		next if($taxreq && (!$validid{$alrep}));
+		$allsamples{$sample}++;
+		if($mapbases) {
 	
 		#-- Counting KEGGs
 		
@@ -191,11 +218,11 @@ while(<infile6>) {
 			my @kegglist=split(/\;/,$cfun_kegg);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
 			foreach my $tlist_kegg(@kegglist) {
 				$funstat{kegg}{$tlist_kegg}{$sample}{copies}++;
-				$funstat{kegg}{$tlist_kegg}{$sample}{length}+=$longorfs{$k[0]}; 
+				$funstat{kegg}{$tlist_kegg}{$sample}{length}+=$longorfs{$alrep}; 
 				$funstat{kegg}{$tlist_kegg}{$sample}{bases}+=$mapbases;
 				foreach my $tk(keys %equival) {
 					my $krank=$equival{$tk};
-					my $itax=$taxf{$k[0]}{$krank};
+					my $itax=$taxf{$alrep}{$krank};
 					if($itax) { $taxcount{kegg}{$tlist_kegg}{$sample}{$krank}{$itax}++; }
 					}
 				}
@@ -204,18 +231,18 @@ while(<infile6>) {
 		#-- Counting OPT_DB
 	
 		foreach my $odb(sort keys %optdb) {
-			my $cfun_opt=$tfun{$k[0]}{$odb};
+			my $cfun_opt=$tfun{$alrep}{$odb};
 			# print "$k[0] $odb $cfun_opt\n";
 			if($cfun_opt) {
 				my @optlist=split(/\;/,$cfun_opt);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
 				foreach my $tlist_opt(@optlist) {
 					$funstat{$odb}{$tlist_opt}{$sample}{copies}++;
-					$funstat{$odb}{$tlist_opt}{$sample}{length}+=$longorfs{$k[0]}; 
+					$funstat{$odb}{$tlist_opt}{$sample}{length}+=$longorfs{$alrep}; 
 					$funstat{$odb}{$tlist_opt}{$sample}{bases}+=$mapbases;
                                         $funstat{$odb}{$tlist_opt}{$sample}{reads}+=$k[2];
 					foreach my $tk(keys %equival) {
 						my $krank=$equival{$tk};
-						my $itax=$taxf{$k[0]}{$krank};
+						my $itax=$taxf{$alrep}{$krank};
 						if($itax) { $taxcount{$odb}{$tlist_opt}{$sample}{$krank}{$itax}++; }
 						}
 					}
@@ -224,18 +251,19 @@ while(<infile6>) {
 
 		#-- Counting COGs
 	
-	if($cfun_cog) { 
-		my @coglist=split(/\;/,$cfun_cog);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
-		foreach my $tlist_cog(@coglist) {
-			$funstat{cog}{$tlist_cog}{$sample}{copies}++;
-			$funstat{cog}{$tlist_cog}{$sample}{length}+=$longorfs{$k[0]}; #-- Para leer las longitudes directamente de las secuencias (para ficheros coverage antiguos que no la tienen)
-			$funstat{cog}{$tlist_cog}{$sample}{bases}+=$mapbases;
-			# print "$k[0]*$cfun_cog*$sample*$longorfs{$k[0]}*$funstat{cog}{$cfun_cog}{$sample}{length}\n";
-			foreach my $tk(keys %equival) {
-				my $krank=$equival{$tk};
-				my $itax=$taxf{$k[0]}{$krank};
-				if($itax) { $taxcount{cog}{$tlist_cog}{$sample}{$krank}{$itax}++; }
- 				}
+		if($cfun_cog) { 
+			my @coglist=split(/\;/,$cfun_cog);	#-- Support for multiple COGS (in annotations such as COG0001;COG0002, all COGs get the counts)
+			foreach my $tlist_cog(@coglist) {
+				$funstat{cog}{$tlist_cog}{$sample}{copies}++;
+				$funstat{cog}{$tlist_cog}{$sample}{length}+=$longorfs{$alrep}; #-- Para leer las longitudes directamente de las secuencias (para ficheros coverage antiguos que no la tienen)
+				$funstat{cog}{$tlist_cog}{$sample}{bases}+=$mapbases;
+				# print "$k[0]*$cfun_cog*$sample*$longorfs{$k[0]}*$funstat{cog}{$cfun_cog}{$sample}{length}\n";
+				foreach my $tk(keys %equival) {
+					my $krank=$equival{$tk};
+					my $itax=$taxf{$alrep}{$krank};
+					if($itax) { $taxcount{cog}{$tlist_cog}{$sample}{$krank}{$itax}++; }
+ 					}
+				}
 			}
 		}
 	}
@@ -251,27 +279,28 @@ while(<infile7>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
 	my @k=split(/\t/,$_);
-	my $cfun_kegg=$tfun{$k[0]}{kegg}; 
-	my $cfun_cog=$tfun{$k[0]}{cog}; 
-	my $sample=$k[$#k];
-	$totalreads{$sample}+=$k[2];
-	next if((!$cfun_kegg) && (!$cfun_cog));
-	next if($taxreq && (!$validid{$k[0]}));
-	if($k[2]) {
-		my @kegglist=split(/\;/,$cfun_kegg);
-		my @coglist=split(/\;/,$cfun_cog);
-		foreach my $tlist_kegg(@kegglist) { 
-			if($tlist_kegg) { $funstat{kegg}{$tlist_kegg}{$sample}{reads}+=$k[2]; }
-			}
-		foreach my $tlist_cog(@coglist) { 
-			if($tlist_cog) { $funstat{cog}{$tlist_cog}{$sample}{reads}+=$k[2]; }  
-			}
+	foreach my $alrep(keys %{ $incluster{$k[0]}; }) {
+		my $cfun_kegg=$tfun{$alrep}{kegg}; 
+		my $cfun_cog=$tfun{$alrep}{cog}; 
+		my $sample=$incluster{$k[0]}{$alrep};
+		$totalreads{$sample}+=$k[2];
+		next if((!$cfun_kegg) && (!$cfun_cog));
+		next if($taxreq && (!$validid{$k[0]}));
+		if($k[2]) {
+			my @kegglist=split(/\;/,$cfun_kegg);
+			my @coglist=split(/\;/,$cfun_cog);
+			foreach my $tlist_kegg(@kegglist) { 
+				if($tlist_kegg) { $funstat{kegg}{$tlist_kegg}{$sample}{reads}+=$k[2]; }
+				}
+			foreach my $tlist_cog(@coglist) { 
+				if($tlist_cog) { $funstat{cog}{$tlist_cog}{$sample}{reads}+=$k[2]; }  
+				}
 #		foreach my $odb(sort keys %optdb) {
 #			my $cfun_opt=$tfun{$k[0]}{$odb};
 #			if($cfun_opt) { $funstat{$odb}{$cfun_opt}{$sample}{reads}+=$k[2]; }
 #			}
+			}
 		}
-	
 	}
 close infile7;
 

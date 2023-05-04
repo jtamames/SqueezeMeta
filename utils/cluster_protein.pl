@@ -61,7 +61,7 @@ my $repfile="$tempdir/allfaa.clus.rep";
 my $repfasta="$tempdir/allfaa.clus.rep.fasta";
 my $mapfile="$tempdir/allfaa.clus.rep.tsv";
 print "  Creating database\n";
-my $command="$mmseqs_soft createdb $allfasta $dbfile > /dev/null 2>&1";
+my $command="$mmseqs_soft createdb $aafile $dbfile > /dev/null 2>&1";
 system($command);
 print "  Clustering sequences\n";
 my $command="$mmseqs_soft linclust --cov-mode 0 -c 0.8 --min-seq-id 0.3 $dbfile $clusterfile $tempdir > /dev/null 2>&1";
@@ -76,5 +76,5 @@ print "  Creating mappings\n";
 my $command="$mmseqs_soft createtsv $dbfile $dbfile $clusterfile $mapfile > /dev/null 2>&1";
 system($command);
 
-$command="mv $repfasta $aafile";
+$command="mv $aafile $aafile.orig; mv $repfasta $aafile";
 system($command);

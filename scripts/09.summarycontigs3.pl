@@ -23,13 +23,14 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$resultpath,$databasepath,$interdir,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$euknofilter,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9,$consensus,$syslogfile);
+our($datapath,$resultpath,$databasepath,$interdir,$tempdir,$mode,$fun3tax,$taxlist,$aafile,$alllog,$allorfs,$contigsfna,$rnafile,$fna_blastx,$doublepass,$euknofilter,$fun3tax_blastx,$mingenes9,$minconsperc_asig9,$minconsperc_total9,$consensus,$syslogfile);
 
 #-- Some local configuration variables
 
+
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
 my @ranksabb=('k','p','c','o','f','g','s');
-my %validranks;
+my(%validranks,%incluster);
 map{ $validranks{$_}=1; } @ranksabb;
 
 if($consensus) { $minconsperc_total9=$consensus; }  #-- Overrides the parameter if user-set or mode minion
@@ -50,10 +51,25 @@ while(<infile1>) {
 	}
 close infile1;
 
+if($mode eq "clustered") {	#-- Reading reporesentatives if in clustering mode
+	my $clusterfile="$tempdir/allfaa.clus.rep.tsv";
+	print "  Reading representatives from $clusterfile\n";
+	open(inclus,$clusterfile) || die;
+	while(<inclus>) {
+		chomp;
+		next if !$_;
+		my($repr,$member)=split(/\t/,$_);
+		$incluster{$repr}{$member}=1;
+		}
+	close(inclus);
+	}
+
+
 #-- Reading genes in contigs
 
 tie %allcontigs,"Tie::IxHash";
 
+print "  Reading contigs from $contigsfna\n";
 open(infile2,$contigsfna) || die "Can't open $contigsfna\n";
 while(<infile2>) {
 	chomp;
@@ -149,23 +165,25 @@ foreach my $tfile(@taxfiles) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
 		my($node,$atax)=split(/\t/,$_);		#-- $node contains ORF name
-		$atax=~s/\"//g;
-		my @tf=split(/\;/,$atax);		#-- This contains rank:taxon pairs for the ORF
-		my @id=split(/\_/,$node);
-		# @id=split(/\|/,$node);
-		$contigid=$node;
-		$contigid=~s/\_\d+\-\d+$//;
-		$contigid=~s/\|\d+$//; 		#-- This is the contig name the current ORF belongs to
-		#-- Stores rank and taxa for all the ORFs in the contig
+		my @arep;
+		print "--$node \n";
+		foreach my $i(keys %{ $incluster{$node} }) { print "  -> $i\n"; }
+		if($mode eq "clustered") { @arep=keys %{ $incluster{$node} }; } else { push(@arep,$node); }
+		foreach my $clusrep(@arep) { 
+			$atax=~s/\"//g;
+			my @tf=split(/\;/,$atax);		#-- This contains rank:taxon pairs for the ORF
+			my @id=split(/\_/,$clusrep);
+			$contigid=$clusrep;
+			$contigid=~s/\_\d+\-\d+$//;
+			$contigid=~s/\|\d+$//; 		#-- This is the contig name the current ORF belongs to
+		
+			#-- Stores rank and taxa for all the ORFs in the contig
 
-		foreach my $uc(@tf) { 
-			#my($rank,$tax);
-			#if($uc=~/^(.)/) { $rank=$1; }
-			#$tax=$uc;
-			#$tax=~s/^..//;
-			 my ($rank,$tax)=split(/\_/,$uc);
-			 next if(!$validranks{$rank});
-			if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
+			foreach my $uc(@tf) { 
+				 my ($rank,$tax)=split(/\_/,$uc);
+				 next if(!$validranks{$rank});
+				if($rank ne "n") { $taxlist{$contigid}{$rank}{$clusrep}=$tax; }
+				}
 			}
 		}
 	close infile3;
@@ -186,26 +204,29 @@ foreach my $tfile(@taxfiles) {
 				my($node,$atax)=split(/\t/,$_);		#-- $node contains ORF name
 				next if($atax!~/k\_Eukaryota/);
 				$atax=~s/\"//g;
-				my @tf=split(/\;/,$atax);		#-- This contains rank:taxon pairs for the ORF
-				my @id=split(/\_/,$node);
-				# @id=split(/\|/,$node);
+				my @arep;
+				if($mode eq "clustered") { @arep=keys %{ $incluster{$node} }; } else { push(@arep,$node); }
+				foreach my $clusrep(@arep) {
+					my @tf=split(/\;/,$atax);		#-- This contains rank:taxon pairs for the ORF
+					my @id=split(/\_/,$clusrep);
+					# @id=split(/\|/,$node);
 	
-				#-- Different nomenclature for contigs in spades and other assemblers
+					#-- Different nomenclature for contigs in spades and other assemblers
 	
-				if($id[0]=~/NODE/) { $contigid="$id[0]\_$id[1]"; } else { $contigid="$id[0]"; }	
+					if($id[0]=~/NODE/) { $contigid="$id[0]\_$id[1]"; } else { $contigid="$id[0]"; }	
 
-				$contigid=$node;
-				$contigid=~s/\_\d+\-\d+$//;
-				$contigid=~s/\|\d+$//; 		#-- This is the contig name the current ORF belongs to
-				#-- Stores rank and taxa for all the ORFs in the contig
+					$contigid=$clusrep;
+					$contigid=~s/\_\d+\-\d+$//;
+					$contigid=~s/\|\d+$//; 		#-- This is the contig name the current ORF belongs to
+					#-- Stores rank and taxa for all the ORFs in the contig
 
-				foreach my $uc(@tf) { 
-					my ($rank,$tax)=split(/\_/,$uc);
-					if($rank ne "n") { $taxlist{$contigid}{$rank}{$node}=$tax;  }
+					foreach my $uc(@tf) { 
+						my ($rank,$tax)=split(/\_/,$uc);
+						if($rank ne "n") { $taxlist{$contigid}{$rank}{$clusrep}=$tax;  }
+						}
 					}
-				}
+				}	
 			close infile3;
-			# }
 		}
 
 
@@ -222,6 +243,7 @@ foreach my $tfile(@taxfiles) {
 	print outfile3 "# Contig\tRank\tPerc_assigned\tPerc_total\tGene number\tDisparity\tTax\n";
 
 	foreach my $contig(keys %allcontigs) { 
+		# print "***$contig\n";
 		my ($sep,$lasttax,$strg,$cattax,$fulltax,$lasttax)="";
 		my ($consensus,$schim,$chimerism)=0;
 		my(%consensus,%chimeracheck,%consensusall)=();

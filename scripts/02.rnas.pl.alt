@@ -22,7 +22,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$resultpath,$interdir,$contigsfna,$tempdir,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$aragorn_soft,$trnafile,$methodsfile,$syslogfile);
+our($installpath,$resultpath,$interdir,$contigsfna,$tempdir,$mode,$barrnap_soft,$rdpclassifier_soft,$numthreads,$rnafile,$databasepath,$aragorn_soft,$trnafile,$methodsfile,$syslogfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
@@ -31,8 +31,23 @@ my %king;
 my $command;
 tie %king,"Tie::IxHash";
 
+my @seqfiles;
+my $idir;
+if($mode eq "clustered") { $idir=$interdir; } else { $idir=$resultpath; }
+opendir(indir,$idir) || die;
+@seqfiles=grep(/01.*.fasta$/,readdir indir);
+closedir indir;
+# print "**@seqfiles**\n";
+
+foreach my $rfiles(@seqfiles) {
+	my @k=split(/\./,$rfiles);
+	my $project=$k[1];
+	if($mode eq "clustered") { $contigsfna="$idir/$rfiles"; $trnafile="$idir/02.$project.trnas";  $rnafile="$idir/02.$project.rnas"; }
+	print "  Fasta file for $project found\n";
+
 %king=('bac','Bacteria','arc','Archaea','euk','Eukaryote','mito','Mitochondrial');
 my $targetfile="$interdir/02.$project.maskedrna.fasta";
+print "  Contigs found in $contigsfna\n";
 system("cp $contigsfna $targetfile");
 if(-e $rnafile) { system("rm $rnafile"); }
 
@@ -40,10 +55,10 @@ if(-e $rnafile) { system("rm $rnafile"); }
 
 print "  Running barrnap (Seeman 2014, Bioinformatics 30, 2068-9) for predicting RNAs: ";
 my %rname;
-open(outfile4,">$tempdir/16S.fasta") || die "Can't open $tempdir/16S.fasta for writing\n";
+open(outfile4,">$tempdir/16S.$project.fasta") || die "Can't open $tempdir/16S.$project.fasta for writing\n";
 foreach my $kingdom(keys %king) {
 	my(%rna,%inrna)=();
-	my $output="$tempdir/$kingdom.gff";
+	my $output="$tempdir/$kingdom.$project.gff";
 
 	#-- Run barrnap
 
@@ -80,7 +95,7 @@ foreach my $kingdom(keys %king) {
 	#-- Concatenate all RNA files, and mask the contigs for not predicting these RNAs as proteins (in upcoming gene prediction)
 
 	open(outfile2,">>$rnafile") || die "Can't open $rnafile for writing\n";
-	open(outfile3,">$tempdir/contigs.prov") || die "Can't open contigs.prov for writing\n";
+	open(outfile3,">$tempdir/contigs.$project.prov") || die "Can't open contigs.$project.prov for writing\n";
 	open(infile2,$targetfile) || die "Can't open $targetfile\n";
 	my($seq,$current)="";
 	while(<infile2>) {
@@ -111,7 +126,7 @@ foreach my $kingdom(keys %king) {
 	close infile2;
 	close outfile2;
 	close outfile3;
-	system("mv $tempdir/contigs.prov $targetfile");
+	system("mv $tempdir/contigs.$project.prov $targetfile");
 }
 print "\n";
 close outfile4;
@@ -120,7 +135,7 @@ print outmet "RNAs were predicted using Barrnap (Seeman 2014, Bioinformatics 30,
 
 #-- Running RDP classifier for 16S sequences
 
-$command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.out -f filterbyconf";
+$command="$rdpclassifier_soft classify $tempdir/16S.fasta -o $tempdir/16S.$project.out -f filterbyconf";
 print outsyslog "Running RDP classifier: $command\n";
 print "  Running RDP classifier (Wang et al 2007, Appl Environ Microbiol 73, 5261-7)\n";
 my $ecode = system $command;
@@ -138,7 +153,7 @@ while(<infile3>) {
 	}
 close infile3;
 
-open(outfile5,">$resultpath/02.$project.16S.txt") || die "Can't open $resultpath/02.$project.16S.txt for writing\n";
+open(outfile5,">$idir/02.$project.16S.txt") || die "Can't open $resultpath/02.$project.16S.txt for writing\n";
 print outfile5 "#-- Created by $0, ",scalar localtime,"\n# ORF\tModel\tLast tax\tRank\tFull tax\n";
 open(infile4,"$tempdir/16S.out") || die "Can't open $tempdir/16S.out\n";
 my @ranks=('superkingdom','phylum','class','order','family','genus','species');
@@ -165,13 +180,13 @@ close outfile5;
 #-- Running Aragorn
 
 print "  Running Aragorn (Laslett & Canback 2004, Nucleic Acids Res 31, 11-16) for tRNA/tmRNA prediction\n";
-my $temparagorn="$tempdir/trnas.aragorn";
+my $temparagorn="$tempdir/trnas.$project.aragorn";
 $command="$aragorn_soft -w $targetfile -o $temparagorn";
 print outsyslog "Running Aragorn: $command\n";
 system($command);
 open(infile5,$temparagorn) || die "Cannot open Aragorn result file $temparagorn\n";
 open(outfile6,">$trnafile") || die;
-open(outfile7,">$tempdir/trna.gff.mod") || die;
+open(outfile7,">$tempdir/trna.$project.gff.mod") || die;
 my($incontig);
 my %trnas;
 while(<infile5>) {
@@ -204,9 +219,9 @@ close outfile7;
 		
 	#-- Masking with 'N's
 	
-open(outfile7,">$tempdir/contigs.prov") || die "Can't open contigs.prov for writing\n";
+open(outfile7,">$tempdir/contigs.$project.prov") || die "Can't open contigs.$project.prov for writing\n";
 
-open(outfile8,">$resultpath/02.$project.trnas.fasta") || die "Can't open trna file for writing\n";
+open(outfile8,">$idir/02.$project.trnas.fasta") || die "Can't open trna file for writing\n";
 open(infile6,$targetfile) || die "Can't open $targetfile\n";
 my($seq,$current)="";
 while(<infile6>) {
@@ -246,7 +261,7 @@ close outfile7;
 close outfile8;
 close outmet;
 
-system("mv $tempdir/contigs.prov $targetfile");
+system("mv $tempdir/contigs.$project.prov $targetfile");
 		
 #-- Creating the RNAs gff file
 
@@ -255,4 +270,5 @@ if(-e $gffout) { system("rm $gffout"); }
 $command="cat $tempdir/*gff.mod > $gffout";
 print outsyslog "Creating new gff file: $command\n";
 system($command);
+	}
 close outsyslog;
