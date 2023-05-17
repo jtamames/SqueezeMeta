@@ -4,13 +4,12 @@
 \alias{seqvec2fasta}
 \title{Print a named vector of sequences as a fasta-formatted string}
 \usage{
-seqvec2fasta(seqvec)
+seqvec2fasta(seqvec, output_name = "")
 }
 \arguments{
 \item{seqvec}{vector. The vector to be written as a fasta string.}
-}
-\value{
-a character string with the sequence/s written in the fasta format.
+
+\item{output_name.}{A connection, or a character string naming the file to print to. If "" (the default), sequences will be printed to the standard output connection.}
 }
 \description{
 Print a named vector of sequences as a fasta-formatted string
