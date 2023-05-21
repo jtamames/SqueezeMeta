@@ -135,7 +135,7 @@ The command for running SqueezeMeta has the following syntax:
 * *-f*|*-seq* \<path\>: Fastq read files' directory (REQUIRED) 
 
 *Restarting*
-* *--restart*: Restarts the given project where it stopped (project must be speciefied with -p option) (will NOT overwite previous results, unless --force-overwrite is also provided)
+* *--restart*: Restarts the given project where it stopped (project must be speciefied with -p option) (will NOT overwite previous results, unless --force_overwrite is also provided)
 * *-step* [int]: In combination with _--restart_, restarts the project starting in the given step number (combine with --force_overwrite to regenerate results)
 * *--force_overwrite*: Do not check for previous results, and overwrite existing ones
  
@@ -224,9 +224,9 @@ Alternatively, the run can be restarted from a specific step by issuing the comm
 
 `SqueezeMeta.pl -p <projectname> --restart -step <step_to_restart_from>`
 
-By default, already completed steps will not be repeated when restarting, even if requested with `-step`. In order to repeat already completed steps you must also provide the flag `--force-overwrite`.
+By default, already completed steps will not be repeated when restarting, even if requested with `-step`. In order to repeat already completed steps you must also provide the flag `--force_overwrite`.
 
-e.g. `SqueezeMeta.pl --restart -p <projectname> -step 6 --force-overwrite` would restart the pipeline from the taxonomic assignment of genes. The different steps of the pipeline are listed in section 1.
+e.g. `SqueezeMeta.pl --restart -p <projectname> -step 6 --force_overwrite` would restart the pipeline from the taxonomic assignment of genes. The different steps of the pipeline are listed in section 1.
 
 ### Running scripts
 Also, any individual script of the pipeline can be run using the same syntax: 
