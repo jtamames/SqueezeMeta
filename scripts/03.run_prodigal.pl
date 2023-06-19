@@ -100,7 +100,7 @@ close outsyslog;
 print "  ORFs predicted: $numgenes\n";
 if($mode eq "clustered") {
 	print "  Now clustering proteins\n";
-	$command="perl $installpath/utils/cluster_protein.pl $project";
-	system($command);
+	$command="perl $installpath/utils/cluster_protein.pl $projectdir";
+	# system($command);
 	}
 	 
