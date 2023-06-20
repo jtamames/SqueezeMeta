@@ -92,7 +92,7 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
     # Map our data.
     plot.data.gene = pathview::node.map(mol.data=mat, node.data, node.types="ortholog", entrez.gnodes=FALSE)
      
-    # This also added the abundances of the different KOs mapping to the same reaction, and assigned it to one of the KOs (the first one?)
+    # pathview::node.map also added the abundances of the different KOs mapping to the same reaction, and assigned it to one of the KOs (the first one?)
     # So plot.data.gene is missing KOs, but has the abundances for each reaction right. We will use that data.
     submat = as.matrix(plot.data.gene[,colnames(mat),drop=FALSE])
     submat[is.na(submat)] = 0
@@ -108,8 +108,8 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
         {
         # Calculate fold change and overwrite submat and plot.data.gene.
         submat = submat + pseudocount
-	log2FC = log(rowMeans(submat[,fold_change_groups[[2]],drop=FALSE]) / rowMeans(submat[,fold_change_groups[[1]],drop=FALSE]), 2)
-	submat = cbind(submat[,0], log2FC = log2FC)
+        log2FC = log(rowMeans(submat[,fold_change_groups[[2]],drop=FALSE]) / rowMeans(submat[,fold_change_groups[[1]],drop=FALSE]), 2)
+        submat = cbind(submat[,0], log2FC = log2FC)
 	zeros = submat==0
 	plot.data.gene = cbind(plot.data.gene[,!colnames(plot.data.gene) %in% SQM$misc$samples], log2FC = log2FC)
 	}
@@ -122,7 +122,7 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
         min_scale_value = min(submat)
     } else
         {
-	if(is.null(max_scale_value)) { max_scale_value = max(abs(submat)) }
+        if(is.null(max_scale_value)) { max_scale_value = max(abs(submat)) }
 	min_scale_value = -max_scale_value # make it symmetric.
         }
     
@@ -133,7 +133,7 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
         {
         submat_color[zeros] = 0
         submat_color = submat_color + 1 # Now the lowest index is 1 (white colour), but it contains only the zeros. Positive values will be from 2 onwards.
-    }
+        }
 
     # Customize colors for each sample (or for the logFC) and create legends.
     cols.ts.gene = matrix(NA, nrow=nrow(submat), ncol=ncol(submat), dimnames = dimnames(submat))
@@ -146,27 +146,46 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
             gradient = colorRampPalette(c(bg.col, sample_colors[i]))(color_bins+1) # (color_bins+1) bc the first color will be always white, we want it to be used only for pure zeros.
             if(!log_scale) { true_breaks = breaks } else { true_breaks = 10 ** breaks; true_breaks[1] = 0 } # Breaks for the legend text
         } else 
-	    {
+            {
             gradient = colorRampPalette(c(fold_change_colors[1], bg.col, fold_change_colors[2]))(color_bins)
-	    true_breaks = breaks # Breaks for the legend text
-	    }
+            true_breaks = breaks # Breaks for the legend text
+            }
         cols.ts.gene[,i] = gradient[submat_color[,i]]
-	filename = sprintf('ko%s.%s.%s.legend.png', pathway_id, output_suffix, colnames(cols.ts.gene)[i])
-	message(sprintf('Info: Writing legend file %s\n', filename))
-	png(filename)
+        filename = sprintf('ko%s.%s.%s.legend.png', pathway_id, output_suffix, colnames(cols.ts.gene)[i])
+        message(sprintf('Info: Writing legend file %s\n', filename))
+        png(filename)
         plot(c(0,2),c(0,1),type = 'n', axes = FALSE, xlab = '', ylab = '', main = sprintf('%s - %s', colnames(cols.ts.gene)[i], nice_label[count]))
         text(x=1.5, y = seq(0,1,l=color_bins), labels = signif(true_breaks,3))
         rasterImage(rev(gradient), 0, 0, 1,1)
-	dev.off()
+        dev.off()
         }
     cols.ts.gene[zeros] = bg.col # In log2FC plots, if we have an even number of color bins, rxns with zero FC (i.e. absent rxns) will not be exactly white.
-    # KEGG view
-    pathview::keggview.native(plot.data.gene = plot.data.gene,
-                             cols.ts.gene = cols.ts.gene, node.data=node.data,
-                             pathway.name = sprintf('ko%s', pathway_id),
-                             same.layer = TRUE, plot.col.key = FALSE, multi.state=!split_samples, out.suffix = output_suffix)
-    }
 
+    ### PLOT
+    # Are reactions represented as arrows in this map?? If so, keggview.native may fail
+    if('line' %in% unique(node.data$shape[node.data$type=='ortholog']))
+        {
+        warning('This map uses lines to represent reactions, and we\'ve had isues using keggview native plot in this case.
+                 We will switch to graph mode instead')
+        gR1 = pathview:::parseKGML2Graph2(xml.file, genes = F, 
+                                          expand = F, split.group = F)
+        plot.data.cpd=node.map(NULL, node.data, node.types="compound")
+	plot.data.cpd$labels=pathview::cpdkegg2name(plot.data.cpd$labels)[,2]
+	mapped.cnodes=rownames(plot.data.cpd)
+	node.data$labels[mapped.cnodes]=plot.data.cpd$labels
+        pathview::keggview.graph(plot.data.gene = plot.data.gene,
+                                 cols.ts.gene = cols.ts.gene, node.data=node.data,
+                                 pathway.name = sprintf('ko%s', pathway_id),
+				 path.graph = gR1, map.cpdname = TRUE,
+				 cex = 0.15,
+                                 same.layer = TRUE, plot.col.key = FALSE, multi.state=!split_samples, out.suffix = output_suffix)
+    } else {
+        pathview::keggview.native(plot.data.gene = plot.data.gene,
+                                 cols.ts.gene = cols.ts.gene, node.data=node.data,
+                                 pathway.name = sprintf('ko%s', pathway_id),
+                                 same.layer = TRUE, plot.col.key = FALSE, multi.state=!split_samples, out.suffix = output_suffix)
+        }
+    }
 
 
 
