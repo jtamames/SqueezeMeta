@@ -169,7 +169,7 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
                  We will switch to graph mode instead')
         gR1 = pathview:::parseKGML2Graph2(xml.file, genes = F, 
                                           expand = F, split.group = F)
-        plot.data.cpd=node.map(NULL, node.data, node.types="compound")
+        plot.data.cpd=pathview::node.map(NULL, node.data, node.types="compound")
 	plot.data.cpd$labels=pathview::cpdkegg2name(plot.data.cpd$labels)[,2]
 	mapped.cnodes=rownames(plot.data.cpd)
 	node.data$labels[mapped.cnodes]=plot.data.cpd$labels
@@ -185,6 +185,7 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
                                  pathway.name = sprintf('ko%s', pathway_id),
                                  same.layer = TRUE, plot.col.key = FALSE, multi.state=!split_samples, out.suffix = output_suffix)
         }
+    system(sprintf('rm ko%s.png ko%s.xml', pathway_id, pathway_id))
     }
 
 
