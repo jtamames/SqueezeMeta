@@ -166,8 +166,8 @@ foreach my $tfile(@taxfiles) {
 		next if(!$_ || ($_=~/^\#/));
 		my($node,$atax)=split(/\t/,$_);		#-- $node contains ORF name
 		my @arep;
-		print "--$node \n";
-		foreach my $i(keys %{ $incluster{$node} }) { print "  -> $i\n"; }
+		# print "--$node \n";
+		# foreach my $i(keys %{ $incluster{$node} }) { print "  -> $i\n"; }
 		if($mode eq "clustered") { @arep=keys %{ $incluster{$node} }; } else { push(@arep,$node); }
 		foreach my $clusrep(@arep) { 
 			$atax=~s/\"//g;

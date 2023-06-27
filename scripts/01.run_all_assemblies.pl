@@ -319,18 +319,20 @@ print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 my $scriptname;
 my $wc=qx(wc -l $contigsfna);
 my($wsize,$rest)=split(/\s+/,$wc);
-if($singletons) {
-	$scriptname="01.remap.pl";
-	print outfile3 "1\t$scriptname\n";
-	print outsyslog "  STEP1 -> $scriptname\n";
-	print BLUE "  STEP1 ->  ADDING SINGLETONS: $scriptname\n"; print RESET;
-	# if($verbose) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
-	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
-	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname\n"; print RESET; die; }
-	my $wc=qx(wc -l $contigsfna);
-	my($wsize,$rest)=split(/\s+/,$wc);
-	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname. File $contigsfna is empty!\n"; print RESET; die; }
-}
+
+#if($singletons) {			#-- REMOVING THIS SINCE SINGLETONS ARE CALLED IN MAIN SQUEEZEMETA.PL SCRIPT!
+#	$scriptname="01.remap.pl";
+#	print outfile3 "1\t$scriptname\n";
+#	print outsyslog "  STEP1 -> $scriptname\n";
+#	print BLUE "  STEP1 ->  ADDING SINGLETONS: $scriptname\n"; print RESET;
+#	# if($verbose) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
+#	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+#	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname\n"; print RESET; die; }
+#	my $wc=qx(wc -l $contigsfna);
+#	my($wsize,$rest)=split(/\s+/,$wc);
+#	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname. File $contigsfna is empty!\n"; print RESET; die; }
+#}
+
 if($wsize<2)      { 
 		 print RED; print "Stopping in STEP1 -> $scriptname. Program finished abnormally\n"; print RESET; print outsyslog "Stopping in STEP1 -> $scriptname. Program finished abnormally\n"; die; 
 		 }
