@@ -105,6 +105,7 @@ $mapping_options = "";
 #-- External software
 
 $metabat_soft       = "$installpath/bin/metabat2";
+$jgi_summ_soft      = "$installpath/bin/jgi_summarize_bam_contig_depths";
 $maxbin_soft        = "$installpath/bin/MaxBin/run_MaxBin.pl";
 $concoct_dir        = "$installpath/bin/CONCOCT-1.1.0";
 $spades_soft        = "$installpath/bin/SPAdes/spades.py";

@@ -22,10 +22,15 @@ else
         {
         $scriptdir = abs_path(dirname(__FILE__));
         }
-my $installpath = abs_path("$scriptdir/../..");
+our $installpath = abs_path("$scriptdir/../..");
+
 ###
 
 if(!-e "$installpath/scripts/SqueezeMeta_conf_original.pl") { die ("\nCRITICAL ERROR: Can not find SqueezeMeta_conf_original.pl. We actually thought this was impossible. If the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n"); }
+
+do "$installpath/scripts/SqueezeMeta_conf_original.pl";
+
+our($metabat_soft, $jgi_summ_soft, $samtools_soft, $bwa_soft, $minimap2_soft, $diamond_soft, $hmmer_soft, $cdhit_soft, $kmerdb_soft, $aragorn_soft, $mothur_soft);
 
 our $warnings;
 
@@ -105,6 +110,22 @@ if(!$ecode) {
 	#check_R_library("madeToFail");
 }
 
+
+print("\n");
+print("Checking binaries\n");
+check_command("$metabat_soft -h");
+check_command("$jgi_summ_soft -h");
+check_command("$samtools_soft --version");
+#check_command("$bwa_soft"); # no way to run it without a bad exit code (even when printing help message)
+check_command("$minimap2_soft --version");
+check_command("$diamond_soft version");
+check_command("$hmmer_soft -h");
+#check_command("$cdhit_soft -h"); # no way to run it without a bad exit code (even when printing help message)
+check_command("$kmerdb_soft -h");
+check_command("$aragorn_soft -h");
+check_command("$mothur_soft -h");
+
+
 print("\n");
 print("Checking that SqueezeMeta is properly configured...");
 if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
@@ -175,10 +196,12 @@ print("\n");
 sub check_command {
 	my $command = $_[0];
 	my $msg = $_[1];
+	my $out;
+	if(!$msg) { $out = basename($command); $msg = "ERROR: Error running $command"; } else { $out = $command; }
 	my $ecode = system("$command > /dev/null 2>&1");
-        if(!$ecode) { print("\t$command OK\n"    ); }
+        if(!$ecode) { print("\t$out OK\n"    ); }
 	else {
-		warn("\t$command NOT OK\n"); 
+		warn("\t$out NOT OK\n"); 
 		if($msg) { print("\t\t$msg\n"); }
 		$warnings .= "\t- $msg\n";
 	}
