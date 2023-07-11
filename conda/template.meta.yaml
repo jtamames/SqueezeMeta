@@ -1,12 +1,14 @@
 package:
-  name: squeezemeta
-  version: '1.6.2post1'
+  name: squeezemeta-dev
+  version: '1.6.3beta1'
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
+  git_tag: develop
 
 requirements:
   build:
+    - python==3.10
     - r=3.6
     - r-ggplot2
     - r-reshape2
@@ -15,10 +17,9 @@ requirements:
     - bioconductor-pathview
     - perl=5.26
     - perl-app-cpanminus
-    - python=3.6
     - setuptools
     - cython >=0.19.1
-    - numpy
+    - numpy==1.25.0
     - scipy >=0.12.0
     - pandas >=0.11.0
     - biopython >=1.62b
@@ -30,7 +31,7 @@ requirements:
     - blas=*=mkl # To avoid openmp
     - readline=8
   run:
-    - python=3.6
+    - python=3.10
     - setuptools
     - cython >=0.19.1
     - {{ pin_compatible('numpy') }}
@@ -76,7 +77,7 @@ test:
 about:
   home:  https://github.com/jtamames/SqueezeMeta
   license: GPL-3
-  license_file: ../LICENSE
+  license_file: ../../LICENSE
   summary: 'SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins'
   description:
           "SqueezeMeta is a fully automatic pipeline for metagenomics/metatranscriptomics,
@@ -88,7 +89,7 @@ about:
           To install this package with mamba run:
           \n
           \n
-          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta`
+          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan squeezemeta-dev --no-channel-priority`
           \n
           \n
           And activate it with:

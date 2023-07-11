@@ -1,5 +1,5 @@
 package:
-  name: squeezemeta-dev
+  name: squeezemeta
   version: "1.6.2post2"
 
 source:
@@ -346,7 +346,7 @@ about:
           To install this package with mamba run:
           \n
           \n
-          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta-dev`
+          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan squeezemeta --no-channel-priority`
           \n
           \n
           And activate it with:
