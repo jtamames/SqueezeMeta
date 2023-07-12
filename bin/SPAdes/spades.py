@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
+# Modified by Fernando Puente-Sánchez JUL 12, 2023, so that the shebang points to the python3 interpreter. No further changes were required.
+# The spades_init.py module carries further modifications to make SPAdes work withing the SQM directory structure.
+
 ############################################################################
 # Copyright (c) 2015-2019 Saint Petersburg State University
 # Copyright (c) 2011-2014 Saint Petersburg Academic University
 # All Rights Reserved
 # See file LICENSE for details.
 ############################################################################
-
-# Modified by Fernando Puente-Sánchez MAR 24, 2021, so that the shebang points to the python3 interpreter. No further changes were required.
-# The spades_init.py module carries further modifications to make SPAdes work withing the SQM directory structure.
 
 import logging
 import os
@@ -420,10 +420,13 @@ def get_command_and_stage_id_before_restart_from(draft_commands, cfg, log):
 
 
 def print_info_about_output_files(cfg, log, output_files):
-    def check_and_report_output_file(output_file_key, message_prefix_text):
+    def check_and_report_output_file(output_file_key, message_prefix_text, error_message = ""):
         if os.path.isfile(output_files[output_file_key]):
             message = message_prefix_text + support.process_spaces(output_files[output_file_key])
             log.info(message)
+        else:
+            if error_message != "":
+                log.info(error_message)
 
     if "error_correction" in cfg and os.path.isdir(
             os.path.dirname(output_files["corrected_dataset_yaml_filename"])):
@@ -431,7 +434,12 @@ def print_info_about_output_files(cfg, log, output_files):
             os.path.dirname(output_files["corrected_dataset_yaml_filename"]) + "/"))
 
     if "assembly" in cfg:
-        check_and_report_output_file("result_contigs_filename", " * Assembled contigs are in ")
+        error_message = ""
+        if options_storage.args.plasmid:
+            error_message = "No plasmid contigs assembled!!"
+            if options_storage.args.meta:
+                error_message = "No complete extrachromosomal contigs assembled!!"
+        check_and_report_output_file("result_contigs_filename", " * Assembled contigs are in ", error_message)
 
         if options_storage.args.bio or options_storage.args.custom_hmms or options_storage.args.corona:
             check_and_report_output_file("result_domain_graph_filename", " * Domain graph is in ")
@@ -467,6 +475,7 @@ def get_output_files(cfg):
     output_files["corrected_dataset_yaml_filename"] = ""
     output_files["result_contigs_filename"] = os.path.join(cfg["common"].output_dir, options_storage.contigs_name)
     output_files["result_scaffolds_filename"] = os.path.join(cfg["common"].output_dir, options_storage.scaffolds_name)
+
     output_files["result_assembly_graph_filename"] = os.path.join(cfg["common"].output_dir,
                                                                   options_storage.assembly_graph_name)
     output_files["result_assembly_graph_filename_gfa"] = os.path.join(cfg["common"].output_dir,
@@ -481,13 +490,20 @@ def get_output_files(cfg):
                                                                      options_storage.transcripts_paths)
     output_files["result_bgc_stats_filename"] = os.path.join(cfg["common"].output_dir, options_storage.bgc_stats_name)
     output_files["result_domain_graph_filename"] = os.path.join(cfg["common"].output_dir, options_storage.domain_graph_name)
-    output_files["result_gene_clusters_filename"] = os.path.join(cfg["common"].output_dir, options_storage.gene_clusters_name)
+    output_files["result_gene_clusters_filename"] = os.path.join(cfg["common"].output_dir, options_storage.scaffolds_name)
     output_files["truseq_long_reads_file_base"] = os.path.join(cfg["common"].output_dir, "truseq_long_reads")
     output_files["truseq_long_reads_file"] = output_files["truseq_long_reads_file_base"] + ".fasta"
     output_files["misc_dir"] = os.path.join(cfg["common"].output_dir, "misc")
     ### if mismatch correction is enabled then result contigs are copied to misc directory
     output_files["assembled_contigs_filename"] = os.path.join(output_files["misc_dir"], "assembled_contigs.fasta")
     output_files["assembled_scaffolds_filename"] = os.path.join(output_files["misc_dir"], "assembled_scaffolds.fasta")
+    if options_storage.hmm_mode():
+        output_files["result_scaffolds_filename"] = os.path.join(cfg["common"].output_dir, options_storage.secondary_scaffolds_name)
+        output_files["result_scaffolds_paths_filename"] = os.path.join(cfg["common"].output_dir,
+                                                                       options_storage.secondary_scaffolds_paths)
+        output_files["result_contigs_filename"] = os.path.join(cfg["common"].output_dir,
+                                                                       options_storage.secondary_contigs_name)
+
     return output_files
 
 

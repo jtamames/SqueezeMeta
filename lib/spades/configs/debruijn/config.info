@@ -152,6 +152,8 @@ pacbio_processor
     path_limit_pressing 0.7
     max_path_in_dijkstra 15000
     max_vertex_in_dijkstra 2000
+    rna_filtering   false
+
 ;gap_closer
     long_seq_limit 400
     enable_gap_closing true
@@ -191,4 +193,12 @@ ss_coverage_splitter {
 time_tracer {
   time_tracer_enabled true
   granularity 500
+}
+
+hybrid_aligner {
+  trusted_aligner {
+        long_read_threshold       1000
+        long_read_fuzzy_coverage  0.95
+        short_read_fuzzy_coverage 0.90
+  }
 }
