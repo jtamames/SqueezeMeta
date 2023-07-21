@@ -15,7 +15,6 @@ from site import addsitedir
 import commands_parser
 import options_storage
 from stages import stage
-from stages import scaffold_correction_stage
 from stages import spades_iteration_stage
 import support
 from process_cfg import merge_configs
@@ -120,6 +119,8 @@ def generateK_for_rnaviral(cfg, dataset_data, log):
         # FIXME: Hack-hack-hack! :)
         if min(k_values) == options_storage.RNA_MAX_LOWER_K:
             k_values = [options_storage.K_MERS_RNA[0]] + k_values
+        if min(k_values) > 21:
+            k_values = [21] + k_values
         cfg.iterative_K = k_values
         log.info("K values to be used: " + str(k_values))
 
@@ -191,7 +192,7 @@ class SpadesCopyFileStage(stage.Stage):
     def rna_copy(self, output_file, latest, cfg):
         return options_storage.args.rna and self.always_copy(output_file, latest, cfg)
 
-    def has_hmm(self, output_file, latest, cfg):
+    def has_hmm(self, output_file = None, latest = None, cfg = None):
         return options_storage.args.bio or options_storage.args.custom_hmms or options_storage.args.corona
 
     def correct_scaffolds_copy(self, output_file, latest, cfg):
@@ -210,6 +211,7 @@ class SpadesCopyFileStage(stage.Stage):
             self.need_to_copy = need_to_copy
 
     def set_output_files(self):
+
         self.output = [
             self.OutputFile(self.cfg.result_scaffolds, "corrected_scaffolds.fasta", self.correct_scaffolds_copy),
             self.OutputFile(os.path.join(os.path.dirname(self.cfg.result_contigs), "before_rr.fasta"),
@@ -229,9 +231,8 @@ class SpadesCopyFileStage(stage.Stage):
             self.OutputFile(self.cfg.result_graph, "assembly_graph.fastg", self.always_copy),
             self.OutputFile(self.cfg.result_contigs_paths, "final_contigs.paths", self.not_rna_copy),
             self.OutputFile(self.cfg.result_gene_clusters, "gene_clusters.fasta", self.has_hmm),
-            self.OutputFile(self.cfg.result_bgc_statistics, "bgc_statistics.txt", self.has_hmm),
+            self.OutputFile(self.cfg.result_bgc_statistics, "hmm_statistics.txt", self.has_hmm),
             self.OutputFile(self.cfg.result_domain_graph, "domain_graph.dot", self.has_hmm)
-
         ]
 
         for filtering_type in options_storage.filtering_types:
@@ -323,16 +324,6 @@ class SpadesStage(stage.Stage):
             if last_one:
                 break
 
-        if self.cfg.correct_scaffolds:
-            self.stages.append(scaffold_correction_stage.ScaffoldCorrectionStage(self.latest,
-                                                                                 "scc",
-                                                                                 self.output_files,
-                                                                                 self.tmp_configs_dir,
-                                                                                 self.dataset_data, self.log,
-                                                                                 self.bin_home,
-                                                                                 self.ext_python_modules_home,
-                                                                                 self.python_modules_home))
-            self.latest = os.path.join(os.path.join(self.cfg.output_dir, "SCC"), "K21")
         if options_storage.args.plasmid and options_storage.args.meta:
             self.stages.append(PlasmidGlueFileStage(self.latest, "plasmid_copy_files", 
                                                     self.output_files,

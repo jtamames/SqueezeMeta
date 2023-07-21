@@ -19,6 +19,7 @@ import stat
 import sys
 import tempfile
 import traceback
+from platform import uname
 from distutils.version import LooseVersion
 from os.path import abspath, expanduser, join
 
@@ -68,6 +69,29 @@ def warning(warn_str, log=None, prefix="== Warning == "):
     else:
         sys.stdout.write("\n\n%s %s\n\n\n" % (prefix, warn_str))
         sys.stdout.flush()
+
+
+def wsl_check():
+    def in_wsl():
+        #[2] -> .release in python3, but doesn't work in python2
+        return 'microsoft' in uname()[2].lower()
+
+    if in_wsl():
+        return ("1. WSL is an unsupported platform\n"
+                "2. If SPAdes crashes, then you might want to compile it from sources\n"
+                "3. If nothing works, run on real Linux")
+    return ""
+
+
+def get_error_hints(exit_code):
+    if exit_code == -11:
+        return wsl_check()
+
+
+def sys_error(cmd, log, exit_code):
+    hints_str = get_error_hints(exit_code)
+    err_msg = "system call for: \"%s\" finished abnormally, OS return value: %d\n%s" % (cmd, exit_code, hints_str)
+    error(err_msg, log, exit_code=exit_code)
 
 
 def check_python_version():
@@ -304,7 +328,7 @@ def sys_call(cmd, log=None, cwd=None):
                 output += line + "\n"
 
     if proc.returncode:
-        error("system call for: \"%s\" finished abnormally, OS return value: %d" % (cmd, proc.returncode), log, exit_code=proc.returncode)
+        sys_error(cmd, log, proc.returncode)
     return output
 
 
@@ -360,7 +384,7 @@ def universal_sys_call(cmd, log, out_filename=None, err_filename=None, cwd=None)
     if err_filename:
         stderr.close()
     if proc.returncode:
-        error("system call for: \"%s\" finished abnormally, OS return value: %d" % (cmd, proc.returncode), log, exit_code=proc.returncode)
+        sys_error(cmd, log, proc.returncode)
 
 
 def save_data_to_file(data, file):
@@ -537,7 +561,7 @@ def get_lib_type_and_number(option):
 
     if get_short_reads_type(option):
         lib_type = get_short_reads_type(option)
-        lib_number = int(option[re.search("\d", option).start()])
+        lib_number = int(re.search(r'\d+', option).group())
     elif get_long_reads_type(option):
         lib_type = get_long_reads_type(option)
     elif get_graph_type(option):
@@ -916,3 +940,30 @@ def is_int(value):
         return True
     except ValueError:
         return False
+
+
+# shutil.copyfile does not copy any metadata (time and permission), so one
+# cannot expect preserve_mode = False and preserve_times = True to work.
+def copy_tree(src, dst, preserve_times=True, preserve_mode=True):
+    if sys.version.split()[0][0] == '2':
+        from distutils import dir_util
+        dir_util._path_created = {}  # see http://stackoverflow.com/questions/9160227/dir-util-copy-tree-fails-after-shutil-rmtree
+        dir_util.copy_tree(src, dst, preserve_times=preserve_times, preserve_mode=preserve_mode)
+        return
+
+    if not preserve_mode:
+        copy_fn = shutil.copyfile
+    else:
+        copy_fn = shutil.copy2
+
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+
+    # shutil.copytree preserves the timestamp, so we must update it afterwards.
+    shutil.copytree(src, dst, copy_function = copy_fn)
+
+    if not preserve_times:
+        for dirpath, _, filenames in os.walk(dst):
+            os.utime(dirpath, None)
+            for file in filenames:
+                os.utime(os.path.join(dirpath, file), None)

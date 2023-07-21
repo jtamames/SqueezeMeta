@@ -185,8 +185,9 @@ foreach my $thissample(keys %allsamples) {
 		
 		#-- Transform to sorted bam
 
-        	my $ecode = system("$samtools_soft sort $samfile -o $bamfile -@ $numthreads; $samtools_soft index $bamfile -@ $numthreads > /dev/null 2>&1; rm $samfile");
+        	my $ecode = system("$samtools_soft sort $samfile -o $bamfile -@ $numthreads; $samtools_soft index $bamfile -@ $numthreads > /dev/null 2>&1");
         	if($ecode!=0) { die "Error running samtools"; }
+	 	system("rm $samfile");
 	}
 
 	#-- Calculating contig coverage/RPKM

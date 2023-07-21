@@ -7,8 +7,8 @@
 # See file LICENSE for details.
 ############################################################################
 
-### Modified from SPAdes version 3.15.2
-### by Fernando Puente-Sanchez on 2021-MAR-24, for compatibility with the SqueezeMeta pipeline.
+### Modified from SPAdes version 3.15.5
+### by Fernando Puente-Sanchez on 2023-JUL-12, for compatibility with the SqueezeMeta pipeline.
 ### SqueezeMeta is released under the GPL-3 license.
 
 # Change spades_home to match squeezeM directory hierarchy. Fernando Puente-Sanchez, 24-III-2021.
