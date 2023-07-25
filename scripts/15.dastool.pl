@@ -99,6 +99,13 @@ else { 				#-- Otherwise, run DAS tool to combine results
 		}
 	}
 
-print "  Final binning results stored in $binresultsdir\n";	
-system("mv $daspath/$project\_DASTool\_bins/* $binresultsdir");	
+print "  Final binning results stored in $binresultsdir\n";
+system("mv $daspath/$project\_DASTool\_bins/* $binresultsdir");
+# Rename bins to include project name at the beginning
+opendir(my $dh, $binresultsdir) || die "Can't open $binresultsdir: $!";
+while (readdir $dh) {
+        next if $_ =~ /^\.\.?$/;
+        rename("$binresultsdir/$_", "$binresultsdir/$projectname.$_")
+}
+
 close outsyslog;
