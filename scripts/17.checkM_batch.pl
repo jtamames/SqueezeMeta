@@ -40,12 +40,20 @@ if(-d $checktemp) {} else { system "mkdir $checktemp"; print "  Creating $checkt
 my(%tax,%bins,%consensus,%alltaxa);
 
 my $binmethod="DAS";
+my $bin_stats_analyze = "$checktemp/storage/bin_stats.analyze.tsv";
+my $bin_stats_ext = "$checktemp/storage/bin_stats_ext.tsv";
+my $marker_gene_stats = "$checktemp/storage/marker_gene_stats.tsv";
+if(-e $bin_stats_analyze) { system("rm $bin_stats_analyze"); }
+if(-e $bin_stats_ext)     { system("rm $bin_stats_ext"    ); }
+if(-e $marker_gene_stats) { system("rm $marker_gene_stats"); }
 
-if(!-e $alllog) {
-	print "  Running CheckM for all bins\n";
-	my $command = "rm -r $checktemp";
-	my $ecode = system $command;
-        if($ecode!=0) { die "Error running command:    $command"; }
+
+print "  Running CheckM for all bins\n";
+my $command = "rm -r $checktemp";
+my $ecode = system $command;
+if($ecode!=0) { die "Error running command:    $command"; }
+
+unless(-e $alllog) {
 	if(1) {
 		print outsyslog "\nWARNING: $alllog was not found. We will run CheckM using a universal (Life) marker set!\n\n";
 		$command = "$checkm_soft taxonomy_wf life Prokaryote $binresultsdir $checktemp -t $numthreads -x fa -f $checkmfile >> $syslogfile 2>&1";
@@ -185,9 +193,14 @@ if(!-e $alllog) {
 			$inloop=0;
 			if(-e $checkmfile) { system("cat $checkmfile $tempc > $checkmfile.prov; mv $checkmfile.prov $checkmfile"); }
 			else { system("mv $tempc $checkmfile"); }
+			system("cat $bin_stats_analyze >> $tempdir/bin_stats.analyze.tsv");
+			system("cat $bin_stats_ext     >> $tempdir/bin_stats_ext.tsv"    );
+			system("cat $marker_gene_stats >> $tempdir/marker_gene_stats.tsv");
 			}
  	} 
-	print "\n  Storing results for $binmethod in $checkmfile\n";
+        system("mv $tempdir/bin_stats.analyze.tsv $checktemp/storage");
+        system("mv $tempdir/bin_stats_ext.tsv     $checktemp/storage");
+        system("mv $tempdir/marker_gene_stats.tsv $checktemp/storage");
 }
 
 print "\n  Storing results for $binmethod in $checkmfile\n";

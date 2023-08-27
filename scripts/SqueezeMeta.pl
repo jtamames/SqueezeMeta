@@ -45,7 +45,7 @@ close inv;
 our $pwd=cwd();
 
 our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
 our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
 our(%bindirs,%dasdir,%binscripts,%assemblers);  
 
@@ -109,6 +109,8 @@ Arguments:
    --nobins: Skip all binning  (Default: no). Overrides -binners 
    -binners: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
    -taxbinmode <s,c,s+c,c+s>: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
+   -extbins: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps.
+
  
  Performance:
    -t <threads>: Number of threads (Default: 12)
@@ -149,7 +151,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "extdb=s" => \$opt_db, 
 		     "nobins" => \$nobins,   
 		     "binners=s" => \$binners, 
-		     "taxbinmode=s" => \$taxbinmode, 
+		     "taxbinmode=s" => \$taxbinmode,
+		     "extbins=s" => \$extbins,
 		     "D|doublepass" => \$doublepass, 
 		     "b|block_size=i" => \$blocksize,
 		     "e|evalue=f" => \$evalue,   
@@ -222,15 +225,16 @@ if($restart) {
 	$rawfastq=$userdir;
 	}
 else {
-	if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
+	if(!$rawfastq)  { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
 	if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
-	if(!$mode) { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
+	if(!$mode)      { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
 	if(($mode!~/sequential$/i) && (!$projectdir)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
-	if(($mode=~/sequential$/i) && ($projectdir)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
+	if(($mode=~/sequential$/i) && ($projectdir))  { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
 	if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
 	# if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
 	if($newtaxdb) { if(-e "$newtaxdb.dmnd") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
+	if($extassembly && $extbins) { $dietext.="-extassembly and -extbins can not be provided at the same time\n"; }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
 	}
@@ -292,8 +296,8 @@ my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectnam
   'norename',$norename,'mapper',$mapper,'mapping_options',$mapping_options,'cleaning',$cleaning,
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
-  'extassembly',$extassembly,'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,'miniden',$miniden,
-  'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite,'newtaxdb',$newtaxdb);
+  'extassembly',$extassembly,'extbins',$extbins, 'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,
+  'miniden',$miniden, 'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite,'newtaxdb',$newtaxdb);
 
 
 if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
@@ -315,7 +319,7 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		
 	else { die "  Directory structure and conf files created. Exiting\n"; }  #-- If --empty invoked
 	close outfile4;  #-- Closing log file for the sample
-	close outfile3;	  #-- Closing progress file for the sample
+	close outfile3;	 #-- Closing progress file for the sample
 	}
 
 	#-- Sequential mode
@@ -699,8 +703,8 @@ sub pipeline {
 	
 	 if(!$nobins) {	    
 	 	my $hayresults; 
-	 	if($verbose) { print " (Now we will start creating bins for separating individual organisms in the community)\n"; }  
-		if(($rpoint<=14) && ((!$test) || ($test>=14))) {
+		if(($rpoint<=14) && ((!$test) || ($test>=14)) && (!$extbins)) {
+			if($verbose) { print " (Now we will start creating bins for separating individual organisms in the community)\n"; }
 			my @binner=split(/\,/,$binners);
 			foreach my $tbinner(@binner) { #-- Checking for results for all the specified binners
 				my @binfiles;
@@ -731,7 +735,7 @@ sub pipeline {
  
     #-------------------------------- STEP15: DAS Tool merging of binning results	
 	
-		if(($rpoint<=15) && ((!$test) || ($test>=15))) {
+		if(($rpoint<=15) && ((!$test) || ($test>=15)) && (!$extbins)) {
 			my $dirbin=$binresultsdir;
 			opendir(indir2,$dirbin);
 			my @binfiles=grep(/fa/,readdir indir2);
@@ -999,12 +1003,13 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	print outfile5 "\$mincontiglen       = $conf{mincontiglen};\n";
 	print outfile5 "\$assembler          = \"$conf{assembler}\";\n";
 	print outfile5 "\$canumem            = $conf{canumem};\n";
-	if($contigid) { print outfile5 "\$contigid            = \"$conf{contigid}\";\n"; }
+	if($contigid)          { print outfile5 "\$contigid           = \"$conf{contigid}\";\n";          }
 	if($assembler_options) { print outfile5 "\$assembler_options  = \"$conf{assembler_options}\";\n"; }
 	if($extassembly)       { print outfile5 "\$extassembly        = \"$conf{extassembly}\";\n";       }
+	if($extbins)           { print outfile5 "\$extbins            = \"$conf{extbins}\";\n";           }
 	if($opt_db)            { print outfile5 "\$opt_db             = \"$conf{opt_db}\";\n";            }
-	if($newtaxdb)          { print outfile5 "\$newtaxdb             = \"$conf{newtaxdb}\";\n";            }
-	if($taxbinmode) { print outfile5 "\$taxbinmode             = \"$taxbinmode\";\n";            }
+	if($newtaxdb)          { print outfile5 "\$newtaxdb           = \"$conf{newtaxdb}\";\n";          }
+	if($taxbinmode)        { print outfile5 "\$taxbinmode         = \"$taxbinmode\";\n";              }
 	close outfile5;
 	
 	#--  Write progress and syslog
@@ -1042,6 +1047,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	if(!$restart) {
 		system ("mkdir $datapath");
  		system ("mkdir $resultpath");
+		system ("mkdir $resultpath/bins");
  		system ("mkdir $tempdir");
  		system ("mkdir $datapath/raw_fastq"); 
  		system ("mkdir $extpath"); 

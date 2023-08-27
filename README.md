@@ -129,7 +129,7 @@ The command for running SqueezeMeta has the following syntax:
 
 **Arguments** 
 *Mandatory parameters* 
-* *-m* <sequential, coassembly, merged>: Mode (REQUIRED) 
+* *-m* <sequential, coassembly, merged, seqmerge>: Mode (REQUIRED) 
 * *-p* \<string\>: Project name (REQUIRED in coassembly and merged modes) 
 * *-s*|*-samples* \<path\>: Samples file (REQUIRED) 
 * *-f*|*-seq* \<path\>: Fastq read files' directory (REQUIRED) 
@@ -170,6 +170,7 @@ The command for running SqueezeMeta has the following syntax:
 * *--nobins*: Skip all binning  (Default: no). Overrides -binners 
 * *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
 * *-taxbinmode* [string]: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
+* *-extbins* [path]: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps.
 
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 
