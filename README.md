@@ -168,7 +168,7 @@ The command for running SqueezeMeta has the following syntax:
 
 *Binning*
 * *--nobins*: Skip all binning  (Default: no). Overrides -binners 
-* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
+* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat2, concoct)  (Default: concoct,metabat2)
 * *-taxbinmode* [string]: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
 
 *Performance* 
