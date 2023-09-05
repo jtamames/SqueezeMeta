@@ -30,7 +30,7 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf_original.pl") { die ("\nCRITICAL E
 
 do "$installpath/scripts/SqueezeMeta_conf_original.pl";
 
-our($metabat_soft, $jgi_summ_soft, $samtools_soft, $bwa_soft, $minimap2_soft, $diamond_soft, $hmmer_soft, $cdhit_soft, $kmerdb_soft, $aragorn_soft, $mothur_soft);
+our($spades_soft, $metabat_soft, $jgi_summ_soft, $samtools_soft, $bwa_soft, $minimap2_soft, $diamond_soft, $hmmer_soft, $cdhit_soft, $kmerdb_soft, $aragorn_soft, $mothur_soft);
 
 our $warnings;
 
@@ -113,6 +113,8 @@ if(!$ecode) {
 
 print("\n");
 print("Checking binaries\n");
+check_command("$spades_soft --test"); ### This can fail if the user doesn't have write permissions in pwd!
+system("rm -r spades_test");
 check_command("$metabat_soft -h");
 check_command("$jgi_summ_soft -h");
 check_command("$samtools_soft --version");
