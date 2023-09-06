@@ -113,8 +113,9 @@ if(!$ecode) {
 
 print("\n");
 print("Checking binaries\n"); ### Some can fail if the user doesn't have write permissions in pwd!
-check_command("$spades_soft --test");
-system("rm -r spades_test > /dev/null 2>&1");
+my $tmpdir = `mktemp -d`;
+chomp($tmpdir);
+check_command("cd $tmpdir; $spades_soft --test");
 check_command("$metabat_soft -h");
 check_command("$jgi_summ_soft -h");
 check_command("$samtools_soft --version");
@@ -122,11 +123,11 @@ check_command("$bwa_soft mem $scriptdir/test_data/ctgs.fasta $scriptdir/test_dat
 check_command("$minimap2_soft --version");
 check_command("$diamond_soft version");
 check_command("$hmmer_soft -h");
-check_command("$cdhit_soft -i $scriptdir/test_data/ctgs.fasta -o foo.fasta");
-system("rm -r foo.fasta foo.fasta.clstr > /dev/null 2>&1");
+check_command("$cdhit_soft -i $scriptdir/test_data/ctgs.fasta -o $tmpdir/foo.fasta");
 check_command("$kmerdb_soft -h");
 check_command("$aragorn_soft -h");
 check_command("$mothur_soft -h");
+system("rm -r $tmpdir > /dev/null 2>&1");
 
 
 print("\n");
@@ -184,7 +185,7 @@ if($warnings) {
 	print("\n");
 	print("------------------------------------------------------------------------------\n");
 	print("\n");
-	print("WARNING: Some SqueezeMeta dependencies could not be found in your environment!\n");
+	print("WARNING: Some SqueezeMeta dependencies could not be found in your environment or failed to execute!\n");
 	print($warnings);
 	die("\n");
 } else {
@@ -201,8 +202,11 @@ sub check_command {
 	my $msg = $_[1];
 	my $out;
 	my @args;
+	my $c2;
 	if(!$msg) {
-		my @args = split ' ', $command;
+		@args = split ';', $command;
+		$c2 = @args[-1];
+		@args = split ' ', $c2;
 		@args = grep !/PATH/, @args; # remove leading env variables before the actual command
 		$out = basename($args[0]);
 		$msg = "ERROR: Error running $command";
