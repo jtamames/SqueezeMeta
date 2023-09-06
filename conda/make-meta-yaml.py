@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from os import environ
 from subprocess import run
 
 from argparse import ArgumentParser
@@ -52,7 +53,7 @@ def main(args):
         git_tag = 'master' if not args.dev else 'develop'
 
     if not args.keep_template_versions:
-        o = run(['conda', 'list'], capture_output=True).stdout.decode()
+        o = run([environ['CONDA_EXE'], 'list'], capture_output=True).stdout.decode()
         for line in o.split('\n'):
             line = line.strip()
             if not line or line.startswith('#'):
