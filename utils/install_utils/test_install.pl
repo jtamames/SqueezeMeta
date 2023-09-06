@@ -112,17 +112,18 @@ if(!$ecode) {
 
 
 print("\n");
-print("Checking binaries\n");
-check_command("$spades_soft --test"); ### This can fail if the user doesn't have write permissions in pwd!
-system("rm -r spades_test");
+print("Checking binaries\n"); ### Some can fail if the user doesn't have write permissions in pwd!
+check_command("$spades_soft --test");
+system("rm -r spades_test > /dev/null 2>&1");
 check_command("$metabat_soft -h");
 check_command("$jgi_summ_soft -h");
 check_command("$samtools_soft --version");
-#check_command("$bwa_soft"); # no way to run it without a bad exit code (even when printing help message)
+check_command("$bwa_soft mem $scriptdir/test_data/ctgs.fasta $scriptdir/test_data/seqs.fq"); 
 check_command("$minimap2_soft --version");
 check_command("$diamond_soft version");
 check_command("$hmmer_soft -h");
-#check_command("$cdhit_soft -h"); # no way to run it without a bad exit code (even when printing help message)
+check_command("$cdhit_soft -i $scriptdir/test_data/ctgs.fasta -o foo.fasta");
+system("rm -r foo.fasta foo.fasta.clstr > /dev/null 2>&1");
 check_command("$kmerdb_soft -h");
 check_command("$aragorn_soft -h");
 check_command("$mothur_soft -h");
@@ -199,7 +200,14 @@ sub check_command {
 	my $command = $_[0];
 	my $msg = $_[1];
 	my $out;
-	if(!$msg) { $out = basename($command); $msg = "ERROR: Error running $command"; } else { $out = $command; }
+	my @args;
+	if(!$msg) {
+		my @args = split ' ', $command;
+		@args = grep !/PATH/, @args; # remove leading env variables before the actual command
+		$out = basename($args[0]);
+		$msg = "ERROR: Error running $command";
+	}
+	else { $out = $command; }
 	my $ecode = system("$command > /dev/null 2>&1");
         if(!$ecode) { print("\t$out OK\n"    ); }
 	else {
