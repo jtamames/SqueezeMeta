@@ -1,10 +1,10 @@
 package:
-  name: squeezemeta
-  version: "1.6.3.beta1"
+  name: squeezemeta-dev
+  version: "1.6.3.beta2"
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
-  git_tag: testbinaries
+  git_tag: master
 
 requirements:
   build:
@@ -149,6 +149,7 @@ requirements:
     - libnghttp2==1.51.0
     - libnsl==2.0.0
     - libogg==1.3.4
+    - libopenblas==0.3.24
     - libopus==1.3.1
     - libpng==1.6.39
     - libsanitizer==9.5.0
@@ -176,6 +177,7 @@ requirements:
     - nose==1.3.7
     - nspr==4.35
     - nss==3.92
+    - openblas==0.3.24
     - ossuuid==1.6.2
     - packaging==23.1
     - pandas==2.1.0
@@ -364,7 +366,7 @@ about:
           To install this package with mamba run:
           \n
           \n
-          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan squeezemeta --no-channel-priority`
+          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan squeezemeta-dev --no-channel-priority`
           \n
           \n
           And activate it with:
