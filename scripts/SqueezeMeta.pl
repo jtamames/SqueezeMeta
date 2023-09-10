@@ -726,7 +726,6 @@ sub pipeline {
 				if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
 				}
 		}
-	}
 		
 			
  
@@ -839,6 +838,7 @@ sub pipeline {
 			else { print RED; print "Skipping BIN TABLE CREATION: (You already know: DAS_Tool did not predict bins.)\n"; print RESET; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 	 }
+	}
 
     #-------------------------------- STEP19: Make contig table		
 

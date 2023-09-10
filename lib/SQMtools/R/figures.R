@@ -216,6 +216,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
     if(count == 'percent')
         {
         percents = 100 * t(t(SQM[['functions']][[fun_level]][['abund']]) / colSums(SQM[['functions']][[fun_level]][['abund']]))
+	percents[is.na(percents)] = 0 # the line above will generate NAs if some sample has 0 total counts (can happen if this is a subset)
         data = as.data.frame(percents)
         }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }
 

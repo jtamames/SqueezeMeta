@@ -19,7 +19,7 @@ my $project=$projectname;
 
 do "$projectdir/parameters.pl";
 
-our($installpath,$resultpath,$tempdir,$interdir,$aafile,$ntfile,$gff_file,$prodigal_soft,$methodsfile,$syslogfile);
+our($installpath,$resultpath,$tempdir,$interdir,$scriptdir,$aafile,$ntfile,$mode,$gff_file,$prodigal_soft,$methodsfile,$syslogfile);
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
@@ -98,3 +98,9 @@ close outmet;
 close outsyslog;
 
 print "  ORFs predicted: $numgenes\n";
+if($mode eq "clustered") {
+	print "  Now clustering proteins\n";
+	$command="perl $installpath/utils/cluster_protein.pl $projectdir";
+	system($command);
+	}
+	 
