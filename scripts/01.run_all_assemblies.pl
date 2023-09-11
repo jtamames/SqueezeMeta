@@ -293,10 +293,12 @@ for(@fastafiles) {
 			my @fd=split(/\_/,$1); 
 			$cocount++;
 			my $newcontigname;
-			if($norename)                 { $newcontigname = $_;                    }
-			elsif($contigid)              { $newcontigname=">$contigid\_$cocount";  }
-			elsif($extassembly||$extbins) { $newcontigname=">Contig\_$cocount";     }
-			elsif($mode eq "clustered")   { $newcontigname=">$fd[$#fd]\_$cocount";  }
+			if($norename)                 { $newcontigname = $_;                     }
+			elsif($contigid)              { $newcontigname=">$contigid\_$cocount";   }
+			elsif($extassembly||$extbins) { $newcontigname=">contig\_$cocount";      }
+			elsif($mode eq "clustered")   { $newcontigname=">$fd[$#fd]\_$cocount";   }
+			elsif($mode eq "merged")      { $newcontigname=">merged\_$cocount";      }
+			elsif($mode eq "seqmerge")    { $newcontigname=">seqmerge\_$cocount";    }
 			else                          { $newcontigname=">$assembler2\_$cocount"; }
 			print outfile1 "$newcontigname\n";
 			if($extbins) { print outfileB "$newcontigname\n"; }
