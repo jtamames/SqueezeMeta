@@ -16,9 +16,9 @@ my $LCA_NRINDEX                 = 1;
 my $LCA_TAXID_TREE              = 1;
 my $LCA_TAXID_DB                = 1;
 my $LCA_PARENTS_DB              = 1;
-my $REMOVE_NR                   = 0;
-my $REMOVE_TAXDUMP              = 0;
-my $REMOVE_LCA_TAX_INTERMEDIATE = 0;
+my $REMOVE_NR                   = 1;
+my $REMOVE_TAXDUMP              = 1;
+my $REMOVE_LCA_TAX_INTERMEDIATE = 1;
 
 if(!$ARGV[0]) { die "Please provide a download directory!   "; }
 
@@ -120,12 +120,15 @@ if($LCA_RECTAXA and $LCA_NRINDEX and $LCA_TAXID_TREE and $LCA_TAXID_DB and $LCA_
 	system "mkdir $lca_dir";
 }
 
+
 if($LCA_RECTAXA){
 	print "\n  Running rectaxa.pl\n";
 	my $command = "perl $libpath/install_utils/rectaxa.pl $lca_dir";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\n"; }
 }
+if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
+
 
 if($LCA_NRINDEX){
 	print "\n  Running nrindex.pl\n";
@@ -133,6 +136,8 @@ if($LCA_NRINDEX){
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\n"; }
 }
+if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
+
 
 if($LCA_TAXID_TREE){
 	print "\n  Running taxid_tree.pl\n";
@@ -143,6 +148,7 @@ if($LCA_TAXID_TREE){
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\n"; }
 }
+
 
 if($LCA_TAXID_DB){
 	print "\n  Creating sqlite database taxid.db\n\n";
@@ -159,6 +165,7 @@ if($LCA_TAXID_DB){
 	system("md5sum $lca_dir/taxid.db > $lca_dir/taxid.md5");
 }
 
+
 if($LCA_PARENTS_DB){
 	print "\n  Creating sqlite database parents.db\n\n";
 	if(-e "$lca_dir/parents.db") { system("rm $lca_dir/parents.db"); }
@@ -170,9 +177,6 @@ if($LCA_PARENTS_DB){
 	if($ecode!=0) { die "Error running command:     $command\n\n"; }
 }
 
-
-if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
-if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
 if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $lca_dir/nr.taxlist.db $lca_dir/taxid_tree.txt $lca_dir/taxatree.txt"); }
 
 
