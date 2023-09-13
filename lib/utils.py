@@ -7,6 +7,7 @@ from collections import defaultdict
 from numpy import array, isnan, seterr
 from os import listdir
 from os.path import isdir
+from json import loads
 seterr(divide='ignore', invalid='ignore')
 
 TAXRANKS = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
@@ -459,6 +460,7 @@ def parse_fasta(fasta):
     return res
 
 
+
 def map_checkm_marker_genes(orf_table, checkm_dir):
     """
     Parse the results from checkm in order to identify which of our ORFs
@@ -466,6 +468,8 @@ def map_checkm_marker_genes(orf_table, checkm_dir):
     Return:
         orf_markers: dictionary with ORFs as keys and sets of marker PFAMs as values
     """
+    EVAL_THRESHOLD   = 1e-10 # Thresholds set as in https://github.com/Ecogenomics/CheckM/blob/master/checkm/defaultValues.py
+    LENGTH_THRESHOLD = 0.7
     checkm_contigs = defaultdict(dict)
     for d in listdir(f'{checkm_dir}/bins'):
         if not isdir(f'{checkm_dir}/bins/{d}'):
@@ -480,20 +484,24 @@ def map_checkm_marker_genes(orf_table, checkm_dir):
                 ID = info.split('ID=')[1].split(';')[0]
                 orf = contig + '_' + ID.split('_')[1]
                 start, end = int(start), int(end)
-                orf_se[orf] = start, end
-        with open(f'{checkm_dir}/bins/{d}/hmmer.analyze.txt') as infile:
-            for line in infile:
-                if line.startswith('#'):
-                    continue
-                line = [field for field in line.strip().split(' ') if field]
-                orf = line[0]                  # here we are using the start and end of the ORF
-                contig = orf.rsplit('_', 1)[0] # while in fairness we should use the start of end of the PFAM hit
-                start, end = orf_se[orf]       # but it is a good enough approximation
-                PFAM = line[4]
-                if orf not in checkm_contigs[contig]:
-                    checkm_contigs[contig][orf] = {'start': start, 'end': end, 'PFAMs': set([PFAM])}
-                else:
-                    checkm_contigs[contig][orf]['PFAMs'].add(PFAM) # we can have multiple annotations for the same ORF
+                checkm_contigs[contig][orf] = {'start': start, 'end': end, 'PFAMs': set()}
+    with open(f'{checkm_dir}/storage/marker_gene_stats.tsv') as infile:
+        for line in infile:
+            bin_, orfs = line.strip().split('\t')
+            orfs = loads(orfs.replace('\'','"'))
+            for orf, annots in orfs.items():
+                # CheckM sometimes will treat two adjacent ORFs as a combined ORF (merging both names with "&&")
+                #  This happens when the same marker gene is found in both
+                #  In that case this is not treated as a duplication for the purpose of calculating contamination
+                #   so it is counted only as one ORF
+                #  We will annotate only the first ORF (to also count only one ORF)
+                #  This will lead to wrong completeness estimations if only the second ORF is present in a subset
+                #   but this is such a weird corner case (if we care about this we are most likely subsetting full contigs)
+                #   that I deem it acceptable
+                orf = orf.split('&&')[0]
+                contig = orf.rsplit('_', 1)[0]
+                for PFAM in annots:
+                    checkm_contigs[contig][orf]['PFAMs'].add(PFAM)
 
     sqm_contigs = defaultdict(dict)
     with open(orf_table) as infile:
@@ -540,7 +548,10 @@ def map_checkm_marker_genes(orf_table, checkm_dir):
             if checkmORFs: # we found annotated equivalents in CheckM
                 bestCheckmORF = max(checkmORFs, key=checkmORFs.get)
                 overlap = checkmORFs[bestCheckmORF] / (end-start+1)
-                if overlap > 0.75: # 75% or more overlap between the CheckM and SQM ORFs
+                checkm_orf_start, checkm_orf_end = checkm_orfs[bestCheckmORF]['start'], checkm_orfs[bestCheckmORF]['end']
+                # Assimilate CheckM to SQM orf if overlap is more than 75%
+                #  or the CheckM orf is contained in the SQM orf
+                if overlap > 0.75 or (start <= checkm_orf_start and end >= checkm_orf_end):
                     PFAMs = checkm_orfs[bestCheckmORF]['PFAMs']
             orf_markers[orf] = PFAMs
     return orf_markers
@@ -580,4 +591,20 @@ def write_row_dict(sampleNames, rowDict, outname):
         outfile.write('\t{}\n'.format('\t'.join(sampleNames)))
         for row in sorted(rowDict):
             outfile.write('{}\t{}\n'.format(row, '\t'.join(map(str, rowDict[row]))))
+
+
+def write_RDP_16S(rdp_table, outname):
+    """
+    Parse the results from step 2 and write them in two columns
+    """
+    with open(rdp_table) as infile, open(outname, 'w') as outfile:
+        outfile.write(f'ORF\tTAX16S\n')
+        for line in infile:
+            if line.startswith('#'):
+                continue
+            line = line.strip().split('\t')
+            if len(line) != 5: # some lines lack the final taxonomy string
+                continue
+            contig, *_, tax = line
+            outfile.write(f'{contig}\t{tax}\n')
 

@@ -50,6 +50,8 @@ The SQM object is a nested list which contains the following information:
                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
+                    \tab \bold{$tax16S}            \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab 16S taxonomy       \cr
+                    \tab \bold{$markers}           \tab                      \tab \emph{list}             \tab orfs              \tab (n/a)          \tab CheckM markers     \cr
 \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr
                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (reads) \cr
                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (bases) \cr

@@ -33,7 +33,7 @@ utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
 data_dir = '{}/../data'.format(utils_home)
 
-from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_contig_tax, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, map_checkm_marker_genes, write_orf_seqs, write_contig_seqs, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
+from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_contig_tax, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, map_checkm_marker_genes, write_orf_seqs, write_contig_seqs, write_RDP_16S, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
 
 
 def main(args):
@@ -125,6 +125,9 @@ def main(args):
     contig_abunds, _, _ = parse_contig_table(perlVars['$contigtable'])
     contig_tax, contig_tax_wranks = parse_contig_tax(perlVars['$interdir'] + '/09.' + perlVars['$projectname'] + '.contiglog', noCDS = noCDScontigs)
     contig_tax_nofilter, contig_tax_nofilter_wranks = parse_contig_tax(perlVars['$interdir'] + '/09.' + perlVars['$projectname'] + '.contiglog.noidfilter', noCDS = noCDScontigs)
+    
+    ### 16S
+    write_RDP_16S(perlVars['$resultpath'] + '/02.' + perlVars['$projectname'] + '.16S.txt', prefix + 'orf.16S.tsv')
     
     # Add ORFs/contigs not present in the input tax file.
     

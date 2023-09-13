@@ -27,6 +27,8 @@ library(data.table)
 #'                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
 #'                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
+#'                     \tab \bold{$tax16S}            \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab 16S taxonomy       \cr
+#'                     \tab \bold{$markers}           \tab                      \tab \emph{list}             \tab orfs              \tab (n/a)          \tab CheckM markers     \cr
 #' \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr
 #'                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (reads) \cr
 #'                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (bases) \cr
@@ -247,9 +249,12 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
     message('    taxonomy...')
     SQM$orfs$tax                 = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.orf.tax.%s.tsv', project_name, tax_mode), engine = engine,
 							            header=TRUE, row.names=1, sep='\t'))
-    #SQM$orfs$tax                 = SQM$orfs$tax[rownames(SQM$orfs$table),]
+    if(file.exists.zip(project_path, sprintf('results/tables/%s.orf.16S.tsv', project_name)))
+        {
+        SQM$orfs$tax16S = read.namedvector.zip(project_path, sprintf('results/tables/%s.orf.16S.tsv', project_name), engine=engine)
+        }
 
-    if(file.exists.zip(project_path, sprintf('results/18.%s.bintable', project_name)))
+    if(file.exists.zip(project_path, sprintf('results/18.%s.bintable', project_name)) & file.exists.zip(project_path, sprintf('results/tables/%s.orf.marker.genes.tsv', project_name)))
         {
         message('    checkm markers...')
         conn                     = open.conn.zip(project_path, sprintf('results/tables/%s.orf.marker.genes.tsv', project_name))
@@ -344,32 +349,19 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
         SQM$bins                  = list()
         SQM$bins$table            = read.generic.table.zip(project_path, sprintf('results/18.%s.bintable', project_name), engine = 'data.frame',
                                                            header=TRUE, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=FALSE)
-	SQM$bins$length           = SQM$bins$table$Length
-	names(SQM$bins$length)    = rownames(SQM$bins$table)
-
-        message('    abundances...')
-        x = aggregate(SQM$contigs$abund, by=list(SQM$contigs$bins[,1]), FUN=sum)
-        rownames(x)               = x[,1]
-        x = x[rownames(SQM$bin$table),-1, drop=FALSE]
-        nobin                     = colSums(SQM$contigs$abund) - colSums(x)
-        if(sum(nobin)>0)          { x['No_bin',] = nobin }
-        x['Unmapped',]            = SQM$total_reads - colSums(x)
-        # add unbinned!
-        SQM$bins$abund            = as.matrix(x)
-
-        SQM$bins$percent          = 100*t(t(SQM$bins$abund) / colSums(SQM$bins$abund))
-
-	x = aggregate(SQM$contigs$bases, by=list(SQM$contigs$bins[,1]), FUN=sum)
-        rownames(x)               = x[,1]
-        x = x[rownames(SQM$bin$table),-1,drop=FALSE]
-        SQM$bins$bases            = as.matrix(x)
-
-        SQM$bins$cov              = as.matrix(SQM$bins$table[,grepl('Coverage', colnames(SQM$bins$table)),drop=FALSE])
-        colnames(SQM$bins$cov)    = gsub('Coverage ', '', colnames(SQM$bins$cov), fixed=TRUE)
-	SQM$bins$cpm              = t(t(SQM$bins$cov) / (SQM$total_reads / 1000000))
+	message('    abundances...')
+	bin_abunds                = get.bin.abunds(SQM, track_unmapped=TRUE)
+        SQM$bins$abund            = bin_abunds[['abund']]
+        SQM$bins$percent          = bin_abunds[['percent']]
+        SQM$bins$bases            = bin_abunds[['bases']]
+        SQM$bins$length           = bin_abunds[['length']]
+        SQM$bins$cov              = bin_abunds[['cov']]
+        SQM$bins$cpm              = bin_abunds[['cpm']]
+	
         message('    taxonomy...')
         SQM$bins$tax              = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.bin.tax.tsv', project_name), engine = 'data.frame',
 							             header=TRUE, row.names=1, sep='\t'))
+	SQM$bins$table            = SQM$bins$table[,c('Method', 'Num contigs', 'GC perc', 'Tax 16S', 'Disparity', 'Completeness', 'Contamination', 'Strain het')]
     } else
         {
 	warning('    There are no binning results in your project. Skipping...')
