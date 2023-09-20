@@ -208,7 +208,7 @@ open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for
 print outmet "Bin statistics were computed using CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n";
 
 if($gtdbtk) {
-	print "\n Running GTDB-Tk to classify the bins\n";
+	print "\n  Running GTDB-Tk to classify the bins\n";
 	my $command = "GTDBTK_DATA_PATH=$gtdbtk_data_path gtdbtk classify_wf --genome_dir $binresultsdir --out_dir $gtdbtktemp -x fa --cpus $numthreads --mash_db $gtdbtk_data_path >> $syslogfile 2>&1";
 	print outsyslog "$command\n";
 	my $ecode = system $command;
