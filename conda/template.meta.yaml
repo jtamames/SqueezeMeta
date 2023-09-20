@@ -67,6 +67,10 @@ requirements:
     - tree
     - readline=8
     - krona
+    - spades
+    - mothur
+    - kmer-db
+    - metabat2
 
 build:
   noarch: generic

@@ -61,7 +61,7 @@ This will create a new conda environment named SqueezeMeta, which must then be a
 
 When using conda, all the scripts from the SqueezeMeta distribution will be available on `$PATH`.
 
-Alternatively, just download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 20.04 or higher Ubuntu installation.
+Alternatively, you can download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta. The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 20.04. Note that you may need different libraries and potentially recompiling some binaries from source in order for the manual install to work in other Ubuntu versions or other distributions. The conda method is now the recommended way to install SqueezeMeta, and we may not be able to support issues regarding manual installation. 
 
 The `test_install.pl` script can be run in order to check whether the required dependencies are available in your environment.
 
@@ -253,9 +253,13 @@ Version 1.0 implements the *--D* option (*doublepass*), that attempts to provide
 The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `/download/path` as its target the test run can be executed with
 
 `cd </download/path/test>`  
-`SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
+`SqueezeMeta.pl -m coassembly -p Hadza -s test.mock.samples -f raw`
 
 Alternatively, `-m sequential` or `-m merged` can be used.
+
+In addition to this mock dataset, we also provide two real metagenomes. A test run on those can be executed with
+
+`SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
 
 
 ## 10. Working with Oxford Nanopore MinION and PacBio reads

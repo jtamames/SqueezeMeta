@@ -337,13 +337,13 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 	
 		print "--- SAMPLE $thissample ---\n";
 	
-		$projectdir="$rootdir/$thissample";
-		$conf{'projectname'}=$thissample;
 	
 		#-- Creation of the new configuration file, syslog, and directories
 	
 	  
-		if(!$restart) { 
+		if(!$restart) {
+	                $projectdir="$rootdir/$thissample";
+	                $conf{'projectname'}=$thissample;
 			writeconf($projectdir,$scriptdir,%conf); 
 			cleaning($projectdir,$scriptdir,$thissample,%conf);
 			} 

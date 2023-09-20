@@ -22,10 +22,15 @@ else
         {
         $scriptdir = abs_path(dirname(__FILE__));
         }
-my $installpath = abs_path("$scriptdir/../..");
+our $installpath = abs_path("$scriptdir/../..");
+
 ###
 
 if(!-e "$installpath/scripts/SqueezeMeta_conf_original.pl") { die ("\nCRITICAL ERROR: Can not find SqueezeMeta_conf_original.pl. We actually thought this was impossible. If the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n"); }
+
+do "$installpath/scripts/SqueezeMeta_conf_original.pl";
+
+our($spades_soft, $metabat_soft, $jgi_summ_soft, $samtools_soft, $bwa_soft, $minimap2_soft, $diamond_soft, $hmmer_soft, $cdhit_soft, $kmerdb_soft, $aragorn_soft, $mothur_soft);
 
 our $warnings;
 
@@ -105,6 +110,26 @@ if(!$ecode) {
 	#check_R_library("madeToFail");
 }
 
+
+print("\n");
+print("Checking binaries\n"); ### Some can fail if the user doesn't have write permissions in pwd!
+my $tmpdir = `mktemp -d`;
+chomp($tmpdir);
+check_command("cd $tmpdir; $spades_soft --test");
+check_command("$metabat_soft -h");
+check_command("$jgi_summ_soft -h");
+check_command("$samtools_soft --version");
+check_command("$bwa_soft mem $scriptdir/test_data/ctgs.fasta $scriptdir/test_data/seqs.fq"); 
+check_command("$minimap2_soft --version");
+check_command("$diamond_soft version");
+check_command("$hmmer_soft -h");
+check_command("$cdhit_soft -i $scriptdir/test_data/ctgs.fasta -o $tmpdir/foo.fasta");
+check_command("$kmerdb_soft -h");
+check_command("$aragorn_soft -h");
+check_command("$mothur_soft -h");
+system("rm -r $tmpdir > /dev/null 2>&1");
+
+
 print("\n");
 print("Checking that SqueezeMeta is properly configured...");
 if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
@@ -160,7 +185,7 @@ if($warnings) {
 	print("\n");
 	print("------------------------------------------------------------------------------\n");
 	print("\n");
-	print("WARNING: Some SqueezeMeta dependencies could not be found in your environment!\n");
+	print("WARNING: Some SqueezeMeta dependencies could not be found in your environment or failed to execute!\n");
 	print($warnings);
 	die("\n");
 } else {
@@ -175,10 +200,22 @@ print("\n");
 sub check_command {
 	my $command = $_[0];
 	my $msg = $_[1];
+	my $out;
+	my @args;
+	my $c2;
+	if(!$msg) {
+		@args = split ';', $command;
+		$c2 = @args[-1];
+		@args = split ' ', $c2;
+		@args = grep !/PATH/, @args; # remove leading env variables before the actual command
+		$out = basename($args[0]);
+		$msg = "ERROR: Error running $command";
+	}
+	else { $out = $command; }
 	my $ecode = system("$command > /dev/null 2>&1");
-        if(!$ecode) { print("\t$command OK\n"    ); }
+        if(!$ecode) { print("\t$out OK\n"    ); }
 	else {
-		warn("\t$command NOT OK\n"); 
+		warn("\t$out NOT OK\n"); 
 		if($msg) { print("\t\t$msg\n"); }
 		$warnings .= "\t- $msg\n";
 	}

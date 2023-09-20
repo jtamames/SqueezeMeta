@@ -11,7 +11,10 @@
 #' @examples
 #' \donttest{
 #' data(Hadza)
-#' exportKrona(Hadza)
+#' # Check that kronatools is present.
+#' ecode = system('ktImportText', ignore.stdout = TRUE, ignore.stderr = TRUE)
+#' # If so, run.
+#' if(ecode==0) { exportKrona(Hadza) }
 #' }
 #' @importFrom utils write.table
 #' @export
