@@ -68,6 +68,10 @@ requirements:
     - tree==2.1.1
     - readline==8.1
     - krona==2.8.1
+    - spades==3.15.5
+    - mothur==1.47.0
+    - kmer-db==1.11.1
+    - metabat2==2.12.1
     # Extra dependencies
     - _sysroot_linux-64_curr_repodata_hack==3
     - bioconductor-annotationdbi==1.48.0
@@ -124,7 +128,6 @@ requirements:
     - kernel-headers_linux-64==3.10.0
     - keyutils==1.6.1
     - kiwisolver==1.4.5
-    - kmer-db==1.11.1
     - lcms2==2.14
     - ld_impl_linux-64==2.39
     - libblas==3.9.0
@@ -165,9 +168,7 @@ requirements:
     - llvm-openmp==8.0.1
     - make==4.3
     - matplotlib-base==3.7.2
-    - metabat2==2.12.1
     - mkl==2022.1.0
-    - mothur==1.47.0
     - munkres==1.1.4
     - mysql-common==8.0.32
     - mysql-connector-c==6.1.11
@@ -311,7 +312,6 @@ requirements:
     - scipy==1.11.2
     - sed==4.8
     - six==1.16.0
-    - spades==3.15.5
     - sqlite==3.37.0
     - sra-tools==3.0.7
     - threadpoolctl==3.2.0
