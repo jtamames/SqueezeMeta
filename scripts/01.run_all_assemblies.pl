@@ -277,7 +277,7 @@ else {
 my $cocount;
 my ($binfile, $path, $suffix);
 my $assembler2 = $assembler;
-my $assembler2 = "spades" if $assembler2 eq "spades-base";
+if($assembler2 eq "spades-base") { $assembler2 = "spades"; }
 for(@fastafiles) {
 	open(infile1,$_) || die "Can't open $_\n";
 	if($extbins) {
