@@ -171,7 +171,7 @@ The command for running SqueezeMeta has the following syntax:
 * *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
 * *-taxbinmode* [string]: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
 * *--gtdbtk*: Run GTDB-Tk to classify the bins. Requires a working GTDB-Tk installation available in your environment
-* *-gtdbtk_data_path* [path]: Path to the GTDB database, by default it is assumed to be present in /path/to/SqueezeMeta/db/gtdb
+* *-gtdbtk_data_path* [path]: Path to the GTDB database, by default it is assumed to be present in `/path/to/SqueezeMeta/db/gtdb`
 * *-extbins* [path]: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps.
 
 *Performance* 

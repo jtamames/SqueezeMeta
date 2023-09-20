@@ -109,6 +109,7 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 			else { chomp; $size+=length $_; }
 		}
 		close infile2;
+		my $nContigs = keys %store;
 		
 		#-- Call consensus() to find the consensus taxon
 		
@@ -134,8 +135,15 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 		 		$abundancestax{$rank}{$ttax}=$perctotal*100;
 				}
 			}
-				
 		
+		my $skipchim = 0;	
+		if($nContigs > 10000) {
+			$skipchim = 1;
+			my $msg = "     Bin $k has more than 10000 contigs. Skipping disparity calculation\n";
+			print $msg;
+			print syslogfile $msg;
+			}
+	
 		#-- Loop for all ranks
 	
 		foreach my $rank(@ranks) { 
@@ -170,31 +178,34 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 			my $perctotal=$times/$totalcount;
 		
 			#-- If it does, store the consensus tax and rank
-		
+
 			if(($percas>=$minconsperc_asig16) && ($perctotal>=$minconsperc_total16) && ($totalcount>=$mincontigs16) && ($times>$times2)) { 
 				#-- Calculation of disparity for this rank
 				my($chimera,$nonchimera,$unknown)=0;
-				foreach my $contig(sort keys %store) { 
-					my $ttax=$taxlist{$contig}{$rank};
-					foreach my $contig2(sort keys %store) { 
-						my $ttax2=$taxlist{$contig2}{$rank}; 
-						next if($contig ge $contig2);
-						if($chimeracheck{$contig}{$contig2} eq "chimera") {	#-- If it was a chimera in previous ranks, it is a chimera now
-							$chimera++;
-							next;
-						}	
-						if($chimeracheck{$contig}{$contig2} eq "unknown") {	#-- If it was an unknown in previous ranks, it is a unknown now
-							$unknown++;
-							next;
-						}						
-						if(($ttax && (!$ttax2)) || ($ttax2 && (!$ttax)) || ((!$ttax2) && (!$ttax))) { $chimeracheck{$contig}{$contig2}="unknown"; } #-- Unknown when one of the ORFs has no classification at this rank
-						elsif($ttax eq $ttax2) { $chimeracheck{$contig}{$contig2}="nochimera"; $nonchimera++; }
-						else { $chimeracheck{$contig}{$contig2}="chimera"; $chimera++; }
-						# if($contig eq "3539") { print "$rank $orf $orf2 -> $ttax $ttax2 -> $chimeracheck{$orf}{$orf2}\n"; }
-						}
+				if(!$skipchim) {
+					# Go for disparity calculation
+					foreach my $contig(sort keys %store) { 
+						my $ttax=$taxlist{$contig}{$rank};
+						foreach my $contig2(sort keys %store) { 
+							my $ttax2=$taxlist{$contig2}{$rank}; 
+							next if($contig ge $contig2);
+							if($chimeracheck{$contig}{$contig2} eq "chimera") {	#-- If it was a chimera in previous ranks, it is a chimera now
+								$chimera++;
+								next;
+							}	
+							if($chimeracheck{$contig}{$contig2} eq "unknown") {	#-- If it was an unknown in previous ranks, it is a unknown now
+								$unknown++;
+								next;
+							}						
+							if(($ttax && (!$ttax2)) || ($ttax2 && (!$ttax)) || ((!$ttax2) && (!$ttax))) { $chimeracheck{$contig}{$contig2}="unknown"; } #-- Unknown when one of the ORFs has no classification at this rank
+							elsif($ttax eq $ttax2) { $chimeracheck{$contig}{$contig2}="nochimera"; $nonchimera++; }
+							else { $chimeracheck{$contig}{$contig2}="chimera"; $chimera++; }
+							# if($contig eq "3539") { print "$rank $orf $orf2 -> $ttax $ttax2 -> $chimeracheck{$orf}{$orf2}\n"; }
+							}
+					}
 				}
 				my $totch=$chimera+$nonchimera;
-				if($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
+				if($skipchim) { $chimerism=""; } elsif($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
 				print "***$mtax $times $percas $perctotal $totalas $chimerism\n" if $verbose;
 				$cattax.="$mtax;";
 				$fulltax.="$rank\_$mtax;";
@@ -235,8 +246,10 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 			}
 		my $constax;	
 		$constax=consens($abb,$checkm_tax,$taxbinmode);
-		printf outfile2 "Consensus: $constax\tTotal size: $size\tDisparity: %.3f\tConsensus mode: $taxbinmode\n",$chimerism;
-		printf outfile1 "DAS\t$k\tConsensus: $constax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
+		my $chimstr;
+		if($skipchim) { $chimstr = ""; } else { $chimstr = sprintf("%.3f", $chimerism); }
+		print outfile2 "Consensus: $constax\tTotal size: $size\tDisparity: $chimstr\tConsensus mode: $taxbinmode\n";
+		print outfile1 "DAS\t$k\tConsensus: $constax\tTotal size: $size\tDisparity: $chimstr\n";
 		close outfile2;
 
  	}

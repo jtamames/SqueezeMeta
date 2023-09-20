@@ -140,8 +140,8 @@ get.bin.stats = function(SQM)
         comp  = 100 * comp / length(CheckMProkaryote)
         cont  = 100 * cont / length(CheckMProkaryote)
 
-        completeness  = c(completeness,  comp)
-        contamination = c(contamination, cont)
+        completeness  = c(completeness,  round(comp,2))
+        contamination = c(contamination, round(cont,2))
 
         MINCONSPERC_ASIG16  = 0.6
         MINCONSPERC_TOTAL16 = 0.3
@@ -177,6 +177,10 @@ get.bin.stats = function(SQM)
 	} else if(length(contigs)==1)
             {
             dis = 0
+	} else if(length(contigs)>10000)
+	    {
+            dis = NA
+            warning(sprintf('Bin %s has more than 10000 contigs, skipping disparity calculation.', b))
         } else
             {
             ### And get the disparity
@@ -202,7 +206,7 @@ get.bin.stats = function(SQM)
             diffs = diffs[!is.na(diffs)] # ignore Unclassified
             dis = sum(diffs) / length(diffs)
             }
-        disparity = c(disparity, dis)
+        disparity = c(disparity, round(dis,3))
         }
     resDF = data.frame(Method = SQM$bins$table[bins,'Method'], `Num contigs` = nContigs, `GC perc` = GC, `Tax 16S` = tax16S,
                        Disparity = disparity, Completeness = completeness, Contamination = contamination, `Strain het` = NA, row.names = bins, check.names = F)

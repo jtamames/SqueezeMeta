@@ -357,8 +357,8 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
             subSQM$bins$tax           = bin_stats[['tax']] 
         }else
             {
-            subSQM$contigs$bins       = SQM$contigs$bins[contigs ,,drop=FALSE]
-            subSQM$bins$tax           = subSQM$bins$tax[bins     ,,drop=FALSE]
+            subSQM$bins$table         = SQM$bins$table[bins,,drop=FALSE]
+            subSQM$bins$tax           = SQM$bins$tax  [bins,,drop=FALSE]
             }
 	#    Abundances
 	bin_abunds                    = get.bin.abunds(subSQM)
