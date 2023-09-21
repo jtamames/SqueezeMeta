@@ -46,7 +46,7 @@ our $pwd=cwd();
 
 our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
-our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path);
+our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
 our(%bindirs,%dasdir,%binscripts,%assemblers);  
 
 print %assemblers,"***\n";
@@ -624,8 +624,10 @@ sub pipeline {
     #-------------------------------- STEP10: Mapping of reads onto contigs for abundance calculations
 	
 	if(($rpoint<=10) && ((!$test) || ($test>=10))) {
-		my $wsize=checksize($mapcountfile);
-             	if(($wsize>2) && (!$force_overwrite)) { print "Mapping file $mapcountfile already found, skipping step 10\n"; }	
+		my $filetocheck;
+		if($onlybins) { $filetocheck = $contigcov; } else { $filetocheck = $mapcountfile; }
+		my $wsize=checksize($filetocheck);
+             	if(($wsize>2) && (!$force_overwrite)) { print "Mapping file $filetocheck already found, skipping step 10\n"; }	
 		else {	
 			my $scriptname="10.mapsamples.pl";
 			print outfile3 "10\t$scriptname\n";
@@ -635,8 +637,6 @@ sub pipeline {
 			if($verbose) { print " (This will map reads back to the contigs using $mapper and count how many map to each ORF, to estimate their abundances)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 			if($ecode!=0)        { error_out(10,$scriptname); }
-			my $filetocheck;
-			if($onlybins) { $filetocheck = $contigcov; } else { $filetocheck = $mapcountfile; }
 			my $wsize=checksize($filetocheck);
 			if($wsize<3)         { error_out(10,$scriptname,$filetocheck); }
 			close(outfile4); open(outfile4,">>$syslogfile");
@@ -752,7 +752,8 @@ sub pipeline {
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
-			my $wsize=checksize($firstfile);
+			my $wsize=0;
+			if(-e $firstfile) { $wsize=checksize($firstfile); }
             	 	if(($wsize>2) && (!$force_overwrite)) { print "DASTool results in $dirbin already found, skipping step 15\n"; }
 			else {		
 				my $scriptname="15.dastool.pl";
@@ -805,12 +806,15 @@ sub pipeline {
 
 			
     #-------------------------------- STEP17: Checking of bins for completeness and contamination (checkM)		
-	
+		my $new17=0;
 		if(($rpoint<=17) && ((!$test) || ($test>=17))) {
 			if(!$DAS_Tool_empty){
-				my $wsize=checksize($checkmfile);
-            	 		if(($wsize>2) && (!$force_overwrite))  { print "CheckM file in $checkmfile already found, skipping step 17\n"; }
-				else {		
+				my $filetocheck;
+				if($gtdbtk) { $filetocheck = $gtdbtkfile; } else { $filetocheck = $checkmfile; }
+				my $wsize=checksize($filetocheck);
+            	 		if(($wsize>2) && (!$force_overwrite))  { print "Results in $filetocheck already found, skipping step 17\n"; }
+				else {
+					$new17=1;	
 					my $scriptname="17.checkM_batch.pl";
 					print outfile3 "17\t$scriptname\n";
 					$currtime=timediff();
@@ -822,7 +826,12 @@ sub pipeline {
 					my $binmethod="DAS";
 					my $wsize=checksize($checkmfile);
 					if($wsize<4) {
-						print RED; print "Can't find $checkmfile\nStopping in STEP18 -> $scriptname\n"; print RESET; die; }
+						print RED; print "Can't find $checkmfile\nStopping in STEP17 -> $scriptname\n"; print RESET; die; }
+					if($gtdbtk) {
+						my $wsize=checksize($checkmfile);
+						if($wsize<4) {
+							print RED; print "Can't find $gtdbtkfile\nStopping in STEP17 -> $scriptname\n"; print RESET; die; }
+						}
 					}
 				}
 			else { print RED; print"Skipping CHECKM: DAS_Tool did not predict bins.\n"; print RESET; }
@@ -834,7 +843,7 @@ sub pipeline {
 		if(($rpoint<=18) && ((!$test) || ($test>=18))) {
 			if(!$DAS_Tool_empty){
 				my $wsize=checksize($bintable);
-            	 		if(($wsize>2) && (!$force_overwrite)) { print "Bin table in $bintable already found, skipping step 18\n"; }
+            	 		if(($wsize>2) && (!$force_overwrite) && (!$new17)) { print "Bin table in $bintable already found, skipping step 18\n"; }
 				else {		
 					my $scriptname="18.getbins.pl";
 					print outfile3 "18\t$scriptname\n";

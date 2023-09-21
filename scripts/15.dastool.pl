@@ -27,7 +27,8 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 my $daspath="$interdir/binners/DAS";
 if(-d $daspath) {system("rm -r $daspath/*"); } else { system("mkdir $daspath"); }
-if(-d $binresultsdir) { system "rm $binresultsdir/*"; } else { system "mkdir $binresultsdir"; }
+if(-d $binresultsdir) { system "rm -r $binresultsdir"; }
+system "mkdir $binresultsdir";
 
 #-- Creating contigs in bins tables
 

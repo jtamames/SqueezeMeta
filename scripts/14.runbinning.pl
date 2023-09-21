@@ -54,7 +54,6 @@ foreach my $tbinner(@binner) { #-- For all the specified binners
 	if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
 	
 	#-- Check the bins, to verify that all is correct (there are at least some bins)
-	
 	opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
 	@binfiles=grep(/fasta$|fa$/,readdir indir1);
 	closedir indir1;
