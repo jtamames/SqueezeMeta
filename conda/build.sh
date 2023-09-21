@@ -13,6 +13,8 @@ R CMD INSTALL $SQM_DIR/lib/SQMtools
 cd $SQM_DIR/bin/CONCOCT-1.1.0/
 python3 setup.py install
 cpanm Linux::MemInfo -L $PREFIX
+python3 -m pip install gtdbtk==2.3.2
+python3 -m pip install SuperPang==1.1.0.post3
 # Check that we won't break anything when manually moving libraries
 #if [ -d $PREFIX/lib/site_perl/5.26.2/ ]; then exit 1; fi # This would fail on purpose
 if [ -d $PREFIX/lib/site_perl/5.26.2/Linux ]; then exit 1; fi
