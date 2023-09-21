@@ -13,8 +13,10 @@ R CMD INSTALL $SQM_DIR/lib/SQMtools
 cd $SQM_DIR/bin/CONCOCT-1.1.0/
 python3 setup.py install
 cpanm Linux::MemInfo -L $PREFIX
-python3 -m pip install gtdbtk==2.3.2
-python3 -m pip install SuperPang==1.1.0.post3
+python3 -m pip install https://files.pythonhosted.org/packages/5a/4b/2ed5ee6a35a0f9b4ec896e0b796aeb931824d82b9ca236665e5839b9a7a7/gtdbtk-2.3.2.tar.gz
+python3 -m pip install https://files.pythonhosted.org/packages/40/b9/b8fa8aa5244430270e0da993b35db855f9e383ef9e174123cd5daf90ea98/SuperPang-1.1.0.post3.tar.gz
+python3 -m pip install https://files.pythonhosted.org/packages/f1/2a/3a5c44c25388238cb001e6968de008d765fdd9af881190388421097c84d9/speedict-0.3.11-cp310-cp310-manylinux_2_28_x86_64.whl
+python3 -m pip install https://files.pythonhosted.org/packages/39/d0/0bb235071b241f7294bfacc54623a98afddf855ba36807a8dae1717b5694/mOTUlizer-0.2.4.tar.gz --no-deps;
 # Check that we won't break anything when manually moving libraries
 #if [ -d $PREFIX/lib/site_perl/5.26.2/ ]; then exit 1; fi # This would fail on purpose
 if [ -d $PREFIX/lib/site_perl/5.26.2/Linux ]; then exit 1; fi

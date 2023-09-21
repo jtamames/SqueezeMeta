@@ -753,7 +753,7 @@ sub pipeline {
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
 			my $wsize=0;
-			if(-e $firstfile) { $wsize=checksize($firstfile); }
+			if(-f $firstfile) { $wsize=checksize($firstfile); }
             	 	if(($wsize>2) && (!$force_overwrite)) { print "DASTool results in $dirbin already found, skipping step 15\n"; }
 			else {		
 				my $scriptname="15.dastool.pl";

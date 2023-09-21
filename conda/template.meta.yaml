@@ -9,7 +9,7 @@ source:
 requirements:
   build:
     - python==3.10
-    - r-base == 4.1.1
+    - r-base==4.1.3
     - r-ggplot2
     - r-reshape2
     - r-doMC
@@ -27,7 +27,7 @@ requirements:
     - nose >=1.3.0
     - gsl
     - openmp
-    - samtools==1.11
+    - samtools
     - blas=*=mkl # To avoid openmp
     - readline=8
     - pydantic >=1.9.2,<2.0a1 # Add gtdb-tk, mOTUlizer and superpang python reqs in build
@@ -47,9 +47,9 @@ requirements:
     - biopython >=1.62b
     - scikit-learn >=0.18.0
     - nose >=1.3.0
-    - gsl
+    - gsl # last time I checked we need v2.7 from conda-forge (the one from anaconda will fail)
     - openmp
-    - samtools==1.11
+    - samtools
     - blas=*=mkl # To avoid openblas which causes trouble with CONCOCT
     - future
     - matplotlib
@@ -65,7 +65,7 @@ requirements:
     - perl-xml-parser
     - openjdk
     - ruby=2.5
-    - r-base == 4.1.1
+    - r-base==4.1.3
     - r-ggplot2
     - r-reshape2
     - r-doMC
