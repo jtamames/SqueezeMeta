@@ -44,8 +44,14 @@ def main(args):
                     'python_abi',
                     'sysroot_linux-64',
                     'xz',
-                    'zstd'
+                    'zstd',
+                    'motulizer',
+                    'superpang',
+                    'gtdbtk',
+                    'speedict',
+                    'igraph',
                    }
+
     name = 'squeezemeta' if not args.dev else 'squeezemeta-dev'
     if args.git_tag:
         git_tag = args.git_tag
