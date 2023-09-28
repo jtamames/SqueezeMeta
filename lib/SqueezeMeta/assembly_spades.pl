@@ -25,7 +25,7 @@ open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 system("rm -r $datapath/spades > /dev/null 2>&1");
-if($assembler eq "spades" or $assembler eq "spades-base") { $outassembly="$datapath/spades/contigs.fasta"; }
+if($assembler eq "spades" or $assembler eq "spades-base") { $outassembly="$datapath/spades/scaffolds.fasta"; }
 elsif($assembler eq "rnaspades") { $outassembly="$datapath/spades/transcripts.fasta"; }
 my($command,$command_start);
 if($assembler eq 'spades') { $command_start="$spades_soft --meta -k 21,33,55,77,99,127"; }
