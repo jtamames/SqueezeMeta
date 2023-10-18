@@ -47,13 +47,17 @@ Detailed information about the different steps of the pipeline can be found in t
 
 ## 2. Installation
 
-SqueezeMeta is intended to be run in a x86-64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda. Conda might however be slow solving the dependencies, so it's better to first get `mamba` into your base environment with
+SqueezeMeta is intended to be run in a x86-64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda. The default conda solver might however be slow solving the dependencies, so it's better to first set up the libmamba solver with
 
-`conda install -c conda-forge mamba`
+```
+conda update -n base conda # if your conda version is below 22.11
+conda install -n base conda-libmamba-solver
+conda config --set solver libmamba
+```
 
-and then use `mamba` to install SqueezeMeta
+and then use conda to install SqueezeMeta
 
-`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan  squeezemeta=1.6 --no-channel-priority`
+`conda create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan  squeezemeta=1.6 --no-channel-priority`
 
 This will create a new conda environment named SqueezeMeta, which must then be activated.
 
