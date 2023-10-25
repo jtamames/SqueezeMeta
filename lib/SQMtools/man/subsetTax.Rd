@@ -12,7 +12,8 @@ subsetTax(
   ignore_unclassified_functions = FALSE,
   rescale_tpm = TRUE,
   rescale_copy_number = TRUE,
-  recalculate_bin_stats = TRUE
+  recalculate_bin_stats = TRUE,
+  allow_empty = FALSE
 )
 }
 \arguments{

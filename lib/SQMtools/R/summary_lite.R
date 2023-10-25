@@ -10,7 +10,7 @@ summary.SQMlite = function(object, ...)
 
     SQM = object # so that CRAN is happy
 
-    if(!inherits(SQM, 'SQMlite')) { stop('The first argument must be a SQMlite object') }
+    if(!inherits(SQM, c('SQMlite', 'SQMbunch'))) { stop('The first argument must be a SQMlite object or a SQMbunch object') }
 
     res = list()
     res$project_name = SQM$misc$project_name

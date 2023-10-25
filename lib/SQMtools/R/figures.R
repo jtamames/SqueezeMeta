@@ -157,7 +157,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' Heatmap of the most abundant functions in a SQM object
 #'
 #' This function selects the most abundant functions across all samples in a SQM object and represents their abundances in a heatmap. Alternatively, a custom set of functions can be represented.
-#' @param SQM A SQM or SQMlite object.
+#' @param SQM A SQM, SQMbunch or SQMlite object.
 #' @param fun_level character. Either \code{"KEGG"}, \code{"COG"}, \code{"PFAM"} or any other custom database used for annotation (default \code{"KEGG"}).
 #' @param count character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"cpm"} for coverages per million reads, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"tpm"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).
 #' @param N integer Plot the \code{N} most abundant functions (default \code{25}).
@@ -176,7 +176,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' @export
 plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = NULL, samples = NULL, ignore_unmapped = TRUE, ignore_unclassified = TRUE, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
     {
-    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM, SQMbunch or a SQMlite object') }
     if (!fun_level %in% names(SQM$functions))
         {
         intro = 'Select function category among'
@@ -272,7 +272,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' Barplot of the most abundant taxa in a SQM object
 #'
 #' This function selects the most abundant taxa across all samples in a SQM object and represents their abundances in a barplot. Alternatively, a custom set of taxa can be represented.
-#' @param SQM A SQM or a SQMlite object.
+#' @param SQM A SQM, SQMbunch or a SQMlite object.
 #' @param rank Taxonomic rank to plot (default \code{phylum}).
 #' @param count character. Either \code{"percent"} for percentages, or \code{"abund"} for raw abundances (default \code{"percent"}).
 #' @param N integer Plot the \code{N} most abundant taxa (default \code{15}).
@@ -298,7 +298,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'tpm', N = 25, fun = N
 #' @export
 plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = TRUE, samples = NULL, nocds = 'treat_separately', ignore_unmapped = FALSE, ignore_unclassified = FALSE, no_partial_classifications = FALSE, rescale = FALSE, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
     {
-    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM, SQMbunch, or a SQMlite object') }
     if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
         {
         stop('Select rank among "superkingdom", "phylum", "class", "order", "family", "genus" or "species". and count between \'percent\' or \'abund\'')
@@ -474,7 +474,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 #' Barplot of the most abundant bins in a SQM object
 #'
 #' This function selects the most abundant bins across all samples in a SQM object and represents their abundances in a barplot. Alternatively, a custom set of bins can be represented.
-#' @param SQM A SQM or a SQMlite object.
+#' @param SQM A SQM object.
 #' @param count character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"cov"} for coverages, or \code{"cpm"} for coverages per million reads (default \code{"percent"}).
 #' @param N integer Plot the \code{N} most abundant bins (default \code{15}).
 #' @param bins character. Custom bins to plot. If provided, it will override \code{N} (default \code{NULL}).
@@ -496,7 +496,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 #' @export
 plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, samples = NULL, ignore_unmapped = FALSE, ignore_nobin = FALSE, rescale = FALSE, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
 {
-    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM'))) { stop('The first argument must be a SQM object') }
     if (!count %in% c('abund', 'percent', 'cov', 'cpm'))
     {
         stop('count must be either "abund", "percent", "cov", "cpm"')

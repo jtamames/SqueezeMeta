@@ -13,7 +13,8 @@ subsetORFs(
   rescale_tpm = FALSE,
   rescale_copy_number = FALSE,
   recalculate_bin_stats = TRUE,
-  contigs_override = NULL
+  contigs_override = NULL,
+  allow_empty = FALSE
 )
 }
 \arguments{

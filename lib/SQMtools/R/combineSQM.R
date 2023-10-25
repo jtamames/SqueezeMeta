@@ -1,6 +1,6 @@
 #' Combine several SQM objects
 #'
-#' Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link{combineSQMlite}}.
+#' Combine an arbitrary number of SQM objects into a single SQM object (if the input objects contain the same samples, i.e. they come from the same SqueezeMeta run) or a single SQMbunch object. For combining results from sqm_reads.pl or sqm_longreads.pl please check \code{\link{combineSQMlite}}. The parameters below (other than ...) will take only effect if the input objects contain the same samples. Otherwise the input objects will be taken as they are, with no recalculation of taxonomy, function or rescaling,
 #' @param ... an arbitrary number of SQM objects. Alternatively, a single list containing an arbitrary number of SQM objects.
 #' @param tax_source character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}). If the objects being combined contain a subset of taxa or bins, this parameter can be set to \code{TRUE}.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
@@ -8,7 +8,7 @@
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{TRUE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object with the highest RecA/RadA coverages. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected bins or contigs}. If any SQM objects that are being combined contain a functional subset rather than a contig/bins subset, this parameter should be set to \code{FALSE}.
 #' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
-#' @return A SQM object
+#' @return A SQM or SQMbunch object
 #' @seealso \code{\link{subsetFun}}, \code{\link{subsetTax}}, \code{\link{combineSQMlite}}
 #' @examples
 #' data(Hadza)
@@ -23,11 +23,23 @@
 combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, recalculate_bin_stats = TRUE)
     {
     inSQM = list(...)
-    # if there is only one argument and this argument is a list, treat it as a list containing SQM objects
+    ### if there is only one argument and this argument is a list, treat it as a list containing SQM objects
     if(length(inSQM) == 1 & inherits(inSQM[[1]], 'list')) { inSQM = list(...)[[1]] }
-    # intermediate function so that we can pass extra args to combineSQM
-    myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, recalculate_bin_stats)
-    return(Reduce(myFun, inSQM))
+    ### check whether the input objects come from the same project or not
+    projNames = sapply(inSQM, FUN=function(proj) proj$misc$project_name)
+    if(length(unique(projNames))==1)
+        {
+        # intermediate function so that we can pass extra args to combineSQM
+        myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, recalculate_bin_stats)
+        combSQM = Reduce(myFun, inSQM)
+    } else
+        {
+	combSQM = combineSQMlite(inSQM)
+	combSQM$projects = inSQM
+	names(combSQM$projects) = projNames
+        class(combSQM) = 'SQMbunch'
+        }
+    return(combSQM)
     }
 
 

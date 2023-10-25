@@ -11,7 +11,8 @@ subsetContigs(
   ignore_unclassified_functions = FALSE,
   rescale_tpm = FALSE,
   rescale_copy_number = FALSE,
-  recalculate_bin_stats = TRUE
+  recalculate_bin_stats = TRUE,
+  allow_empty = FALSE
 )
 }
 \arguments{

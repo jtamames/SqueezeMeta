@@ -21,7 +21,7 @@ plotBins(
 )
 }
 \arguments{
-\item{SQM}{A SQM or a SQMlite object.}
+\item{SQM}{A SQM object.}
 
 \item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"cov"} for coverages, or \code{"cpm"} for coverages per million reads (default \code{"percent"}).}
 

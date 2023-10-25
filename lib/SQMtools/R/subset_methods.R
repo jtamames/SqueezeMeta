@@ -1,3 +1,24 @@
+subsetDispatch = function(f, SQM, ...)
+    {
+    if(!inherits(SQM, c('SQM', 'SQMbunch'))) { stop('The first argument must be a SQM or SQMbunch object') }
+    if(!inherits(SQM, 'SQMbunch'))
+        {
+        args = c(list(SQM=SQM), list(...))
+        subSQM = do.call(f, args)
+    } else {
+        projs = list()
+        for(p in SQM$projects)
+            {
+            args = c(list(SQM=p), list(...))
+	    args$allow_empty = TRUE
+            projs = c(projs, list(do.call(f, args)))
+            }
+        subSQM = combineSQM(projs)
+        }
+    return(subSQM) 
+    }
+
+
 #' Filter results by sample
 #'
 #' Create a SQM object containing only samples specified by the user, and the ORFs, contigs, bins, taxa and functions present in those samples.
@@ -121,8 +142,19 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 #' # Search for multiple patterns using regular expressions
 #' Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=FALSE)
 #' @export
-subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE,
-		     rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE)
+subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE,
+                     trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE,
+                     rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetFun_, SQM, fun, columns=columns, ignore_case = ignore_case, fixed = fixed,
+                     trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+                     rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
+		     allow_empty = allow_empty)
+          )
+    }
+subsetFun_ = function(SQM, fun, columns, ignore_case, fixed,
+                      trusted_functions_only, ignore_unclassified_functions,
+		      rescale_tpm, rescale_copy_number, recalculate_bin_stats, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
 
@@ -143,7 +175,8 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE, tr
                         ignore_unclassified_functions=ignore_unclassified_functions,
                         rescale_tpm         = rescale_tpm,
                         rescale_copy_number = rescale_copy_number,
-                        recalculate_bin_stats = recalculate_bin_stats)
+                        recalculate_bin_stats = recalculate_bin_stats,
+		        allow_empty = allow_empty)
            )
 
     }
@@ -168,7 +201,15 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE, tr
 #' Hadza.Prevotella = subsetTax(Hadza, "genus", "Prevotella")
 #' Hadza.Proteobacteria = subsetTax(Hadza, "phylum", "Proteobacteria")
 #' @export
-subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, recalculate_bin_stats = TRUE)
+subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, recalculate_bin_stats = TRUE, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetTax_, SQM, rank, tax,
+			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+			  rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
+			  allow_empty = allow_empty)
+          )
+    }
+subsetTax_ = function(SQM, rank, tax, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, recalculate_bin_stats, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     if(!rank %in% colnames(SQM$contigs$tax)) { stop(sprintf('Valid taxonomic ranks are %s', paste(colnames(SQM$contigs$tax), collapse = ', '))) }
@@ -178,7 +219,8 @@ subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_uncl
                            ignore_unclassified_functions=ignore_unclassified_functions,
                            rescale_tpm = rescale_tpm,
                            rescale_copy_number = rescale_copy_number,
-	                   recalculate_bin_stats = recalculate_bin_stats)
+	                   recalculate_bin_stats = recalculate_bin_stats,
+	                   allow_empty = allow_empty)
            )
    
     }
@@ -203,7 +245,14 @@ subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_uncl
 #' # Subset with the most complete bin.
 #' topBin = subsetBins(Hadza, topBinNames[1])
 #' @export
-subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE)
+subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetBins_, SQM, bins,
+			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+			  rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, allow_empty = allow_empty)
+          )
+    }
+subsetBins_ = function(SQM, bins, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     goodContigs = rownames(SQM$contigs$bins)[SQM$contigs$bins %in% bins]
@@ -212,7 +261,8 @@ subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassi
                            ignore_unclassified_functions=ignore_unclassified_functions,
                            rescale_tpm = rescale_tpm,
                            rescale_copy_number = rescale_copy_number,
-	                   recalculate_bin_stats = FALSE)
+	                   recalculate_bin_stats = FALSE,
+	                   allow_empty = allow_empty)
            )
     }
 
@@ -236,7 +286,15 @@ subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassi
 #' lowGCcontigs = subsetContigs(Hadza, lowGCcontigNames)
 #' hist(lowGCcontigs$contigs$table[,"GC perc"])
 #' @export
-subsetContigs = function(SQM, contigs, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE)
+subsetContigs = function(SQM, contigs, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetContigs_, SQM, contigs,
+			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+			  rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
+			  allow_empty = allow_empty)
+          )
+    }
+subsetContigs_ = function(SQM, contigs, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, recalculate_bin_stats, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     goodORFs = rownames(SQM$orfs$table)[SQM$orfs$table[,'Contig ID'] %in% contigs]
@@ -246,7 +304,8 @@ subsetContigs = function(SQM, contigs, trusted_functions_only = FALSE, ignore_un
                         rescale_tpm = rescale_tpm,
                         rescale_copy_number = rescale_copy_number,
 			recalculate_bin_stats = recalculate_bin_stats,
-	                contigs_override = contigs)
+	                contigs_override = contigs,
+	                allow_empty = allow_empty)
            )
     }
 
@@ -289,14 +348,55 @@ subsetRand = function(SQM, N)
 #' mostAbundantORFs = subsetORFs(Hadza, mostAbundantORFnames)
 #' @importFrom stats aggregate
 #' @export
-subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, 
-		      rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE, contigs_override = NULL)
+subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE,
+                      rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE,
+                      contigs_override = NULL, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetORFs_, SQM, orfs, tax_source = tax_source,
+			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+                          rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
+			  contigs_override = contigs_override, allow_empty = allow_empty)
+          ) 
+    }
+subsetORFs_ = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, 
+		      rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE,
+		      contigs_override = NULL, allow_empty = FALSE)
     {
 
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
-    if(length(orfs)==0) { stop('No ORFs were selected. Perhaps the subset query yielded no results?') }
     if(!tax_source %in% c('contigs', 'orfs')) { stop('tax_source must be "orfs" or "contigs"') }
-   
+
+    ### If we got no ORFs, either fail or return an empty object
+    if(length(orfs)==0)
+        {
+        if(!allow_empty) {
+            stop('No ORFs were selected. Perhaps the subset query yielded no results?')
+	} else 
+            {
+            subSQM = SQM
+	    subSQM$orfs = NULL
+	    subSQM$contigs = NULL
+	    subSQM$bins = NULL
+	    for(rank in names(subSQM$taxa))
+                {
+                for(count in names(subSQM$taxa[[rank]]))
+                    {
+                    subSQM$taxa[[rank]][[count]] = subSQM$taxa[[rank]][[count]][0,,drop=F]
+                    }
+                }
+            for(method in names(subSQM$functions))
+                {
+                for(count in names(subSQM$functions[[method]]))
+                    {
+                    subSQM$functions[[method]][[count]] = subSQM$functions[[method]][[count]][0,,drop=F]
+                    }
+                }
+            subSQM$misc = list(project_name = subSQM$misc$project_name, samples = subSQM$misc$samples, ext_annot_sources = subSQM$misc$ext_annot_sources) 
+            return(subSQM)
+	    }
+        }
+
+    ### Now go for it 
     orfs    = rownames(SQM$orfs$table[orfs,,drop=FALSE]) # Make sure it will work if orfs is a bool vector too.
     if(is.null(contigs_override)) { contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
     } else { contigs = contigs_override } # so we can include contigs without ORFs if required

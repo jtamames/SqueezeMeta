@@ -126,13 +126,30 @@ library(data.table)
 #' colnames(Hadza$bins$table)
 #' # What is the GC content distribution of my metagenome?
 #' boxplot(Hadza$contigs$table[,"GC perc"]) # Not weighted by contig length or abundance!
-#' @importFrom utils read.table tail
-#' @importFrom stats aggregate
 #' @export
-
 loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only = FALSE, engine = 'data.table')
     {
-    
+    if(length(project_path) == 1)
+        {
+        SQM = loadSQM_(project_path, tax_mode, trusted_functions_only, engine)
+    } else
+        {
+        projs = list()
+        for(p in project_path)
+            {
+            message(sprintf('Loading project in %s', p))
+	    projs = c(projs, list(loadSQM_(p, tax_mode, trusted_functions_only, engine)))
+    }
+        SQM = combineSQM(projs)
+        }
+    return(SQM)
+    }
+
+
+#' @importFrom utils read.table tail
+#' @importFrom stats aggregate
+loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_only = FALSE, engine = 'data.table')
+    {
     if(!tax_mode %in% c('allfilter', 'prokfilter', 'nofilter'))
         {
         stop('tax_mode must be either "allfilter" (apply minimum identity threshold for all taxa), "prokfilter" (don\'t apply thresholds to Eukaryotes) or "nofilter" (don\'t apply thresholds at all).')
