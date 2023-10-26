@@ -51,7 +51,7 @@ foreach my $kingdom(keys %king) {
 	print outsyslog "Running barrnap for $king{$kingdom}: $command\n";
 	print " $king{$kingdom}";
 	my $ecode = system $command;
-	if($ecode!=0) { die "Error running command:    $command"; }
+	if($ecode!=0) { system("rm $targetfile"); die "Error running command:    $command"; }
 
 	#-- Reformat the output, adding the type of RNA found and the ORF ID
 

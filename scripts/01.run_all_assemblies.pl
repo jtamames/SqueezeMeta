@@ -63,7 +63,7 @@ if($extassembly) {
 
 #-- Otherwise, assembly all samples
 
-elsif($mode ne "coassembly") {		#-- Sequential, merged or seqmerge: Assembly all samples individually
+elsif($mode ne "coassembly") {		#-- Sequential, merged, seqmerge or clustered: Assembly all samples individually
 	my ($seqformat,$p2,$filen1,$filen2)="";
 	for my $asamples(sort keys %datasamples) {
 		next if(($mode eq "sequential") && ($projectname ne $asamples));
@@ -137,7 +137,7 @@ elsif($mode ne "coassembly") {		#-- Sequential, merged or seqmerge: Assembly all
 					#-- Now we need to rename the contigs for minimus2, otherwise there will be contigs with same names in different assemblies
 
 				if($mode ne "sequential") {
-					print "  Renaming contigs\n"; 
+					print "  Renaming contigs in $provname\n"; 
 					system("cp $provname $provname.prov");
 					open(outfile1,">$provname") || die "Can't open $contigsfna for writing\n";
 					open(infile2,"$provname.prov") || die "Can't open $contigsfna.prov\n";
@@ -236,6 +236,8 @@ if(($mode eq "merged") || ($mode eq "seqmerge")) {
 
 #-- Run prinseq_lite for removing short contigs
 
+if($mode eq "clustered") { system("cat $interdir/01*fasta > $contigsfna"); }
+
 if($extassembly) { system("cp $extassembly $contigsfna"); }
 elsif(-e $contigsfna) {
 	$command="$prinseq_soft -fasta $contigsfna -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
@@ -250,16 +252,19 @@ else { die "Assembly not present in $contigsfna, exiting\n"; }
 #-- Standardization of contig names
 
 if(!$norename) {
-	print "  Renaming contigs\n";
+	print "  Renaming contigs in $contigsfna\n";
 	open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
 	my $provcontigs="$tempdir/contigs.prov";
 	open(outfile1,">$provcontigs") || die "Can't open $provcontigs for writing\n";
 	my $cocount;
-	if(!$contigid) { $contigid="$assembler"; }
+	# if(!$contigid) { $contigid="$assembler"; }
+	# if(!$contigid) { $contigid=$projectname; }	#-- Change for accomodating COMBINED mode. Instead of the name of the assembler, we use the sample's name
 	while(<infile1>) {
 		chomp;
 		next if !$_;
-		if($_=~/^\>/) {
+		if($_=~/^\>([^ ]+)/) {
+			my @fd=split(/\_/,$1); 
+			if($mode eq "clustered") { $contigid=$fd[$#fd]; } else { $contigid=$assembler; }
 			$cocount++;
 			my $newcontigname="$contigid\_$cocount";
 			print outfile1 ">$newcontigname\n";
@@ -314,18 +319,20 @@ print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 my $scriptname;
 my $wc=qx(wc -l $contigsfna);
 my($wsize,$rest)=split(/\s+/,$wc);
-if($singletons) {
-	$scriptname="01.remap.pl";
-	print outfile3 "1\t$scriptname\n";
-	print outsyslog "  STEP1 -> $scriptname\n";
-	print BLUE "  STEP1 ->  ADDING SINGLETONS: $scriptname\n"; print RESET;
-	# if($verbose) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
-	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
-	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname\n"; print RESET; die; }
-	my $wc=qx(wc -l $contigsfna);
-	my($wsize,$rest)=split(/\s+/,$wc);
-	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname. File $contigsfna is empty!\n"; print RESET; die; }
-}
+
+#if($singletons) {			#-- REMOVING THIS SINCE SINGLETONS ARE CALLED IN MAIN SQUEEZEMETA.PL SCRIPT!
+#	$scriptname="01.remap.pl";
+#	print outfile3 "1\t$scriptname\n";
+#	print outsyslog "  STEP1 -> $scriptname\n";
+#	print BLUE "  STEP1 ->  ADDING SINGLETONS: $scriptname\n"; print RESET;
+#	# if($verbose) { print " (This will remap reads to contigs and add the unmapped ones as if they were contigs)\n"; }
+#	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+#	if($ecode!=0)        { print RED; print "Stopping in STEP1 -> $scriptname\n"; print RESET; die; }
+#	my $wc=qx(wc -l $contigsfna);
+#	my($wsize,$rest)=split(/\s+/,$wc);
+#	if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname. File $contigsfna is empty!\n"; print RESET; die; }
+#}
+
 if($wsize<2)      { 
 		 print RED; print "Stopping in STEP1 -> $scriptname. Program finished abnormally\n"; print RESET; print outsyslog "Stopping in STEP1 -> $scriptname. Program finished abnormally\n"; die; 
 		 }

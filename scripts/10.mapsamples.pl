@@ -15,6 +15,7 @@ use threads;
 my $pwd=cwd();
 
 my $projectdir=$ARGV[0];
+my $force_overwrite=$ARGV[1];
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
@@ -24,19 +25,19 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$userdir,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,
-    $mapper, $mapping_options, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+our($datapath,$userdir,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,$nobins,
+    $mapper, $mapping_options, $cleaning, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my $verbose=0;
 
 my $fastqdir="$datapath/raw_fastq";
-my $samdir="$datapath/sam";
+my $bamdir="$datapath/bam";
 
 my $outfile=$mapcountfile;
 
 my $warnmes;
 
-if(-d $samdir) {} else { system("mkdir $samdir"); }
+if(-d $bamdir) {} else { system("mkdir $bamdir"); }
 
 if($doublepass) { $gff_file=$gff_file_blastx; }
 
@@ -55,6 +56,7 @@ while(<infile1>) {
 	next if !$_;
 	my @t=split(/\t/,$_);
 	next if(($mode eq "sequential") && ($t[0] ne $projectname));
+	if($cleaning) { $userdir=$fastqdir; }
 	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$userdir/$t[1]"}=1; } 
 	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$userdir/$t[1]"}=2; }
 	}
@@ -71,7 +73,8 @@ print "  Metagenomes found: $numsamples\n";
 if($mapper eq "bowtie") {
 	print "  Mapping with Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n";
 	print outmet "Read mapping against contigs was performed using Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n"; 
-        if(-e "$bowtieref.1.bt2") { print "  Found reference in $bowtieref.1.bt2, skipping\n"; }
+	#if(-e "$bowtieref.1.bt2") { print "  Found reference in $bowtieref.1.bt2, skipping\n"; } #This will only trigger if index building was incomplete, which beats the purpose
+	if(0){}
         else {
         	print("  Creating reference from contigs\n");
                 my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
@@ -82,8 +85,9 @@ if($mapper eq "bowtie") {
 elsif($mapper eq "bwa") {
 	print "  Mapping with BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
 	print outmet "Read mapping against contigs was performed using BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
-        if(-e "$bowtieref.bwt") { print "Found reference in $bowtieref.bwt, Skipping\n"; }
-        else {
+	#if(-e "$bowtieref.bwt") { print "Found reference in $bowtieref.bwt, Skipping\n"; }
+        if(0){}
+	else {
         	print("Creating reference.\n");
                 my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
 		print outsyslog "Creating BWA reference: $bwa_command\n";
@@ -110,7 +114,7 @@ print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
 	#-- Now we start mapping the reads of each sample against the reference
 
 foreach my $thissample(keys %allsamples) {
-	my($formatseq,$command,$outsam,$formatoption);
+	my($formatseq,$command,$samfile,$bamfile,$baifile,$formatoption);
 	$nums++;
 	my (@pair1,@pair2)=();
 	print "  Working with sample $nums: $thissample\n";
@@ -120,8 +124,7 @@ foreach my $thissample(keys %allsamples) {
 			else { $formatseq="fastq"; }
 			}
 		
-	#-- Get reads from samples
-		
+	        #-- Get reads from samples
 		if($allsamples{$thissample}{$ifile}==1) { push(@pair1,$ifile); } else { push(@pair2,$ifile); }
 		}
 	my($par1name,$par2name);
@@ -143,58 +146,60 @@ foreach my $thissample(keys %allsamples) {
 	#-- Now we start mapping reads against contigs
 	
 	print "  Aligning to reference with $mapper\n";
-	if($keepsam10) { $outsam="$samdir/$projectname.$thissample.sam"; } else { $outsam="$samdir/$projectname.$thissample.current.sam"; }
-	if(-e $outsam) { print "  SAM file already found in $outsam, skipping\n"; }
+	$samfile="$bamdir/$projectname.$thissample.sam";
+	$bamfile="$bamdir/$projectname.$thissample.bam";
+	$baifile="$bamdir/$projectname.$thissample.bam.bai";
+	if(-e $bamfile and -e $baifile and !$force_overwrite) { print "  BAM file already found in $bamfile, skipping\n"; }
 	else {
 
 		#-- Support for single reads
        		if(!$mapper || ($mapper eq "bowtie")) {
            		if($formatseq eq "fasta") { $formatoption="-f"; }
 			if($mapping_options eq "") { $mapping_options = "--very-sensitive-local"; } # very-sensitive-local would interfere with custom mapping options so add it here 
-    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $outsam $mapping_options"; }
-	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name  --quiet -p $numthreads -S $outsam $mapping_options"; } }
+    	    		if(-e "$tempdir/$par2name") { $command="$bowtie2_x_soft -x $bowtieref $formatoption -1 $tempdir/$par1name -2 $tempdir/$par2name --quiet -p $numthreads -S $samfile $mapping_options"; }
+	    		else { $command="$bowtie2_x_soft -x $bowtieref $formatoption -U $tempdir/$par1name  --quiet -p $numthreads -S $samfile $mapping_options"; } }
         	elsif($mapper eq "bwa") {
             		#Apparently bwa works seamlesly with fasta files as input.
-            		if(-e "$tempdir/$par2name") { $command="$bwa_soft mem $bowtieref $tempdir/$par1name $tempdir/$par2name -v 1 -t $numthreads $mapping_options > $outsam"; }
-            		else { $command="$bwa_soft mem $bowtieref $tempdir/$par1name -v 1 -t $numthreads $mapping_options > $outsam"; } }
+            		if(-e "$tempdir/$par2name") { $command="$bwa_soft mem $bowtieref $tempdir/$par1name $tempdir/$par2name -v 1 -t $numthreads $mapping_options > $samfile"; }
+            		else { $command="$bwa_soft mem $bowtieref $tempdir/$par1name -v 1 -t $numthreads $mapping_options > $samfile"; } }
         	elsif($mapper eq "minimap2-ont") {
             		#Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
-            		if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $outsam"; }
-            		else { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $outsam"; } }
+            		if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $samfile"; }
+            		else { $command="$minimap2_soft -ax map-ont $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $samfile"; } }
         	elsif($mapper eq "minimap2-pb") {
             		#Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
-            		if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $outsam"; }
-            		else { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $outsam"; } }
+            		if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $samfile"; }
+            		else { $command="$minimap2_soft -ax map-pb $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $samfile"; } }
         	elsif($mapper eq "minimap2-sr") {
             		#Minimap2 does not require to create a reference beforehand, and work seamlessly with fasta as an input.
-            		if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $outsam"; }
-            		else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $outsam"; } 
+            		if(-e "$tempdir/$par2name") { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name $tempdir/$par2name -t $numthreads $mapping_options > $samfile"; }
+            		else { $command="$minimap2_soft -ax sr $contigsfna $tempdir/$par1name -t $numthreads $mapping_options > $samfile"; } 
 			}
+		else { die "Mapper $mapper not implemented!" }
                                   
-	# print "$command\n";
-	print outsyslog "Aligning with $mapper: $command\n";
-	system($command);
-        my $ecode = 0;
-	if(-e $outsam) {} else { $ecode = system $command; }
-        if($ecode!=0)     { die "An error occurred during mapping!"; }
-		}
+		#print "$command\n";
+		print outsyslog "Aligning with $mapper: $command\n";
+        	my $ecode = 0;
+		$ecode = system $command;
+        	if($ecode!=0)     { die "An error occurred during mapping with command       $command!"; }
+		
+		#-- Transform to sorted bam
+
+        	my $ecode = system("$samtools_soft sort $samfile -o $bamfile -@ $numthreads; $samtools_soft index $bamfile -@ $numthreads > /dev/null 2>&1");
+        	if($ecode!=0) { die "Error running samtools"; }
+	 	system("rm $samfile");
+	}
 
 	#-- Calculating contig coverage/RPKM
 
-	my $totalreads=contigcov($thissample,$outsam);
+	my $totalreads=contigcov($thissample,$bamfile);
 	
 	#-- And then we call the counting
 	
 	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
-	print outsyslog "Calling sqm_counter: Sample $thissample, SAM $outsam, Number of reads $totalreads, GFF $gff_file\n";
-	sqm_counter($thissample,$outsam,$totalreads,$gff_file);
+	print outsyslog "Calling sqm_counter: Sample $thissample, BAM $bamfile, Number of reads $totalreads, GFF $gff_file\n";
+	sqm_counter($thissample,$bamfile,$totalreads,$gff_file);
 
-	#-- Transform to sorted bam
-	
-	if(0) {
-		my $ecode = system("$samtools_soft sort $outsam -o $samdir/$projectname.$thissample.bam -@ $numthreads; rm $outsam");
-                if($ecode!=0) { die "Error running samtools"; }
-	}
 
 }
 if($warnmes) { 
@@ -211,7 +216,9 @@ close outfile1;
 
 print "  Output in $mapcountfile\n";
 close outfile3;
-system("rm $bowtieref.*");	#-- Deleting bowtie references
+if($mapper eq "bowtie" or $mapper eq "bwa") {
+	system("rm $bowtieref.*");	#-- Deleting bowtie references
+}
 system("rm $tempdir/count.*");
 
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
@@ -226,10 +233,9 @@ system($command);
 
 sub sqm_counter {
 	print "  Counting with sqm_counter: Opening $numthreads threads\n";
-	my($thissample,$samfile,$totalreadcount,$gff_file)=@_;
+	my($thissample,$bamfile,$totalreadcount,$gff_file)=@_;
 	my(%genesincontigs,%accum,%long_gen);
-	my($countreads,$lastread);
-	open(infile2,$gff_file) || die "Can't open gff file $gff_file for writing\n";
+	open(infile2,$gff_file) || die "Can't open gff file $gff_file for reading\n";
 	while(<infile2>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -252,7 +258,7 @@ sub sqm_counter {
 	$tolines=int($totalreadcount/$numthreads);
 
 	for(my $thread=1; $thread<=$numthreads; $thread++) {
-		my $thr=threads->create(\&current_thread,\%genesincontigs,\%long_gen,$thread,$samfile,$tolines,$totalreadcount,$gff_file);
+		my $thr=threads->create(\&current_thread,\%genesincontigs,\%long_gen,$thread,$bamfile,$tolines,$totalreadcount,$gff_file);
 		}
 	$_->join() for threads->list();
 	
@@ -301,26 +307,28 @@ sub current_thread {
 	my %genesincontigs=%{$_[0]}; shift;
 	my %long_gen=%{$_[0]}; shift;
 	my $thread=shift;
-	my $samfile=shift;
+	my $bamfile=shift;
 	my $tolines=shift;
 	my $totalreadcount=shift;
 	my $gff_file=shift;
-	my($countreads,$lastread);
+	my($countreads,%seenreads,$readid);
 	my %accum;
 	my $initline=$tolines*($thread-1);
 	my $endline=$tolines*($thread);
-	# print "   Thread $thread opening $samfile\n";
-	open(infile3,$samfile) || die "Can't open sam file $samfile\n"; ;
+	# print "   Thread $thread opening $bamfile\n";
+	open infile3,"samtools view $bamfile |" || die "Can't open bam file $bamfile\n";
 	while(<infile3>) { 
 		chomp;
 		next if(!$_ || ($_=~/^\#/)|| ($_=~/^\@/));
 		my @k=split(/\t/,$_);
 		my $readid=$k[0];
-		next if(($k[0] eq $lastread) && ($mapper=~/minimap2/));       #-- Minimap2 can output more than one alignment per read
+		if($mapper=~/minimap2/){	#-- Minimap2 can output more than one alignment per read
+			if($seenreads{$readid}) { next; }
+			else { $seenreads{$readid} = 1 }
+		}
 		$countreads++;
 		last if($countreads>$endline);
 		next if($countreads<$initline);
-		$lastread=$readid;
 		my $cigar=$k[5];
 		next if($k[2]=~/\*/);
 		next if($cigar eq "*");
@@ -391,7 +399,7 @@ sub current_thread {
 
 sub contigcov {
 	print "  Calculating contig coverage\n";
-	my($thissample,$outsam)=@_;
+	my($thissample,$bamfile)=@_;
 	my(%lencontig,%readcount)=();
 	my($mappedreads,$totalreadcount,$totalreadlength)=0;
 	open(outfile4,">>$contigcov") || die "Can't open contigcov file $contigcov for writing\n";
@@ -410,19 +418,21 @@ sub contigcov {
 	
 	#-- Count bases mapped from the sam file
 	
-	my($thisr,$lastr);
-	open(infile4,$outsam) || die "Can't open $outsam\n"; ;
+	my($readid,%seenreads);
+	open infile4,"samtools view $bamfile |" || die "Can't open bam file $bamfile\n";
 	while(<infile4>) {
 		chomp;
 		my @t=split(/\t/,$_);
-		next if($_=~/^\@/);
+		next if($_=~/^\@/); # not really needed anymore since we don't read the headers with samtools view
 	
 		#-- Use the mapped reads to sum base coverage
 
 		if($t[5]!~/\*/) { 			#-- If the read mapped, accum reads and bases
-			$thisr=$t[0];
-			next if(($thisr eq $lastr) && ($mapper=~/minimap2/));
-			$lastr=$thisr;
+			$readid=$t[0];
+	                if($mapper=~/minimap2/){        #-- Minimap2 can output more than one alignment per read
+        	                if($seenreads{$readid}) { next; }
+                	        else { $seenreads{$readid} = 1 }
+                	}
 			$readcount{$t[2]}{reads}++;
 			$readcount{$t[2]}{lon}+=length $t[9];
 			$mappedreads++;

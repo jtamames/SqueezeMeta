@@ -26,7 +26,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($aafile,$databasepath,$numthreads,$diamond_soft,$nodiamond,$nocog,$nokegg,$interdir,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile,$syslogfile);
+our($aafile,$databasepath,$numthreads,$diamond_soft,$nodiamond,$nocog,$nokegg,$interdir,$tempdir,$newtaxdb,$cog_db,$kegg_db,$nr_db,$blocksize,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$opt_db,$resultpath,$methodsfile,$syslogfile);
 my $command;
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
@@ -64,8 +64,13 @@ if($ecode!=0) { warn "Error running command:     $command"; }
 
 #-- nr database
 
+if($newtaxdb) { $nr_db=$newtaxdb; }
+print "  Working with taxonomy database in $nr_db\n"; 
+print outsyslog "  Working with taxonomy database in $nr_db\n"; 
+
+
 if(!$notax) {
-	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize --quiet -o $taxdiamond";
+	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize -o $taxdiamond > $tempdir/diamond.nr.log 2>&1";
 	print " taxa";
 	print outsyslog "Running Diamond for taxa: $command\n";
 	my $ecode = system $command;

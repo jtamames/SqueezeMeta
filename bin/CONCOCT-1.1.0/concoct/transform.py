@@ -2,6 +2,7 @@ from sklearn.decomposition import PCA
 import pandas as p
 
 def perform_pca(d, nc, seed):
+    d.columns = d.columns.astype(str) # FPS; Fix error with newer version of scikit_learn
     pca_object = PCA(n_components=nc, random_state=seed).fit(d)
     return pca_object.transform(d), pca_object
 

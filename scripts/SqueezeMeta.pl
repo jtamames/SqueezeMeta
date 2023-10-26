@@ -46,9 +46,10 @@ our $pwd=cwd();
 
 our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
-our($binresultsdir,$databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
-our(%bindirs,%dasdir,%binscripts);  
+our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
+our(%bindirs,%dasdir,%binscripts,%assemblers);  
 
+print %assemblers,"***\n";
 #-- Define help text
 
 my $helpshort = <<END_MESSAGE;
@@ -77,7 +78,7 @@ Arguments:
    -cleaning_options [options]: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
    
  Assembly: 
-   -a: assembler <megahit,spades,rnaspades,canu, flye> (Default: megahit)
+   -a: assembler <megahit, spades, rnaspades, spades-base, canu, flye> (Default: megahit)
    -assembly_options [options]: Extra options to be passed when calling the mapper
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
@@ -93,6 +94,7 @@ Arguments:
    --minion: Run on MinION reads (assembler: canu; mapper: minimap2-ont; consensus: 20) (Default: no)
 
  Annotation:  
+   -db <file>: Specify a new taxonomic database
    --nodiamond: Check if Diamond results are already in place, and just in that case skips the Diamond run (Default: no)
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
@@ -139,6 +141,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "f|seq=s" => \$rawfastq,
 		     "nodiamond" => \$nodiamond,
                      "sg|singletons" => \$singletons,
+		     "db=s" => \$newtaxdb,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nopfam" => \$nopfam,  
@@ -196,6 +199,7 @@ if($consensus) { $consensus/=100; }
 
 $mode=~tr/A-Z/a-z/;
 if($opt_db) { $opt_db = abs_path($opt_db); }
+if($newtaxdb) { $newtaxdb = abs_path($newtaxdb); }
 
 #-- Override settings if running on lowmem or MinION mode.
 if($lowmem) { $blocksize=3; $canumem=15; }
@@ -225,8 +229,8 @@ else {
 	if(($mode=~/sequential$/i) && ($projectdir)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
 	if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
-	if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
-	if(($assembler=~/flye/i) && ($mode=~/merge/i)) { $dietext.="Invalid combination of mode and assembler\n (We are sorry for this, the low number of contigs provided by Flye prevents minimus2 needed in $mode mode to work correctly\n Please use coassembly, or a different assembler)\n"; }
+	# if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
+	if($newtaxdb) { if(-e "$newtaxdb.dmnd") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
 	}
@@ -237,7 +241,7 @@ $projectdir = abs_path($projectdir);
 $projectname = (split '/', $projectdir)[-1];
 my $syslogfile="$projectdir/syslog";
 if (($mode!~/sequential$/i) && (-d $projectdir) && (!$restart)) { print RED; print "Project name $projectdir already exists. Please remove it or change the project name\n"; print RESET; die; } 
-elsif(!$restart) { system("mkdir $projectdir"); }
+elsif(!$restart && $mode ne "sequential") { system("mkdir $projectdir"); }
 
 my(%allsamples,%ident,%noassembly,%pairsample);
 my($sample,$file,$iden,$mapreq);
@@ -289,14 +293,17 @@ my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectnam
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
   'extassembly',$extassembly,'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,'miniden',$miniden,
-  'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite);
+  'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite,'newtaxdb',$newtaxdb);
 
 
 if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		
 	#-- Creation of the new configuration file, syslog, directories
 		  
-	if(!$restart) { writeconf($projectdir,$scriptdir,%conf); }
+	if(!$restart) { 
+		writeconf($projectdir,$scriptdir,%conf); 
+		if($cleaning) { cleaning($projectdir,$scriptdir,"",%conf); }
+		}
 	  		
 
 	if(!$empty) {
@@ -328,14 +335,17 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		#-- Creation of the new configuration file, syslog, and directories
 	
 	  
-		if(!$restart) { writeconf($projectdir,$scriptdir,%conf); } 
+		if(!$restart) { 
+			writeconf($projectdir,$scriptdir,%conf); 
+			if($cleaning) { cleaning($projectdir,$scriptdir,$thissample,%conf); }
+			} 
 
 		
 		if(!$empty) {
  	
 			#-- CALL TO THE STANDARD PIPELINE
 			
-			cleaning($projectdir,$scriptdir,$thissample,%conf);
+			if($cleaning) { cleaning($projectdir,$scriptdir,$thissample,%conf); }
 			pipeline();
 			
 			}
@@ -371,6 +381,14 @@ sub pipeline {
     #-------------------------------- STEP1: Run assembly
 
 	if(($rpoint<=1) && ((!$test) || ($test>=1))) {
+		if(!$assemblers{$assembler}) { 
+			my $assemblerlist=join(", ",keys %assemblers);
+			$dietext.="UNRECOGNIZED assembler $assembler (valid ones are $assemblerlist)\n"; 
+		}
+		if(($assembler=~/flye/i) && ($mode=~/merge/i)) { $dietext.="Invalid combination of mode and assembler\n (We are sorry for this, the low number of contigs provided by Flye prevents minimus2 needed in $mode mode to work correctly\n Please use coassembly, or a different assembler)\n"; }
+		if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
+
+
 		my $scriptname="01.run_all_assemblies.pl";
                 my $wsize=checksize($contigsfna);
 		my $wsize2=checksize($contigslen);
@@ -408,7 +426,7 @@ sub pipeline {
 	if(($rpoint<=2) && ((!$test) || ($test>=2))) {
 		my $masked="$interdir/02.$projectname.maskedrna.fasta";
                 my $wsize=checksize($masked);
-                if(($wsize>2) && (!$force_overwrite)) { print "RNA file $masked already found, skipping step 2\n"; }
+                if(($wsize>2) && (!$force_overwrite)) { print "RNA gff file $masked already found, skipping step 2\n"; }
 		else {		
 			if($verbose) { print " At this point, we already have contigs\n"; }
 			my $scriptname="02.rnas.pl";
@@ -524,7 +542,7 @@ sub pipeline {
 				print outfile4 "\n[",$currtime->pretty,"]: STEP7 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP7 -> FUNCTIONAL ASSIGNMENT: $scriptname\n"; print RESET;
 				if($verbose) { print " (This will use fun3 algorithm to annotate putative functions for each ORF, from the homologues found in step 5)\n"; }
-				my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir 0 $force_overwrite");
 				if($ecode!=0)   {  error_out(7,$scriptname); }
 				my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB,$rest);
 				if(!$nocog) { $wsizeCOG=checksize($fun3cog); }
@@ -561,7 +579,7 @@ sub pipeline {
 				print outfile4 "\n[",$currtime->pretty,"]: STEP8 -> $scriptname\n";
 				print BLUE "[",$currtime->pretty,"]: STEP8 -> DOUBLEPASS, Blastx analysis: $scriptname\n"; print RESET;
 				if($verbose) { print " (This will do many things: it will mask the parts of the contigs where an ORF has been found, and will run blastx in the remaining gaps, to identify possible genes missed in gene prediction. This is intended to be useful when dealing with eukaryotic or viral sequences, for which gene prediction is less accurate)\n"; }
-				my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+				my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 				if($ecode!=0)  { error_out(8,$scriptname); }
 				my $wsize=checksize($gff_file_blastx);
 				if($wsize<2)         { error_out(8,$scriptname,$gff_file_blastx); }
@@ -604,7 +622,7 @@ sub pipeline {
 			print outfile4 "\n[",$currtime->pretty,"]: STEP10 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP10 -> MAPPING READS: $scriptname\n"; print RESET;
 			if($verbose) { print " (This will map reads back to the contigs using $mapper and count how many map to each ORF, to estimate their abundances)\n"; }
-			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+			my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 			if($ecode!=0)        { error_out(10,$scriptname); }
 			my $wsize=checksize($mapcountfile);
 			if($wsize<3)         { error_out(10,$scriptname,$mapcountfile); }
@@ -710,7 +728,6 @@ sub pipeline {
 				if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
 				}
 		}
-	}
 		
 			
  
@@ -823,6 +840,7 @@ sub pipeline {
 			else { print RED; print "Skipping BIN TABLE CREATION: (You already know: DAS_Tool did not predict bins.)\n"; print RESET; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 	 }
+	}
 
     #-------------------------------- STEP19: Make contig table		
 
@@ -987,6 +1005,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	if($assembler_options) { print outfile5 "\$assembler_options  = \"$conf{assembler_options}\";\n"; }
 	if($extassembly)       { print outfile5 "\$extassembly        = \"$conf{extassembly}\";\n";       }
 	if($opt_db)            { print outfile5 "\$opt_db             = \"$conf{opt_db}\";\n";            }
+	if($newtaxdb)          { print outfile5 "\$newtaxdb             = \"$conf{newtaxdb}\";\n";            }
 	if($taxbinmode) { print outfile5 "\$taxbinmode             = \"$taxbinmode\";\n";            }
 	close outfile5;
 	

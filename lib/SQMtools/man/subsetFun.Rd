@@ -8,12 +8,12 @@ subsetFun(
   SQM,
   fun,
   columns = NULL,
-  ignore_case = T,
-  fixed = F,
-  trusted_functions_only = F,
-  ignore_unclassified_functions = F,
-  rescale_tpm = F,
-  rescale_copy_number = F
+  ignore_case = TRUE,
+  fixed = FALSE,
+  trusted_functions_only = FALSE,
+  ignore_unclassified_functions = FALSE,
+  rescale_tpm = FALSE,
+  rescale_copy_number = FALSE
 )
 }
 \arguments{
@@ -46,8 +46,8 @@ data(Hadza)
 Hadza.iron = subsetFun(Hadza, "iron")
 Hadza.carb = subsetFun(Hadza, "Carbohydrate metabolism")
 # Search for multiple patterns using regular expressions
-Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=F)
+Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=FALSE)
 }
 \seealso{
-
+\code{\link{subsetTax}}, \code{\link{subsetORFs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 }

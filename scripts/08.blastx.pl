@@ -21,6 +21,7 @@ my $pwd=cwd();
 my $verbose=0;
 
 my $projectdir=$ARGV[0];
+my $force_overwrite=$ARGV[1];
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -31,13 +32,17 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir,$methodsfile,$syslogfile);
+our($installpath,$datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$newtaxdb,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir,$methodsfile,$syslogfile);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
 my(%genpos,%skip,%allorfs,%annotations,%incontig,%olist,%inframe);
 
 my $nomasked=100;	#-- Minimum unmasked length for a contig to be considered in blastx
+
+if($newtaxdb) { $nr_db=$newtaxdb; }
+print "  Working with taxonomy database in $nr_db\n"; 
+print outsyslog "  Working with taxonomy database in $nr_db\n"; 
 
 my $blastxout="$tempdir/08.$project.nr.blastx";
 my $collapsed="$tempdir/08.$project.nr.blastx.collapsed.m8";
@@ -326,7 +331,7 @@ sub functions {
 			}
 		}
 	print "  Assigning with fun3\n";
-	my $command="perl $scriptdir/07.fun3assign.pl $projectdir blastx";
+	my $command="perl $scriptdir/07.fun3assign.pl $projectdir blastx $force_overwrite";
 	print outsyslog  "Assigning with fun3: $command\n"; 
 	system($command);
 	}

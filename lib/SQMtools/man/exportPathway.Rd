@@ -9,9 +9,9 @@ exportPathway(
   pathway_id,
   count = "tpm",
   samples = NULL,
-  split_samples = F,
+  split_samples = FALSE,
   sample_colors = NULL,
-  log_scale = F,
+  log_scale = FALSE,
   fold_change_groups = NULL,
   fold_change_colors = NULL,
   max_scale_value = NULL,
@@ -44,14 +44,22 @@ exportPathway(
 
 \item{output_suffix}{character. Suffix to be added to the output files (default \code{"pathview"}).}
 }
+\value{
+No return value, but Pathview figures are produced in the current working directory.
+}
 \description{
 This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \emph{Nucleic acids research}, 45:W501-W508). It will generate annotated KEGG pathway maps showing which reactions are present in the different samples. It will also generate legends with the color scales for each sample in separate png files.
 }
 \examples{
+\donttest{
 data(Hadza)
-exportPathway(Hadza, "00910", count = 'copy_number', output_suffix = "nitrogen_metabolism", sample_colors = c("red", "blue"))
-exportPathway(Hadza, "00250", count = 'tpm', output_suffix = "ala_asp_glu_metabolism_FoldChange", fold_change_groups = list(c("H1"), c("H12")), max_scale_value=2)
+exportPathway(Hadza, "00910", count = 'copy_number', 
+              output_suffix = "nitrogen_metabolism", sample_colors = c("red", "blue"))
+exportPathway(Hadza, "00250", count = 'tpm', 
+              output_suffix = "ala_asp_glu_metabolism_FoldChange", 
+              fold_change_groups = list(c("H1"), c("H12")), max_scale_value=2)
+}
 }
 \seealso{
-\code{\link[plotFunctions]{plotFunctions}} for plotting the most functions taxa of a SQM object.
+\code{\link{plotFunctions}} for plotting the most functions taxa of a SQM object.
 }

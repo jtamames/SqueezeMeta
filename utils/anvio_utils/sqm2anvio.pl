@@ -184,32 +184,6 @@ if(-e $contigsinbins) {
 	}
 else { print "Cannot find contigs in bins $contigsinbins file. No binning?\n"; }
 
-my $samdir="$datapath/sam";
-my $samkeep;
-opendir(indir1,$samdir) || die;
-my @samfiles=grep(/\.sam$/,readdir indir1);
-my $samlist=join(" ",@samfiles);
-closedir indir1;
-#if($#samfiles>=0) { 
-#	print "SAM files found for this run ($samlist)\nDo you want to compress them and include them in the output folder (y/n)? ";
-#        while(1) {
-#		$samkeep=<STDIN>;
-#		chomp $samkeep;
-#		if($samkeep eq 'y' or $samkeep eq 'yes'){ $samkeep=1; print "Compressing SAM files to the BAM format\n"; last }
-#		elsif($samkeep eq 'n' or $samkeep eq 'no') { $samkeep=0; print "SAM files will be ignored\n"; last }
-#               else { print "Only y(es) or n(o) are valid answers\n" }
-#		}
-#	}
-
-$samkeep=1;
-if($samkeep) { 
-	foreach my $sam(@samfiles) {
-		(my $bam = $sam) =~ s/\.sam$/-RAW.bam/;
-                $bam =~ s/$project\.//;
-        	my $ecode = system("LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$installpath/lib $installpath/bin/samtools view -b $samdir/$sam > $outdir/bam/$bam");
-		if($ecode!=0) { die "Error running samtools"; }
-		}
-	}
 
 print "Created anvio gene file (import with anvi-gene-contigs-database): $outdir/$genes_out\n";
 print "Created anvio contig file (import with anvi-gene-contigs-database): $outdir/$contigs_out\n";
@@ -217,5 +191,4 @@ print "Created anvio functions file (import with anvi-import-functions): $outdir
 print "Created anvio taxonomy file (import with anvi-import-taxonomy-for-genes): $outdir/$taxonomy_out\n";
 if(-e $bin_out) { print "Created anvio bins file (import with anvi-import-collection): $outdir/$bin_out\n"; }
 print "Created anvio-SQM equivalence (just for reference, don't import this): $outdir/$equivalence_out\n";
-if($samkeep) { print "Added SAM files: $samlist\n and converted them to the BAM format\n"; }
 

@@ -39,14 +39,17 @@ SHORT_STAGES_NAME = ["ec", "as", "mc", "scc", "tpp"]
 # final contigs and scaffolds names
 contigs_name = "contigs.fasta"
 scaffolds_name = "scaffolds.fasta"
+secondary_scaffolds_name = "raw_scaffolds.fasta"
 assembly_graph_name = "assembly_graph.fastg"
 assembly_graph_name_gfa = "assembly_graph_with_scaffolds.gfa"
 contigs_paths = "contigs.paths"
+secondary_contigs_name = "raw_contigs.fasta"
 scaffolds_paths = "scaffolds.paths"
+secondary_scaffolds_paths = "raw_scaffolds.paths"
 transcripts_name = "transcripts.fasta"
 transcripts_paths = "transcripts.paths"
 filtering_types = ["hard", "soft"]
-bgc_stats_name = "bgc_statistics.txt"
+bgc_stats_name = "hmm_statistics.txt"
 gene_clusters_name = "gene_clusters.fasta"
 domain_graph_name = "domain_graph.dot"
 
@@ -99,3 +102,6 @@ def get_stage_filename(stage_num, stage_short_name):
 # kmers were set by default, not SC, not IonTorrent data and not rna and temporary not meta (except metaplasmid)
 def auto_K_allowed():
     return not args.k_mers and not args.single_cell and not args.iontorrent and not (args.meta and not args.plasmid)
+
+def hmm_mode():
+    return args.bio or args.custom_hmms or args.corona

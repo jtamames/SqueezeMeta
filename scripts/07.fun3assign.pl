@@ -12,6 +12,7 @@ $|=1;
 my $pwd=cwd();
 my $blastx=$ARGV[1];	#-- If it was called from blastx
 my $projectdir=$ARGV[0];
+my $force_overwrite=$ARGV[2];
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -35,7 +36,7 @@ if(!$nocog) {
 		$cogdiamond="$tempdir/08.$project.fun3.blastx.cog.m8";
 		$fun3cog="$tempdir/08.$project.fun3.blastx.cog";
 		}
-	if(-e $fun3cog) { 
+	if((-e $fun3cog) && (!$force_overwrite)) { 
 		print "  Found COG annotation file in $fun3cog, skipping\n"; 	
 		print syslogfile "  Found COG annotation file in $fun3cog, skipping\n";
 		}
@@ -127,12 +128,12 @@ if(!$nokegg) {
 		$keggdiamond="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		$fun3kegg="$tempdir/08.$project.fun3.blastx.kegg";
 		}
-	if(-e $fun3kegg) { 
+	if((-e $fun3kegg) && (!$force_overwrite)) { 
 		print "  Found KEGG annotation file in $fun3kegg, skipping\n"; 	
 		print syslogfile "  Found KEGG annotation file in $fun3kegg, skipping\n";
 		}
 	else {	
-		print syslogfile "  Reading COGs hits from $cogdiamond\n";	
+		print syslogfile "  Reading KEGG hits from $keggdiamond\n";	
 		open(infile2,$keggdiamond) || die "Can't open $keggdiamond\n";
 		open(outfile2,">$fun3kegg") || die "Can't open $fun3kegg\n";
 		print outfile2 "# Created by $0, ",scalar localtime,", evalue=$evalue, miniden=$miniden, minolap=$minolap7\n";
@@ -225,7 +226,7 @@ if($opt_db) {
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
 		print syslogfile "  Reading $dbname hits from $optdbdiamond\n";	
 
-		if(-e $optdbresult) { print "  Result found in $optdbresult for database $optdbresult, skipping\n"; next; }
+		if((-e $optdbresult) && (!$force_overwrite)) { print "  Result found in $optdbresult for database $optdbresult, skipping\n"; next; }
 		
 		open(infile1,$optdbdiamond) || die "Can't open opt_db file $optdbdiamond\n";
 		open(outfile1,">$optdbresult") || die "Can't open $optdbresult for writing\n";
@@ -313,10 +314,9 @@ if(!$nopfam) {
 	#-- Read the Pfam data for the pfam.dat file
 
 	print " PFAM";
-	if(-e $fun3pfam) { 
+	if((-e $fun3pfam)  && (!$force_overwrite)) { 
 		print "  Found COG annotation file in $fun3cog, skipping\n"; 	
 		print syslogfile "  Found COG annotation file in $fun3cog, skipping\n";
-		next; 
 	}
 
 	else {

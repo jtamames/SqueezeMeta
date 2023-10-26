@@ -58,6 +58,7 @@ foreach my $tbinner(@binner) { #-- For all the specified binners
 	opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
 	@binfiles=grep(/fasta$|fa$/,readdir indir1);
 	closedir indir1;
+	$firstfile="$dirbin/$binfiles[0]";
 	if(-e $firstfile) { $wsize=checksize($firstfile); }
 	else { $wsize=0; }
 	if($wsize<2) { print RED; print "WARNING in STEP14 -> $scriptname. No $tbinner results!\n"; print RESET; $finaltrace.="WARNING in STEP14: No $tbinner results!\n"; }

@@ -21,7 +21,7 @@ my $project=$projectname;
 #-- Configuration variables from conf file
 
 our($datapath,$assembler,$outassembly,$megahit_soft,$mappingfile,$assembler_options,$extassembly,$numthreads,$spades_soft,$prinseq_soft,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$methodsfile,$syslogfile,$mincotiglen);
-our($bowtieref,$bowtie2_build_soft,$project,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigid,$contigcov,$bowtie2_x_soft,$mapper,$bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
+our($bowtieref,$bowtie2_build_soft,$project,$userdir,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigid,$contigcov,$bowtie2_x_soft,$mapper,$bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
 my($seqformat,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name);
 my $fastqdir="$datapath/raw_fastq";
@@ -72,8 +72,8 @@ while(<infile1>) {
 	next if !$_;
 	my @t=split(/\t/,$_);
 	next if(($mode eq "sequential") && ($t[0] ne $projectname));
-	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=1; } 
-	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$fastqdir/$t[1]"}=2; }
+	if($t[2] eq "pair1") { $allsamples{$t[0]}{"$userdir/$t[1]"}=1; } 
+	elsif ($t[2] eq "pair2") { $allsamples{$t[0]}{"$userdir/$t[1]"}=2; }
 	}
 close infile1;
 
@@ -198,13 +198,13 @@ foreach my $tsamp(sort keys %readcount) {
 print outmap "\n# This result corresponds to the mapping of reads to the original assembly, before the introduction of singletons\n";
 close outmap;
 
-#-- Run prinseq_lite for removing short contigs
+#-- Run prinseq_lite for removing short contigs  #-- Removed for allowing short singletons
 
-$command="$prinseq_soft -fasta $contigsfna -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
-print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
-print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n  ";
-my $ecode = system $command;
-if($ecode!=0) { die "Error running command:    $command"; }
+#$command="$prinseq_soft -fasta $contigsfna -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
+#print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
+#print outsyslog "Running prinseq for selecting contigs longer than $mincontiglen: $command\n  ";
+#my $ecode = system $command;
+#if($ecode!=0) { die "Error running command:    $command"; }
 
 #-- Run prinseq_lite for statistics
 
@@ -218,6 +218,7 @@ if($ecode!=0) { die "Error running command:    $command"; }
 my $numc;
 my $singletonfile="$interdir/01.$projectname.singletons";
 print "  Counting length of contigs\n";
+print outsyslog "  Counting length of contigs\n";
 open(outfile2,">$contigslen") || die "Can't open $contigslen for writing\n";
 open(outfile3,">$singletonfile") || die;
 open(infile2,$contigsfna) || die "Can't open $contigsfna\n";
@@ -242,9 +243,10 @@ if($contigname) { $len=length $seq; print outfile2 "$contigname\t$len\n"; }
 close outfile2;
 close outfile3;
 close outmet;
-close outsyslog;
 
 print "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
+print outsyslog "  Contigs stored in $contigsfna\n  Number of contigs: $numc\n";
 #system("rm $datapath/raw_fastq/par1.$format.gz; rm $datapath/raw_fastq/par2.$format.gz");
 system("rm $bowtieref.1.bt2; rm $bowtieref.bwt");
+close outsyslog;
 

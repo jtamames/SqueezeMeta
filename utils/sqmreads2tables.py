@@ -5,7 +5,7 @@ Part of the SqueezeMeta distribution. 22/07/2021.
 
 Generate tabular outputs from sqm_reads.pl or sqm_longreads.pl results.
 
-USAGE: sqm_reads2tables.py [-h] project_path output_dir [-q "QUERY"]
+USAGE: sqmreads2tables.py [-h] project_path output_dir [-q "QUERY"]
                      [--trusted-functions] [--ignore-unclassified]
                      [--doc]
 
@@ -60,6 +60,9 @@ QUERY SYNTAX:
     - SUPERKINGDOM, PHYLUM, CLASS, ORDER, FAMILY, GENUS, SPECIES:
           search within the taxonomic annotation at the requested
           taxonomic rank.
+
+- Posible relational operators are "==", "!=", ">=", "<=", ">", "<", "IN", "NOT IN",
+"CONTAINS", "DOES NOT CONTAIN"
 """
 
 from os.path import abspath, dirname, realpath
@@ -83,6 +86,13 @@ TAXRANKS   = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'sp
 FUNMETHODS = {'kegg': 'KO', 'cogs': 'COG'}
 
 def main(args):
+    ### Check that the output dir is valid
+    if 'fun' in args.output_dir.split('/')[-1] and abspath(args.project_path) == dirname(abspath(args.output_dir)):
+        print('\nThe output directory can not contain the substring "fun" if it will be a subdirectory of the project directory.')
+        print('This is such an obscure use case. Congrats! You can redeem your coupon at our github page')
+        print('Please choose a different output directory.\n')
+        exit(1)
+
     ### Create output dir.
     try:
        mkdir(args.output_dir)

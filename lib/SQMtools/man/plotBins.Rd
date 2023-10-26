@@ -9,11 +9,11 @@ plotBins(
   count = "percent",
   N = 15,
   bins = NULL,
-  others = T,
+  others = TRUE,
   samples = NULL,
-  ignore_unmapped = F,
-  ignore_nobin = F,
-  rescale = F,
+  ignore_unmapped = FALSE,
+  ignore_nobin = FALSE,
+  rescale = FALSE,
   color = NULL,
   base_size = 11,
   max_scale_value = NULL,
@@ -59,5 +59,5 @@ data(Hadza)
 plotBins(Hadza)
 }
 \seealso{
-\code{\link[plotBins]{plotBins}} for plotting the most abundant bins of a SQM object; \code{\link[plotBars]{plotBars}} and \code{\link[plotBars]{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+\code{\link{plotBins}} for plotting the most abundant bins of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 }

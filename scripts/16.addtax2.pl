@@ -22,7 +22,7 @@ do "$projectdir/parameters.pl";
 
 	#-- Configuration variables from conf file
 
-our($installpath,$binresultsdir,$datapath,$databasepath,$syslogfile,$interdir,$numthreads,$alllog,$bintax,$taxbinmode,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir);
+our($installpath,$checkm_soft,$binresultsdir,$datapath,$databasepath,$syslogfile,$interdir,$numthreads,$alllog,$bintax,$taxbinmode,$mincontigs16,$minconsperc_asig16,$minconsperc_total16,$binresultsdir);
 
 	#-- Some configuration values for the algorithm
 	
@@ -249,10 +249,10 @@ sub checkm {
 	print "  Adding CheckM taxonomy for $thisbin\n";
 	if(-d $tempdir) { system("rm -r $tempdir"); }
 	if(-e $tempout) { system("rm $tempout"); }
-	my $command="checkm tree $bindir $tempdir -t $numthreads -x $thisbin  >> $syslogfile 2>&1";
+	my $command="$checkm_soft tree $bindir $tempdir -t $numthreads -x $thisbin  >> $syslogfile 2>&1";
 	# print "**$command**\n";
 	system($command);
-	my $command="checkm tree_qa $tempdir --tab_table -f $tempout  >> $syslogfile 2>&1";
+	my $command="$checkm_soft tree_qa $tempdir --tab_table -f $tempout  >> $syslogfile 2>&1";
 	system($command);
 	open(infw,$tempout) || warn "Cannot open checkm file $tempout\n";
 	$_=<infw>;
