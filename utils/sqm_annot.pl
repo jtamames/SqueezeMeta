@@ -42,7 +42,7 @@ my $version=<inv>;
 chomp $version;
 close inv;
 
-my($numthreads,$aadir,$project,$samplesfile,$notax,$nocog,$nokegg,$blastmode,$blocksize,$hel,$blockoption,$printversion);
+my($numthreads,$aadir,$project,$samplesfile,$notax,$nocog,$nokegg,$blastmode,$blocksize,$hel,$blockoption,$printversion,$opt_db);
 
 my $start_run = time();
 print BOLD "\nSQM_annot v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
@@ -62,6 +62,7 @@ Mandatory parameters:
    --notax: Skip taxonomic annotation
    --nocog: Skip COGs annotation
    --nofun: Skip KEGG annotation
+   -extdb <database file>: List of user-provided databases
    -version: Print version
    -h: this help
    
@@ -73,6 +74,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "b=i" => \$blocksize,
 		     "notax" => \$notax,
 		     "nocog" => \$nocog,
+		     "extdb=s" => \$opt_db, 
 		     "nokegg" => \$nokegg,
 		     "v|version" => \$printversion,
 		     "h" => \$hel
@@ -107,10 +109,12 @@ while(<in>) {
 	}
 close out;
 
+my $edb;
+if($opt_db) { $edb="-extdb $opt_db"; }
 print "\nNow I will call SqueezeMeta to do my stuff. Please hold on.\n\n";
-my $command="perl $scriptdir/SqueezeMeta.pl  -s $tempsample -f $aadir -m sequential $blockoption --nopfam -c 0 --empty";
+my $command="perl $scriptdir/SqueezeMeta.pl  -s $tempsample -f $aadir -m sequential $edb $blockoption --nopfam -c 0 --empty";
 my $ecode = system($command);
-if($ecode!=0) { catch_error(); }
+# if($ecode!=0) { catch_error(); }
 my $diamond_command;
 foreach my $thissample(keys %files) {
 	print "Working with $thissample\n";

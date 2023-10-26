@@ -44,7 +44,7 @@ close inv;
 
 our $pwd=cwd();
 
-our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$force_overwrite,$consensus,$doublepass)="0";
+our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
 our($binresultsdir,$databasepath,$extdatapath,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
 our(%bindirs,%dasdir,%binscripts);  
@@ -289,7 +289,8 @@ my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectnam
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
   'extassembly',$extassembly,'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,'miniden',$miniden,
-  'evalue',$evalue,'taxbinmode',$taxbinmode);
+  'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite);
+
 
 if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		
@@ -301,7 +302,7 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 	if(!$empty) {
  	
 		#-- CALL TO THE STANDARD PIPELINE
-		if($cleaning) { cleaning($projectdir,$scriptdir,$projectname,%conf); }
+		if($cleaning) { cleaning($projectdir,$scriptdir,"",%conf); }
 		pipeline();
 		}
 		
@@ -313,27 +314,28 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 
 	#-- Sequential mode
 		
-	else {      #-- FOR SEQUENTIAL MODES
+	else {      #-- FOR SEQUENTIAL MODE
 	
-	# my $rootdir=$projectdir;
+	my $rootdir=$projectdir;
+		
 	foreach my $thissample(keys %allsamples) { 
 	
-		print "--- SAMPLE $thissample --------\n";
+		print "--- SAMPLE $thissample ---\n";
 	
-		# $projectdir.="/$thissample";
+		$projectdir="$rootdir/$thissample";
 		$conf{'projectname'}=$thissample;
 	
 		#-- Creation of the new configuration file, syslog, and directories
 	
 	  
-		if(!$restart) { writeconf($projectdir,$scriptdir,$thissample,%conf); } 
+		if(!$restart) { writeconf($projectdir,$scriptdir,%conf); } 
 
 		
 		if(!$empty) {
  	
 			#-- CALL TO THE STANDARD PIPELINE
 			
-			if($cleaning) { cleaning($projectdir,$scriptdir,%conf); }
+			cleaning($projectdir,$scriptdir,$thissample,%conf);
 			pipeline();
 			
 			}
@@ -947,15 +949,13 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	print outfile5 "\$date = \"",scalar localtime,"\";\n\n";
 	print outfile5 "\$installpath = \"$installpath\";\n";
 	# print outfile5 "\$userdir = \"$rawfastq\";\n";
+	if($cleaning) { print outfile5 "\$userdir       = \"$projectdir/data/raw_fastq\";\n"; }
+	else { print outfile5 "\$userdir       = \"$rawfastq\";\n";    }       
 
 	while(<infile2>) {
 		chomp;
 		next if !$_;		
 		if   ($_=~/^\$projectname/)     { print outfile5 "\$projectname = \"$conf{projectname}\";\n";         }
-		elsif($_=~/^\$scriptdir/)       {   #-- Setting the appropriate $userdir if cleaning was invoked
-			if($cleaning) { print outfile5 "\$userdir       = \$projectdir/data/raw_fastq;\n";           }
-			else { print outfile5 "\$userdir       = $userdir;\n";    }       
-			}			
 		elsif($_=~/^\$blocksize/)       { print outfile5 "\$blocksize       = $conf{blocksize};\n";           }
 		elsif($_=~/^\$nodiamond/)       { print outfile5 "\$nodiamond       = $conf{nodiamond};\n";           }
 		elsif($_=~/^\$singletons/)      { print outfile5 "\$singletons      = $conf{singletons};\n";          }
@@ -1101,7 +1101,8 @@ sub cleaning  {
 	my %prepsamples;
 
 	#-- NOW FILTERING READS
-			
+	
+	print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n  Parameters: $cleaningoptions\n";
 	my $trimmomatic_command;
 	open(infile4,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET; die; };
 	if($cleaning) {
@@ -1110,18 +1111,20 @@ sub cleaning  {
  			next if(!$_ || ($_=~/^\#/));
 			$_=~s/\r//g;			#-- Deleting \r in samples file for windows compatibility
 			my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-			if($sample eq $thissample) { $prepsamples{$sample}{$iden}=$file; }
+			if($thissample) {
+				if($sample eq $thissample) { $prepsamples{$sample}{$iden}=$file; }
+				}
+			else { $prepsamples{$sample}{$iden}=$file; }
 			}
 		close infile4;
-		foreach my $ts(sort keys %prepsamples) {
-			my $par1name="$userdir/".$prepsamples{$ts}{pair1};
-			my $par2name="$userdir/".$prepsamples{$ts}{pair2};
+		foreach my $ts(sort keys %prepsamples) { 
+			print "  Working with sample $ts\n";
+			my $par1name="$rawfastq/".$prepsamples{$ts}{pair1};
+			my $par2name="$rawfastq/".$prepsamples{$ts}{pair2};
 			my $trimmedpar1name="$newuserdir/".$prepsamples{$ts}{pair1};
 			my $trimmedpar2name="$newuserdir/".$prepsamples{$ts}{pair2};
 			if(-e $par2name) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $par1name $par2name $trimmedpar1name $trimmedpar1name.removed $trimmedpar2name $trimmedpar2name.removed $cleaningoptions > /dev/null 2>&1"; }
 			else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $par1name $trimmedpar1name $cleaningoptions > /dev/null 2>&1"; }
-	
-			print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n  Parameters: $cleaningoptions\n";
 			print outfile4 "Running trimmomatic: $trimmomatic_command";
 			my $ecode = system $trimmomatic_command;
 			if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }

@@ -30,6 +30,7 @@ $minconsperc_total9=0.5;  #-- STEP9: Ratio genes for the taxon/number of genes.
 			  #-- THIS ONE can be set by arguments, because of its influence when using long reads
 	
 $keepsam10=1;             #-- STEP10: Set to one, it keeps SAM files. Set to zero, it deletes them when no longer needed
+$collector10=200000;      #-- STEP10: Step size for creating collectorś curves (number of reads)
 
 $minraw12=200;  	  #-- STEP12: Minimum number of raw counts to be included in the STAMP files
 
