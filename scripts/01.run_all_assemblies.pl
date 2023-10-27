@@ -45,7 +45,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 		my($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 		if($mapreq!~/noassembly/) {
 			if($mapreq=~/extassembly\=(.*)/) { $extassemblies{$sample}=$1; }  #-- Store external assemblies if specified in the samples file
-			elsif(($mode eq "sequential") && ($sample eq $projectname)) { $datasamples{$sample}{$iden}{$file}=1; }  #-- If in sequential mode, only assemble the current sample
+			if(($mode eq "sequential") && ($sample eq $projectname)) { $datasamples{$sample}{$iden}{$file}=1; }  #-- If in sequential mode, only assemble the current sample
 			else { $datasamples{$sample}{$iden}{$file}=1; }
 			}
 		}
