@@ -68,7 +68,7 @@ Mandatory parameters:
    
 END_MESSAGE
 
-my $result = GetOptions ("t=i" => \$numthreads,
+my $result = GetOptions ("t=i" => \($numthreads=12),
                      "s=s" => \$samplesfile,
                      "f=s" => \$aadir,
 		     "b=i" => \$blocksize,
@@ -112,7 +112,7 @@ close out;
 my $edb;
 if($opt_db) { $edb="-extdb $opt_db"; }
 print "\nNow I will call SqueezeMeta to do my stuff. Please hold on.\n\n";
-my $command="perl $scriptdir/SqueezeMeta.pl  -s $tempsample -f $aadir -m sequential $edb $blockoption --nopfam -c 0 --empty";
+my $command="perl $scriptdir/SqueezeMeta.pl  -s $tempsample -f $aadir -m sequential $edb $blockoption -t $numthreads --nopfam -c 0 --empty";
 my $ecode = system($command);
 # if($ecode!=0) { catch_error(); }
 my $diamond_command;
