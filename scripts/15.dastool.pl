@@ -15,7 +15,6 @@ if(!$projectdir) { die "Please provide a valid project name or project path\n"; 
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
 our($projectname);
-my $project=$projectname;
 
 do "$projectdir/parameters.pl";
 
@@ -87,26 +86,30 @@ if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta 
 
 else { 				#-- Otherwise, run DAS tool to combine results
 	
-	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres15 --search_engine diamond -t $numthreads -o $daspath/$project --db_directory $databasepath";
+	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres15 --search_engine diamond -t $numthreads -o $daspath/$projectname --db_directory $databasepath";
  
 	print "Running DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43) for $methods\n";
 	print outsyslog "Running DAS Tool for $methods: $das_command\n";
 	my $ecode = system $das_command;
-	if($ecode!=0) { warn "Error running command:    $das_command"; }
-	else {
-		open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
-		print outmet "Combination of binning results was done using DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43)\n";
-		close outmet;
-		}
+	if($ecode!=0) { die "Error running command:    $das_command"; }
+	open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
+	print outmet "Combination of binning results was done using DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43)\n";
+	close outmet;
+	system("mv $daspath/$projectname\_DASTool\_bins/* $binresultsdir");
 	}
 
-print "  Final binning results stored in $binresultsdir\n";
-system("mv $daspath/$project\_DASTool\_bins/* $binresultsdir");
-# Rename bins to include project name at the beginning
+my @binfiles;
 opendir(my $dh, $binresultsdir) || die "Can't open $binresultsdir: $!";
 while (readdir $dh) {
-        next if $_ =~ /^\.\.?$/;
-        rename("$binresultsdir/$_", "$binresultsdir/$projectname.$_")
+	next if $_ =~ /^\.\.?$/;
+	push @binfiles, $_;
+}
+for(@binfiles) {
+	my $newname = "$projectname\.$_";
+	$newname =~ s/fna$/fa/g; #ensure fa extension even if this comes from a single binner
+	$newname =~ s/fasta$/fa/g;
+	rename("$binresultsdir/$_", "$binresultsdir/$newname");
 }
 
+print "  Final binning results stored in $binresultsdir\n";
 close outsyslog;
