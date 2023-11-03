@@ -93,6 +93,7 @@ requirements:
     #- igraph==0.10.8 # Required by mOTUlizer but missing in conda apparently, should get installed during build
     - python-igraph
     - nextflow
+    - seqtk >=1.4
 
 build:
   noarch: generic
