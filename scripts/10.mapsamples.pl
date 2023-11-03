@@ -306,7 +306,7 @@ print "  Output in $mappingstat\n";
 close outfile3;
 if($mapper eq "bowtie" or $mapper eq "bwa") {
 	system("rm $bowtieref.*");	#-- Deleting bowtie references
-system("rm $tempdir/count.*");
+if(-e $gff_file) { system("rm $tempdir/count.*"); }
 }
 
 
@@ -335,7 +335,6 @@ sub sqm_counter {
 			my $pid = fork;
 			die if not defined $pid;
 			if (not $pid) { # $pid will be 0 if this is a child process, the parent will don't run this
-				#system("perl gencount.pl $thread $bamfile $bedfilectgs $bedfileorfs $countfile $mapper '$samtools_soft' $verbose");
                         	current_thread($thread,$bamfile,$bedfilectgs,$bedfileorfs,$countfile,$mapper,$samtools_soft,$verbose);
 				exit;
                         	}
