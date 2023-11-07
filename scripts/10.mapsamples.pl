@@ -284,10 +284,6 @@ foreach my $thissample(keys %allsamples) {
 	if(-e $gff_file) {
 		print outsyslog "Calling sqm_counter: Sample $thissample, BAM $bamfile, Number of reads $totalreads\n";
         	sqm_counter(\@contigchunks,\@genes_ordered,\%long_gen,$thissample,$bamfile,\@bed_chunk_files_contigs,\@count_chunk_files,$totalreads,$mapper,$verbose);
-		#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
-		my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
-		print outsyslog "Sorting mapcount table: $command\n";
-		system($command);
 		}
 	}
 if($warnmes) { 
@@ -306,7 +302,13 @@ print "  Output in $mappingstat\n";
 close outfile3;
 if($mapper eq "bowtie" or $mapper eq "bwa") {
 	system("rm $bowtieref.*");	#-- Deleting bowtie references
-if(-e $gff_file) { system("rm $tempdir/count.*"); }
+if(-e $gff_file) {
+	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
+	my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+	print outsyslog "Sorting mapcount table: $command\n";
+	system($command);
+	#-- Remove temp files
+	system("rm $tempdir/count.*"); }
 }
 
 
