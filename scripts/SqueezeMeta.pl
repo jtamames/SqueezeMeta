@@ -946,8 +946,8 @@ sub pipeline {
 	print "For citation purposes, you can find a summary of methods in the file $methodsfile\n\n";
 	if(!$onlybins) {
 		print "You can analize your results using the SQMtools R library (see https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results)\n";
+		if($mode eq "sequential") { print "(Please remember that sequential projects must be loaded indepently in SQMtools)\n"; }
 	}
-	if($mode eq "sequential") { print "(Please remember that sequential projects must be loaded indepently in SQMtools)\n"; }
 }
 
 
@@ -1017,7 +1017,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $conf{cleaning};\n";            }
 		elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$conf{cleaningoptions}\";\n"; }
 		elsif($_=~/^\$gtdbtk_data_path/) {
-			if($gtdbtk_data_path) { print outfile5 "\$gtdbtk_data_path = \"$conf{gtdbtk_data_path}\";\n"; }
+			if($conf{gtdbtk_data_path}) { print outfile5 "\$gtdbtk_data_path = \"$conf{gtdbtk_data_path}\";\n"; }
 			else { print outfile5 "$_\n"; }
 			}
 		else { print outfile5 "$_\n"; }
