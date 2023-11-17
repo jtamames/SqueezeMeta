@@ -80,10 +80,15 @@ while(<infilelen>) {
         }
 close infilelen;
 
+	#-- Check that we don't have more threads than contigs
+my $numthreads_counter= $numthreads;
+my $ncontigs = keys %lencontig;
+if($numthreads_counter > $ncontigs) { $numthreads = $ncontigs; }
 
 my(@contigchunks, @bed_chunk_files_contigs, @bed_chunk_files_orfs, @count_chunk_files);
 my(%genesincontigs,%genespos,%long_gen,@genes_ordered);
 
+	#-- If a gff file is available, prepare for ORF counting
 if(-e $gff_file) {
         #-- Get ORF info from gff file
 	print "  Reading orf info from $gff_file\n";
@@ -112,20 +117,20 @@ if(-e $gff_file) {
 	        $long_gen{$genid}=$endgen-$initgen+1;
 	        }
 
-	#-- Split the contigs into $numthreads chunks and create bed files for them
+	#-- Split the contigs into $numthreads_counter chunks and create bed files for them
 	# Create 2D array
-	for(my $thread=1; $thread<=$numthreads; $thread++) {
+	for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
 	        my @chunk;
 	        push @contigchunks, [@chunk];
 	}
 
 	my $i = 0; # populate each subarray with contigs
 	foreach my $contigid (keys %lencontig) {
-		push @{ @contigchunks[$i % $numthreads] }, $contigid;
+		push @{ @contigchunks[$i % $numthreads_counter] }, $contigid;
 		$i++;
 		}
 
-	for(my $thread=1; $thread<=$numthreads; $thread++) { # write each subarray to a different bed file
+	for(my $thread=1; $thread<=$numthreads_counter; $thread++) { # write each subarray to a different bed file
 		my $bedfilectgs = "$tempdir/count.$thread.contigs.bed";
 		my $bedfileorfs = "$tempdir/count.$thread.orfs.bed";
 		my $countfile = "$tempdir/count.$thread";
@@ -316,7 +321,7 @@ if(-e $gff_file) {
 #----------------- sqm_counter counting 
 
 sub sqm_counter {
-	print "  Counting with sqm_counter: Opening $numthreads threads\n";
+	print "  Counting with sqm_counter: Opening $numthreads_counter threads\n";
 	my($contigchunks,$genes_ordered,$long_gen,$thissample,$bamfile,$bed_chunk_files_contigs,$count_chunk_files,$totalreadcount,$mapper)=@_;
 	@contigchunks = @{$contigchunks};
 	@genes_ordered = @{$genes_ordered};
@@ -329,7 +334,7 @@ sub sqm_counter {
 
 	my $use_fork=0;
 
-	for(my $thread=1; $thread<=$numthreads; $thread++) {
+	for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
 		$bedfilectgs = @bed_chunk_files_contigs[$thread-1]; # zero indexing
 		$bedfileorfs = @bed_chunk_files_orfs[$thread-1];
 		$countfile = @count_chunk_files[$thread-1];
@@ -348,7 +353,7 @@ sub sqm_counter {
 
 	# Thread/children cleanup.
 	if($use_fork) {
-		for(my $thread=1; $thread<=$numthreads; $thread++) {
+		for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
 			my $finished = wait(); # wait till all the children have stopped
 			}
 		}
@@ -356,7 +361,7 @@ sub sqm_counter {
 
 
 	# Process results	
-	for(my $thread=1; $thread<=$numthreads; $thread++) {
+	for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
 		my $countfile = @count_chunk_files[$thread-1];
 		open(intemp,$countfile) || warn "Cannot open $countfile\n";
 		while(<intemp>) {
