@@ -945,7 +945,7 @@ sub pipeline {
 	if($finaltrace) { print "\nWARNINGS:\n$finaltrace\n"; }
 	print "For citation purposes, you can find a summary of methods in the file $methodsfile\n\n";
 	if(!$onlybins) {
-		print "You can analize your results using the SQMtools R library (see https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results)\n";
+		print "You can analyze your results using the SQMtools R library (see https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results)\n";
 		if($mode eq "sequential") { print "(Please remember that sequential projects must be loaded indepently in SQMtools)\n"; }
 	}
 }
