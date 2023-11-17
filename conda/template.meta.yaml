@@ -61,6 +61,7 @@ requirements:
     - perl-dbd-mysql
     - perl-dbd-sqlite
     - perl-lwp-simple
+    - perl-list-moreutils
     - perl-xml-libxml
     - perl-xml-parser
     - openjdk
@@ -74,10 +75,12 @@ requirements:
     - tree
     - readline=8
     - krona
+    # SQUEEZEMETA BINARIES
     - spades
     - mothur
     - kmer-db
     - metabat2
+    # GTDBTK
     - pplacer
     - prodigal
     - pydantic >=1.9.2,<2.0a1
@@ -87,13 +90,19 @@ requirements:
     - fasttree
     - hmmer
     - tqdm >=4.35.0
+    # SUPERPANG/mOTUlizer
     - graph-tool
     - minimap2
     - mappy
     #- igraph==0.10.8 # Required by mOTUlizer but missing in conda apparently, should get installed during build
     - python-igraph
+    # PANGENOME PIPELINE
     - nextflow
     - seqtk >=1.4
+    # POGENOM
+    - vcflib
+    - picard
+    - freebayes
 
 build:
   noarch: generic
