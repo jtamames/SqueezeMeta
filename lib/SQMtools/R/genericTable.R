@@ -2,7 +2,8 @@
 
 library(data.table)
 
-#' @importFrom utils read.table unzip tail
+#' @importFrom utils read.table tail
+#' @importFrom zip unzip
 read.generic.table.zip = function(project_path, file_path, engine = 'data.frame', ...)
     {
     extra_args = list(...)

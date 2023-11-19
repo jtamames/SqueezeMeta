@@ -16,7 +16,8 @@ read.namedvector = function(file, engine = 'data.frame')
     return(res)
     }
 
-#' @importFrom utils tail unzip
+#' @importFrom utils tail
+#' @importFrom zip unzip
 read.namedvector.zip = function(project_path, file_path, engine = 'data.frame')
     {
     zipmode = endsWith(project_path, '.zip')
@@ -133,7 +134,7 @@ open.conn.zip = function(project_path, file_path)
     }
 
 
-#' @importFrom utils unzip
+#' @importFrom zip zip_list
 list.files.zip = function(project_path, dir_path)
     {
     zipmode = endsWith(project_path, '.zip')
@@ -143,7 +144,7 @@ list.files.zip = function(project_path, dir_path)
         }
     else
         {
-        all_files = unzip(project_path, list = TRUE)[[1]]
+        all_files = zip_list(project_path)$filename
         res = all_files[startsWith(all_files, dir_path)]
         res = gsub(sprintf('^%s', dir_path), '', res)
 	res = gsub('^/', '', res)

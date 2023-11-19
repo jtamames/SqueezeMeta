@@ -63,6 +63,7 @@ requirements:
     - r-reshape2
     - r-doMC
     - r-data.table
+    - r-zip
     - bioconductor-pathview
     - tree
     - readline=8
