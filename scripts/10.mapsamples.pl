@@ -272,10 +272,18 @@ foreach my $thissample(keys %allsamples) {
         	if($ecode!=0)     { die "An error occurred during mapping with command       $command!"; }
 		
 		#-- Transform to sorted bam
-
-        	my $ecode = system("$samtools_soft sort $samfile -o $bamfile -@ $numthreads; $samtools_soft index $bamfile -@ $numthreads > /dev/null 2>&1");
-        	if($ecode!=0) { die "Error running samtools"; }
-	 	system("rm $samfile");
+                $command = "$samtools_soft sort $samfile -o $bamfile.temp -@ $numthreads > /dev/null 2>&1";
+        	$ecode = system("$command");
+		if($ecode!=0) { die "Error running samtools: $command"; }
+		system("rm $samfile");
+		#-- Add read group tags identifying the sample from which the reads come from
+		$command = "$samtools_soft addreplacerg -r ID:$thissample -r SM:$thissample $bamfile.temp -o $bamfile -@ $numthreads > /dev/null 2>&1; rm $bamfile.temp";
+		$ecode = system("$command");
+		if($ecode!=0) { die "Error running samtools: $command"; }
+		#-- Index the bam file
+		$command = "$samtools_soft index $bamfile -@ $numthreads > /dev/null 2>&1";
+		$ecode = system("$command");
+        	if($ecode!=0) { die "Error running samtools: $command"; }
 		}
 
 	#-- Calculating contig coverage/RPKM
