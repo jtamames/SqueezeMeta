@@ -80,6 +80,7 @@ requirements:
     - mothur
     - kmer-db
     - metabat2
+    - bowtie2
     # GTDBTK
     - pplacer
     - prodigal
@@ -100,7 +101,7 @@ requirements:
     - nextflow
     - seqtk >=1.4
     # POGENOM
-    - vcflib
+    - vcflib==1.0.1
     - picard
     - freebayes
 

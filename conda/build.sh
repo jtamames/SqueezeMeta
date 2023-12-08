@@ -8,6 +8,8 @@ ln -s $SQM_DIR/utils/*.py .
 ln -s $SQM_DIR/utils/install_utils/* .
 ln -s $SQM_DIR/utils/binning_utils/* .
 ln -s $SQM_DIR/utils/anvio_utils/* .
+ln -s $SQM_DIR/bin/pogenom.pl .
+ln -s $SQM_DIR/bin/run-pogenom.py .
 R CMD INSTALL $SQM_DIR/bin/DAS_Tool/package/DASTool_*.tar.gz
 R CMD INSTALL $SQM_DIR/lib/SQMtools
 cd $SQM_DIR/bin/CONCOCT-1.1.0/

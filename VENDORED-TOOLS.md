@@ -65,3 +65,5 @@ SqueezeMeta redistributes the following third-party software:
 * [SAMtools](http://samtools.sourceforge.net/)
 * [Mothur](https://mothur.org/)
 * [Flye](https://github.com/fenderglass/Flye)
+* [POGENOM](https://github.com/EnvGen/POGENOM)
+  - Only includes the pogenom.pl script, without modifications
