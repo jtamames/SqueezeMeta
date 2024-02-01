@@ -68,7 +68,7 @@ elsif($mode ne "coassembly") {		#-- Sequential, merged, seqmerge or clustered: A
 	for my $asamples(sort keys %datasamples) {
 		next if(($mode eq "sequential") && ($projectname ne $asamples));
 		if($extassemblies{$asamples}) { 
-			$outassembly=$extassembly; 
+			$extassembly=$extassemblies{$asamples}; 
 			print "  External assembly provided: $extassembly. Overriding assembly\n";
 			print outsyslog "  External assembly provided: $extassembly. Overriding assembly\n";
 			if(-e $extassembly) {} else { die "Can't find assembly file $extassembly\n"; }
