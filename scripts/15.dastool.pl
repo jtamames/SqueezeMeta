@@ -75,11 +75,10 @@ if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta 
 	my @binner=split(/\,/,$binners);
 	foreach my $tbinner(@binner) { 
 		my $bindir="$interdir/binners/$tbinner";
-		my $command="cp $bindir/*fasta $binresultsdir";
-		system $command;
-		print outsyslog "$command\n";
-		my $command="cp $bindir/*fa $binresultsdir";
-		system $command;
+		opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
+		my @fastafiles = grep(/fasta$|fa$/,readdir indir1);
+		my $fastafiles = join(' ', @fastafiles);
+		my $command="cp $fastafiles $binresultsdir";
 		print outsyslog "$command\n";
 		}
 	}
