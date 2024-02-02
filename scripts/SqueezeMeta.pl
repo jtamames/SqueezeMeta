@@ -200,7 +200,10 @@ if($consensus) { $consensus/=100; }
 
 $mode=~tr/A-Z/a-z/;
 if($opt_db) { $opt_db = abs_path($opt_db); }
-if($newtaxdb) { $newtaxdb = abs_path($newtaxdb); }
+if($newtaxdb) { 
+	$newtaxdb = abs_path($newtaxdb);
+	if($newtaxdb!~/\.dmnd$/) { $newtaxdb.=".dmnd"; }
+	}
 
 #-- Override settings if running on lowmem or MinION mode.
 if($lowmem) { $blocksize=3; $canumem=15; }
