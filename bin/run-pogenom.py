@@ -108,18 +108,19 @@ def main(args):
     run(' '.join(command), shell = True, capture_output = True)
 
     # Now do replicates for FST
-    print(f'Running POGENOM in parallel for Fst calculation over {nReps} replicates')
-    pool = Pool(processors)
-    runrepP = partial(runRep, tempDir = tempDir, minCount = minCount, nSamples = nSamples, numLoci = numLoci)
-    pool.map(runrepP, range(nReps))
+    if nSamples > 1:
+        print(f'Running POGENOM in parallel for Fst calculation over {nReps} replicates')
+        pool = Pool(processors)
+        runrepP = partial(runRep, tempDir = tempDir, minCount = minCount, nSamples = nSamples, numLoci = numLoci)
+        pool.map(runrepP, range(nReps))
 
-    fstMinFoundAll = sum([read_csv(f'{tempDir}/{i}.min_foundA.fst.txt', sep='\t', index_col = 0) for i in range(nReps)]) / nReps
-    fstMinFoundOne = sum([read_csv(f'{tempDir}/{i}.min_found1.fst.txt', sep='\t', index_col = 0) for i in range(nReps)]) / nReps
+        fstMinFoundAll = sum([read_csv(f'{tempDir}/{i}.min_foundA.fst.txt', sep='\t', index_col = 0) for i in range(nReps)]) / nReps
+        fstMinFoundOne = sum([read_csv(f'{tempDir}/{i}.min_found1.fst.txt', sep='\t', index_col = 0) for i in range(nReps)]) / nReps
 
-    fstMinFoundAll.round(4).to_csv(f'{outDir}/{prefix}.fst.min_found_{nSamples}_replicates_{nReps}.txt',
-                          sep = '\t', na_rep = 'NA')
-    fstMinFoundOne.round(4).to_csv(f'{outDir}/{prefix}.fst.min_found_1_replicates_{nReps}.txt',
-                          sep = '\t', na_rep = 'NA')
+        fstMinFoundAll.round(4).to_csv(f'{outDir}/{prefix}.fst.min_found_{nSamples}_replicates_{nReps}.txt',
+                                       sep = '\t', na_rep = 'NA')
+        fstMinFoundOne.round(4).to_csv(f'{outDir}/{prefix}.fst.min_found_1_replicates_{nReps}.txt',
+                                       sep = '\t', na_rep = 'NA')
     #yes I think Anders used min_found 1 in the Pogenom paper.. but I would recommend to set min_found to the number of metagenomes bc then you have the same loci analyzed for each metagenome
 
 
