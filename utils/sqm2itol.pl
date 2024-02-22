@@ -102,7 +102,7 @@ while(<infile1>) {
 		next; 
 		}
 	my @k=split(/\t/,$_);
-	next if($k[1] ne "DASTool");
+	# next if($k[1] ne "DASTool");
 	$totalbins++;
 	next if($k[8]<$complete_cutoff);
 	next if($k[9]>$contamination_cutoff);
@@ -142,9 +142,9 @@ if($reqfunctions) {
 	close infile1;
 	}
 
-my $funfile="$resultpath/21.$project.$funclass.pathways";
+my $funfile="$resultpath/20.$project.$funclass.pathways";
 print "Reading functions in $funfile\n";
-open(infile1,$funfile) || die;
+open(infile1,$funfile) || die "Cannot open $funfile\n";
 $_=<infile1>;
 my $headerf=$_; 
 chomp $headerf;
