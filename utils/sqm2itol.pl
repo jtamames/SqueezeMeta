@@ -53,7 +53,7 @@ if(!$complete_cutoff) { $complete_cutoff=30; }		#-- Do not consider bins below t
 if(!$contamination_cutoff) { $contamination_cutoff=100; }		#-- Do not consider bins above this level of contamination
 if(!$funclass) { $funclass="metacyc"; }
 die "Functional classification must be either \"metacyc\" or \"kegg\"\n" if(($funclass ne "kegg") && ($funclass ne "metacyc"));
-if(!$abunmethod) { $abunmethod="RPKM"; }
+if(!$abunmethod) { $abunmethod="TPM"; }
 die "Abundances must be either \"RPKM\", \"TPM\" or \"coverage\"\n" if(($abunmethod ne "RPKM") && ($abunmethod ne "TPM") && ($abunmethod ne "coverage"));
 if(!$maxabun) { $maxabun=0; }
 my $numtaxalabels=4;
@@ -166,7 +166,7 @@ while(<infile1>) {
 		my $shortfun=$lifun[$#lifun];				#-- Just pathway as a label
 		my $fullfun=$pathfull{$refun};
 		foreach my $u(keys %requested) {
-			if($fullfun=~/$u/i) {
+			if($fullfun=~/\Q$u\E\b/i) {
 				my $tratio;
 				if($k[$pos] eq "NF") { $tratio=0; } else { $tratio=$k[$pos]/$pathnum[$pos]; }
 				$fun{$biname}{$shortfun}=$tratio; 
