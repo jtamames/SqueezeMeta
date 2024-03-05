@@ -81,7 +81,7 @@ Arguments:
    -a: assembler <megahit, spades, rnaspades, spades-base, canu, flye> (Default: megahit)
    -assembly_options [options]: Extra options to be passed when calling the mapper
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
-   -extassembly <file>: External assembly, file containing a fasta file of contigs (overrides all assembly steps).
+   -extassembly <file>: External assembly, path to a fasta file with contigs (overrides all assembly steps).
    --sg|--singletons: Add unassembled reads to the contig file, as if they were contigs  
    -contigid <string>: Nomenclature for contigs (Default: assembler´s name)
    --norename: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
