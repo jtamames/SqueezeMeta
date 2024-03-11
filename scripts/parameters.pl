@@ -34,9 +34,9 @@ $minraw12=200;  	  #-- STEP12: Minimum number of raw counts to be included in th
 
 $seqsinfile13=0;          #-- STEP13: Put sequences in the output table (0=no, 1=yes)
 
-$maxchimerism14=0.1;      #--STEP14:  Threshold for excluding chimeric contigs
-$mingenes14=1;	          #--STEP14:  Threshold for excluding small contigs (few genes than this)
-$smallnoannot14=1;        #-- STEP14: For excluding contigs with just one gene an no annotation
+$maxchimerism14=0;      #--STEP14:  Threshold for excluding chimeric contigs
+$mingenes14=0;	          #--STEP14:  Threshold for excluding small contigs (few genes than this)
+$smallnoannot14=0;        #-- STEP14: For excluding contigs with just one gene an no annotation
 
 $score_tres15=0;          #-- STEP15: Score threshold for keeping bins (proxy for level of completeness)
 

@@ -19,7 +19,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$bindir,$installpath,$metabat_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$mappingfile,$methodsfile,$maxchimerism15,$mingenes15,$smallnoannot15,%bindirs,$syslogfile,$numthreads);
+our($contigsfna,$contigcov,$bindir,$installpath,$metabat_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$mappingfile,$methodsfile,$maxchimerism14,$mingenes14,$smallnoannot14,%bindirs,$syslogfile,$numthreads);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
@@ -94,8 +94,8 @@ while(<infile1>) {
 	if($r[3]=~/Disparity\: (.*)/) { $chimlevel=$1; }
 	if($r[4]=~/Genes\: (.*)/) { $numgenes=$1; } 
 	if(!$numgenes) { $numgenes=0; } 
-	if(($numgenes>=$mingenes15) && ($chimlevel<=$maxchimerism15)) { push(@allcontigs,$r[0]); $allcontigs{$r[0]}=1; }	
-	if($smallnoannot15 && ($numgenes<=1) && ($r[1] eq "Unknown")) { delete $allcontigs{$r[0]}; }
+	if(($numgenes>=$mingenes14) && ($chimlevel<=$maxchimerism14)) { push(@allcontigs,$r[0]); $allcontigs{$r[0]}=1; }	
+	if($smallnoannot14 && ($numgenes<=1) && ($r[1] eq "Unknown")) { delete $allcontigs{$r[0]}; }
 	}
 close infile1;
 
