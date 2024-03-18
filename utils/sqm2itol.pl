@@ -142,7 +142,7 @@ if($reqfunctions) {
 	close infile1;
 	}
 
-my $funfile="$resultpath/21.$project.$funclass.pathways";
+my $funfile="$resultpath/20.$project.$funclass.pathways";
 print "Reading functions in $funfile\n";
 open(infile1,$funfile) || die;
 $_=<infile1>;
