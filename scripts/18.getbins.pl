@@ -156,49 +156,51 @@ foreach my $ffil(@files) {
 
 #-- Count coverages for the bins
 
-print "\n  Calculating coverages\n";
-print syslogfile "  Calculating coverages for bins from $contigcov\n";
-open(infile5,$contigcov) || die "Can't open contig coverage file $contigcov\n";
-while(<infile5>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	my @k=split(/\t/,$_); 
-	my $bincorr=$contigs{$binmethod}{$k[0]}; 
-	next if(!$bincorr);
-	my $mappedbases=$k[6];
-	my $sample=$k[$#k];
-	$allsamples{$sample}=1;
-	$mapped{$binmethod}{$bincorr}{$sample}{bases}+=$mappedbases;
-	$mapped{$binmethod}{$bincorr}{$sample}{reads}+=$k[5];
-	$rinsample{$binmethod}{$sample}{$bincorr}+=$k[5];
-	$totalreadcount{$binmethod}{$sample}+=$k[5];
-	}
-close infile5;
-
-my(%rpk,%accumrpk);
-foreach my $samps(sort keys %{ $rinsample{$binmethod} }) {
-	foreach my $binst(sort keys %{ $rinsample{$binmethod}{$samps} }) {
-		my $longt=$bins{$binmethod}{$binst}{size};
-		$rpk{$binmethod}{$binst}{$samps}=$mapped{$binmethod}{$binst}{$samps}{reads}/$longt;
-		$accumrpk{$samps}+=$rpk{$binmethod}{$binst}{$samps};
+if(-e $contigcov) {
+	print "\n  Calculating coverages\n";
+	print syslogfile "  Calculating coverages for bins from $contigcov\n";
+	open(infile5,$contigcov) || die "Can't open contig coverage file $contigcov\n";
+	while(<infile5>) {
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		my @k=split(/\t/,$_); 
+		my $bincorr=$contigs{$binmethod}{$k[0]}; 
+		next if(!$bincorr);
+		my $mappedbases=$k[6];
+		my $sample=$k[$#k];
+		$allsamples{$sample}=1;
+		$mapped{$binmethod}{$bincorr}{$sample}{bases}+=$mappedbases;
+		$mapped{$binmethod}{$bincorr}{$sample}{reads}+=$k[5];
+		$rinsample{$binmethod}{$sample}{$bincorr}+=$k[5];
+		$totalreadcount{$binmethod}{$sample}+=$k[5];
 		}
-	$accumrpk{$samps}/=1000000;
-	}
+	close infile5;
 
-foreach my $binst(sort keys %{ $mapped{$binmethod} }) {
-	foreach my $samps(sort keys %{ $mapped{$binmethod}{$binst} }) {
-		my $coverage=$mapped{$binmethod}{$binst}{$samps}{bases}/$bins{$binmethod}{$binst}{size};
-		my $rpkm=($mapped{$binmethod}{$binst}{$samps}{reads}*1000000000)/($bins{$binmethod}{$binst}{size}*$totalreadcount{$binmethod}{$samps});
-		my $tpm=$rpk{$binmethod}{$binst}{$samps}/$accumrpk{$samps};
-		$bins{$binmethod}{$binst}{tpm}{$samps}=$tpm;
-		$bins{$binmethod}{$binst}{coverage}{$samps}=$coverage;
-		$bins{$binmethod}{$binst}{rpkm}{$samps}=$rpkm;
-		printf outfile1 "$binst\t$binmethod\t%.2f\t%.2f\t%.2f\t$samps\n",$coverage,$rpkm,$tpm;
-		#print "$binst**$samps**$mapped{$binmethod}{$binst}{$samps}{reads}**$bins{$binmethod}{$binst}{size}**$totalreadcount{$binmethod}{$samps}**\n";
+	my(%rpk,%accumrpk);
+	foreach my $samps(sort keys %{ $rinsample{$binmethod} }) {
+		foreach my $binst(sort keys %{ $rinsample{$binmethod}{$samps} }) {
+			my $longt=$bins{$binmethod}{$binst}{size};
+			$rpk{$binmethod}{$binst}{$samps}=$mapped{$binmethod}{$binst}{$samps}{reads}/$longt;
+			$accumrpk{$samps}+=$rpk{$binmethod}{$binst}{$samps};
+			}
+		$accumrpk{$samps}/=1000000;
+		}
+
+	foreach my $binst(sort keys %{ $mapped{$binmethod} }) {
+		foreach my $samps(sort keys %{ $mapped{$binmethod}{$binst} }) {
+			my $coverage=$mapped{$binmethod}{$binst}{$samps}{bases}/$bins{$binmethod}{$binst}{size};
+			my $rpkm=($mapped{$binmethod}{$binst}{$samps}{reads}*1000000000)/($bins{$binmethod}{$binst}{size}*$totalreadcount{$binmethod}{$samps});
+			my $tpm=$rpk{$binmethod}{$binst}{$samps}/$accumrpk{$samps};
+			$bins{$binmethod}{$binst}{tpm}{$samps}=$tpm;
+			$bins{$binmethod}{$binst}{coverage}{$samps}=$coverage;
+			$bins{$binmethod}{$binst}{rpkm}{$samps}=$rpkm;
+			printf outfile1 "$binst\t$binmethod\t%.2f\t%.2f\t%.2f\t$samps\n",$coverage,$rpkm,$tpm;
+			#print "$binst**$samps**$mapped{$binmethod}{$binst}{$samps}{reads}**$bins{$binmethod}{$binst}{size}**$totalreadcount{$binmethod}{$samps}**\n";
+			}
 		}
 	}
-
-		
+	
+			
 #-- Create table of results	
 					   
 my $outputfile=$bintable;

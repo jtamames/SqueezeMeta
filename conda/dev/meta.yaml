@@ -1,6 +1,6 @@
 package:
   name: squeezemeta-dev
-  version: "1.7.0.alpha6"
+  version: "1.7.0.alpha7"
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
@@ -99,7 +99,7 @@ requirements:
     #- igraph==0.10.8 # Required by mOTUlizer but missing in conda apparently, should get installed during build
     - python-igraph==0.10.2
     # PANGENOME PIPELINE
-    - nextflow==23.10.0
+    - nextflow==23.10.1
     - seqtk >=1.4
     # POGENOM
     - vcflib==1.0.1
