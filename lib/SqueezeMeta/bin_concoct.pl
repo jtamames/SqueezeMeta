@@ -48,7 +48,7 @@ foreach my $sample (keys %samples) {
         next if($skip{$sample});
         $bamlist = "$bamlist $datapath/bam/$projectname.$sample.bam";
 }
-
+if(!$bamlist) { die "All samples have the \"nobinning\" flag so there are no valid BAM files. Please check your samples file"; }
 
 my %singletonlist;
 my $outcontig="$tempdir/contigs.nosingle.fasta";

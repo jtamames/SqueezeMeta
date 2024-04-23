@@ -51,6 +51,7 @@ foreach my $sample (keys %samples) {
 	next if($skip{$sample});
 	$bamlist = "$bamlist $datapath/bam/$projectname.$sample.bam";
 }
+if(!$bamlist) { die "All samples have the \"nobinning\" flag so there are no valid BAM files. Please check your samples file"; }
 
 # Call jgi_summarize_bam_contig_depths
 my $depthfile="$dirbin/contigs.depth.txt";
