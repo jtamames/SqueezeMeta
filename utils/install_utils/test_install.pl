@@ -156,13 +156,13 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
 	print(" checking database in $databasepath\n");
 	my $ecode = system("$installpath/bin/diamond dbinfo --db $databasepath/nr.dmnd >/dev/null 2>&1");
 	if($ecode) {
-		my $msg = "\tSqueezeMeta_conf.pl says that databases are located in $databasepath but we can't find nr.db there, or it is corrupted\n";
+		my $msg = "\tCRITICAL ERROR: SqueezeMeta_conf.pl says that databases are located in $databasepath but we can't find nr.db there, or it is corrupted\n\n";
 		$warnings .= $msg;
 		warn($msg);
 	}
 	else {
 		print("\tnr.db OK\n");
-		open( infile_, "$installpath/lib/checkm/DATA_CONFIG" ) || die ("\nCRITICAL ERROR: Can not find the checkm DATA_CONFIG file in $installpath/lib/checkm. This indicates a broken installation. If the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n");
+		open( infile_, "$installpath/lib/checkm/DATA_CONFIG" ) || die ("\nCRITICAL ERROR: Can not find the checkm DATA_CONFIG file in $installpath/lib/checkm. This indicates a broken installation.\n\t\tIf the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n");
 		my $manifest = <infile_>;
 		my @parsed_manifest = split(/\: |\, /, $manifest);
 		my $checkm_databasepath = $parsed_manifest[1];
@@ -172,11 +172,26 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
 		if(!$dbd_sqlite_error) {
 			my $ecode = system("perl $installpath/lib/install_utils/test_sqlite_db.pl $databasepath >/dev/null 2>&1");
 			if($ecode) {
-				my $msg = "\tThe LCA_tax/taxid.db database is not present in $databasepath, it is malformed, or there is other problem with your SQLite configuration\n";
+				my $msg = "\tCRITICAL ERROR: The LCA_tax/taxid.db database is not present in $databasepath, it is malformed, or there is other problem with your SQLite configuration\n";
 				$warnings .= $msg;
 		       		warn($msg);
 			}
-			else { print("\tLCA_tax DB OK\n"); }
+			else {
+				print("\tLCA_tax DB OK\n");
+		                my $db_build_date_file = "$databasepath/DB_BUILD_DATE";
+				if(!-e $db_build_date_file) {
+					my $msg = "\tCRITICAL ERROR: SqueezeMeta_conf.pl says that databases are located in $databasepath but we can't find the DB_BUILD_DATE file there.\n\t\tThis can happen if make_databases.pl failed to complete successfully\n\n";
+					$warnings .= $msg;
+					warn($msg);
+				}
+				else {
+	                		open my $fh, "<", $db_build_date_file;
+			                chomp(my $db_build_date = do { local $/; <$fh> }); # read the file in one line
+					$db_build_date =~ s/Finished database creation on //;
+					$db_build_date =~ s/\.$//; 
+		                	print("\tDatabase was built on $db_build_date\n");
+				}
+			}
 		}
 	}
 }
