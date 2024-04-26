@@ -46,7 +46,7 @@ our $pwd=cwd();
 
 our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
-our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
+our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
 our(%bindirs,%dasdir,%binscripts,%assemblers);  
 
 print %assemblers,"***\n";
@@ -270,7 +270,7 @@ foreach my $chsam(keys %pairsample) {
 	}
 
 my $currtime=timediff();
-print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-SÃ¡nchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
+print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 if($test) { print GREEN "Running in test mode! I will stop after step $test\n\n"; print RESET; }
 print "Run started ",scalar localtime," in $mode mode\n";
 
@@ -390,7 +390,7 @@ sub pipeline {
 		my $scriptname="01.run_all_assemblies.pl";
                 my $wsize=checksize($contigsfna);
 		my $wsize2=checksize($contigslen);
-                if(($wsize>2) && ($wsize2>2) && (!$force_overwrite)) { print "Contig file $contigsfna already found, skipping step 1\n"; }
+                if(($wsize>=2) && ($wsize2>=1) && (!$force_overwrite)) { print "Contig file $contigsfna already found, skipping step 1\n"; }
 		else {		
 			print outfile3 "1\t$scriptname ($assembler)\n";
 			$currtime=timediff();
@@ -413,7 +413,7 @@ sub pipeline {
                 		if($wsize<2)         { print RED; print "Stopping in STEP1 -> $scriptname ($assembler). File $contigsfna is empty!\n"; print RESET; die; }
 			}
    	        my $wsize=checksize($contigsfna);
-		if($wsize<2)	{ error_out(1,$scriptname,$contigsfna); }
+		if($wsize<1)	{ error_out(1,$scriptname,$contigsfna); }
 		}
 
 	close(outfile4); open(outfile4,">>$syslogfile");
@@ -424,7 +424,7 @@ sub pipeline {
 	if(($rpoint<=2) && ((!$test) || ($test>=2))) {
 		my $masked="$interdir/02.$projectname.maskedrna.fasta";
                 my $wsize=checksize($masked);
-                if(($wsize>2) && (!$force_overwrite)) { print "RNA gff file $masked already found, skipping step 2\n"; }
+                if(($wsize>=2) && (!$force_overwrite)) { print "RNA gff file $masked already found, skipping step 2\n"; }
 		else {		
 			if($verbose) { print " At this point, we already have contigs\n"; }
 			my $scriptname="02.rnas.pl";
@@ -435,7 +435,7 @@ sub pipeline {
 			if($verbose) { print " (This will run barrnap and Aragorn for predicting putative RNAs in the contigs. This is done before predicting protein-coding genes for avoiding predicting these where there is a RNA)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)        { error_out(2,$scriptname); }
-               		 my $wsize=checksize($masked);
+               		my $wsize=checksize($masked);
 			if($wsize<2)    { error_out(2,$scriptname,$masked); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}	
@@ -445,7 +445,7 @@ sub pipeline {
 
 	if(($rpoint<=3) && ((!$test) || ($test>=3))) { 
                 my $wsize=checksize($aafile);
-                if(($wsize>2) && (!$force_overwrite))  { print "Aminoacid file $aafile already found, skipping step 3\n"; }
+                if(($wsize>=2) && (!$force_overwrite))  { print "Aminoacid file $aafile already found, skipping step 3\n"; }
 		else {		
 			my $scriptname="03.run_prodigal.pl";
  			print outfile3 "3\t$scriptname\n";
@@ -465,7 +465,7 @@ sub pipeline {
 
 	if(($rpoint<=4) && ((!$test) || ($test>=4))) {
                 my $wsize=checksize($taxdiamond);
-                if(($wsize>2) && (!$force_overwrite)) { print "Diamond file $taxdiamond already found, skipping step 4\n"; }
+                if(($wsize>=1) && (!$force_overwrite)) { print "Diamond file $taxdiamond already found, skipping step 4\n"; }
 		else {		
 			if($verbose) { print " At this point, we already have ORFs\n"; }
 			my $scriptname="04.rundiamond.pl";
@@ -487,7 +487,7 @@ sub pipeline {
 	if(($rpoint<=5) && ((!$test) || ($test>=5))) {
 		if(!$nopfam) {
             		my $wsize=checksize($pfamhmmer);
-             		if(($wsize>2) && (!$force_overwrite)) { print "Pfam file $pfamhmmer already found, skipping step 5\n"; }	
+             		if(($wsize>=1) && (!$force_overwrite)) { print "Pfam file $pfamhmmer already found, skipping step 5\n"; }	
 			else {	
 				my $scriptname="05.run_hmmer.pl";
 				print outfile3 "5\t$scriptname\n";
@@ -498,7 +498,7 @@ sub pipeline {
 				my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 				if($ecode!=0)        { error_out(5,$scriptname); }			
 				my $wsize=checksize($pfamhmmer);
-				if($wsize<4)    { error_out(5,$scriptname,$pfamhmmer); }
+				if($wsize<1)    { error_out(5,$scriptname,$pfamhmmer); }
 				}
 		}
 	outfile4->autoflush;		
@@ -509,7 +509,7 @@ sub pipeline {
 	if(($rpoint<=6) && ((!$test) || ($test>=6))) {
 		my $lcaresult="$fun3tax.wranks";
             	my $wsize=checksize($lcaresult);
-             	if(($wsize>2) && (!$force_overwrite)) { print "LCA file $lcaresult already found, skipping step 6\n"; }
+             	if(($wsize>=1) && (!$force_overwrite)) { print "LCA file $lcaresult already found, skipping step 6\n"; }
 		else {		
 			my $scriptname="06.lca.pl";
 			print outfile3 "6\t$scriptname\n";
@@ -520,7 +520,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)        { error_out(6,$scriptname); }
 			my $wsize=checksize($lcaresult);
-			if($wsize<2)    { error_out(6,$scriptname,$lcaresult); }
+			if($wsize<1)    { error_out(6,$scriptname,$lcaresult); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}		
 	}
@@ -528,10 +528,24 @@ sub pipeline {
     #-------------------------------- STEP7: fun3 for COGs, KEGG and PFAM annotation
 
 	if(($rpoint<=7) && ((!$test) || ($test>=7))) {
-            	my $wsize1=checksize($fun3cog);
-            	my $wsize2=checksize($fun3kegg);
-            	my $wsize3=checksize($fun3pfam);
-             	if(($wsize1>2) && ($wsize2>2) && (!$force_overwrite) && (($nopfam) || ($wsize3>2))) { print "Functional assignments already found, skipping step 7\n"; }
+		# Set wsize to 1 for a method if we were instructed not to use it,
+		#  so that the step counts as completed even if those results are not present.
+		my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB);
+		if($nocog)  { $wsizeCOG  = 1; } else { $wsizeCOG  = checksize($fun3cog ); }
+		if($nokegg) { $wsizeKEGG = 1; } else { $wsizeKEGG = checksize($fun3kegg); }
+		if($nopfam) { $wsizePFAM = 1; } else { $wsizePFAM = checksize($fun3pfam); }
+		$wsizeOPTDB = 1; # this will be 0 if any of the EXTDB files has no results or is missing
+		if($opt_db) {
+			open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n";
+			while(<infile0>) {
+				my($dbname,$extdb,$dblist)=split(/\t/,$_);
+				my $dbdname="$resultpath/07.$projectname.fun3.$dbname";
+				my $wsize=checksize($dbdname);
+				if($wsize<1) { $wsizeOPTDB=0; }
+				}
+			close infile0;
+			}	
+             	if(($wsizeCOG>=1) && ($wsizeKEGG>=1) && ($wsizePFAM>=1) && ($wsizeOPTDB>=1) && (!$force_overwrite)) { print "Functional assignments already found, skipping step 7\n"; }
 		else {
 			my $scriptname="07.fun3assign.pl";
 			if((!$nocog) || (!$nokegg) || (!$nopfam) || ($opt_db)) {
@@ -542,22 +556,21 @@ sub pipeline {
 				if($verbose) { print " (This will use fun3 algorithm to annotate putative functions for each ORF, from the homologues found in step 5)\n"; }
 				my $ecode = system("perl $scriptdir/$scriptname $projectdir 0 $force_overwrite");
 				if($ecode!=0)   {  error_out(7,$scriptname); }
-				my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB,$rest);
-				if(!$nocog) { $wsizeCOG=checksize($fun3cog); }
-				if(!$nokegg) { $wsizeKEGG=checksize($fun3kegg); }
-				if(!$nopfam) { $wsizePFAM=checksize($fun3pfam); }
-				my $optdbsw;
+				if($nocog)  { $wsizeCOG  = 1; } else { $wsizeCOG  = checksize($fun3cog ); }
+				if($nokegg) { $wsizeKEGG = 1; } else { $wsizeKEGG = checksize($fun3kegg); }
+				if($nopfam) { $wsizePFAM = 1; } else { $wsizePFAM = checksize($fun3pfam); }
+				$wsizeOPTDB = 1; # this will be 0 if any of the EXTDB files has no results or is missing
 				if($opt_db) {
 					open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
 					while(<infile0>) {
 						my($dbname,$extdb,$dblist)=split(/\t/,$_);
 						my $dbdname="$resultpath/07.$projectname.fun3.$dbname";
-						$wsizeOPTDB=checksize($dbdname);
-						if($wsizeOPTDB<2) { $optdbsw=$wsizeOPTDB; }
+						my $wsize=checksize($dbdname);
+						if($wsize<1) { $wsizeOPTDB=0; }
 						}
 					close infile0;
 					}
-				if(($wsizeCOG<2) && ($wsizeKEGG<2) && ($wsizePFAM<2) && ($optdbsw<2)) { error_out(7,$scriptname,"$fun3cog, $fun3kegg and $fun3pfam"); }
+				if(($wsizeCOG<1) && ($wsizeKEGG<1) && ($wsizePFAM<1) && ($wsizeOPTDB<1)) { error_out(7,$scriptname,"$fun3cog, $fun3kegg and $fun3pfam"); }
 			}
 		}
 	close(outfile4); open(outfile4,">>$syslogfile");
@@ -568,7 +581,7 @@ sub pipeline {
 	if(($rpoint<=8) && ((!$test) || ($test>=8))) {
 		if($doublepass) {
 			my $wsize=checksize($gff_file_blastx);
-             		if(($wsize>2) && (!$force_overwrite)) { print "Blastx file $gff_file_blastx already found, skipping step 8\n"; }
+             		if(($wsize>=1) && (!$force_overwrite)) { print "Blastx file $gff_file_blastx already found, skipping step 8\n"; }
 			else {		
 				my $scriptname="08.blastx.pl";
 				# print " DOUBLEPASS: Now starting blastx analysis\n";
@@ -580,7 +593,7 @@ sub pipeline {
 				my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 				if($ecode!=0)  { error_out(8,$scriptname); }
 				my $wsize=checksize($gff_file_blastx);
-				if($wsize<2)         { error_out(8,$scriptname,$gff_file_blastx); }
+				if($wsize<1)   { error_out(8,$scriptname,$gff_file_blastx); }
 				}
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
@@ -592,7 +605,7 @@ sub pipeline {
 
 	if(($rpoint<=9) && ((!$test) || ($test>=9))) {
 		my $wsize=checksize($alllog);
-             	if(($wsize>2) && (!$force_overwrite)) { print "Contig tax file $alllog already found, skipping step 9\n"; }
+             	if(($wsize>=1) && (!$force_overwrite)) { print "Contig tax file $alllog already found, skipping step 9\n"; }
 		else {		
 			my $scriptname="09.summarycontigs3.pl";
 			print outfile3 "9\t$scriptname\n";
@@ -603,7 +616,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)        { error_out(9,$scriptname); }
 			my $wsize=checksize($alllog);
-			if($wsize<2)         { error_out(9,$scriptname,$alllog); }
+			if($wsize<1)         { error_out(9,$scriptname,$alllog); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
 	}
@@ -611,8 +624,8 @@ sub pipeline {
     #-------------------------------- STEP10: Mapping of reads onto contigs for abundance calculations
 	
 	if(($rpoint<=10) && ((!$test) || ($test>=10))) {
-		my $wsize=checksize($mapcountfile);
-             	if(($wsize>2) && (!$force_overwrite)) { print "Mapping file $mapcountfile already found, skipping step 10\n"; }	
+		my $wsize = checksize($mappingstat);
+             	if(($wsize == $numsamples) && (!$force_overwrite)) { print "Mapping file $mapcountfile already found, skipping step 10\n"; }	
 		else {	
 			my $scriptname="10.mapsamples.pl";
 			print outfile3 "10\t$scriptname\n";
@@ -621,9 +634,9 @@ sub pipeline {
 			print BLUE "[",$currtime->pretty,"]: STEP10 -> MAPPING READS: $scriptname\n"; print RESET;
 			if($verbose) { print " (This will map reads back to the contigs using $mapper and count how many map to each ORF, to estimate their abundances)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
-			if($ecode!=0)        { error_out(10,$scriptname); }
-			my $wsize=checksize($mapcountfile);
-			if($wsize<3)         { error_out(10,$scriptname,$mapcountfile); }
+			if($ecode!=0)           { error_out(10,$scriptname); }
+			my $wsize = checksize($mappingstat);
+			if($wsize!=$numsamples) { error_out(10,$scriptname,$mapcountfile); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
 	}
@@ -632,7 +645,7 @@ sub pipeline {
 	
 	if(($rpoint<=11) && ((!$test) || ($test>=11))) {
 		my $wsize=checksize($mcountfile);
-             	if(($wsize>2) && (!$force_overwrite)) { print "Abundance file $mcountfile already found, skipping step 11\n"; }	
+             	if(($wsize>=2) && (!$force_overwrite)) { print "Abundance file $mcountfile already found, skipping step 11\n"; }	
 		else {	
 			my $scriptname="11.mcount.pl";
 			print outfile3 "11\t$scriptname\n";
@@ -651,11 +664,13 @@ sub pipeline {
     #-------------------------------- STEP12: Count of function abundances
 	
 	if(($rpoint<=12) && ((!$test) || ($test>=12))) {
-		my $cogfuncover="$resultpath/12.$projectname.cog.funcover";
-		my $keggfuncover="$resultpath/12.$projectname.kegg.funcover";
-		my $wsize1=checksize($cogfuncover);
-		my $wsize2=checksize($keggfuncover);
-             	if(($wsize1>2) && ($wsize2>2) && (!$force_overwrite)) { print "Function abundance files already found, skipping step 12\n"; }
+		# Set wsize to 1 for a method if we were instructed not to use it,                                                          #  so that the step counts as completed even if those results are not present.
+		my $cogfuncover = "$resultpath/12.$projectname.cog.funcover";
+		my $keggfuncover= "$resultpath/12.$projectname.kegg.funcover";
+		my($wsizeCOG,$wsizeKEGG);
+		if($nocog)  { $wsizeCOG  = 1; } else { $wsizeCOG  = checksize($cogfuncover ); }
+		if($nokegg) { $wsizeKEGG = 1; } else { $wsizeKEGG = checksize($keggfuncover); }
+             	if(($wsizeCOG>1) && ($wsizeKEGG>1) && (!$force_overwrite)) { print "Function abundance files already found, skipping step 12\n"; }
 		else {	
 			my $scriptname="12.funcover.pl";
 			if((!$nocog) || (!$nokegg) || ($opt_db)) {
@@ -666,9 +681,9 @@ sub pipeline {
 			if($verbose) { print " (This will count the abundance of each function, to produce a functional profile of the community)\n"; }
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)     { error_out(12,$scriptname); }
-			my $wsizeCOG=checksize($cogfuncover);
-			my $wsizeKEGG=checksize($keggfuncover);
-			if(($wsizeCOG<3) && ($wsizeKEGG<3)) { error_out(12,$scriptname,"$cogfuncover and/or $keggfuncover"); }
+			if($nocog)  { $wsizeCOG  = 1; } else { $wsizeCOG  = checksize($cogfuncover ); }
+			if($nokegg) { $wsizeKEGG = 1; } else { $wsizeKEGG = checksize($keggfuncover); }
+			if(($wsizeCOG<1) && ($wsizeKEGG<1)) { error_out(12,$scriptname,"$cogfuncover and/or $keggfuncover"); }
 			}
 			close(outfile4); open(outfile4,">>$syslogfile");
 		}
@@ -677,8 +692,8 @@ sub pipeline {
     #-------------------------------- STEP13: Generation of the gene table
 		
 	if(($rpoint<=13) && ((!$test) || ($test>=13))) {
-		my $wsize=checksize($mergedfile);
-             	if(($wsize>2) && (!$force_overwrite)) { print "ORF table $mergedfile already found, skipping step 13\n"; }
+		my $wsize = checksize($mergedfile);
+             	if(($wsize>=2) && (!$force_overwrite)) { print "ORF table $mergedfile already found, skipping step 13\n"; }
 		else {		
 			my $scriptname="13.mergeannot2.pl";
 			print outfile3 "13\t$scriptname\n";
@@ -689,7 +704,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)        { error_out(13,$scriptname); }
 			my $wsize=checksize($mergedfile);
-			if($wsize<3)         { error_out(13,$scriptname,$mergedfile); }
+			if($wsize<2)         { error_out(13,$scriptname,$mergedfile); }
 			if($verbose) { print " (Now we already have a GENE TABLE)\n"; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
@@ -712,7 +727,7 @@ sub pipeline {
 				closedir indir1;
 				$firstfile="$dirbin/$binfiles[0]";
 				$wsize=checksize($firstfile);
-				if($wsize>2) { $hayresults=1; last; }
+				if($wsize>=2) { $hayresults=1; last; }
 			}
            	 	if(($hayresults) && (!$force_overwrite)) { print "Binning results for $binners already found, skipping step 14\n"; }
 			else {
@@ -738,7 +753,7 @@ sub pipeline {
 			closedir indir2;
 			my $firstfile="$dirbin/$binfiles[0]";
 			my $wsize=checksize($firstfile);
-            	 	if(($wsize>2) && (!$force_overwrite)) { print "DASTool results in $dirbin already found, skipping step 15\n"; }
+            	 	if(($wsize>=2) && (!$force_overwrite)) { print "DASTool results in $dirbin already found, skipping step 15\n"; }
 			else {		
 				my $scriptname="15.dastool.pl";
 				print outfile3 "15\t$scriptname\n";
@@ -770,7 +785,7 @@ sub pipeline {
 		if(($rpoint<=16) && ((!$test) || ($test>=16))) {
 			if(!$DAS_Tool_empty){
 				my $wsize=checksize($bintax);
-            	 		if(($wsize>2) && (!$force_overwrite))  { print "DASTool results in $bintax already found, skipping step 16\n"; }
+            	 		if(($wsize>=1) && (!$force_overwrite))  { print "DASTool results in $bintax already found, skipping step 16\n"; }
 				else {		
 					my $scriptname="16.addtax2.pl";
 					print outfile3 "16\t$scriptname\n";
@@ -794,7 +809,7 @@ sub pipeline {
 		if(($rpoint<=17) && ((!$test) || ($test>=17))) {
 			if(!$DAS_Tool_empty){
 				my $wsize=checksize($checkmfile);
-            	 		if(($wsize>2) && (!$force_overwrite))  { print "CheckM file in $checkmfile already found, skipping step 17\n"; }
+            	 		if(($wsize>=4) && (!$force_overwrite))  { print "CheckM file in $checkmfile already found, skipping step 17\n"; }
 				else {		
 					my $scriptname="17.checkM_batch.pl";
 					print outfile3 "17\t$scriptname\n";
@@ -819,7 +834,7 @@ sub pipeline {
 		if(($rpoint<=18) && ((!$test) || ($test>=18))) {
 			if(!$DAS_Tool_empty){
 				my $wsize=checksize($bintable);
-            	 		if(($wsize>2) && (!$force_overwrite)) { print "Bin table in $bintable already found, skipping step 18\n"; }
+            	 		if(($wsize>=2) && (!$force_overwrite)) { print "Bin table in $bintable already found, skipping step 18\n"; }
 				else {		
 					my $scriptname="18.getbins.pl";
 					print outfile3 "18\t$scriptname\n";
@@ -829,9 +844,8 @@ sub pipeline {
 					if($verbose) { print " (Now we will compile all previous information for producing a bin table)\n"; }
 					my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 					if($ecode!=0){ print RED; print "Stopping in STEP18 -> $scriptname\n"; print RESET; die; }
-					my $wc=qx(wc -l $bintable);
-					my($wsize,$rest)=split(/\s+/,$wc);
-					if($wsize<3) { print RED; print "Stopping in STEP18 -> $scriptname. File $bintable is empty!\n"; print RESET; die; }
+					my $wsize=checksize($bintable);
+					if($wsize<2) { print RED; print "Stopping in STEP18 -> $scriptname. File $bintable is empty!\n"; print RESET; die; }
 					if($verbose) { print " (Now we have a BIN TABLE)\n"; }
 					}
 				}
@@ -844,7 +858,7 @@ sub pipeline {
 
 	if(($rpoint<=19) && ((!$test) || ($test>=19))) {
 		my $wsize=checksize($contigtable);
-            	if(($wsize>2) && (!$force_overwrite)) { print "Contig table in $contigtable already found, skipping step 19\n"; }
+            	if(($wsize>=2) && (!$force_overwrite)) { print "Contig table in $contigtable already found, skipping step 19\n"; }
 		else {		
 			my $scriptname="19.getcontigs.pl";
 			print outfile3 "19\t$scriptname\n";
@@ -855,7 +869,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir");
 			if($ecode!=0)        { print RED; print "Stopping in STEP19 -> $scriptname\n"; print RESET; die; }
 			my $wsize=checksize($contigtable);
-			if($wsize<3)         { print RED; print "Stopping in STEP19 -> $scriptname. File $contigtable is empty!\n"; print RESET; die; }
+			if($wsize<2)         { print RED; print "Stopping in STEP19 -> $scriptname. File $contigtable is empty!\n"; print RESET; die; }
 			if($verbose) { print " (Now we have a CONTIG TABLE)\n"; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
@@ -1153,10 +1167,9 @@ sub cleaning  {
 
 sub checksize {
 	my $tfile=shift;
-	my($wsize,$rest);
+	my $wsize;
 	if(-e $tfile) {
-		my $wc=qx(wc -l $tfile);
-        	($wsize,$rest)=split(/\s+/,$wc);
+		$wsize=qx(grep -cv "^#" $tfile); # this excludes comments!
 		}
 	else { $wsize=0; }
 	return $wsize;
