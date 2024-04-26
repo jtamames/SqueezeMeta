@@ -72,7 +72,7 @@ merge.numeric.matrices = function(m1, m2)
 
 named.unique = function(v)
     {
-    return(v[!duplicated(v)])
+    return(v[!duplicated(names(v))])
     }
 
 
