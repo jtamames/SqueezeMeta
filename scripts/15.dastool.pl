@@ -77,9 +77,12 @@ if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta 
 		my $bindir="$interdir/binners/$tbinner";
 		opendir(indir1,$bindir) || die "Can't open $bindir directory\n";
 		my @fastafiles = grep(/fasta$|fa$/,readdir indir1);
-		my $fastafiles = join(' ', @fastafiles);
-		my $command="cp $fastafiles $binresultsdir";
-		print outsyslog "$command\n";
+		for(@fastafiles) {
+			my $command="cp $bindir/$_ $binresultsdir";
+			print outsyslog "$command\n";
+			my $ecode = system($command);
+			if($ecode!=0) { die "Error running command:    $command"; }
+			}
 		}
 	}
 
