@@ -747,13 +747,12 @@ sub pipeline {
     #-------------------------------- STEP15: DAS Tool merging of binning results	
 	
 		if(($rpoint<=15) && ((!$test) || ($test>=15))) {
-			my $dirbin=$binresultsdir;
-			opendir(indir2,$dirbin);
+			opendir(indir2,$binresultsdir);
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
-			my $firstfile="$dirbin/$binfiles[0]";
+			my $firstfile="$binresultsdir/$binfiles[0]";
 			my $wsize=checksize($firstfile);
-            	 	if(($wsize>=2) && (!$force_overwrite)) { print "DASTool results in $dirbin already found, skipping step 15\n"; }
+            	 	if(($wsize>=2) && (!$force_overwrite)) { print "DASTool results in $binresultsdir already found, skipping step 15\n"; }
 			else {		
 				my $scriptname="15.dastool.pl";
 				print outfile3 "15\t$scriptname\n";
@@ -763,11 +762,10 @@ sub pipeline {
 				if($verbose) { print " (This will use DASTool for creating a consensus between the sets of bins created in previous steps)\n"; }
 				my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
 				if($ecode!=0){ print RED; print "ERROR in STEP15-> $scriptname\n"; print RESET; }
-				my $dirbin=$binresultsdir;
-				opendir(indir2,$dirbin) || warn "Can't open $dirbin directory, no DAStool results\n";
+				opendir(indir2,$binresultsdir) || warn "Can't open $binresultsdir directory, no DAStool results\n";
 				my @binfiles=grep(/fa/,readdir indir2);
 				closedir indir2;
-				my $firstfile="$dirbin/$binfiles[0]";
+				my $firstfile="$binresultsdir/$binfiles[0]";
 				my ($wsize,$rest);
 				my $wsize=checksize($firstfile);
 				if($wsize<2) {
@@ -784,8 +782,15 @@ sub pipeline {
 	
 		if(($rpoint<=16) && ((!$test) || ($test>=16))) {
 			if(!$DAS_Tool_empty){
-				my $wsize=checksize($bintax);
-            	 		if(($wsize>=1) && (!$force_overwrite))  { print "DASTool results in $bintax already found, skipping step 16\n"; }
+				opendir(indir3,$binresultsdir);
+				my @binfiles=grep(/fa$/,readdir indir3);
+				closedir indir3;
+				my $all_ok = 1;
+				foreach(@binfiles)
+					{
+					if(!checksize("$binresultsdir/$_.tax")) { $all_ok = 0; last; }
+					}
+            	 		if(($all_ok) && (!$force_overwrite))  { print "Bin annotation in $binresultsdir already found, skipping step 16\n"; }
 				else {		
 					my $scriptname="16.addtax2.pl";
 					print outfile3 "16\t$scriptname\n";
@@ -795,8 +800,15 @@ sub pipeline {
 					if($verbose) { print " (This will produce taxonomic assignments for each bin as the consensus of the annotations of each of their contigs)\n"; }
 					my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
 					if($ecode!=0){ print RED; print "Stopping in STEP16 -> $scriptname\n"; print RESET; die; }
-					my $wsize=checksize($bintax);
-					if($wsize<1) { print RED; print "Stopping in STEP16 -> $scriptname. File $bintax is empty!\n"; print RESET; die; }
+					opendir(indir3,$binresultsdir);
+					my @binfiles=grep(/fa$/,readdir indir3);
+					closedir indir3;
+					my $all_ok = 1;
+					foreach(@binfiles)
+						{
+						if(!checksize("$binresultsdir/$_.tax")) { $all_ok = 0; last; }
+						}
+					if(!$all_ok) { print RED; print "Stopping in STEP16 -> $scriptname. Some bins were not annotated!\n"; print RESET; die; }
 					}
 				}
 			else{ print RED; print "Skipping BIN TAX ASSIGNMENT: DAS_Tool did not predict bins.\n"; print RESET; }
