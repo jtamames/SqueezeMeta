@@ -114,7 +114,7 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 		
 		my(%chimeracheck,%abundancestax);
 		my($sep,$lasttax,$strg,$fulltax,$cattax,$lasttax)="";
-		my($chimerism,$tcount)=0;
+		my($chimerism,$tcount,$chimerism2)=0;
 	
 		foreach my $rank(@ranks) { 
 			my(%accumtax)=();
@@ -173,26 +173,39 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 		
 			if(($percas>=$minconsperc_asig16) && ($perctotal>=$minconsperc_total16) && ($totalcount>=$mincontigs16) && ($times>$times2)) { 
 				#-- Calculation of disparity for this rank
+				#my($chimera,$nonchimera,$unknown)=0;
+				#foreach my $contig(sort keys %store) { 
+				#	my $ttax=$taxlist{$contig}{$rank};
+				#	foreach my $contig2(sort keys %store) { 
+				#		my $ttax2=$taxlist{$contig2}{$rank}; 
+				#		next if($contig ge $contig2);
+				#		if($chimeracheck{$contig}{$contig2} eq "chimera") {	#-- If it was a chimera in previous ranks, it is a chimera now
+				#			$chimera++;
+				#			next;
+				#		}	
+				#		if($chimeracheck{$contig}{$contig2} eq "unknown") {	#-- If it was an unknown in previous ranks, it is a unknown now
+				#			$unknown++;
+				#			next;
+				#		}						
+				#		if(($ttax && (!$ttax2)) || ($ttax2 && (!$ttax)) || ((!$ttax2) && (!$ttax))) { $chimeracheck{$contig}{$contig2}="unknown"; } #-- Unknown when one of the ORFs has no classification at this rank
+				#		elsif($ttax eq $ttax2) { $chimeracheck{$contig}{$contig2}="nochimera"; $nonchimera++; }
+				#		else { $chimeracheck{$contig}{$contig2}="chimera"; $chimera++; }
+				#		# if($contig eq "3539") { print "$rank $orf $orf2 -> $ttax $ttax2 -> $chimeracheck{$orf}{$orf2}\n"; }
+				#		}
+				#	}
+				
+				#-- New, faster procedure for calculating disparity.
+				#-- Now it is just the ratio of contigs with a different annotation to that of the consensus
+				
 				my($chimera,$nonchimera,$unknown)=0;
-				foreach my $contig(sort keys %store) { 
+				foreach my $contig(sort keys %store) {    #-- New calculation of disparity
 					my $ttax=$taxlist{$contig}{$rank};
-					foreach my $contig2(sort keys %store) { 
-						my $ttax2=$taxlist{$contig2}{$rank}; 
-						next if($contig ge $contig2);
-						if($chimeracheck{$contig}{$contig2} eq "chimera") {	#-- If it was a chimera in previous ranks, it is a chimera now
-							$chimera++;
-							next;
-						}	
-						if($chimeracheck{$contig}{$contig2} eq "unknown") {	#-- If it was an unknown in previous ranks, it is a unknown now
-							$unknown++;
-							next;
-						}						
-						if(($ttax && (!$ttax2)) || ($ttax2 && (!$ttax)) || ((!$ttax2) && (!$ttax))) { $chimeracheck{$contig}{$contig2}="unknown"; } #-- Unknown when one of the ORFs has no classification at this rank
-						elsif($ttax eq $ttax2) { $chimeracheck{$contig}{$contig2}="nochimera"; $nonchimera++; }
-						else { $chimeracheck{$contig}{$contig2}="chimera"; $chimera++; }
-						# if($contig eq "3539") { print "$rank $orf $orf2 -> $ttax $ttax2 -> $chimeracheck{$orf}{$orf2}\n"; }
-						}
-				}
+					if(!$ttax) { $unknown++; }
+					elsif($ttax eq $mtax) { $nonchimera++; } else { $chimera++; }
+					}
+				$chimerism=$chimera/($chimera+$nonchimera);
+
+				
 				my $totch=$chimera+$nonchimera;
 				if($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
 				print "***$mtax $times $percas $perctotal $totalas $chimerism\n" if $verbose;
