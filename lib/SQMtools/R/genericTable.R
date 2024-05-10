@@ -52,6 +52,7 @@ generic.table = function(x)
 
 #' @export
 #' @noRd
+#' @importFrom data.table data.table
 `[.generic.data.table` = function(x,i,j, drop = TRUE)
     {
     
@@ -79,9 +80,10 @@ generic.table = function(x)
 
     sj = 'j'
 
-    expression = sprintf('x[%s,%s, with=FALSE,drop=%s]', si, sj, drop)
+    expression = sprintf('x[%s,%s, with=FALSE]', si, sj)
     res = eval(parse(text=expression))
     if(!is.null(dim(res))){ rownames(res) = names; class(res) = c('generic.data.table', class(res));  }
+    if(drop & ncol(res)==1) { res = res[[1]] }
     return (res)
     }
 
