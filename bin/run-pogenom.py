@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from subprocess import run
 from os import mkdir
 from os.path import isdir
+from sys import exit
 from shutil import rmtree
 from pandas import read_csv
 from multiprocessing import Pool
@@ -62,7 +63,11 @@ def main(args):
 
     # Remove low confidence sites, keep only high confidence poly and monomorphic loci
     print('Removing low confidence loci...')
-    filter_vcf(0.99, 0.99, inputVCF, f'{tempDir}/filtered.vcf', verbose = True)
+    removed_mono, removed_poly, kept_mono, kept_poly = filter_vcf(0.99, 0.99, inputVCF, f'{tempDir}/filtered.vcf', verbose = True)
+
+    if not kept_poly:
+        print('Your VCF file contains no high confidence polymorphic sites, so we can not proceed. Stopping.')
+        exit(0)
 
 
     # Run pogenom.pl to get the right number of good loci (high confidence + passing the min_found filter)
@@ -89,7 +94,7 @@ def main(args):
 
     # Now remove the monomorphic loci for extra speed
     print('Removing monomorphic loci')
-    filter_vcf(1, 0, f'{tempDir}/filtered.vcf', f'{tempDir}/filtered_nomono.vcf', verbose = True)
+    removed_mono, removed_poly, kept_mono, kept_poly = filter_vcf(1, 0, f'{tempDir}/filtered.vcf', f'{tempDir}/filtered_nomono.vcf', verbose = True)
 
     # And do the real POGENOM run (have to do shell=True, otherwise it doesn't go through aminoacid stuff...
     msg = 'Running POGENOM for pi and gene-wide statistics' if GFF else 'Running POGENOM for pi calculation'
@@ -149,9 +154,11 @@ def filter_vcf(mono_prob_cutoff, poly_prob_cutoff, file_vcf, filtered_file_vcf, 
     mono_cutoff = -10*math.log10(float(mono_prob_cutoff))	#e.g. user input of 0.99 => site will be considered if QUAL < 0.043648
     poly_cutoff = -10*math.log10(1-float(poly_prob_cutoff))	#e.g. user input of 0.99 => site will be considered if QUAL > 20
 
-    # counters for removed monomorphic and polymorphic sites
-    i=0
-    j=0
+    # counters for removed (and kept) monomorphic and polymorphic sites
+    removed_mono = 0
+    removed_poly = 0
+    kept_mono    = 0
+    kept_poly    = 0
 
     with open(file_vcf, 'r') as vcf_in, open(filtered_file_vcf, 'w') as filtered_vcf: #, open('removed_mono.txt', 'w') as rem_mono, open('removed_poly.txt', 'w') as rem_poly:
             
@@ -170,25 +177,29 @@ def filter_vcf(mono_prob_cutoff, poly_prob_cutoff, file_vcf, filtered_file_vcf, 
                     #write to file if QUAL is smaller than cutoff for monomorphic sites
                     if float(line.split('\t')[5]) < mono_cutoff:
                         filtered_vcf.write(line)
+                        kept_mono += 1
 
                     #write to removed_mono.txt if QUAL isn't smaller and count
                     else:
                         #rem_mono.write(line)
-                        i+=1
+                        removed_mono += 1
 
                 #### work on polymorphic sites (all that are not monomorphic)
                 else:
                     #write to file if QUAL is higher than cutoff for polymorphic sites
                     if float(line.split('\t')[5]) > poly_cutoff:
                         filtered_vcf.write(line)
-
+                        kept_poly += 1
                     #write to removed_ploy.txt if QUAL isn't higher and count
                     else:
                         #rem_poly.write(line)
-                        j+=1
+                        removed_poly += 1
     if verbose:
-        print('#'*80+'\nRemoved '+str(i)+' monomorphic and '+str(j)+' polymorphic sites.')
+        print('#'*80+'\nRemoved '+str(removed_mono)+' monomorphic and '+str(removed_poly)+' polymorphic sites.')
+        print('#'*80+'\nKept '+str(kept_mono)+' monomorphic and '+str(kept_poly)+' polymorphic sites.')
         print('Wrote filtered vcf file to \"'+filtered_file_vcf+'\".\n'+'#'*80)
+
+    return removed_mono, removed_poly, kept_mono, kept_poly
 
 
 
