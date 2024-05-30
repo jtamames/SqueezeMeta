@@ -27,16 +27,15 @@ $minconsperc_asig9=0.7;   #-- STEP9: Ratio genes for the taxon/sum(genes all tax
                           #     Therefore it only considers assigned genes
 $minconsperc_total9=0.5;  #-- STEP9: Ratio genes for the taxon/number of genes.
                           #     Therefore it considers all (assigned+unassigned) genes
-			  #-- THIS ONE can be set by arguments, because of its influence when using long reads	
-$collector10=200000;      #-- STEP10: Step size for creating collectorś curves (number of reads)
+			  #-- THIS ONE can be set by arguments, because of its influence when using long reads
 
 $minraw12=200;  	  #-- STEP12: Minimum number of raw counts to be included in the STAMP files
 
 $seqsinfile13=0;          #-- STEP13: Put sequences in the output table (0=no, 1=yes)
 
-$maxchimerism14=0;      #--STEP14:  Threshold for excluding chimeric contigs
-$mingenes14=0;	          #--STEP14:  Threshold for excluding small contigs (few genes than this)
-$smallnoannot14=0;        #-- STEP14: For excluding contigs with just one gene an no annotation
+$maxchimerism14=0.1;      #--STEP14:  Threshold for excluding chimeric contigs
+$mingenes14=1;	          #--STEP14:  Threshold for excluding small contigs (few genes than this)
+$smallnoannot14=1;        #-- STEP14: For excluding contigs with just one gene an no annotation
 
 $score_tres15=0;          #-- STEP15: Score threshold for keeping bins (proxy for level of completeness)
 
@@ -49,3 +48,5 @@ $minconsperc_total16=0.3; #-- STEP16: Ratio contigs for the taxon/number of cont
 $minsize17=20000;         #--STEP17: Minimum size of a bin to be considered
 
 $minfraction20=0.1;       #--STEP20: Minimum percentage of genes from a pathway to be present
+$minnumber20=2;       #--STEP20: Minimum number of genes from a pathway to be present
+
