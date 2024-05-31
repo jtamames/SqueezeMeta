@@ -80,74 +80,82 @@ while(<infilelen>) {
         }
 close infilelen;
 
+	#-- Check that we don't have more threads than contigs
+my $numthreads_counter= $numthreads;
+my $ncontigs = keys %lencontig;
+if($numthreads_counter > $ncontigs) { $numthreads = $ncontigs; }
 
-        #-- Get ORF info from gff file
+my(@contigchunks, @bed_chunk_files_contigs, @bed_chunk_files_orfs, @count_chunk_files);
 my(%genesincontigs,%genespos,%long_gen,@genes_ordered);
-print "  Reading orf info from $gff_file\n";
-open(infile2,$gff_file) || die "Can't open gff file $gff_file for reading\n";
-while(<infile2>) {
-        chomp;
-        next if(!$_ || ($_=~/^\#/));
-        my @k=split(/\t/,$_);
-	my $contigid=$k[0];
-        my $initgen=$k[3];
-        my $endgen=$k[4];
-        if($endgen<$initgen) { my $tpos=$initgen; $initgen=$endgen; $endgen=$initgen; }
-        my $genid;
-        my @e=split(/\;/,$k[8]);
-        my @n=split(/\_/,$e[0]);
-        my $ord=$n[$#n];
-        $genid="$contigid\_$ord";
-	if(defined $genespos{$genid}) { next; } # avoid counting duplicated entries in the gff file twice
-        push @genes_ordered, $genid;
-        if(not defined $genesincontigs{$contigid}) {
-                my @arr;
-                $genesincontigs{$contigid} = [ @arr ];
-                }
-        push @{$genesincontigs{$contigid}}, $genid;
-        $genespos{$genid} = [$initgen, $endgen];
-        $long_gen{$genid}=$endgen-$initgen+1;
-        }
 
-	#-- Split the contigs into $numthreads chunks and create bed files for them
-my @contigchunks; # create 2D array
-for(my $thread=1; $thread<=$numthreads; $thread++) {
-        my @chunk;
-        push @contigchunks, [@chunk];
-}
+	#-- If a gff file is available, prepare for ORF counting
+if(-e $gff_file) {
+        #-- Get ORF info from gff file
+	print "  Reading orf info from $gff_file\n";
+	open(infile2,$gff_file) || die "Can't open gff file $gff_file for reading\n";
+	while(<infile2>) {
+	        chomp;
+	        next if(!$_ || ($_=~/^\#/));
+	        my @k=split(/\t/,$_);
+		my $contigid=$k[0];
+	        my $initgen=$k[3];
+	        my $endgen=$k[4];
+	        if($endgen<$initgen) { my $tpos=$initgen; $initgen=$endgen; $endgen=$initgen; }
+	        my $genid;
+	        my @e=split(/\;/,$k[8]);
+	        my @n=split(/\_/,$e[0]);
+	        my $ord=$n[$#n];
+	        $genid="$contigid\_$ord";
+		if(defined $genespos{$genid}) { next; } # avoid counting duplicated entries in the gff file twice
+	        push @genes_ordered, $genid;
+	        if(not defined $genesincontigs{$contigid}) {
+	                my @arr;
+	                $genesincontigs{$contigid} = [ @arr ];
+	                }
+	        push @{$genesincontigs{$contigid}}, $genid;
+	        $genespos{$genid} = [$initgen, $endgen];
+	        $long_gen{$genid}=$endgen-$initgen+1;
+	        }
 
-my $i = 0; # populate each subarray with contigs
-foreach my $contigid (keys %lencontig) {
-	push @{ @contigchunks[$i % $numthreads] }, $contigid;
-	$i++;
+	#-- Split the contigs into $numthreads_counter chunks and create bed files for them
+	# Create 2D array
+	for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
+	        my @chunk;
+	        push @contigchunks, [@chunk];
 	}
 
-my @bed_chunk_files_contigs;
-my @bed_chunk_files_orfs;
-my @count_chunk_files;
-for(my $thread=1; $thread<=$numthreads; $thread++) { # write each subarray to a different bed file
-	my $bedfilectgs = "$tempdir/count.$thread.contigs.bed";
-	my $bedfileorfs = "$tempdir/count.$thread.orfs.bed";
-	my $countfile = "$tempdir/count.$thread";
-	push @bed_chunk_files_contigs, $bedfilectgs;
-	push @bed_chunk_files_orfs, $bedfileorfs;
-	push @count_chunk_files, $countfile;
-	open(outbedctgs, ">$bedfilectgs") || die "Cannot open $bedfilectgs for writing\n";
-	open(outbedorfs, ">$bedfileorfs") || die "Cannot open $bedfileorfs for writing\n";
-	foreach my $contigid (@{$contigchunks[$thread-1]}) { # our array is zero-indexed
-		print outbedctgs "$contigid\t1\t$lencontig{$contigid}\n";
-		foreach my $genid (@{$genesincontigs{$contigid}}) {
-			my($initgen, $endgen) = @{$genespos{$genid}};
-			print outbedorfs "$contigid\t$initgen\t$endgen\t$genid\n";	
-			}
+	my $i = 0; # populate each subarray with contigs
+	foreach my $contigid (keys %lencontig) {
+		push @{ @contigchunks[$i % $numthreads_counter] }, $contigid;
+		$i++;
 		}
-	close outbedctgs;
-	close outbedorfs;
-	}
-	undef @contigchunks;
-	undef %genesincontigs;
-	undef %genespos;
 
+	for(my $thread=1; $thread<=$numthreads_counter; $thread++) { # write each subarray to a different bed file
+		my $bedfilectgs = "$tempdir/count.$thread.contigs.bed";
+		my $bedfileorfs = "$tempdir/count.$thread.orfs.bed";
+		my $countfile = "$tempdir/count.$thread";
+		push @bed_chunk_files_contigs, $bedfilectgs;
+		push @bed_chunk_files_orfs, $bedfileorfs;
+		push @count_chunk_files, $countfile;
+		open(outbedctgs, ">$bedfilectgs") || die "Cannot open $bedfilectgs for writing\n";
+		open(outbedorfs, ">$bedfileorfs") || die "Cannot open $bedfileorfs for writing\n";
+		foreach my $contigid (@{$contigchunks[$thread-1]}) { # our array is zero-indexed
+			print outbedctgs "$contigid\t1\t$lencontig{$contigid}\n";
+			foreach my $genid (@{$genesincontigs{$contigid}}) {
+				my($initgen, $endgen) = @{$genespos{$genid}};
+				print outbedorfs "$contigid\t$initgen\t$endgen\t$genid\n";	
+				}
+			}
+		close outbedctgs;
+		close outbedorfs;
+		}
+		undef @contigchunks;
+		undef %genesincontigs;
+		undef %genespos;
+	}
+else {
+	print outsyslog "\nWARNING: $gff_file not found, will not do counting of gene abundances\n\n";
+}
 
         #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
 
@@ -181,11 +189,8 @@ elsif($mapper=~/minimap/i) {
 	}
 
 
-
 	#-- Prepare output files
 
-#if(-e "$resultpath/09.$project.rpkm") { system("rm $resultpath/09.$project.rpkm"); }
-#if(-e $rpkmfile) { system("rm $rpkmfile"); }
 if(-e $contigcov) { system("rm $contigcov"); }
 open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
@@ -267,24 +272,33 @@ foreach my $thissample(keys %allsamples) {
         	if($ecode!=0)     { die "An error occurred during mapping with command       $command!"; }
 		
 		#-- Transform to sorted bam
-
-        	my $ecode = system("$samtools_soft sort $samfile -o $bamfile -@ $numthreads; $samtools_soft index $bamfile -@ $numthreads > /dev/null 2>&1");
-        	if($ecode!=0) { die "Error running samtools"; }
-	 	system("rm $samfile");
-	}
+                $command = "$samtools_soft sort $samfile -o $bamfile.temp -@ $numthreads > /dev/null 2>&1";
+        	$ecode = system("$command");
+		if($ecode!=0) { die "Error running samtools: $command"; }
+		system("rm $samfile");
+		#-- Add read group tags identifying the sample from which the reads come from
+		$command = "$samtools_soft addreplacerg -r ID:$thissample -r SM:$thissample $bamfile.temp -o $bamfile -@ $numthreads > /dev/null 2>&1; rm $bamfile.temp";
+		$ecode = system("$command");
+		if($ecode!=0) { die "Error running samtools: $command"; }
+		#-- Index the bam file
+		$command = "$samtools_soft index $bamfile -@ $numthreads > /dev/null 2>&1";
+		$ecode = system("$command");
+        	if($ecode!=0) { die "Error running samtools: $command"; }
+		}
 
 	#-- Calculating contig coverage/RPKM
 
 	my $totalreads=contigcov(\%lencontig,$thissample,$bamfile);
 	
+	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
+
 	#-- And then we call the counting
 	
-	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
-	print outsyslog "Calling sqm_counter: Sample $thissample, BAM $bamfile, Number of reads $totalreads\n";
-	sqm_counter(\@contigchunks,\@genes_ordered,\%long_gen,$thissample,$bamfile,\@bed_chunk_files_contigs,\@count_chunk_files,$totalreads,$mapper,$verbose);
-
-
-}
+	if(-e $gff_file) {
+		print outsyslog "Calling sqm_counter: Sample $thissample, BAM $bamfile, Number of reads $totalreads\n";
+        	sqm_counter(\@contigchunks,\@genes_ordered,\%long_gen,$thissample,$bamfile,\@bed_chunk_files_contigs,\@count_chunk_files,$totalreads,$mapper,$verbose);
+		}
+	}
 if($warnmes) { 
 	print outfile1 "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
 	if($mincontiglen>200) { 
@@ -297,25 +311,25 @@ if($warnmes) {
 
 close outfile1;
 
-print "  Output in $mapcountfile\n";
+print "  Output in $mappingstat\n";
 close outfile3;
 if($mapper eq "bowtie" or $mapper eq "bwa") {
 	system("rm $bowtieref.*");	#-- Deleting bowtie references
-}
-system("rm $tempdir/count.*");
-
+if(-e $gff_file) {
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
-	
-my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
-print outsyslog "Sorting mapcount table: $command\n";
-system($command);	
+	my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+	print outsyslog "Sorting mapcount table: $command\n";
+	system($command);
+	#-- Remove temp files
+	system("rm $tempdir/count.*"); }
+}
 
 
 
 #----------------- sqm_counter counting 
 
 sub sqm_counter {
-	print "  Counting with sqm_counter: Opening $numthreads threads\n";
+	print "  Counting with sqm_counter: Opening $numthreads_counter threads\n";
 	my($contigchunks,$genes_ordered,$long_gen,$thissample,$bamfile,$bed_chunk_files_contigs,$count_chunk_files,$totalreadcount,$mapper)=@_;
 	@contigchunks = @{$contigchunks};
 	@genes_ordered = @{$genes_ordered};
@@ -328,7 +342,7 @@ sub sqm_counter {
 
 	my $use_fork=0;
 
-	for(my $thread=1; $thread<=$numthreads; $thread++) {
+	for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
 		$bedfilectgs = @bed_chunk_files_contigs[$thread-1]; # zero indexing
 		$bedfileorfs = @bed_chunk_files_orfs[$thread-1];
 		$countfile = @count_chunk_files[$thread-1];
@@ -336,7 +350,6 @@ sub sqm_counter {
 			my $pid = fork;
 			die if not defined $pid;
 			if (not $pid) { # $pid will be 0 if this is a child process, the parent will don't run this
-				#system("perl gencount.pl $thread $bamfile $bedfilectgs $bedfileorfs $countfile $mapper '$samtools_soft' $verbose");
                         	current_thread($thread,$bamfile,$bedfilectgs,$bedfileorfs,$countfile,$mapper,$samtools_soft,$verbose);
 				exit;
                         	}
@@ -348,7 +361,7 @@ sub sqm_counter {
 
 	# Thread/children cleanup.
 	if($use_fork) {
-		for(my $thread=1; $thread<=$numthreads; $thread++) {
+		for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
 			my $finished = wait(); # wait till all the children have stopped
 			}
 		}
@@ -356,7 +369,7 @@ sub sqm_counter {
 
 
 	# Process results	
-	for(my $thread=1; $thread<=$numthreads; $thread++) {
+	for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
 		my $countfile = @count_chunk_files[$thread-1];
 		open(intemp,$countfile) || warn "Cannot open $countfile\n";
 		while(<intemp>) {

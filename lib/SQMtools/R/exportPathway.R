@@ -2,7 +2,7 @@
 #'
 #' This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \emph{Nucleic acids research}, 45:W501-W508). It will generate annotated KEGG pathway maps showing which reactions are present in the different samples. It will also generate legends with the color scales for each sample in separate png files. 
 #'
-#' @param SQM A SQM or SQMlite object.
+#' @param SQM A SQM, SQMbunch or SQMlite object.
 #' @param pathway_id character. The five-number KEGG pathway identifier. A list of all pathway identifiers can be found in \url{https://www.genome.jp/kegg/pathway.html}.
 #' @param count character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"tpm"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).
 #' @param samples character. An optional vector with the names of the samples to export. If absent, all samples will be exported (default \code{NULL}).
@@ -31,7 +31,7 @@
 exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_samples = FALSE, sample_colors = NULL, log_scale = FALSE, fold_change_groups = NULL, fold_change_colors = NULL, max_scale_value = NULL, color_bins = 10, output_suffix = 'pathview')
     {
     ### Check params.
-    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
     if(!count %in% c('abund', 'percent', 'bases', 'tpm', 'copy_number'))
         {
         stop('count must be "abund", "percent", "bases", "tpm" or "copy_number"')

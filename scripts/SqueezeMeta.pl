@@ -44,9 +44,9 @@ close inv;
 
 our $pwd=cwd();
 
-our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
-our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode);
+our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
+our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
 our(%bindirs,%dasdir,%binscripts,%assemblers);  
 
 print %assemblers,"***\n";
@@ -106,9 +106,14 @@ Arguments:
    -b|-block-size <block size>: block size for diamond against the nr database (Default: calculate automatically)
    
  Binning:
-   --nobins: Skip all binning  (Default: no). Overrides -binners 
-   -binners: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
+   --nobins: Skip all binning  (Default: no). Overrides -binners
+   --onlybins: Run only assembly, binning and bin statistics (including GTDB-Tk if requested) (Default: no)
+   -binners: Comma-separated list with the binning programs to be used (available: maxbin, metabat2, concoct)  (Default: concoct,metabat2)
    -taxbinmode <s,c,s+c,c+s>: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
+   --gtdbtk: Run GTDB-Tk to classify the bins. Requires a working GTDB-Tk installation in available in your environment
+   -gtdbtk_data_path: Path to the GTDB database, by default it is assumed to be present in /path/to/SqueezeMeta/db/gtdb
+   -extbins: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps
+
  
  Performance:
    -t <threads>: Number of threads (Default: 12)
@@ -148,9 +153,13 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "euk" => \$euknofilter,
 		     "protclust" => \$protclust,
 		     "extdb=s" => \$opt_db, 
-		     "nobins" => \$nobins,   
+		     "nobins" => \$nobins,
+		     "onlybins" => \$onlybins,
 		     "binners=s" => \$binners, 
-		     "taxbinmode=s" => \$taxbinmode, 
+		     "taxbinmode=s" => \$taxbinmode,
+		     "gtdbtk" => \$gtdbtk,
+		     "gtdbtk_data_path=s" => \$gtdbtk_data_path,
+		     "extbins=s" => \$extbins,
 		     "D|doublepass" => \$doublepass, 
 		     "b|block_size=i" => \$blocksize,
 		     "e|evalue=f" => \$evalue,   
@@ -187,6 +196,8 @@ if(!$nopfam) { $nopfam=0; }
 if(!$euknofilter) { $euknofilter=0; }
 if(!$doublepass) { $doublepass=0; }
 if(!$nobins) { $nobins=0; }
+if(!$onlybins) { $onlybins = 0; }
+if(!$gtdbtk) { $gtdbtk=0; }
 if(!$binners) { $binners="concoct,metabat2"; }
 if(!$taxbinmode) { $taxbinmode="s"; }
 if(!$nomaxbin) { $nomaxbin=0; }
@@ -226,15 +237,17 @@ if($restart) {
 	$rawfastq=$userdir;
 	}
 else {
-	if(!$rawfastq) { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
+	if(!$rawfastq)  { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
 	if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
-	if(!$mode) { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
+	if(!$mode)      { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
 	if(($mode!~/sequential$/i) && (!$projectdir)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
-	if(($mode=~/sequential$/i) && ($projectdir)) { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
+	if(($mode=~/sequential$/i) && ($projectdir))  { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
 	if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
 	# if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
 	if($newtaxdb) { if(-e "$newtaxdb.dmnd") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
+	if($extassembly && $extbins) { $dietext.="-extassembly and -extbins can not be provided at the same time\n"; }
+        if($nobins and $onlybins)    { $dietext.="--nobins --onlybins can not be provided at the same time\n"; }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
 	}
@@ -292,12 +305,12 @@ my $pdir;
 
 my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectname',$projectname,'userdir',$rawfastq,
   'blocksize',$blocksize,'nodiamond',$nodiamond,'singletons',$singletons,'nocog',$nocog,'nokegg',$nokegg,
-  'nopfam',$nopfam,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'binners',$binners,
+  'nopfam',$nopfam,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
   'norename',$norename,'mapper',$mapper,'mapping_options',$mapping_options,'cleaning',$cleaning,
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
-  'extassembly',$extassembly,'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,'miniden',$miniden,
-  'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite,'newtaxdb',$newtaxdb);
+  'extassembly',$extassembly,'extbins',$extbins, 'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,
+  'miniden',$miniden, 'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite,'newtaxdb',$newtaxdb);
 
 
 if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
@@ -320,7 +333,7 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 		
 	else { die "  Directory structure and conf files created. Exiting\n"; }  #-- If --empty invoked
 	close outfile4;  #-- Closing log file for the sample
-	close outfile3;	  #-- Closing progress file for the sample
+	close outfile3;	 #-- Closing progress file for the sample
 	}
 
 	#-- Sequential mode
@@ -427,7 +440,7 @@ sub pipeline {
 			
     #-------------------------------- STEP2: Run RNA prediction
 
-	if(($rpoint<=2) && ((!$test) || ($test>=2))) {
+	if(($rpoint<=2) && (!$onlybins) && ((!$test) || ($test>=2))) {
 		my $masked="$interdir/02.$projectname.maskedrna.fasta";
                 my $wsize=checksize($masked);
                 if(($wsize>=2) && (!$force_overwrite)) { print "RNA gff file $masked already found, skipping step 2\n"; }
@@ -449,7 +462,7 @@ sub pipeline {
 			
     #-------------------------------- STEP3: Run gene prediction
 
-	if(($rpoint<=3) && ((!$test) || ($test>=3))) { 
+	if(($rpoint<=3) && (!$onlybins) && ((!$test) || ($test>=3))) { 
                 my $wsize=checksize($aafile);
                 if(($wsize>=2) && (!$force_overwrite))  { print "Aminoacid file $aafile already found, skipping step 3\n"; }
 		else {		
@@ -469,7 +482,7 @@ sub pipeline {
 			
     #-------------------------------- STEP4: Run Diamond for taxa and functions
 
-	if(($rpoint<=4) && ((!$test) || ($test>=4))) {
+	if(($rpoint<=4) && (!$onlybins) && ((!$test) || ($test>=4))) {
                 my $wsize=checksize($taxdiamond);
                 if(($wsize>=1) && (!$force_overwrite)) { print "Diamond file $taxdiamond already found, skipping step 4\n"; }
 		else {		
@@ -490,7 +503,7 @@ sub pipeline {
 			
     #-------------------------------- STEP5: Run hmmer for PFAM annotation
 
-	if(($rpoint<=5) && ((!$test) || ($test>=5))) {
+	if(($rpoint<=5) && (!$onlybins) && ((!$test) || ($test>=5))) {
 		if(!$nopfam) {
             		my $wsize=checksize($pfamhmmer);
              		if(($wsize>=1) && (!$force_overwrite)) { print "Pfam file $pfamhmmer already found, skipping step 5\n"; }	
@@ -512,7 +525,7 @@ sub pipeline {
 			
     #-------------------------------- STEP6: LCA algorithm for taxa annotation
 
-	if(($rpoint<=6) && ((!$test) || ($test>=6))) {
+	if(($rpoint<=6) && (!$onlybins) && ((!$test) || ($test>=6))) {
 		my $lcaresult="$fun3tax.wranks";
             	my $wsize=checksize($lcaresult);
              	if(($wsize>=1) && (!$force_overwrite)) { print "LCA file $lcaresult already found, skipping step 6\n"; }
@@ -533,7 +546,7 @@ sub pipeline {
 			
     #-------------------------------- STEP7: fun3 for COGs, KEGG and PFAM annotation
 
-	if(($rpoint<=7) && ((!$test) || ($test>=7))) {
+	if(($rpoint<=7) && (!$onlybins) && ((!$test) || ($test>=7))) {
 		# Set wsize to 1 for a method if we were instructed not to use it,
 		#  so that the step counts as completed even if those results are not present.
 		my($wsizeCOG,$wsizeKEGG,$wsizePFAM,$wsizeOPTDB);
@@ -584,7 +597,7 @@ sub pipeline {
 			
     #-------------------------------- STEP8: Blastx on the unannotated parts of the contigs
 	
-	if(($rpoint<=8) && ((!$test) || ($test>=8))) {
+	if(($rpoint<=8) && (!$onlybins) && ((!$test) || ($test>=8))) {
 		if($doublepass) {
 			my $wsize=checksize($gff_file_blastx);
              		if(($wsize>=1) && (!$force_overwrite)) { print "Blastx file $gff_file_blastx already found, skipping step 8\n"; }
@@ -609,7 +622,7 @@ sub pipeline {
     #-------------------------------- STEP9: Taxonomic annotation for the contigs (consensus of gene annotations)
 
 
-	if(($rpoint<=9) && ((!$test) || ($test>=9))) {
+	if(($rpoint<=9) && (!$onlybins) && ((!$test) || ($test>=9))) {
 		my $wsize=checksize($alllog);
              	if(($wsize>=1) && (!$force_overwrite)) { print "Contig tax file $alllog already found, skipping step 9\n"; }
 		else {		
@@ -649,7 +662,7 @@ sub pipeline {
 			
     #-------------------------------- STEP11: Count of taxa abundances
 	
-	if(($rpoint<=11) && ((!$test) || ($test>=11))) {
+	if(($rpoint<=11) && (!$onlybins) && ((!$test) || ($test>=11))) {
 		my $wsize=checksize($mcountfile);
              	if(($wsize>=2) && (!$force_overwrite)) { print "Abundance file $mcountfile already found, skipping step 11\n"; }	
 		else {	
@@ -669,14 +682,15 @@ sub pipeline {
 			
     #-------------------------------- STEP12: Count of function abundances
 	
-	if(($rpoint<=12) && ((!$test) || ($test>=12))) {
-		# Set wsize to 1 for a method if we were instructed not to use it,                                                          #  so that the step counts as completed even if those results are not present.
+	if(($rpoint<=12) && (!$onlybins) && ((!$test) || ($test>=12))) {
+		# Set wsize to 1 for a method if we were instructed not to use it,                                                          
+                #  so that the step counts as completed even if those results are not present.
 		my $cogfuncover = "$resultpath/12.$projectname.cog.funcover";
 		my $keggfuncover= "$resultpath/12.$projectname.kegg.funcover";
 		my($wsizeCOG,$wsizeKEGG);
 		if($nocog)  { $wsizeCOG  = 1; } else { $wsizeCOG  = checksize($cogfuncover ); }
 		if($nokegg) { $wsizeKEGG = 1; } else { $wsizeKEGG = checksize($keggfuncover); }
-             	if(($wsizeCOG>1) && ($wsizeKEGG>1) && (!$force_overwrite)) { print "Function abundance files already found, skipping step 12\n"; }
+             	if(($wsizeCOG>=1) && ($wsizeKEGG>=1) && (!$force_overwrite)) { print "Function abundance files already found, skipping step 12\n"; }
 		else {	
 			my $scriptname="12.funcover.pl";
 			if((!$nocog) || (!$nokegg) || ($opt_db)) {
@@ -697,7 +711,7 @@ sub pipeline {
 			
     #-------------------------------- STEP13: Generation of the gene table
 		
-	if(($rpoint<=13) && ((!$test) || ($test>=13))) {
+	if(($rpoint<=13) && (!$onlybins) && ((!$test) || ($test>=13))) {
 		my $wsize = checksize($mergedfile);
              	if(($wsize>=2) && (!$force_overwrite)) { print "ORF table $mergedfile already found, skipping step 13\n"; }
 		else {		
@@ -720,8 +734,8 @@ sub pipeline {
 	
 	 if(!$nobins) {	    
 	 	my $hayresults; 
-	 	if($verbose) { print " (Now we will start creating bins for separating individual organisms in the community)\n"; }  
-		if(($rpoint<=14) && ((!$test) || ($test>=14))) {
+		if(($rpoint<=14) && ((!$test) || ($test>=14)) && (!$extbins)) {
+			if($verbose) { print " (Now we will start creating bins for separating individual organisms in the community)\n"; }
 			my @binner=split(/\,/,$binners);
 			foreach my $tbinner(@binner) { #-- Checking for results for all the specified binners
 				my @binfiles;
@@ -752,7 +766,7 @@ sub pipeline {
  
     #-------------------------------- STEP15: DAS Tool merging of binning results	
 	
-		if(($rpoint<=15) && ((!$test) || ($test>=15))) {
+		if(($rpoint<=15) && ((!$test) || ($test>=15)) && (!$extbins)) {
 			opendir(indir2,$binresultsdir);
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
@@ -786,7 +800,7 @@ sub pipeline {
 			
     #-------------------------------- STEP16: Taxonomic annotation for the bins (consensus of contig annotations)		
 	
-		if(($rpoint<=16) && ((!$test) || ($test>=16))) {
+		if(($rpoint<=16) && (!$onlybins) && ((!$test) || ($test>=16))) {
 			if(!$DAS_Tool_empty){
 				opendir(indir3,$binresultsdir);
 				my @binfiles=grep(/fa$/,readdir indir3);
@@ -823,12 +837,15 @@ sub pipeline {
 
 			
     #-------------------------------- STEP17: Checking of bins for completeness and contamination (checkM)		
-	
+		my $new17=0;
 		if(($rpoint<=17) && ((!$test) || ($test>=17))) {
 			if(!$DAS_Tool_empty){
-				my $wsize=checksize($checkmfile);
-            	 		if(($wsize>=4) && (!$force_overwrite))  { print "CheckM file in $checkmfile already found, skipping step 17\n"; }
-				else {		
+				my($filetocheck, $minlines);
+				if($gtdbtk) { $filetocheck = $gtdbtkfile; $minlines = 2; } else { $filetocheck = $checkmfile; $minlines = 4; }
+				my $wsize=checksize($filetocheck);
+            	 		if(($wsize>=$minlines) && (!$force_overwrite))  { print "Results in $filetocheck already found, skipping step 17\n"; }
+				else {
+					$new17=1;	
 					my $scriptname="17.checkM_batch.pl";
 					print outfile3 "17\t$scriptname\n";
 					$currtime=timediff();
@@ -840,7 +857,12 @@ sub pipeline {
 					my $binmethod="DAS";
 					my $wsize=checksize($checkmfile);
 					if($wsize<4) {
-						print RED; print "Can't find $checkmfile\nStopping in STEP18 -> $scriptname\n"; print RESET; die; }
+						print RED; print "Can't find $checkmfile\nStopping in STEP17 -> $scriptname\n"; print RESET; die; }
+					if($gtdbtk) {
+						my $wsize=checksize($checkmfile);
+						if($wsize<2) {
+							print RED; print "Can't find $gtdbtkfile\nStopping in STEP17 -> $scriptname\n"; print RESET; die; }
+						}
 					}
 				}
 			else { print RED; print"Skipping CHECKM: DAS_Tool did not predict bins.\n"; print RESET; }
@@ -852,7 +874,7 @@ sub pipeline {
 		if(($rpoint<=18) && ((!$test) || ($test>=18))) {
 			if(!$DAS_Tool_empty){
 				my $wsize=checksize($bintable);
-            	 		if(($wsize>=2) && (!$force_overwrite)) { print "Bin table in $bintable already found, skipping step 18\n"; }
+            	 		if(($wsize>=2) && (!$force_overwrite) && (!$new17)) { print "Bin table in $bintable already found, skipping step 18\n"; }
 				else {		
 					my $scriptname="18.getbins.pl";
 					print outfile3 "18\t$scriptname\n";
@@ -874,7 +896,7 @@ sub pipeline {
 
     #-------------------------------- STEP19: Make contig table		
 
-	if(($rpoint<=19) && ((!$test) || ($test>=19))) {
+	if(($rpoint<=19) && (!$onlybins) && ((!$test) || ($test>=19))) {
 		my $wsize=checksize($contigtable);
             	if(($wsize>=2) && (!$force_overwrite)) { print "Contig table in $contigtable already found, skipping step 19\n"; }
 		else {		
@@ -896,7 +918,7 @@ sub pipeline {
     #-------------------------------- STEP20: Pathways in bins          
 
 	if(!$nobins) {	       
-		if(($rpoint<=20) && ((!$test) || ($test>=20))) {
+		if(($rpoint<=20) && (!$onlybins) && ((!$test) || ($test>=20))) {
 			if((!$DAS_Tool_empty) && (!$nokegg)) {
 				my $minpathfile="$resultpath/20.$projectname.kegg.pathways";
 				my $wsize=checksize($minpathfile);
@@ -952,8 +974,10 @@ sub pipeline {
 	print BLUE "[",$currtime->pretty,"]: FINISHED -> Have fun!\n"; print RESET;
 	if($finaltrace) { print "\nWARNINGS:\n$finaltrace\n"; }
 	print "For citation purposes, you can find a summary of methods in the file $methodsfile\n\n";
-	print "You can analize your results using the SQMTools R library (see https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results)\n";
-	if($mode eq "sequential") { print "(Please remember that sequential projects must be loaded indepently in SQMTools)\n"; }
+	if(!$onlybins) {
+		print "You can analyze your results using the SQMtools R library (see https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results)\n";
+		if($mode eq "sequential") { print "(Please remember that sequential projects must be loaded indepently in SQMtools)\n"; }
+	}
 }
 
 
@@ -1013,13 +1037,19 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		elsif($_=~/^\$euknofilter/)     { print outfile5 "\$euknofilter     = $conf{euknofilter};\n";         }
 		elsif($_=~/^\$doublepass/)      { print outfile5 "\$doublepass      = $conf{doublepass};\n";          }
 		elsif($_=~/^\$nobins/)          { print outfile5 "\$nobins          = $conf{nobins};\n";              }
+		elsif($_=~/^\$onlybins/)        { print outfile5 "\$onlybins        = $conf{onlybins};\n";            }
+		elsif($_=~/^\$gtdbtk[= ]/)      { print outfile5 "\$gtdbtk          = $conf{gtdbtk};\n";              }
 		elsif($_=~/^\$binners/)         { print outfile5 "\$binners         = \"$conf{binners}\";\n";         }
-		elsif($_=~/^\$norename/)        { print outfile5 "\$norename        = $conf{norename};\n";           }
-		elsif($_=~/^\$preserve/)	{ print outfile5 "\$preserve        = $conf{preserve};\n";           }		
+		elsif($_=~/^\$norename/)        { print outfile5 "\$norename        = $conf{norename};\n";            }
+		elsif($_=~/^\$preserve/)	{ print outfile5 "\$preserve        = $conf{preserve};\n";            }		
 		elsif($_=~/^\$mapper/)          { print outfile5 "\$mapper          = \"$conf{mapper}\";\n";          }
 		elsif($_=~/^\$mapping_options/) { print outfile5 "\$mapping_options = \"$conf{mapping_options}\";\n"; }
 		elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $conf{cleaning};\n";            }
 		elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$conf{cleaningoptions}\";\n"; }
+		elsif($_=~/^\$gtdbtk_data_path/) {
+			if($conf{gtdbtk_data_path}) { print outfile5 "\$gtdbtk_data_path = \"$conf{gtdbtk_data_path}\";\n"; }
+			else { print outfile5 "$_\n"; }
+			}
 		else { print outfile5 "$_\n"; }
 		if($consensus) { print outfile5 "\$consensus=$conf{consensus};\n"; }
 		elsif($minion) { print outfile5 "\$consensus=0.2;\n"; }
@@ -1031,12 +1061,13 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	print outfile5 "\$mincontiglen       = $conf{mincontiglen};\n";
 	print outfile5 "\$assembler          = \"$conf{assembler}\";\n";
 	print outfile5 "\$canumem            = $conf{canumem};\n";
-	if($contigid) { print outfile5 "\$contigid            = \"$conf{contigid}\";\n"; }
+	if($contigid)          { print outfile5 "\$contigid           = \"$conf{contigid}\";\n";          }
 	if($assembler_options) { print outfile5 "\$assembler_options  = \"$conf{assembler_options}\";\n"; }
 	if($extassembly)       { print outfile5 "\$extassembly        = \"$conf{extassembly}\";\n";       }
+	if($extbins)           { print outfile5 "\$extbins            = \"$conf{extbins}\";\n";           }
 	if($opt_db)            { print outfile5 "\$opt_db             = \"$conf{opt_db}\";\n";            }
-	if($newtaxdb)          { print outfile5 "\$newtaxdb             = \"$conf{newtaxdb}\";\n";            }
-	if($taxbinmode) { print outfile5 "\$taxbinmode             = \"$taxbinmode\";\n";            }
+	if($newtaxdb)          { print outfile5 "\$newtaxdb           = \"$conf{newtaxdb}\";\n";          }
+	if($taxbinmode)        { print outfile5 "\$taxbinmode         = \"$taxbinmode\";\n";              }
 	close outfile5;
 	
 	#--  Write progress and syslog
@@ -1074,6 +1105,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	if(!$restart) {
 		system ("mkdir $datapath");
  		system ("mkdir $resultpath");
+		system ("mkdir $resultpath/bins");
  		system ("mkdir $tempdir");
  		system ("mkdir $datapath/raw_fastq"); 
  		system ("mkdir $extpath"); 

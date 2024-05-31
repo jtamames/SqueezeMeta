@@ -11,7 +11,9 @@ subsetTax(
   trusted_functions_only = FALSE,
   ignore_unclassified_functions = FALSE,
   rescale_tpm = TRUE,
-  rescale_copy_number = TRUE
+  rescale_copy_number = TRUE,
+  recalculate_bin_stats = TRUE,
+  allow_empty = FALSE
 )
 }
 \arguments{
@@ -28,6 +30,8 @@ subsetTax(
 \item{rescale_tpm}{logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected taxon}.}
 
 \item{rescale_copy_number}{logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected taxon}.}
+
+\item{recalculate_bin_stats}{logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).}
 }
 \value{
 SQM object containing only the requested taxon.

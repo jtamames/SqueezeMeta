@@ -171,10 +171,13 @@ The command for running SqueezeMeta has the following syntax:
 * *-mapping_options* [string]: Extra options for the mapper (refer to the manual of the specific mapper). Please provide all the extra options as a single quoted string (e.g. _-mapping_options “--opt1 foo --opt2 bar”_)
 
 *Binning*
-* *--nobins*: Skip all binning  (Default: no). Overrides -binners 
-* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
+* *--nobins*: Skip all binning  (Default: no). Overrides -binners
+* *--onlybins*: Run only assembly, binning and bin statistics (including GTDB-Tk if requested) (Default: no)
+* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat2, concoct)  (Default: concoct,metabat2)
 * *-taxbinmode* [string]: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
-* *-extbins* [path]: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps.
+* *--gtdbtk*: Run GTDB-Tk to classify the bins. Requires a working GTDB-Tk installation available in your environment
+* *-gtdbtk_data_path* [path]: Path to the GTDB database, by default it is assumed to be present in `/path/to/SqueezeMeta/db/gtdb`
+* *-extbins* [path]: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps
 
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 

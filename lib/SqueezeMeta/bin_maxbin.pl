@@ -21,7 +21,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$interdir,$singletons,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$contigslen,$interdir,$singletons,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
 my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
@@ -49,7 +49,7 @@ if($singletons) {		#-- Excluding singleton raw reads from binning
 	}
 
 print "  Reading samples from $mappingfile\n";   #-- We will exclude samples with the "noassembly" flag
-open(infile0,$mappingfile) || die "Can't open $alllog\n";
+open(infile0,$mappingfile) || die "Can't open $mappingfile\n";
 while(<infile0>) {
 	chomp;
 	next if !$_;
@@ -58,21 +58,37 @@ while(<infile0>) {
 	}
 close infile0;
 
-print "  Reading from $alllog\n";
-open(infile1,$alllog) || die "Can't open $alllog\n";
-while(<infile1>) { 
-	chomp;
-	next if !$_;
-	my @r=split(/\t/,$_);
-	next if $singletonlist{$r[0]};
-	my($chimlevel,$numgenes);
-	if($r[3]=~/Disparity\: (.*)/) { $chimlevel=$1; }
-	if($r[4]=~/Genes\: (.*)/) { $numgenes=$1; }
-	if(!$numgenes) { $numgenes=0; } 
-	if(($numgenes>=$mingenes) && ($chimlevel<=$maxchimerism)) { $allcontigs{$r[0]}=1;  }	
-	if($smallnoannot && ($numgenes<=1) && ($r[1] eq "Unknown")) { delete $allcontigs{$r[0]}; }
-	}
-close infile1;
+
+if(-e $alllog) {
+        open(infile1,$alllog) || die "Can't open $alllog\n";
+        while(<infile1>) {
+                chomp;
+                next if !$_;
+                my @r=split(/\t/,$_);
+                next if($singletonlist{$r[0]});
+                my($chimlevel,$numgenes);
+                if($r[3]=~/Disparity\: (.*)/) { $chimlevel=$1; }
+                if($r[4]=~/Genes\: (.*)/) { $numgenes=$1; }
+                if(!$numgenes) { $numgenes=0; }
+                if(($numgenes>=$mingenes) && ($chimlevel<=$maxchimerism)) { $allcontigs{$r[0]}=1; }
+                if($smallnoannot && ($numgenes<=1) && ($r[1] eq "Unknown")) { delete $allcontigs{$r[0]}; }
+                }
+        close infile1;
+} else {
+        # if we don't have alllog (bc we did not run annotation) then get the list of contigs from $contigslen, which is generated at assembly
+        #  so we don't do any filtering by disparity or numgenes
+        print outsyslog "\nWARNING: $alllog was not found. We will not filter contigs by number of genes or chimerism!\n\n";
+        open(infile1,$contigslen) || die "Can't open $contigslen\n";
+        while(<infile1>) {
+                chomp;
+                next if !$_;
+                my @r=split(/\t/,$_);
+                next if($singletonlist{$r[0]}); # we can still avoid singletons so we do it
+                $allcontigs{$r[0]}=1;
+                }
+        }
+
+
 
 my $tempfasta="$tempdir/bincontigs.fasta";
 open(outfile1,">$tempfasta") || die "Can't open $tempfasta for writing\n";

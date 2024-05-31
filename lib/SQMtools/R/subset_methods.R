@@ -1,3 +1,24 @@
+subsetDispatch = function(f, SQM, ...)
+    {
+    if(!inherits(SQM, c('SQM', 'SQMbunch'))) { stop('The first argument must be a SQM or SQMbunch object') }
+    if(!inherits(SQM, 'SQMbunch'))
+        {
+        args = c(list(SQM=SQM), list(...))
+        subSQM = do.call(f, args)
+    } else {
+        projs = list()
+        for(p in SQM$projects)
+            {
+            args = c(list(SQM=p), list(...))
+	    args$allow_empty = TRUE
+            projs = c(projs, list(do.call(f, args)))
+            }
+        subSQM = combineSQM(projs)
+        }
+    return(subSQM) 
+    }
+
+
 #' Filter results by sample
 #'
 #' Create a SQM object containing only samples specified by the user, and the ORFs, contigs, bins, taxa and functions present in those samples.
@@ -15,22 +36,29 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
     subSQM$misc$samples = samples
     subSQM$total_reads = subSQM$total_reads[samples]
     
-    # ORFs
+    ### ORFs
     if(remove_missing) {
         presentORFs = rownames(subSQM$orfs$abund)[ rowSums(subSQM$orfs$abund[,samples,drop=FALSE]) > 0 ]
     } else {
         presentORFs = rownames(subSQM$orfs$abund)
     }
-    subSQM$orfs$table = subSQM$orfs$table[intersect(presentORFs, rownames(subSQM$orfs$table)),       ,drop=FALSE]
-    subSQM$orfs$abund = subSQM$orfs$abund[intersect(presentORFs, rownames(subSQM$orfs$abund)),samples,drop=FALSE]
-    subSQM$orfs$bases = subSQM$orfs$bases[intersect(presentORFs, rownames(subSQM$orfs$bases)),samples,drop=FALSE]
-    subSQM$orfs$cov   = subSQM$orfs$cov  [intersect(presentORFs, rownames(subSQM$orfs$cov  )),samples,drop=FALSE]
-    subSQM$orfs$cpm   = subSQM$orfs$cpm  [intersect(presentORFs, rownames(subSQM$orfs$cpm  )),samples,drop=FALSE]
-    subSQM$orfs$tpm   = subSQM$orfs$tpm  [intersect(presentORFs, rownames(subSQM$orfs$tpm  )),samples,drop=FALSE]
-    subSQM$orfs$seqs  = subSQM$orfs$seqs [intersect(presentORFs,    names(subSQM$orfs$seqs )),        drop=FALSE]
-    subSQM$orfs$tax   = subSQM$orfs$tax  [intersect(presentORFs, rownames(subSQM$orfs$tax  )),       ,drop=FALSE]
-
-    # Contigs
+    subSQM$orfs$table       = subSQM$orfs$table[intersect(presentORFs, rownames(subSQM$orfs$table )),       ,drop=FALSE]
+    subSQM$orfs$abund       = subSQM$orfs$abund[intersect(presentORFs, rownames(subSQM$orfs$abund )),samples,drop=FALSE]
+    subSQM$orfs$bases       = subSQM$orfs$bases[intersect(presentORFs, rownames(subSQM$orfs$bases )),samples,drop=FALSE]
+    subSQM$orfs$cov         = subSQM$orfs$cov  [intersect(presentORFs, rownames(subSQM$orfs$cov   )),samples,drop=FALSE]
+    subSQM$orfs$cpm         = subSQM$orfs$cpm  [intersect(presentORFs, rownames(subSQM$orfs$cpm   )),samples,drop=FALSE]
+    subSQM$orfs$tpm         = subSQM$orfs$tpm  [intersect(presentORFs, rownames(subSQM$orfs$tpm   )),samples,drop=FALSE]
+    subSQM$orfs$seqs        = subSQM$orfs$seqs [intersect(presentORFs,    names(subSQM$orfs$seqs  )),        drop=FALSE]
+    subSQM$orfs$tax         = subSQM$orfs$tax  [intersect(presentORFs, rownames(subSQM$orfs$tax   )),       ,drop=FALSE]
+    if('tax16S' %in% names(subSQM$orfs))
+        {
+        subSQM$orfs$tax16   = SQM$orfs$tax16S  [intersect(presentORFs, rownames(subSQM$orfs$tax16S)),       ,drop=FALSE]
+        }
+    if('markers' %in% names(subSQM$orfs))
+        {
+        subSQM$orfs$markers = SQM$orfs$markers [intersect(presentORFs, names(subSQM$orfs$markers  )),        drop=FALSE]
+        }
+    ### Contigs
     if(remove_missing) {
         presentContigs = rownames(subSQM$contigs$abund)[ rowSums(subSQM$contigs$abund[,samples,drop=FALSE]) > 0 ]
     } else {
@@ -46,7 +74,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
     subSQM$contigs$tax   = subSQM$contigs$tax  [intersect(presentContigs, rownames(subSQM$contigs$tax  )),       ,drop=FALSE]
     subSQM$contigs$bins  = subSQM$contigs$bins [intersect(presentContigs, rownames(subSQM$contigs$bins )),       ,drop=FALSE]
     
-    # Bins
+    ### Bins
     if('bins' %in% names(subSQM)) {
         if(remove_missing) {
             presentBins = rownames(subSQM$bins$abund)[ rowSums(subSQM$bins$abund[,samples,drop=FALSE]) > 0 ]
@@ -63,7 +91,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
         subSQM$bins$tax     = subSQM$bins$tax    [intersect(presentBins, rownames(subSQM$bins$tax    )),       ,drop=FALSE]
     }
 
-    # Taxa
+    ### Taxa
     for(rank in names(subSQM$taxa)) {
         if(remove_missing) {
             presentTaxa = rownames(subSQM$taxa[[rank]]$abund)[ rowSums(subSQM$taxa[[rank]]$abund[,samples,drop=FALSE]) > 0 ]
@@ -76,7 +104,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 	}
     }
 
-    # Functions
+    ### Functions
     for(method in names(subSQM$functions)) {
         if(remove_missing) {
             presentFuns = rownames(subSQM$functions[[method]]$abund)[ rowSums(subSQM$functions[[method]]$abund[,samples,drop=FALSE]) > 0 ]
@@ -104,6 +132,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
+#' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
 #' @seealso \code{\link{subsetTax}}, \code{\link{subsetORFs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 #' @return SQM object containing only the requested function.
 #' @examples
@@ -113,7 +142,19 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 #' # Search for multiple patterns using regular expressions
 #' Hadza.twoKOs = subsetFun(Hadza, "K00812|K00813", fixed=FALSE)
 #' @export
-subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = FALSE, rescale_copy_number = FALSE)
+subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE,
+                     trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE,
+                     rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetFun_, SQM, fun, columns=columns, ignore_case = ignore_case, fixed = fixed,
+                     trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+                     rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
+		     allow_empty = allow_empty)
+          )
+    }
+subsetFun_ = function(SQM, fun, columns, ignore_case, fixed,
+                      trusted_functions_only, ignore_unclassified_functions,
+		      rescale_tpm, rescale_copy_number, recalculate_bin_stats, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
 
@@ -133,7 +174,9 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE, tr
                         trusted_functions_only = trusted_functions_only,
                         ignore_unclassified_functions=ignore_unclassified_functions,
                         rescale_tpm         = rescale_tpm,
-                        rescale_copy_number = rescale_copy_number)
+                        rescale_copy_number = rescale_copy_number,
+                        recalculate_bin_stats = recalculate_bin_stats,
+		        allow_empty = allow_empty)
            )
 
     }
@@ -150,6 +193,7 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE, tr
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected taxon}.
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected taxon}.
+#' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
 #' @return SQM object containing only the requested taxon.
 #' @seealso \code{\link{subsetFun}}, \code{\link{subsetContigs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 #' @examples
@@ -157,7 +201,15 @@ subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE, tr
 #' Hadza.Prevotella = subsetTax(Hadza, "genus", "Prevotella")
 #' Hadza.Proteobacteria = subsetTax(Hadza, "phylum", "Proteobacteria")
 #' @export
-subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE)
+subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, recalculate_bin_stats = TRUE, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetTax_, SQM, rank, tax,
+			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+			  rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
+			  allow_empty = allow_empty)
+          )
+    }
+subsetTax_ = function(SQM, rank, tax, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, recalculate_bin_stats, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     if(!rank %in% colnames(SQM$contigs$tax)) { stop(sprintf('Valid taxonomic ranks are %s', paste(colnames(SQM$contigs$tax), collapse = ', '))) }
@@ -166,7 +218,9 @@ subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_uncl
                            trusted_functions_only = trusted_functions_only,
                            ignore_unclassified_functions=ignore_unclassified_functions,
                            rescale_tpm = rescale_tpm,
-                           rescale_copy_number = rescale_copy_number)
+                           rescale_copy_number = rescale_copy_number,
+	                   recalculate_bin_stats = recalculate_bin_stats,
+	                   allow_empty = allow_empty)
            )
    
     }
@@ -191,7 +245,14 @@ subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_uncl
 #' # Subset with the most complete bin.
 #' topBin = subsetBins(Hadza, topBinNames[1])
 #' @export
-subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE)
+subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetBins_, SQM, bins,
+			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+			  rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, allow_empty = allow_empty)
+          )
+    }
+subsetBins_ = function(SQM, bins, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     goodContigs = rownames(SQM$contigs$bins)[SQM$contigs$bins %in% bins]
@@ -199,7 +260,9 @@ subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassi
                            trusted_functions_only = trusted_functions_only,
                            ignore_unclassified_functions=ignore_unclassified_functions,
                            rescale_tpm = rescale_tpm,
-                           rescale_copy_number = rescale_copy_number)
+                           rescale_copy_number = rescale_copy_number,
+	                   recalculate_bin_stats = FALSE,
+	                   allow_empty = allow_empty)
            )
     }
 
@@ -213,6 +276,7 @@ subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassi
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
+#' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
 #' @return SQM object containing only the selected contigs.
 #' @seealso \code{\link{subsetORFs}}
 #' @examples
@@ -222,7 +286,15 @@ subsetBins = function(SQM, bins, trusted_functions_only = FALSE, ignore_unclassi
 #' lowGCcontigs = subsetContigs(Hadza, lowGCcontigNames)
 #' hist(lowGCcontigs$contigs$table[,"GC perc"])
 #' @export
-subsetContigs = function(SQM, contigs, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = FALSE, rescale_copy_number = FALSE)
+subsetContigs = function(SQM, contigs, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetContigs_, SQM, contigs,
+			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+			  rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
+			  allow_empty = allow_empty)
+          )
+    }
+subsetContigs_ = function(SQM, contigs, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, recalculate_bin_stats, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     goodORFs = rownames(SQM$orfs$table)[SQM$orfs$table[,'Contig ID'] %in% contigs]
@@ -231,7 +303,9 @@ subsetContigs = function(SQM, contigs, trusted_functions_only = FALSE, ignore_un
                         ignore_unclassified_functions=ignore_unclassified_functions,
                         rescale_tpm = rescale_tpm,
                         rescale_copy_number = rescale_copy_number,
-	                contigs_override = contigs)
+			recalculate_bin_stats = recalculate_bin_stats,
+	                contigs_override = contigs,
+	                allow_empty = allow_empty)
            )
     }
 
@@ -262,6 +336,7 @@ subsetRand = function(SQM, N)
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
+#' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
 #' @param contigs_override character. Optional vector of contigs to be included in the subsetted object.
 #' @return SQM object containing the requested ORFs.
 #' @section A note on contig/bins subsetting:
@@ -273,13 +348,55 @@ subsetRand = function(SQM, N)
 #' mostAbundantORFs = subsetORFs(Hadza, mostAbundantORFnames)
 #' @importFrom stats aggregate
 #' @export
-subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = FALSE, rescale_copy_number = FALSE, contigs_override = NULL)
+subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE,
+                      rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE,
+                      contigs_override = NULL, allow_empty = FALSE)
+    {
+    return(subsetDispatch(subsetORFs_, SQM, orfs, tax_source = tax_source,
+			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
+                          rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
+			  contigs_override = contigs_override, allow_empty = allow_empty)
+          ) 
+    }
+subsetORFs_ = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, 
+		      rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE,
+		      contigs_override = NULL, allow_empty = FALSE)
     {
 
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
-    if(length(orfs)==0) { stop('No ORFs were selected. Perhaps the subset query yielded no results?') }
     if(!tax_source %in% c('contigs', 'orfs')) { stop('tax_source must be "orfs" or "contigs"') }
-   
+
+    ### If we got no ORFs, either fail or return an empty object
+    if(length(orfs)==0)
+        {
+        if(!allow_empty) {
+            stop('No ORFs were selected. Perhaps the subset query yielded no results?')
+	} else 
+            {
+            subSQM = SQM
+	    subSQM$orfs = NULL
+	    subSQM$contigs = NULL
+	    subSQM$bins = NULL
+	    for(rank in names(subSQM$taxa))
+                {
+                for(count in names(subSQM$taxa[[rank]]))
+                    {
+                    subSQM$taxa[[rank]][[count]] = subSQM$taxa[[rank]][[count]][0,,drop=F]
+                    }
+                }
+            for(method in names(subSQM$functions))
+                {
+                for(count in names(subSQM$functions[[method]]))
+                    {
+                    subSQM$functions[[method]][[count]] = subSQM$functions[[method]][[count]][0,,drop=F]
+                    }
+                }
+            subSQM$misc = list(project_name = subSQM$misc$project_name, samples = subSQM$misc$samples, ext_annot_sources = subSQM$misc$ext_annot_sources) 
+            return(subSQM)
+	    }
+        }
+
+    ### Now go for it 
     orfs    = rownames(SQM$orfs$table[orfs,,drop=FALSE]) # Make sure it will work if orfs is a bool vector too.
     if(is.null(contigs_override)) { contigs = unique(SQM$orfs$table[orfs,'Contig ID'])
     } else { contigs = contigs_override } # so we can include contigs without ORFs if required
@@ -287,50 +404,73 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     bins    = bins[bins!='No_bin']
     
     subSQM = SQM
+    ### ORFs
+    #    Table
+    subSQM$orfs$table                 = SQM$orfs$table  [orfs    ,,drop=FALSE]
+    #    Abundances
+    subSQM$orfs$abund                 = SQM$orfs$abund  [orfs    ,,drop=FALSE]
 
-    subSQM$orfs$table                 = SQM$orfs$table[orfs      ,,drop=FALSE]
-    subSQM$orfs$abund                 = SQM$orfs$abund[orfs      ,,drop=FALSE]
-    subSQM$orfs$bases                 = SQM$orfs$bases[orfs      ,,drop=FALSE]
-    subSQM$orfs$cov                   = SQM$orfs$cov[orfs        ,,drop=FALSE]
-    subSQM$orfs$cpm                   = SQM$orfs$cpm[orfs        ,,drop=FALSE]
-    subSQM$orfs$tpm                   = SQM$orfs$tpm[orfs        ,,drop=FALSE]
-    subSQM$orfs$seqs                  = SQM$orfs$seqs[orfs]
-    subSQM$orfs$tax                   = SQM$orfs$tax[orfs        ,,drop=FALSE]
-
+    subSQM$orfs$bases                 = SQM$orfs$bases  [orfs    ,,drop=FALSE]
+    subSQM$orfs$cov                   = SQM$orfs$cov    [orfs    ,,drop=FALSE]
+    subSQM$orfs$cpm                   = SQM$orfs$cpm    [orfs    ,,drop=FALSE]
+    subSQM$orfs$tpm                   = SQM$orfs$tpm    [orfs    ,,drop=FALSE]
+    #    Sequences
+    subSQM$orfs$seqs                  = SQM$orfs$seqs   [orfs]
+    subSQM$orfs$tax                   = SQM$orfs$tax    [orfs    ,,drop=FALSE]
+    #    Taxonomy
+    if('tax16S' %in% names(subSQM$orfs))
+        {
+        subSQM$orfs$tax16S             = SQM$orfs$tax16S[orfs                ]
+        }
+    #    Markers
+    if('markers' %in% names(subSQM$orfs))
+        {
+        subSQM$orfs$markers           = SQM$orfs$markers [orfs]
+        }
+    ### Contigs
+    #    Table
     subSQM$contigs$table              = SQM$contigs$table[contigs,,drop=FALSE]
+    #    Abundances
     subSQM$contigs$abund              = SQM$contigs$abund[contigs,,drop=FALSE]
     subSQM$contigs$bases              = SQM$contigs$bases[contigs,,drop=FALSE]
-    subSQM$contigs$cov                = SQM$contigs$cov[contigs  ,,drop=FALSE]
-    subSQM$contigs$cpm                = SQM$contigs$cpm[contigs  ,,drop=FALSE]
-    subSQM$contigs$tpm                = SQM$contigs$tpm[contigs  ,,drop=FALSE]
-    subSQM$contigs$seqs               = SQM$contigs$seqs[contigs]
-    subSQM$contigs$tax                = SQM$contigs$tax[contigs  ,,drop=FALSE]
+    subSQM$contigs$cov                = SQM$contigs$cov  [contigs,,drop=FALSE]
+    subSQM$contigs$cpm                = SQM$contigs$cpm  [contigs,,drop=FALSE]
+    subSQM$contigs$tpm                = SQM$contigs$tpm  [contigs,,drop=FALSE]
+    #    Sequences
+    subSQM$contigs$seqs               = SQM$contigs$seqs [contigs]
+    #    Taxonomy
+    subSQM$contigs$tax                = SQM$contigs$tax  [contigs,,drop=FALSE]
+    #    Binning info
     if('bins' %in% names(subSQM))
         {
-        subSQM$contigs$bins           = SQM$contigs$bins[contigs ,,drop=FALSE]
-        subSQM$bins$table             = SQM$bins$table[bins      ,,drop=FALSE]
-        x = aggregate(subSQM$contigs$abund, by=list(subSQM$contigs$bins[,1]), FUN=sum)
-        rownames(x)                   = x[,1]
-        x = x[rownames(subSQM$bin$table),-1,drop=FALSE]
-	nobin                         = colSums(subSQM$contigs$abund) - colSums(x)
-	if(sum(nobin)>0)              { x['No_bin',] = nobin }
-	subSQM$bins$abund             = as.matrix(x)
-	subSQM$bins$percent           = 100 * t(t(subSQM$bins$abund) / subSQM$total_reads)
-        
-	x = aggregate(subSQM$contigs$bases, by=list(subSQM$contigs$bins[,1]), FUN=sum)
-        rownames(x)                   = x[,1]
-        x = x[rownames(subSQM$bin$table),-1]
-        subSQM$bins$bases             = as.matrix(x)
-        
-	l = aggregate(subSQM$contigs$table$Length, by=list(subSQM$contigs$bins[,1]), FUN=sum)
-	n = l[,1]; l = l[,-1]; names(l) = n
-	l = l[rownames(subSQM$bin$table)]
-	subSQM$bins$length            = l
-	subSQM$bins$cov               = subSQM$bins$bases / subSQM$bins$length
-	subSQM$bins$cpm               = t(t(subSQM$bins$cov) / (subSQM$total_reads/1000000))
-        subSQM$bins$tax               = subSQM$bins$tax[bins     ,,drop=FALSE]
+	subSQM$contigs$bins           = SQM$contigs$bins[contigs ,,drop=FALSE]
+	### Bins
+	if(recalculate_bin_stats & (!('tax16S' %in% names(subSQM$orfs)) & 'markers' %in% names(subSQM$orfs)))
+            {
+            warning('You requested to recalculate bin stats but 16S or marker gene info are missing. Will not recalculate bin stats')
+            }
+	# Table and Taxonomy
+        if(recalculate_bin_stats & ('tax16S' %in% names(subSQM$orfs) & 'markers' %in% names(subSQM$orfs)))
+            {
+            bin_stats                 = get.bin.stats(subSQM)
+            subSQM$bins$table         = bin_stats[['table']]
+            subSQM$bins$tax           = bin_stats[['tax']] 
+        }else
+            {
+            subSQM$bins$table         = SQM$bins$table[bins,,drop=FALSE]
+            subSQM$bins$tax           = SQM$bins$tax  [bins,,drop=FALSE]
+            }
+	#    Abundances
+	bin_abunds                    = get.bin.abunds(subSQM)
+	subSQM$bins$abund             = bin_abunds[['abund']]
+	subSQM$bins$percent           = bin_abunds[['percent']]
+	subSQM$bins$bases             = bin_abunds[['bases']]
+	subSQM$bins$length            = bin_abunds[['length']]
+	subSQM$bins$cov               = bin_abunds[['cov']]
+	subSQM$bins$cpm               = bin_abunds[['cpm']]
         }
 
+    ### Taxonomy
     subSQM$taxa$superkingdom$abund    = aggregate_taxa(subSQM, 'superkingdom', tax_source)
     subSQM$taxa$phylum$abund          = aggregate_taxa(subSQM, 'phylum'      , tax_source)
     subSQM$taxa$class$abund           = aggregate_taxa(subSQM, 'class'       , tax_source)
@@ -347,6 +487,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
     subSQM$taxa$genus$percent         = 100 * t(t(subSQM$taxa$genus$abund)        / subSQM$total_reads)
     subSQM$taxa$species$percent       = 100 * t(t(subSQM$taxa$species$abund)      / subSQM$total_reads)
 
+    ### Functions
     if('KEGG' %in% names(subSQM$functions))
         {
         KEGG                          = aggregate_fun(subSQM, 'KEGG', trusted_functions_only, ignore_unclassified_functions)
@@ -451,6 +592,7 @@ subsetORFs = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = F
 
     #subSQM$total_reads		     = colSums(subSQM$contigs$abund)
 
+    ### Total reads
     return(subSQM)
     }
 

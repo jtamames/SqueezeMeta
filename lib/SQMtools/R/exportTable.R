@@ -2,8 +2,7 @@
 #'
 #' This function is a wrapper for R's write.table function.
 #' @param table vector, matrix or data.frame. The table to be written.
-#' @param output_name character. Name of the output file.
-#' @return No return value, but a table is produced in the current working directory.
+#' @param output_name. Either a character string naming a file or a connection open for writing.  ‘""’ indicates output to the console.
 #' @examples
 #' \donttest{
 #' data(Hadza)
