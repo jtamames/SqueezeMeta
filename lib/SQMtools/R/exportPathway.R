@@ -167,8 +167,9 @@ exportPathway = function(SQM, pathway_id, count = 'tpm', samples = NULL, split_s
         {
         warning('This map uses lines to represent reactions, and we\'ve had isues using keggview native plot in this case.
                  We will switch to graph mode instead')
-        gR1 = pathview:::parseKGML2Graph2(xml.file, genes = F, 
-                                          expand = F, split.group = F)
+	parseKGML2Graph2 = utils::getFromNamespace("parseKGML2Graph2", "pathview") 
+        gR1 = parseKGML2Graph2(xml.file, genes = F, 
+                               expand = F, split.group = F)
         plot.data.cpd=pathview::node.map(NULL, node.data, node.types="compound")
 	plot.data.cpd$labels=pathview::cpdkegg2name(plot.data.cpd$labels)[,2]
 	mapped.cnodes=rownames(plot.data.cpd)

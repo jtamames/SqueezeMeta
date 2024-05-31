@@ -47,13 +47,17 @@ Detailed information about the different steps of the pipeline can be found in t
 
 ## 2. Installation
 
-SqueezeMeta is intended to be run in a x86-64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda. Conda might however be slow solving the dependencies, so it's better to first get `mamba` into your base environment with
+SqueezeMeta is intended to be run in a x86-64 Linux OS (tested in Ubuntu and CentOS). The easiest way to install it is by using conda. The default conda solver might however be slow solving the dependencies, so it's better to first set up the libmamba solver with
 
-`conda install -c conda-forge mamba`
+```
+conda update -n base conda # if your conda version is below 22.11
+conda install -n base conda-libmamba-solver
+conda config --set solver libmamba
+```
 
-and then use `mamba` to install SqueezeMeta
+and then use conda to install SqueezeMeta
 
-`mamba create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan  squeezemeta=1.6 --no-channel-priority`
+`conda create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan  squeezemeta=1.6 --no-channel-priority`
 
 This will create a new conda environment named SqueezeMeta, which must then be activated.
 
@@ -61,7 +65,7 @@ This will create a new conda environment named SqueezeMeta, which must then be a
 
 When using conda, all the scripts from the SqueezeMeta distribution will be available on `$PATH`.
 
-Alternatively, just download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta (see section 6). The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 20.04 or higher Ubuntu installation.
+Alternatively, you can download the latest release from the GitHub repository and uncompress the tarball in a suitable directory. The tarball includes the SqueezeMeta scripts as well as the third-party software redistributed with SqueezeMeta. The INSTALL files contain detailed installation instructions, including all the external libraries required to make SqueezeMeta run in a vanilla Ubuntu 20.04. Note that you may need different libraries and potentially recompiling some binaries from source in order for the manual install to work in other Ubuntu versions or other distributions. The conda method is now the recommended way to install SqueezeMeta, and we may not be able to support issues regarding manual installation. 
 
 The `test_install.pl` script can be run in order to check whether the required dependencies are available in your environment.
 
@@ -129,7 +133,7 @@ The command for running SqueezeMeta has the following syntax:
 
 **Arguments** 
 *Mandatory parameters* 
-* *-m* <sequential, coassembly, merged>: Mode (REQUIRED) 
+* *-m* <sequential, coassembly, merged, seqmerge>: Mode (REQUIRED) 
 * *-p* \<string\>: Project name (REQUIRED in coassembly and merged modes) 
 * *-s*|*-samples* \<path\>: Samples file (REQUIRED) 
 * *-f*|*-seq* \<path\>: Fastq read files' directory (REQUIRED) 
@@ -147,7 +151,7 @@ The command for running SqueezeMeta has the following syntax:
 * *-a* [megahit,spades,rnaspades,spades-base,canu,flye]: assembler. (default: megahit).
 * *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). Please provide all the extra options as a single quoted string (e.g. _-assembly_options “--opt1 foo --opt2 bar”_)
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
-* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
+* *-extassembly* [path]: Path to a file containing an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
 * *--sq/--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
 * *-contigid* [string]: Nomenclature for contigs (Default: assembler´s name)
 * *--norename*: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
@@ -170,6 +174,7 @@ The command for running SqueezeMeta has the following syntax:
 * *--nobins*: Skip all binning  (Default: no). Overrides -binners 
 * *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
 * *-taxbinmode* [string]: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
+* *-extbins* [path]: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps.
 
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 
@@ -210,7 +215,7 @@ Sample3	readfileD_1.fastq	pair1	noassembly
 Sample3	readfileD_2.fastq	pair2	noassembly
 ```
 
-The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the `noassembly` value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Similarly, an extra column with the `nobinning` value can be included in order to avoid using those samples for binning. Notice that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
+The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the `noassembly` value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Similarly, an extra column with the `nobinning` value can be included in order to avoid using those samples for binning. Notice that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped. If a sample contains paired libraries, it is the user's responsability to make sure that the forward and reverse files are truly paired (i.e. they contain the same number of reads in the same order). Some quality filtering / trimming tools may produce unpaired filtered fastq files from paired input files (particularly if run without the right parameters). This may result in SqueezeMeta failing or producing incorrect results.
 
 ### Restart
 
@@ -250,9 +255,13 @@ Version 1.0 implements the *--D* option (*doublepass*), that attempts to provide
 The *download_databases.pl* and *make_databases.pl* scripts also download two datasets for testing that the program is running correctly. Assuming either was run with the directory `/download/path` as its target the test run can be executed with
 
 `cd </download/path/test>`  
-`SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
+`SqueezeMeta.pl -m coassembly -p Hadza -s test.mock.samples -f raw`
 
 Alternatively, `-m sequential` or `-m merged` can be used.
+
+In addition to this mock dataset, we also provide two real metagenomes. A test run on those can be executed with
+
+`SqueezeMeta.pl -m coassembly -p Hadza -s test.samples -f raw`
 
 
 ## 10. Working with Oxford Nanopore MinION and PacBio reads
@@ -286,7 +295,7 @@ SqueezeMeta comes with a variety of options to explore the results and generate 
 
 <img align="right" src="https://github.com/jtamames/SqueezeM/blob/images/Figure_1_readmeSQM.png" width="50%">
 
-**1) Integration with R:** We provide the *SQMtools* R package, which allows to easily load a whole SqueezeMeta project and expose the results into R. The package includes functions to select particular taxa or functions and generate plots. The package also makes the different tables generated by SqueezeMeta easily available for third-party R packages such as *vegan* (for multivariate analysis), *DESeq2* (for differential abundance testing) or for custom analysis pipelines. See examples [here](https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results). ***SQMtools* can also be used in Mac or Windows**, meaning that you can run SqueezeMeta in your Linux server and then move the results to your own computer and analyze them there. See advice on how to install *SQMtools* in Mac/Windows [here](https://github.com/jtamames/SqueezeMeta/issues/474).
+**1) Integration with R:** We provide the *SQMtools* R package, which allows to easily load a whole SqueezeMeta project and expose the results into R. The package includes functions to select particular taxa or functions and generate plots. The package also makes the different tables generated by SqueezeMeta easily available for third-party R packages such as *vegan* (for multivariate analysis), *DESeq2* (for differential abundance testing) or for custom analysis pipelines. See examples [here](https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results). ***SQMtools* can also be used in Mac or Windows**, meaning that you can run SqueezeMeta in your Linux server and then move the results to your own computer and analyze them there. See advice for this below.
 
 **2) Integration with the anvi'o analysis pipeline:** We provide a compatibility layer for loading SqueezeMeta results into the anvi'o analysis and visualization platform (http://merenlab.org/software/anvio/). This includes a built-in query language for selecting the contigs to be visualized in the anvi'o interactive interface. See examples [here](https://github.com/jtamames/SqueezeMeta/wiki/Loading-SQM-results-into-anvi'o).
 

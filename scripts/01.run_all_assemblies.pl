@@ -30,7 +30,7 @@ my($seqformat,$gzipped,$outassemby,$trimmomatic_command,$command,$thisname,$cont
 
 my $assemblerdir="$installpath/lib/SqueezeMeta";
 
-if((-e $contigsfna) && (-e $contigslen) && (!$force_overwrite)) { print "  Assembly results already present in file $contigsfna, skipping\n"; exit; }
+#if((-e $contigsfna) && (-e $contigslen) && (!$force_overwrite)) { print "  Assembly results already present in file $contigsfna, skipping\n"; exit; }
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
@@ -128,7 +128,7 @@ elsif($mode ne "coassembly") {		#-- Sequential, merged, seqmerge or clustered: A
 			#-- Call the assemblers	
 			
 			my $provname="$interdir/01.$asamples.fasta";
-			if((-e $provname) && (!$force_overwrite)) { print "  Assembly results already present in file $provname, skipping\n"; }
+			if (0) {} #if((-e $provname) && (!$force_overwrite)) { print "  Assembly results already present in file $provname, skipping\n"; }
 			else {
 				if($mode eq "sequential") { $projectname=$asamples; }
 				if($p2) { assembly($projectdir,$asamples,$filen1,$filen2); } else { assembly($projectdir,$asamples,$filen1); }

@@ -104,17 +104,18 @@ $mapping_options = "";
 
 #-- External software
 
-$metabat_soft       = "$installpath/bin/metabat2";
+$metabat_soft       = "metabat2";
+$jgi_summ_soft      = "jgi_summarize_bam_contig_depths";
 $maxbin_soft        = "$installpath/bin/MaxBin/run_MaxBin.pl";
 $concoct_dir        = "$installpath/bin/CONCOCT-1.1.0";
-$spades_soft        = "$installpath/bin/SPAdes/spades.py";
+$spades_soft        = "spades.py";
 $barrnap_soft       = "$installpath/bin/barrnap";
 $rdpclassifier_soft = "java -jar $installpath/lib/classifier/classifier.jar";
 $bowtie2_build_soft = "python3 $installpath/bin/bowtie2/bowtie2-build";
 $bowtie2_x_soft     = "$installpath/bin/bowtie2/bowtie2";
 $bwa_soft           = "$installpath/bin/bwa";
 $minimap2_soft      = "$installpath/bin/minimap2";
-$samtools_soft      = "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$installpath/lib $installpath/bin/samtools";
+$samtools_soft      = "samtools";
 $diamond_soft       = "$installpath/bin/diamond";
 $hmmer_soft         = "$installpath/bin/hmmer/hmmsearch";
 $megahit_soft       = "$installpath/bin/megahit/megahit";
@@ -129,6 +130,6 @@ $canu_soft          = "$installpath/bin/canu-2.2/bin/canu";
 $flye_soft          = "$installpath/bin/Flye-2.9/bin/flye";
 $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
-$kmerdb_soft        = "LD_LIBRARY_PATH=$installpath/lib $installpath/bin/kmer-db";
+$kmerdb_soft        = "kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";
-$mothur_soft        = "$installpath/bin/mothur";
+$mothur_soft        = "mothur";

@@ -19,7 +19,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$bindir,$installpath,$metabat_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$mappingfile,$methodsfile,$maxchimerism14,$mingenes14,$smallnoannot14,%bindirs,$syslogfile,$numthreads);
+our($contigsfna,$contigcov,$bindir,$installpath,$metabat_soft,$jgi_summ_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$mappingfile,$methodsfile,$maxchimerism14,$mingenes14,$smallnoannot14,%bindirs,$syslogfile,$numthreads);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
@@ -58,7 +58,7 @@ my $depthfile="$dirbin/contigs.depth.txt";
 my $depthfileprov="$depthfile.PROV";
 print "  Creating coverage file in $depthfile\n";
 print outsyslog "Creating coverage file in $depthfile\n";
-my $command = "$installpath/bin/jgi_summarize_bam_contig_depths $bamlist --outputDepth $depthfileprov >> $syslogfile 2>&1";
+my $command = "$jgi_summ_soft $bamlist --outputDepth $depthfileprov >> $syslogfile 2>&1";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 
