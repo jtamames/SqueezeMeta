@@ -104,6 +104,9 @@ requirements:
     - vcflib==1.0.1
     - picard
     - freebayes
+    # CHECKM2
+    - tensorflow
+    - lightgbm==3.2.1
 
 build:
   noarch: generic

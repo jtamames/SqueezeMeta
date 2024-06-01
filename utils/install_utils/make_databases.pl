@@ -11,6 +11,7 @@ my $DOWNLOAD_KEGG               = 1;
 my $DOWNLOAD_NR                 = 1;
 my $DOWNLOAD_EGGNOG             = 1;
 my $DOWNLOAD_PFAM               = 1;
+my $DOWNLOAD_CHECKM2            = 1;
 my $LCA_RECTAXA                 = 1;
 my $LCA_NRINDEX                 = 1;
 my $LCA_TAXID_TREE              = 1;
@@ -110,6 +111,13 @@ if($DOWNLOAD_PFAM){
 	my $command = "wget -P $database_dir ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz; gunzip $database_dir/Pfam-A.hmm.gz";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted or you ran out of disk space\n\n"; }
+}
+
+
+### Download CheckM2 reference db.
+if($DOWNLOAD_CHECKM2){
+	print "\nDownloading Checkm2 reference...\n\n";
+	download_confirm("uniref100.KO.1.dmnd.gz", "uniref100.KO.1.dmnd.md5",  "$host/SqueezeMeta/", $database_dir);
 }
 
 

@@ -162,6 +162,7 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
 	}
 	else {
 		print("\tnr.db OK\n");
+		
 		open( infile_, "$installpath/lib/checkm/DATA_CONFIG" ) || die ("\nCRITICAL ERROR: Can not find the checkm DATA_CONFIG file in $installpath/lib/checkm. This indicates a broken installation.\n\t\tIf the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n");
 		my $manifest = <infile_>;
 		my @parsed_manifest = split(/\: |\, /, $manifest);
@@ -169,6 +170,17 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
 		$checkm_databasepath =~ s/\"//g;
 		if($checkm_databasepath ne $databasepath) { die("CRITICAL ERROR: the database path in the checkM manifest does not match with the database path in the SqueezeMeta_conf.pl file. This indicates a broken installation. If the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n");  }
 		else  { print("\tCheckM manifest OK\n"); }
+		
+		my $checkm2_diamond_path_file = "$installpath/lib/checkm2/version/diamond_path.json";
+		open( infile_, $checkm2_diamond_path_file) || die ("\nCRITICAL ERROR: Can not find the checkm2 diamond_path.json file in $installpath/lib/checkm2. This indicates a broken installation.\n\t\tIf the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n");
+		my $manifest = <infile_>;
+		my @parsed_manifest = split(/\: |\, /, $manifest);
+		my $checkm2_diamond_path = $parsed_manifest[3];
+		$checkm2_diamond_path =~ s/\"|}//g;
+		my $ecode = system("$installpath/bin/diamond dbinfo --db $checkm2_diamond_path >/dev/null 2>&1");
+		if($ecode) { die("CRITICAL ERROR: the $checkm2_diamond_path_file points to the checkm2 database being located at $checkm2_diamond_path, but we can't find it there, or it is corrupted\n\n");  }
+		else  { print("\tCheckM database OK\n"); }
+		
 		if(!$dbd_sqlite_error) {
 			my $ecode = system("perl $installpath/lib/install_utils/test_sqlite_db.pl $databasepath >/dev/null 2>&1");
 			if($ecode) {

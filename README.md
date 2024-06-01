@@ -36,7 +36,7 @@ SqueezeMeta supports different assembly strategies (co-assembly, sequential, ass
 14) Binning with different methods
 15) Binning integration with DAS tool
 16) Taxonomic assignment of bins, and check for taxonomic disparities
-17) Checking of bins with CheckM
+17) Checking of bins with CheckM2 (and optionally classify them with GTDB-Tk)
 18) Merging of previous results to obtain the bin table
 19) Merging of previous results to obtain the contig table
 20) Prediction of kegg and metacyc patwhays for each bin
@@ -355,7 +355,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [MetaBAT](https://bitbucket.org/berkeleylab/metabat)
 * [CONCOCT](https://github.com/BinPro/CONCOCT)
 * [DAS tool](https://github.com/cmks/DAS_Tool)
-* [checkm](http://ecogenomics.github.io/CheckM)
+* [checkm2](https://github.com/chklovski/CheckM2/)
 * [comparem](https://github.com/dparks1134/CompareM)
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)
 * [RDP classifier](https://github.com/rdpstaff/classifier)

@@ -66,26 +66,24 @@ my $binmethod="DAS";
 
 print "  Method:$binmethod\n";
 my $bindir=$binresultsdir;
-print "  Reading checkM results in $checkmfile\n";
+print "  Reading CheckM2 results in $checkmfile\n";
 
 	#-- Read checkM results for each bin
 
-open(infile2,$checkmfile) || warn "Can't open checkM results in $checkmfile\n";
+open(infile2,$checkmfile) || warn "Can't open CheckM results in $checkmfile\n";
 while(<infile2>) {
 	chomp;
-	next if !$_;
-	if(($_=~/^\s+/) && ($_!~/Bin Id/)) {
-		$_=~s/^\s+//g;
-		$_=~s/Bacteria/Bacteria ()/g;
-		$_=~s/Archaea/Archaea ()/g;
-		my @k=split(/\s+/,$_);
-		my $bin=$k[0]; 
-		my $complete=$k[12];
-		$bins{$binmethod}{$bin}{complete}=$k[12];
-		$bins{$binmethod}{$bin}{contamination}=$k[13];
-		$bins{$binmethod}{$bin}{strain}=$k[14];  
-		}
+	if($_=~/^Name/) { next; }
+	my @k=split(/\t/,$_);
+	my $bin=$k[0];
+	my $comp=$k[1];
+	my $cont=$k[2];
+	my $strh=""; # CheckM2 doesn't measure strain heterogeneity (CheckM1 did), we will store an empty string in order so we leave the field empty in the output
+	$bins{$binmethod}{$bin}{complete}=$comp;
+	$bins{$binmethod}{$bin}{contamination}=$cont;
+	$bins{$binmethod}{$bin}{strain}=$strh;  
 	}
+	
 close infile2;
 
 	#-- Read GTDB-Tk results for each bin

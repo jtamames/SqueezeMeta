@@ -846,7 +846,7 @@ sub pipeline {
             	 		if(($wsize>=$minlines) && (!$force_overwrite))  { print "Results in $filetocheck already found, skipping step 17\n"; }
 				else {
 					$new17=1;	
-					my $scriptname="17.checkM_batch.pl";
+					my $scriptname="17.checkbins.pl";
 					print outfile3 "17\t$scriptname\n";
 					$currtime=timediff();
 					print outfile4 "[",$currtime->pretty,"]: STEP17 -> $scriptname\n";
