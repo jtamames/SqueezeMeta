@@ -362,7 +362,6 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
  	
 			#-- CALL TO THE STANDARD PIPELINE
 			
-			if($cleaning) { cleaning($projectdir,$scriptdir,$thissample,%conf); }
 			pipeline();
 			
 			}
@@ -1200,13 +1199,16 @@ sub cleaning  {
 		close infile4;
 		foreach my $ts(sort keys %prepsamples) { 
 			print "  Working with sample $ts\n";
+			# print "*$prepsamples{$ts}{pair2}*\n";
 			my $par1name="$rawfastq/".$prepsamples{$ts}{pair1};
-			my $par2name="$rawfastq/".$prepsamples{$ts}{pair2};
+			my $par2name;
+			if($prepsamples{$ts}{pair2}) { $par2name="$rawfastq/".$prepsamples{$ts}{pair2}; }
 			my $trimmedpar1name="$newuserdir/".$prepsamples{$ts}{pair1};
 			my $trimmedpar2name="$newuserdir/".$prepsamples{$ts}{pair2};
 			if(-e $par2name) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $par1name $par2name $trimmedpar1name $trimmedpar1name.removed $trimmedpar2name $trimmedpar2name.removed $cleaningoptions > /dev/null 2>&1"; }
 			else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $par1name $trimmedpar1name $cleaningoptions > /dev/null 2>&1"; }
 			print outfile4 "Running trimmomatic: $trimmomatic_command";
+			# print "Running trimmomatic: $trimmomatic_command";
 			my $ecode = system $trimmomatic_command;
 			if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
 			print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
