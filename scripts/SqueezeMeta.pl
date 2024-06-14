@@ -47,9 +47,11 @@ our $pwd=cwd();
 our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
 our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
-our(%bindirs,%dasdir,%binscripts,%assemblers);  
+our(%bindirs,%dasdir,%binscripts,%assemblers);
 
-print %assemblers,"***\n";
+#-- Load the database path from SqueezeMeta_conf.pl so we can use it to check that the databases are in place
+eval(`grep "^\\\$databasepath" $scriptdir/SqueezeMeta_conf.pl`);
+
 #-- Define help text
 
 my $helpshort = <<END_MESSAGE;
@@ -198,6 +200,7 @@ if(!$doublepass) { $doublepass=0; }
 if(!$nobins) { $nobins=0; }
 if(!$onlybins) { $onlybins = 0; }
 if(!$gtdbtk) { $gtdbtk=0; }
+if(!$gtdbtk_data_path) { eval(`grep "^\\\$gtdbtk_data_path" $scriptdir/SqueezeMeta_conf.pl`); }
 if(!$binners) { $binners="concoct,metabat2"; }
 if(!$taxbinmode) { $taxbinmode="s"; }
 if(!$nomaxbin) { $nomaxbin=0; }
@@ -221,9 +224,8 @@ if($lowmem) { $blocksize=3; $canumem=15; }
 
 if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
 
+
 #-- Check if we have all the needed options
-
-
 my($dietext,$finaltrace);
 if($ver) { print "$version\n"; exit; }
 if($hel) { die "$helptext\n"; } 
@@ -249,7 +251,11 @@ else {
 	if($extassembly && $extbins) { $dietext.="-extassembly and -extbins can not be provided at the same time\n"; }
         if($nobins and $onlybins)    { $dietext.="--nobins --onlybins can not be provided at the same time\n"; }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
-	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; }
+	if($gtdbtk) {
+		if(! -e "$gtdbtk_data_path/fastani/genome_paths.tsv") {
+			 $dietext.="--gtdbtk was provided but we can't find the GTDB-Tk database at $gtdbtk_data_path. Please provide the right path to the database through the -gtdbtk_data_path argument\n"; }
+		}
+	 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; } 
 	}
 
 #------------------------------------- CHECKING FILES AND START RUN -----------------------------------------------
@@ -338,7 +344,7 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 
 	#-- Sequential mode
 		
-	else {      #-- FOR SEQUENTIAL MODE
+else {      #-- FOR SEQUENTIAL MODE
 	
 	my $rootdir=$projectdir;
 		
