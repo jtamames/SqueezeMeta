@@ -186,11 +186,12 @@ def main(args):
         if not int(perlVars['$nobins']) and isfile(perlVars['$bintable']):
             bin_tpm, bin_tax, bin_tax_wranks = parse_bin_table(perlVars['$bintable'])
             write_row_dict(TAXRANKS, bin_tax, prefix + 'bin.tax.tsv')
-            orf_markers = map_checkm_marker_genes(perlVars['$mergedfile'], perlVars['$interdir']+'/checkm_batch')
-            with open(prefix + 'orf.marker.genes.tsv', 'w') as outfile:
-                for orf, markers in orf_markers.items():
-                    markers = '\t' + ','.join(markers) if markers else ''
-                    outfile.write(f'{orf}{markers}\n')
+            #This is commented since we've switched from Checkm to Checkm2
+            #orf_markers = map_checkm_marker_genes(perlVars['$mergedfile'], perlVars['$interdir']+'/checkm_batch')
+            #with open(prefix + 'orf.marker.genes.tsv', 'w') as outfile:
+            #    for orf, markers in orf_markers.items():
+            #        markers = '\t' + ','.join(markers) if markers else ''
+            #        outfile.write(f'{orf}{markers}\n')
 
 
         for idx, rank in enumerate(TAXRANKS):
