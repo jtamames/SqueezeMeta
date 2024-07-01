@@ -87,6 +87,7 @@ $mothur_t  = "$databasepath/silva.nr_v132.tax";
 
 $blocksize       = 8;
 $nodiamond       = 0;
+$fastnr          = 0;
 $nocog           = 0;
 $nokegg          = 0;
 $nopfam          = 0;

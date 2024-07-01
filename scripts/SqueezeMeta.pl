@@ -44,7 +44,7 @@ close inv;
 
 our $pwd=cwd();
 
-our($nodiamond,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
+our($nodiamond,$fastnr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
 our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
 our(%bindirs,%dasdir,%binscripts,%assemblers);
@@ -101,6 +101,7 @@ Arguments:
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
+   --fastnr: Run DIAMOND in --fast mode for taxonomic assignment (Default: no)
    --euk: Drop identity filters for eukaryotic annotation (Default: no)
    -consensus <value>: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
    --D|--doublepass: First pass looking for genes using gene prediction, second pass using Diamond BlastX  (Default: no)
@@ -151,7 +152,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "db=s" => \$newtaxdb,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
-		     "nopfam" => \$nopfam,  
+		     "nopfam" => \$nopfam,
+		     "fastnr" => \$fastnr,  
 		     "euk" => \$euknofilter,
 		     "protclust" => \$protclust,
 		     "extdb=s" => \$opt_db, 
@@ -195,6 +197,7 @@ if(!$singletons) { $singletons=0; }
 if(!$nocog) { $nocog=0; }
 if(!$nokegg) { $nokegg=0; }
 if(!$nopfam) { $nopfam=0; }
+if(!$fastnr) { $fastnr=0; }
 if(!$euknofilter) { $euknofilter=0; }
 if(!$doublepass) { $doublepass=0; }
 if(!$nobins) { $nobins=0; }
@@ -253,7 +256,10 @@ else {
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($gtdbtk) {
 		if(! -e "$gtdbtk_data_path/fastani/genome_paths.tsv") {
-			 $dietext.="--gtdbtk was provided but we can't find the GTDB-Tk database at $gtdbtk_data_path. Please provide the right path to the database through the -gtdbtk_data_path argument\n"; }
+			$dietext.="--gtdbtk was provided but we can't find the GTDB-Tk database at $gtdbtk_data_path. Please provide the right path to the database through the -gtdbtk_data_path argument\n"; 
+			$dietext.="Note that the GTDB-Tk database is not provided as part of SqueezeMeta, and needs to be downloaded separetely\n";
+			$dietext.="More info can be found at https://ecogenomics.github.io/GTDBTk/installing/index.html\n";
+			}
 		}
 	 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; } 
 	}
@@ -311,7 +317,7 @@ my $pdir;
 
 my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectname',$projectname,'userdir',$rawfastq,
   'blocksize',$blocksize,'nodiamond',$nodiamond,'singletons',$singletons,'nocog',$nocog,'nokegg',$nokegg,
-  'nopfam',$nopfam,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
+  'nopfam',$nopfam,'fastnr',$fastnr,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
   'norename',$norename,'mapper',$mapper,'mapping_options',$mapping_options,'cleaning',$cleaning,
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
@@ -776,8 +782,12 @@ sub pipeline {
 			opendir(indir2,$binresultsdir);
 			my @binfiles=grep(/fa/,readdir indir2);
 			closedir indir2;
-			my $firstfile="$binresultsdir/$binfiles[0]";
-			my $wsize=checksize($firstfile);
+			my $wsize;
+			if(scalar @binfiles) {
+				my $firstfile="$binresultsdir/$binfiles[0]";
+				$wsize=checksize($firstfile);
+				}
+			else { $wsize = 0; }
             	 	if(($wsize>=2) && (!$force_overwrite)) { print "DASTool results in $binresultsdir already found, skipping step 15\n"; }
 			else {		
 				my $scriptname="15.dastool.pl";
@@ -1036,6 +1046,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		if   ($_=~/^\$projectname/)     { print outfile5 "\$projectname = \"$conf{projectname}\";\n";         }
 		elsif($_=~/^\$blocksize/)       { print outfile5 "\$blocksize       = $conf{blocksize};\n";           }
 		elsif($_=~/^\$nodiamond/)       { print outfile5 "\$nodiamond       = $conf{nodiamond};\n";           }
+		elsif($_=~/^\$fastnr/)          { print outfile5 "\$fastnr          = $conf{fastnr};\n";              }
 		elsif($_=~/^\$singletons/)      { print outfile5 "\$singletons      = $conf{singletons};\n";          }
 		elsif($_=~/^\$nocog/)           { print outfile5 "\$nocog           = $conf{nocog};\n";               }
 		elsif($_=~/^\$nokegg/)          { print outfile5 "\$nokegg          = $conf{nokegg};\n";              }

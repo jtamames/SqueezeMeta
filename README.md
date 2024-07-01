@@ -160,14 +160,15 @@ The command for running SqueezeMeta has the following syntax:
 * *-db* [file]: Specifies the location of a new taxonomy database (in Diamond format, .dmnd)
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
-* *--nopfam*: Skip Pfam assignment (Default: no) 
+* *--nopfam*: Skip Pfam assignment (Default: no)
+* *--fastnr*: Run DIAMOND in --fast mode for taxonomic assignment (Default: no)
 * *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details
 * *-consensus* [float]: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
 * *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual
-* *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
+* *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no)
  
 *Mapping* 
-* *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie) 
+* *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie)
 * *-mapping_options* [string]: Extra options for the mapper (refer to the manual of the specific mapper). Please provide all the extra options as a single quoted string (e.g. _-mapping_options “--opt1 foo --opt2 bar”_)
 
 *Binning*
