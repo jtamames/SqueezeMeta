@@ -27,7 +27,9 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 
 my $bindir="$interdir/binners/concoct";
 print outsyslog "\nRUNNING concoct\n";
-if(-d $bindir) {} else { print "  Creating $bindir directory\n"; print outsyslog "  Creating $bindir directory\n"; system("mkdir $bindir"); }
+if(-d $bindir) { system("rm -r $bindir");}
+print "  Creating $bindir directory\n"; print outsyslog "  Creating $bindir directory\n";
+system("mkdir $bindir"); 
 
 # Exclude samples with the nobinning flag
 my %samples;

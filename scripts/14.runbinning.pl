@@ -32,14 +32,15 @@ foreach my $tbinner(@binner) { #-- For all the specified binners
 	my $wsize=0;
 	my $firstfile;
 	my $dirbin="$interdir/binners/$tbinner";
-	if(-d $dirbin) {	#-- If the result directory exists, don't create it, and check if bins are already there
-		opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
-		@binfiles=grep(/fasta$|fa$/,readdir indir1);
-		closedir indir1;
-		$firstfile="$dirbin/$binfiles[0]";
-		# $wsize=checksize($firstfile); #commented out since this was no longer used
-		}
-	else { system("mkdir $dirbin"); }
+	#if(-d $dirbin) {	#-- If the result directory exists, don't create it, and check if bins are already there
+	#	opendir(indir1,$dirbin) || die "Can't open $dirbin directory\n";
+	#	@binfiles=grep(/fasta$|fa$/,readdir indir1);
+	#	closedir indir1;
+	#	$firstfile="$dirbin/$binfiles[0]";
+	#	# $wsize=checksize($firstfile); #commented out since this was no longer used
+	#	}
+	#else { system("mkdir $dirbin"); }
+	if(!-d $dirbin) { system("mkdir $dirbin"); }
 	
 	#-- Skip the binning if results are already present
 		
