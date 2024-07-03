@@ -108,7 +108,10 @@ def main(args):
                '--fst_perm', str(nReps)
                ]
     if GFF:
-        command += ['--fasta_file', inputFasta, '--gff_file ', includedGFF, '--genetic_code_file', '../standard_genetic_code.txt']
+        with open(f'{tempDir}/standard_genetic_code.txt', 'w') as outfile:
+            outfile.write(GENCODE)
+        command += ['--fasta_file', inputFasta, '--gff_file ', includedGFF, '--genetic_code_file', f'{tempDir}/standard_genetic_code.txt']
+    
     print(msg)
     run(' '.join(command), shell = True, capture_output = True)
 
@@ -246,7 +249,71 @@ def parse_args():
     return parser.parse_args()
 
 
-
+GENCODE = """TTT\tF\tPhe
+TTC\tF\tPhe
+TTA\tL\tLeu
+TTG\tL\tLeu
+CTT\tL\tLeu
+CTC\tL\tLeu
+CTA\tL\tLeu
+CTG\tL\tLeu
+ATT\tI\tIle
+ATC\tI\tIle
+ATA\tI\tIle
+ATG\tM\tMet
+GTT\tV\tVal
+GTC\tV\tVal
+GTA\tV\tVal
+GTG\tV\tVal
+TCT\tS\tSer
+TCC\tS\tSer
+TCA\tS\tSer
+TCG\tS\tSer
+CCT\tP\tPro
+CCC\tP\tPro
+CCA\tP\tPro
+CCG\tP\tPro
+ACT\tT\tThr
+ACC\tT\tThr
+ACA\tT\tThr
+ACG\tT\tThr
+GCT\tA\tAla
+GCC\tA\tAla
+GCA\tA\tAla
+GCG\tA\tAla
+TAT\tY\tTyr
+TAC\tY\tTyr
+TAA\t*\tTer
+TAG\t*\tTer
+CAT\tH\tHis
+CAC\tH\tHis
+CAA\tQ\tGln
+CAG\tQ\tGln
+AAT\tN\tAsn
+AAC\tN\tAsn
+AAA\tK\tLys
+AAG\tK\tLys
+GAT\tD\tAsp
+GAC\tD\tAsp
+GAA\tE\tGlu
+GAG\tE\tGlu
+TGT\tC\tCys
+TGC\tC\tCys
+TGA\t*\tTer
+TGG\tW\tTrp
+CGT\tR\tArg
+CGC\tR\tArg
+CGA\tR\tArg
+CGG\tR\tArg
+AGT\tS\tSer
+AGC\tS\tSer
+AGA\tR\tArg
+AGG\tR\tArg
+GGT\tG\tGly
+GGC\tG\tGly
+GGA\tG\tGly
+GGG\tG\tGly""".replace('\n', '\r\n') # this produces the same md5sum as the original file from POGENOM
+                                     #  which had DOS line terminators
 
 if __name__ == '__main__':
     main(parse_args())
