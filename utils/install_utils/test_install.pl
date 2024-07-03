@@ -173,8 +173,8 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf.pl") {
 		
 		my $checkm2_diamond_path_file = "$installpath/lib/checkm2/version/diamond_path.json";
 		open( infile_, $checkm2_diamond_path_file) || die ("\nCRITICAL ERROR: Can not find the checkm2 diamond_path.json file in $installpath/lib/checkm2. This indicates a broken installation.\n\t\tIf the error persists after reinstalling from scratch please open an issue at http://github.com/jtamames/SqueezeMeta\n\n");
-		my $manifest = <infile_>;
-		my @parsed_manifest = split(/\: |\, /, $manifest);
+		$manifest = <infile_>;
+		@parsed_manifest = split(/\: |\, /, $manifest);
 		my $checkm2_diamond_path = $parsed_manifest[3];
 		$checkm2_diamond_path =~ s/\"|}//g;
 		my $ecode = system("$installpath/bin/diamond dbinfo --db $checkm2_diamond_path >/dev/null 2>&1");
@@ -232,7 +232,7 @@ sub check_command {
 	my $c2;
 	if(!$msg) {
 		@args = split ';', $command;
-		$c2 = @args[-1];
+		$c2 = $args[-1];
 		@args = split ' ', $c2;
 		@args = grep !/PATH/, @args; # remove leading env variables before the actual command
 		$out = basename($args[0]);

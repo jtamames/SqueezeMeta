@@ -86,20 +86,22 @@ requirements:
     - prodigal
     - pydantic >=1.9.2,<2.0a1
     - mash
-    - fastani
     - libopenblas
     - fasttree
     - hmmer
     - tqdm >=4.35.0
+    - skani
     # SUPERPANG/mOTUlizer
     - graph-tool
     - minimap2
     - mappy
     #- igraph==0.10.8 # Required by mOTUlizer but missing in conda apparently, should get installed during build
     - python-igraph
+    - fastani
     # PANGENOME PIPELINE
     - nextflow
     - seqtk >=1.4
+    - bedtools
     # POGENOM
     - vcflib==1.0.1
     - picard
