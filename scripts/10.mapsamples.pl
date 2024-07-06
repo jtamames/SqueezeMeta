@@ -83,7 +83,7 @@ close infilelen;
 	#-- Check that we don't have more threads than contigs
 my $numthreads_counter= $numthreads;
 my $ncontigs = keys %lencontig;
-if($numthreads_counter > $ncontigs) { $numthreads = $ncontigs; }
+if($numthreads_counter > $ncontigs) { $numthreads_counter = $ncontigs; }
 
 my(@contigchunks, @bed_chunk_files_contigs, @bed_chunk_files_orfs, @count_chunk_files);
 my(%genesincontigs,%genespos,%long_gen,@genes_ordered);
@@ -300,7 +300,7 @@ foreach my $thissample(keys %allsamples) {
 		}
 	}
 if($warnmes) { 
-	print outfile1 "\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
+	print outfile1 "#\n# Notice that mapping percentage is low (<50%) for some samples. This is a potential problem,  meaning that most reads are not represented in the assembly\n";
 	if($mincontiglen>200) { 
 		print outfile1 "# Notice also that you set the minimum contig length to $mincontiglen. In this way you are removing the contigs shorter than that size. This can be, at least partially, the cause of this low mapping percentage\n";
 		print outfile1 "# It is likely that redoing the analysis with the default minimum contig length (200) will improve the results\n";
