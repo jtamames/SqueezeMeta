@@ -625,7 +625,9 @@ sub pipeline {
 	
 	if(($rpoint<=10) && ((!$test) || ($test>=10))) {
 		my $wsize = checksize($mappingstat);
-             	if(($wsize == $numsamples) && (!$force_overwrite)) { print "Mapping file $mapcountfile already found, skipping step 10\n"; }	
+		my $ns;
+		if($mode eq "sequential") { $ns = 1; } else { $ns = $numsamples; }
+		if(($wsize == $ns) && (!$force_overwrite)) { print "Mapping file $mapcountfile already found, skipping step 10\n"; }
 		else {	
 			my $scriptname="10.mapsamples.pl";
 			print outfile3 "10\t$scriptname\n";
@@ -636,7 +638,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 			if($ecode!=0)           { error_out(10,$scriptname); }
 			my $wsize = checksize($mappingstat);
-			if($wsize!=$numsamples) { error_out(10,$scriptname,$mapcountfile); }
+			if($wsize!=$ns) { error_out(10,$scriptname,$mapcountfile); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
 	}
