@@ -36,11 +36,11 @@ system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/Sq
 
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 print "\nDownloading and unpacking test data...\n\n";
-download_confirm("test.tar.gz", "test.md5", "$host/SqueezeMeta/", $download_dir);
+download_confirm("test.tar.gz", "test.md5", $host, $download_dir);
 
 ### Download db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 print "Downloading and unpacking database tarball...\n";
-download_confirm("SqueezeMetaDB.tar.gz", "SqueezeMetaDB.md5", "$host/SqueezeMeta/", $download_dir);
+download_confirm("SqueezeMetaDB.tar.gz", "SqueezeMetaDB.md5", $host, $download_dir);
 
 
 ### Finish configuration.

@@ -2,10 +2,11 @@ use strict;
 use warnings;
 
 sub get_host {
-	my @hosts = ("http://silvani.cnb.csic.es", "http://andes.cnb.csic.es");
+	my %host2checkfiles = ("http://andes.cnb.csic.es" => "SqueezeMeta/SQMhere",
+                               "https://saco.csic.es" => "s/ZFLcptDpWGxAT98/download?path=%2F&files=SQMhere");
 	my @goodhosts;
-	for my $host (@hosts) {
-		my $ecode = system("wget -T10 -t1 -O/dev/null -q $host/SqueezeMeta/SQMhere");
+	foreach my $host (keys %host2checkfiles) {
+		my $ecode = system("wget -T10 -t1 -O/dev/null -q \"$host/$host2checkfiles{$host}\"");
 	        if(!$ecode) { push(@goodhosts, $host); }
 	}
 	if(!@goodhosts) { die "No host could be reached!" }

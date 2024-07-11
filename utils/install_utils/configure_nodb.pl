@@ -41,7 +41,7 @@ my $host = get_host();
 ###Download rdp classifier.
 system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
 print("Downloading and unpacking RDP classifier...\n");
-download_confirm("classifier.tar.gz", "classifier.md5", "$host/SqueezeMeta/", $libpath);
+download_confirm("classifier.tar.gz", "classifier.md5", $host, $libpath);
 system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar . > /dev/null 2>&1"); # Add symlink
 
 ###Update configuration files to reflect new db path.

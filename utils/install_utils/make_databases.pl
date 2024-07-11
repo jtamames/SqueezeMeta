@@ -57,29 +57,29 @@ system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 if($DOWNLOAD_TEST){
 	print "\nDownloading and unpacking test data...\n\n";
-	download_confirm("test.tar.gz", "test.md5", "$host/SqueezeMeta/", $download_dir);
+	download_confirm("test.tar.gz", "test.md5", $host, $download_dir);
 }
 
 
 ### Download general db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 if($DOWNLOAD_GENERAL){
 	print "Downloading and unpacking general database tarball...\n";
-	download_confirm("db.tar.gz", "db.md5", "$host/SqueezeMeta/", $download_dir);
+	download_confirm("db.tar.gz", "db.md5", $host, $download_dir);
 }
 
 
 ### Download and unpack silva databases
 if($DOWNLOAD_SILVA){
 	print "Downloading and unpacking SILVA databases (https://www.arb-silva.de/silva-license-information)...\n";
-	download_confirm("silva.nr_v132.align.gz", "silva.nr_v132.align.md5",  "$host/SqueezeMeta/", $database_dir);
-	download_confirm("silva.nr_v132.tax.gz", "silva.nr_v132.tax.md5",  "$host/SqueezeMeta/", $database_dir);
+	download_confirm("silva.nr_v132.align.gz", "silva.nr_v132.align.md5",  $host, $database_dir);
+	download_confirm("silva.nr_v132.tax.gz", "silva.nr_v132.tax.md5",  $host, $database_dir);
 }
 
 
 ### Download and create kegg db.
 if($DOWNLOAD_KEGG){
 	print "\nDownloading and creating kegg database...\n\n";
-	download_confirm("kegg.db.gz", "kegg.db.md5", "$host/SqueezeMeta/", $database_dir);
+	download_confirm("kegg.db.gz", "kegg.db.md5", $host, $database_dir);
 	my $command = "$installpath/bin/diamond makedb --in $database_dir/kegg.db -d $database_dir/keggdb -p 8";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary\n\n"; }
@@ -117,7 +117,7 @@ if($DOWNLOAD_PFAM){
 ### Download CheckM2 reference db.
 if($DOWNLOAD_CHECKM2){
 	print "\nDownloading Checkm2 reference...\n\n";
-	download_confirm("uniref100.KO.1.dmnd.gz", "uniref100.KO.1.dmnd.md5",  "$host/SqueezeMeta/", $database_dir);
+	download_confirm("uniref100.KO.1.dmnd.gz", "uniref100.KO.1.dmnd.md5",  $host, $database_dir);
 }
 
 
