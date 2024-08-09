@@ -46,7 +46,7 @@ our $pwd=cwd();
 
 our($nodiamond,$fastnr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
-our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
+our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile,$nomarkers);
 our(%bindirs,%dasdir,%binscripts,%assemblers);
 
 #-- Load the database path from SqueezeMeta_conf.pl so we can use it to check that the databases are in place
@@ -113,6 +113,7 @@ Arguments:
    --onlybins: Run only assembly, binning and bin statistics (including GTDB-Tk if requested) (Default: no)
    -binners: Comma-separated list with the binning programs to be used (available: maxbin, metabat2, concoct)  (Default: concoct,metabat2)
    -taxbinmode <s,c,s+c,c+s>: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
+   --nomarkers: Skip retrieval of universal marker genes from bins (you will still get completeness/contamination estimates, but won't be able to do bin refining in SQMtools)
    --gtdbtk: Run GTDB-Tk to classify the bins. Requires a working GTDB-Tk installation in available in your environment
    -gtdbtk_data_path: Path to the GTDB database, by default it is assumed to be present in /path/to/SqueezeMeta/db/gtdb
    -extbins: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps
@@ -161,6 +162,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "onlybins" => \$onlybins,
 		     "binners=s" => \$binners, 
 		     "taxbinmode=s" => \$taxbinmode,
+                     "nomarkers" => \$nomarkers,
 		     "gtdbtk" => \$gtdbtk,
 		     "gtdbtk_data_path=s" => \$gtdbtk_data_path,
 		     "extbins=s" => \$extbins,
@@ -202,6 +204,7 @@ if(!$euknofilter) { $euknofilter=0; }
 if(!$doublepass) { $doublepass=0; }
 if(!$nobins) { $nobins=0; }
 if(!$onlybins) { $onlybins = 0; }
+if(!$nomarkers) { $nomarkers = 0; }
 if(!$gtdbtk) { $gtdbtk=0; }
 if(!$gtdbtk_data_path) { eval(`grep "^\\\$gtdbtk_data_path" $scriptdir/SqueezeMeta_conf.pl`); }
 if(!$binners) { $binners="concoct,metabat2"; }
@@ -317,7 +320,8 @@ my $pdir;
 
 my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectname',$projectname,'userdir',$rawfastq,
   'blocksize',$blocksize,'nodiamond',$nodiamond,'singletons',$singletons,'nocog',$nocog,'nokegg',$nokegg,
-  'nopfam',$nopfam,'fastnr',$fastnr,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
+  'nopfam',$nopfam,'fastnr',$fastnr,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'nomarkers',$nomarkers,
+  'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
   'norename',$norename,'mapper',$mapper,'mapping_options',$mapping_options,'cleaning',$cleaning,
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
@@ -1056,6 +1060,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		elsif($_=~/^\$doublepass/)      { print outfile5 "\$doublepass      = $conf{doublepass};\n";          }
 		elsif($_=~/^\$nobins/)          { print outfile5 "\$nobins          = $conf{nobins};\n";              }
 		elsif($_=~/^\$onlybins/)        { print outfile5 "\$onlybins        = $conf{onlybins};\n";            }
+                elsif($_=~/^\$nomarkers/)       { print outfile5 "\$nomarkers       = $conf{nomarkers};\n";           }
 		elsif($_=~/^\$gtdbtk[= ]/)      { print outfile5 "\$gtdbtk          = $conf{gtdbtk};\n";              }
 		elsif($_=~/^\$binners/)         { print outfile5 "\$binners         = \"$conf{binners}\";\n";         }
 		elsif($_=~/^\$norename/)        { print outfile5 "\$norename        = $conf{norename};\n";            }

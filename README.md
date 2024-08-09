@@ -174,6 +174,7 @@ The command for running SqueezeMeta has the following syntax:
 * *--onlybins*: Run only assembly, binning and bin statistics (including GTDB-Tk if requested) (Default: no)
 * *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat2, concoct)  (Default: concoct,metabat2)
 * *-taxbinmode* [string]: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
+* *--nomarkers*: Skip retrieval of universal marker genes from bins. Note that, while this precludes recalculation of bin completeness/contamination in SQMtools for bin refining, you will still get completeness/contamination estimates of the original bins obtained in SqueezeMeta
 * *--gtdbtk*: Run GTDB-Tk to classify the bins. Requires a working GTDB-Tk installation available in your environment
 * *-gtdbtk_data_path* [path]: Path to the GTDB database, by default it is assumed to be present in `/path/to/SqueezeMeta/db/gtdb`
 * *-extbins* [path]: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps
@@ -354,6 +355,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [MetaBAT](https://bitbucket.org/berkeleylab/metabat)
 * [CONCOCT](https://github.com/BinPro/CONCOCT)
 * [DAS tool](https://github.com/cmks/DAS_Tool)
+* [checkm](http://ecogenomics.github.io/CheckM)
 * [checkm2](https://github.com/chklovski/CheckM2/)
 * [comparem](https://github.com/dparks1134/CompareM)
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)

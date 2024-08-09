@@ -378,7 +378,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
         message('    taxonomy...')
         SQM$bins$tax              = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.bin.tax.tsv', project_name), engine = 'data.frame',
 							             header=TRUE, row.names=1, sep='\t'))
-	SQM$bins$table            = SQM$bins$table[,c('Method', 'Num contigs', 'GC perc', 'Tax 16S', 'Disparity', 'Completeness', 'Contamination', 'Strain het')]
+	SQM$bins$table            = SQM$bins$table[,c('Method', 'Num contigs', 'GC perc', 'Tax 16S', 'Disparity', 'Completeness', 'Contamination')]
     } else
         {
 	warning('    There are no binning results in your project. Skipping...')

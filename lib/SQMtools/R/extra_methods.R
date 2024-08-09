@@ -115,6 +115,13 @@ get.bin.stats = function(SQM)
     tax16S        = c()
     taxonomy      = matrix(NA, nrow = length(bins), ncol = ncol(SQM$contigs$tax),
                    dimnames = list(bins, colnames(SQM$contigs$tax)))
+    if(!'markers' %in% names(SQM$orfs))
+        {
+        warning('There are no universal marker annotations in your project. Skipping completeness/contamination calculations')
+    } else
+        {
+        warning('Bin completeness / contamination will be recalculated using the CheckM1 algorithm on root markers')
+        }        
     for(b in bins) {
         contigs  = rownames(SQM$contigs$bins)[SQM$contigs$bins[,'DAS']==b]
         nContigs = c(nContigs, length(contigs))
@@ -123,22 +130,29 @@ get.bin.stats = function(SQM)
         orfs16S  = orfs[orfs %in% names(SQM$orfs$tax16S)]
         tax16S   = c(tax16S, paste(SQM$orfs$tax16S[orfs16S], collapse='|'))
 
-        marker_count = table(unlist(SQM$orfs$markers[orfs]))
+        if(!'markers' %in% names(SQM$orfs)) {
+            comp = NA
+            cont = NA
+        } else {
 
-        comp = 0
-        cont = 0
-        
-	for(collocated_marker_set in CheckMProkaryote)
-            {
-            present_markers = marker_count[intersect(collocated_marker_set, names(marker_count))]
-            comp = comp + sum(present_markers>0)/length(collocated_marker_set)
-            extra_markers = present_markers - 1
-            extra_markers[extra_markers<0] = 0
-            cont = cont + sum(extra_markers)/length(collocated_marker_set)
-            }
+            comp = 0
+            cont = 0
 
-        comp  = 100 * comp / length(CheckMProkaryote)
-        cont  = 100 * cont / length(CheckMProkaryote)
+            marker_count = table(unlist(SQM$orfs$markers[orfs]))
+
+            for(collocated_marker_set in CheckMProkaryote)
+                {
+                present_markers = marker_count[intersect(collocated_marker_set, names(marker_count))]
+                comp = comp + sum(present_markers>0)/length(collocated_marker_set)
+                extra_markers = present_markers - 1
+                extra_markers[extra_markers<0] = 0
+                cont = cont + sum(extra_markers)/length(collocated_marker_set)
+                }
+
+            comp  = 100 * comp / length(CheckMProkaryote)
+            cont  = 100 * cont / length(CheckMProkaryote)
+
+            } 
 
         completeness  = c(completeness,  round(comp,2))
         contamination = c(contamination, round(cont,2))
@@ -154,9 +168,9 @@ get.bin.stats = function(SQM)
             class_taxa_hits = taxa_hits[!grepl('^Unclassified|in NCBI|No CDS|bacterium$', names(taxa_hits))]
             total_class = sum(class_taxa_hits)
             # Skip this level if we don't fulfill the conditions
-            if(!length(class_taxa_hits))                             { break }
-            if(!class_taxa_hits[1]/total_class > MINCONSPERC_ASIG16) { break }
-            if(!class_taxa_hits[1]/total > MINCONSPERC_TOTAL16)      { break }
+            if(!length(class_taxa_hits))                              { break }
+            if(!class_taxa_hits[1]/total_class >= MINCONSPERC_ASIG16) { break }
+            if(!class_taxa_hits[1]/total >= MINCONSPERC_TOTAL16)      { break }
             # Otherwise we try to use this for the taxonomy
             good_ranks = c(good_ranks, rank)
             LCA_tax = names(class_taxa_hits)[1]
@@ -177,39 +191,22 @@ get.bin.stats = function(SQM)
 	} else if(length(contigs)==1)
             {
             dis = 0
-	} else if(length(contigs)>10000)
-	    {
-            dis = NA
-            warning(sprintf('Bin %s has more than 10000 contigs, skipping disparity calculation.', b))
         } else
             {
             ### And get the disparity
-            # Get a table with the classified ranks for this bin
-            tax_table = SQM$contigs$tax[contigs,good_ranks,drop=F]
-            # Mark unclassified as NA so they won't be used for comparison
-            tax_table[grepl('^Unclassified|in NCBI|No CDS|bacterium$', tax_table)] = NA
-            # Get all possible combinations of contigs
-            combis = combn(contigs,2)
-            chims = matrix(FALSE, nrow = length(good_ranks), ncol = ncol(combis), dimnames = list(good_ranks, 1:ncol(combis)))
-    
-            for(i in 1:nrow(chims))
-                {
-                t1 = tax_table[combis[1,], i]
-                t2 = tax_table[combis[2,], i]
-                chims[i,] = t1 != t2
-                # A pair is chimeric (TRUE) if it was chimeric in a higher rank
-                # Also it will be unclassified (NA) if it was unclassified in a higher rank
-                # Both are achieved with the `|` operator
-                if(i>1) { chims[i,] = chims[i,] | chims[i-1,] }
-                }
-            diffs = chims[nrow(chims),]
-            diffs = diffs[!is.na(diffs)] # ignore Unclassified
-            dis = sum(diffs) / length(diffs)
+            # Get the last classified rank
+            last_rank = good_ranks[length(good_ranks)]
+            # Get the consensus taxonomy at that rank
+            last_tax  = taxonomy[b,last_rank]
+            # Get the contigs taxonomy at that rank
+            contigs_tax = SQM$contigs$tax[contigs,last_rank]
+            contigs_tax = contigs_tax[!grepl('^Unclassified|in NCBI|No CDS', contigs_tax)]
+            dis = sum(contigs_tax != last_tax) / length(contigs_tax)
             }
         disparity = c(disparity, round(dis,3))
         }
     resDF = data.frame(Method = SQM$bins$table[bins,'Method'], `Num contigs` = nContigs, `GC perc` = GC, `Tax 16S` = tax16S,
-                       Disparity = disparity, Completeness = completeness, Contamination = contamination, `Strain het` = NA, row.names = bins, check.names = F)
+                       Disparity = disparity, Completeness = completeness, Contamination = contamination, row.names = bins, check.names = F)
     return(list(table = resDF, tax = taxonomy))
     }
 

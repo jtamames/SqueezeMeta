@@ -23,13 +23,13 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$taxlist,$binresultsdir,$checkm2_soft,$alllog,$resultpath,$tempdir,$minsize17,$numthreads,$interdir,$methodsfile,$syslogfile,$checkmfile,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
+our($installpath,$datapath,$taxlist,$binresultsdir,$checkm_soft,$checkm2_soft,$alllog,$resultpath,$tempdir,$minsize17,$numthreads,$interdir,$methodsfile,$syslogfile,$checkmfile,$nomarkers,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 print "  Evaluating bins with CheckM2 (Chklovski et al 2023, Nat Met 20, 1203-12)\n\n";
 
-my $markerdir="$datapath/checkm_markers";
+my $markerdir="$interdir/checkm";
 my $checktemp="$interdir/checkm2";
 my $gtdbtktemp="$interdir/gtdbtk";
 my $command;
@@ -37,17 +37,29 @@ my $command;
 my $binmethod="DAS";
 
 if (-d $checktemp) { system "rm -r $checktemp"; }
+if (-d $markerdir) { system "rm -r $markerdir"; }
+
+open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 
 $command = "$checkm2_soft predict -i $binresultsdir -o $checktemp -t $numthreads -x fa >> $syslogfile 2>&1";
 print outsyslog "$command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 
-print "\n  Storing results for $binmethod in $checkmfile\n";
+print "  Storing results for $binmethod in $checkmfile\n";
 $command = "cp $checktemp/quality_report.tsv $checkmfile";
 print outsyslog "$command\n";
 my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
+
+if(!$nomarkers) {
+	print "\n  Extracting marker genes from  bins with CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n\n";
+	$command = "$checkm_soft taxonomy_wf life Prokaryote $binresultsdir $markerdir -t $numthreads -x fa >> $syslogfile 2>&1";
+	print outsyslog "$command\n";
+	my $ecode = system $command;
+	if($ecode!=0) { die "Error running command:    $command"; }
+}
+
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 print outmet "Bin statistics were computed using CheckM2 (Chklovski et al, Nat Met 20, 1203-12)\n";

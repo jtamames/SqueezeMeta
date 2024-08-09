@@ -96,6 +96,7 @@ $nopfam          = 0;
 $euknofilter     = 0;
 $nobins          = 0;
 $onlybins        = 0;
+$nomarkers       = 0;
 $gtdbtk          = 0;
 $doublepass      = 0;
 $norename	 = 0;
