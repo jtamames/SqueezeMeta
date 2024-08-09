@@ -299,7 +299,7 @@ foreach my $chsam(keys %pairsample) {
 	}
 
 my $currtime=timediff();
-print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
+print BOLD "\nSqueezeMeta v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nPlease cite: Tamames & Puente-Sánchez, Frontiers in Microbiology 9, 3349 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
 if($test) { print GREEN "Running in test mode! I will stop after step $test\n\n"; print RESET; }
 print "Run started ",scalar localtime," in $mode mode\n";
 
@@ -657,7 +657,7 @@ sub pipeline {
 		my $ns;
 		if($mode eq "sequential") { $ns = 1; } else { $ns = $numsamples; }
 		my $wsize = checksize($mappingstat);
-		if(($wsize == $ns) && (!$force_overwrite)) { print "Mapping file $mapcountfile already found, skipping step 10\n"; }
+		if(($wsize == $ns) && (!$force_overwrite)) { print "Mapping file $mappingstat already found, skipping step 10\n"; }
 		else {	
 			my $scriptname="10.mapsamples.pl";
 			print outfile3 "10\t$scriptname\n";
@@ -668,7 +668,7 @@ sub pipeline {
 			my $ecode = system("perl $scriptdir/$scriptname $projectdir $force_overwrite");
 			if($ecode!=0)           { error_out(10,$scriptname); }
 			my $wsize = checksize($mappingstat);
-			if($wsize!=$ns) { error_out(10,$scriptname,$mapcountfile); }
+			if($wsize!=$ns) { error_out(10,$scriptname,$mappingstat); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
 	}
@@ -1184,7 +1184,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
         close infile0;
 
 
-	}	
+	}
 
 
 sub cleaning  {
@@ -1210,30 +1210,41 @@ sub cleaning  {
  			next if(!$_ || ($_=~/^\#/));
 			$_=~s/\r//g;			#-- Deleting \r in samples file for windows compatibility
 			my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-			if($thissample) {
-				if($sample eq $thissample) { $prepsamples{$sample}{$iden}=$file; }
-				}
-			else { $prepsamples{$sample}{$iden}=$file; }
+			if($thissample and ($sample ne $thissample)) { next; } #-- If we wanted only one sample, skip the rest
+			#-- Store all the input files coming from the same sample and "pair" (pair1 and pair2) into an array
+			#-- This will fail if the input files from the same sample have a different ordering for pair1 and pair2
+			#--   in the samples file, but this is very unlikely
+			if(!exists($prepsamples{$sample}{$iden})) { $prepsamples{$sample}{$iden} = [$file];}
+			else { push @{ $prepsamples{$sample}{$iden}} , $file; }
 			}
 		close infile4;
 		foreach my $ts(sort keys %prepsamples) { 
 			print "  Working with sample $ts\n";
-			# print "*$prepsamples{$ts}{pair2}*\n";
-			my $par1name="$rawfastq/".$prepsamples{$ts}{pair1};
-			my $par2name;
-			if($prepsamples{$ts}{pair2}) { $par2name="$rawfastq/".$prepsamples{$ts}{pair2}; }
-			my $trimmedpar1name="$newuserdir/".$prepsamples{$ts}{pair1};
-			my $trimmedpar2name="$newuserdir/".$prepsamples{$ts}{pair2};
-			if(-e $par2name) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $par1name $par2name $trimmedpar1name $trimmedpar1name.removed $trimmedpar2name $trimmedpar2name.removed $cleaningoptions > /dev/null 2>&1"; }
-			else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $par1name $trimmedpar1name $cleaningoptions > /dev/null 2>&1"; }
-			print outfile4 "Running trimmomatic: $trimmomatic_command";
-			# print "Running trimmomatic: $trimmomatic_command";
-			my $ecode = system $trimmomatic_command;
-			if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
-			print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
+			if(exists($prepsamples{$ts}{pair2}) and (scalar(@{ $prepsamples{$ts}{pair1} }) != scalar(@{ $prepsamples{$ts}{pair2} }))) {
+				die("Different number of pair1 and pair2 files for sample $ts\n");
+				}
+			my @pair1files = @{ $prepsamples{$ts}{pair1} };
+			my ($par1name, $par2name, $trimmedpar1name, $trimmedpar2name);
+			for my $i (0 ..  $#pair1files) {
+				#-- Go through all the input files for this sample
+				$par1name        = "$rawfastq/".$prepsamples{$ts}{pair1}[$i];
+				$trimmedpar1name = "$newuserdir/".$prepsamples{$ts}{pair1}[$i];
+				$par2name        = "";
+				$trimmedpar2name = "";
+				if(exists($prepsamples{$ts}{pair2})) {
+					$par2name        = "$rawfastq/".$prepsamples{$ts}{pair2}[$i];
+					$trimmedpar2name = "$newuserdir/".$prepsamples{$ts}{pair2}[$i];
+					}
+				if(-e $par2name) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $par1name $par2name $trimmedpar1name $trimmedpar1name.removed $trimmedpar2name $trimmedpar2name.removed $cleaningoptions > /dev/null 2>&1"; }
+				else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $par1name $trimmedpar1name $cleaningoptions > /dev/null 2>&1"; }
+				print outfile4 "Running trimmomatic: $trimmomatic_command";
+				my $ecode = system $trimmomatic_command;
+				if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
+				}
 			}
+		print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
 		}
-	}	
+	}
 
 
 sub checksize {
