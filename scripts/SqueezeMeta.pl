@@ -342,7 +342,6 @@ if($mode!~/sequential/) {   #-- FOR ALL COASSEMBLY AND MERGED MODES
 	if(!$empty) {
  	
 		#-- CALL TO THE STANDARD PIPELINE
-		if($cleaning) { cleaning($projectdir,$scriptdir,"",%conf); }
 		pipeline();
 		}
 		
