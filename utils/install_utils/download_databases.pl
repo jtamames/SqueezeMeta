@@ -32,16 +32,14 @@ require "$libpath/install_utils/get_host.pl";
 
 my $host = get_host();
 
-system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/SqueezeMetaDB.tar.gz > /dev/null 2>&1");
-
-### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
+### Download test data
 print "\nDownloading and unpacking test data...\n\n";
 download_confirm("test.tar.gz", "test.md5", $host, $download_dir);
 
-### Download db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
+### Download db tarball
 print "Downloading and unpacking database tarball...\n";
 download_confirm("SqueezeMetaDB.tar.gz", "SqueezeMetaDB.md5", $host, $download_dir);
 
 
-### Finish configuration.
+### Finish configuration
 system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir");

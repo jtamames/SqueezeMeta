@@ -23,9 +23,6 @@ $host2urls{"https://saco.csic.es"}{"uniref100.KO.1.dmnd.gz"}  = 's/ZFLcptDpWGxAT
 sub download_confirm {
 	my ($file_name, $md5_name, $host, $download_dir) = @_;
 
-	system("rm $download_dir/$file_name > /dev/null 2>&1");
-        system("rm $download_dir/$md5_name  > /dev/null 2>&1");
-	
 	run_command(build_wget_command($file_name, $host, $download_dir));
 	run_command(build_wget_command($md5_name,  $host, $download_dir));
 
@@ -43,7 +40,7 @@ sub download_confirm {
 		if($file_name =~ /\.tar.gz\z/) {
 			run_command("tar -xvzf $download_dir/$file_name -C $download_dir; rm $download_dir/$file_name $download_dir/$md5_name");
 		} elsif ($file_name =~ /\.gz\z/) {
-			run_command("gunzip $download_dir/$file_name");
+			run_command("gunzip $download_dir/$file_name; rm $download_dir/$md5_name");
 		}
 	} else { die "Wrong MD5 for $download_dir/$file_name. Either your download is truncated or we messed up. If this persists over time, please contact us at github.com/jtamames/SqueezeMeta\n" }
         
@@ -52,8 +49,11 @@ sub download_confirm {
 
 sub build_wget_command {
 	my ($file_name, $host, $download_dir) = @_;
-
-	my $wget_command = "wget -U '' ";
+	# -U '' so that we give the server an user agent string, it complains otherwise
+	# -c to resume failed downloads from previous runs
+	# -t 50 to control the number of retries, -T 60 sets all timeouts to 60 seconds
+	# --retry-on-http-error=403 since SACO kills the connection with this sometimes
+	my $wget_command = "wget -U '' -c -t 50 -T 60 --retry-on-http-error=503 ";
         print("$host\n\n");
 	if(!exists($host2urls{$host})) {
 		# We can wget using the file name, we assume it is in $host/SqueezeMeta
