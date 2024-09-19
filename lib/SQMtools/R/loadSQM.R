@@ -257,6 +257,10 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     SQM$misc$samples             = colnames(SQM$orfs$abund)
 
     goodORFcols                  = colnames(SQM$orfs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$orfs$table))]
+    goodORFcols                  = c('startPos', 'endPos', goodORFcols)
+    start_end                    = sapply(strsplit(rownames(SQM$orfs$table), split='_'), FUN=function(x) x[length(x)])
+    SQM$orfs$table$startPos      = as.numeric(sapply(strsplit(start_end, split = '-'), FUN=function(x) x[1]))
+    SQM$orfs$table$endPos        = as.numeric(sapply(strsplit(start_end, split = '-'), FUN=function(x) x[2]))
     SQM$orfs$table               = SQM$orfs$table[,goodORFcols]
 
     
