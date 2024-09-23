@@ -5,6 +5,9 @@ python utilities for working with SqueezeMeta results
 
 from collections import defaultdict
 from numpy import array, isnan, seterr
+from os import listdir
+from os.path import isdir
+from json import loads
 seterr(divide='ignore', invalid='ignore')
 
 TAXRANKS = ('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
@@ -457,6 +460,103 @@ def parse_fasta(fasta):
     return res
 
 
+
+def map_checkm_marker_genes(orf_table, checkm_dir):
+    """
+    Parse the results from checkm in order to identify which of our ORFs
+     contained marker genes detected by CheckM
+    Return:
+        orf_markers: dictionary with ORFs as keys and sets of marker PFAMs as values
+    """
+    EVAL_THRESHOLD   = 1e-10 # Thresholds set as in https://github.com/Ecogenomics/CheckM/blob/master/checkm/defaultValues.py
+    LENGTH_THRESHOLD = 0.7
+    checkm_contigs = defaultdict(dict)
+    for d in listdir(f'{checkm_dir}/bins'):
+        if not isdir(f'{checkm_dir}/bins/{d}'):
+            continue
+        orf_se = {}
+        with open(f'{checkm_dir}/bins/{d}/genes.gff') as infile:
+            for line in infile:
+                if line.startswith('#'):
+                    continue
+                line = line.strip().split('\t')
+                contig, _, _, start, end, _, _, _, info = line
+                ID = info.split('ID=')[1].split(';')[0]
+                orf = contig + '_' + ID.split('_')[1]
+                start, end = int(start), int(end)
+                checkm_contigs[contig][orf] = {'start': start, 'end': end, 'PFAMs': set()}
+    with open(f'{checkm_dir}/storage/marker_gene_stats.tsv') as infile:
+        for line in infile:
+            bin_, orfs = line.strip().split('\t')
+            orfs = loads(orfs.replace('\'','"'))
+            for orf, annots in orfs.items():
+                # CheckM sometimes will treat two adjacent ORFs as a combined ORF (merging both names with "&&")
+                #  This happens when the same marker gene is found in both
+                #  In that case this is not treated as a duplication for the purpose of calculating contamination
+                #   so it is counted only as one ORF
+                #  We will annotate only the first ORF (to also count only one ORF)
+                #  This will lead to wrong completeness estimations if only the second ORF is present in a subset
+                #   but this is such a weird corner case (if we care about this we are most likely subsetting full contigs)
+                #   that I deem it acceptable
+                orf = orf.split('&&')[0]
+                contig = orf.rsplit('_', 1)[0]
+                for PFAM in annots:
+                    checkm_contigs[contig][orf]['PFAMs'].add(PFAM)
+
+    sqm_contigs = defaultdict(dict)
+    with open(orf_table) as infile:
+        for line in infile:
+            if line.startswith('#') or line.startswith('ORF ID'):
+                continue
+            line = line.strip().split('\t')
+            orf = line[0]
+            contig, se = orf.rsplit('_', 1)
+            start, end = [int(p) for p in se.split('-')]
+            sqm_contigs[contig][orf] = {'start': start, 'end': end}
+
+
+    # Map annotations from checkm ORFs (made by CheckM running prodigal on its own) to SQM ORFs (made by SQM running prodigal on its own)
+    orf_markers = {orf: set() for contig, sqm_orfs in sqm_contigs.items() for orf in sqm_orfs}
+    for contig, checkm_orfs in checkm_contigs.items():
+        if contig not in sqm_contigs:
+            continue
+        sqm_orfs = sqm_contigs[contig]
+        # Get the biggest position in the contig that is covered by a SQM orf
+        maxs = max([data['start'] for data in sqm_orfs.values()])
+        maxe = max([data['end'] for data in sqm_orfs.values()])
+        maxp = max([maxs, maxe])
+        # Create an array of positions in the contigs and the CheckM ORF to which they map to
+        positions = [set() for i in range(maxp)]
+        for orf, data in checkm_orfs.items():
+            start, end = data['start'], data['end']
+            if end < start:
+                start, end = end, start
+            if end > maxp:
+                end = maxp
+            for i in range(start-1, end): # switch from one to zero-indexing
+                positions[i].add(orf)  # note that several orfs can overlap in the same position
+        # Assign each SQM ORF to a CheckM ORF and inherit its PFAM annotation
+        for orf, data in sqm_orfs.items():
+            start, end = data['start'], data['end']
+            if end < start:
+                start, end = end, start
+            checkmORFs = defaultdict(int)
+            PFAMs = set()
+            for i in range(start-1, end): # switch from one to zero-indexing
+                for cmo in positions[i]:
+                    checkmORFs[cmo] += 1
+            if checkmORFs: # we found annotated equivalents in CheckM
+                bestCheckmORF = max(checkmORFs, key=checkmORFs.get)
+                overlap = checkmORFs[bestCheckmORF] / (end-start+1)
+                checkm_orf_start, checkm_orf_end = checkm_orfs[bestCheckmORF]['start'], checkm_orfs[bestCheckmORF]['end']
+                # Assimilate CheckM to SQM orf if overlap is more than 75%
+                #  or the CheckM orf is contained in the SQM orf
+                if overlap > 0.75 or (start <= checkm_orf_start and end >= checkm_orf_end):
+                    PFAMs = checkm_orfs[bestCheckmORF]['PFAMs']
+            orf_markers[orf] = PFAMs
+    return orf_markers
+
+
 def write_orf_seqs(orfs, aafile, fna_blastx, rrnafile, trnafile, outname):
     ### Create sequences file.
     # Load prodigal results.
@@ -491,4 +591,20 @@ def write_row_dict(sampleNames, rowDict, outname):
         outfile.write('\t{}\n'.format('\t'.join(sampleNames)))
         for row in sorted(rowDict):
             outfile.write('{}\t{}\n'.format(row, '\t'.join(map(str, rowDict[row]))))
+
+
+def write_RDP_16S(rdp_table, outname):
+    """
+    Parse the results from step 2 and write them in two columns
+    """
+    with open(rdp_table) as infile, open(outname, 'w') as outfile:
+        outfile.write(f'ORF\tTAX16S\n')
+        for line in infile:
+            if line.startswith('#'):
+                continue
+            line = line.strip().split('\t')
+            if len(line) != 5: # some lines lack the final taxonomy string
+                continue
+            contig, *_, tax = line
+            outfile.write(f'{contig}\t{tax}\n')
 

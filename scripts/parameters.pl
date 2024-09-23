@@ -48,3 +48,5 @@ $minconsperc_total16=0.3; #-- STEP16: Ratio contigs for the taxon/number of cont
 $minsize17=20000;         #--STEP17: Minimum size of a bin to be considered
 
 $minfraction20=0.1;       #--STEP20: Minimum percentage of genes from a pathway to be present
+$minnumber20=2;       #--STEP20: Minimum number of genes from a pathway to be present
+

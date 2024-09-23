@@ -41,7 +41,7 @@ my $host = get_host();
 ###Download rdp classifier.
 system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
 print("Downloading and unpacking RDP classifier...\n");
-download_confirm("classifier.tar.gz", "classifier.md5", "$host/SqueezeMeta/", $libpath);
+download_confirm("classifier.tar.gz", "classifier.md5", $host, $libpath);
 system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar . > /dev/null 2>&1"); # Add symlink
 
 ###Update configuration files to reflect new db path.
@@ -54,14 +54,20 @@ open(outfile1, ">$installpath/lib/checkm/DATA_CONFIG") || die;
 print outfile1 $checkm_manifest;
 close outfile1;
 
-open(outfile2,">$installpath/scripts/SqueezeMeta_conf.pl") || die;
+my $checkm2_dmnd_path = "{\"Type\": \"DIAMONDDB\", \"DBPATH\": \"$databasedir/uniref100.KO.1.dmnd\"}";
+
+open(outfile2, ">$installpath/lib/checkm2/version/diamond_path.json") || die;
+print outfile2 $checkm2_dmnd_path;
+close outfile2;
+
+open(outfile3,">$installpath/scripts/SqueezeMeta_conf.pl") || die;
 open(infile1, "$installpath/scripts/SqueezeMeta_conf_original.pl") || die;
 while(<infile1>) {
-	if($_=~/^\$databasepath/) { print outfile2 "\$databasepath = \"$databasedir\";\n"; }
-	else { print outfile2 $_; }
+	if($_=~/^\$databasepath/) { print outfile3 "\$databasepath = \"$databasedir\";\n"; }
+	else { print outfile3 $_; }
 	}
 close infile1;
-close outfile2;
+close outfile3;
 
 print("Done\n");
 

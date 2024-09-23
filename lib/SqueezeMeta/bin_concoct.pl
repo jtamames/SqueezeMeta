@@ -21,19 +21,21 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath, $samtools_soft, $concoct_dir,$databasepath,$contigsfna,$singletons,$contigcov,$alllog,$tempdir,$interdir,$mappingfile,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($installpath, $samtools_soft, $concoct_dir,$databasepath,$contigsfna,$singletons,$contigcov,$tempdir,$interdir,$mappingfile,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 my $bindir="$interdir/binners/concoct";
 print outsyslog "\nRUNNING concoct\n";
-if(-d $bindir) {} else { print "  Creating $bindir directory\n"; print outsyslog "  Creating $bindir directory\n"; system("mkdir $bindir"); }
+if(-d $bindir) { system("rm -r $bindir");}
+print "  Creating $bindir directory\n"; print outsyslog "  Creating $bindir directory\n";
+system("mkdir $bindir"); 
 
 # Exclude samples with the nobinning flag
 my %samples;
 my %skip;
 print "  Reading samples from $mappingfile\n";
-open(infile0,$mappingfile) || die "Can't open $alllog\n";
+open(infile0,$mappingfile) || die "Can't open $mappingfile\n";
 while(<infile0>) {
         chomp;
         next if !$_;
@@ -48,7 +50,7 @@ foreach my $sample (keys %samples) {
         next if($skip{$sample});
         $bamlist = "$bamlist $datapath/bam/$projectname.$sample.bam";
 }
-
+if(!$bamlist) { die "All samples have the \"nobinning\" flag so there are no valid BAM files. Please check your samples file"; }
 
 my %singletonlist;
 my $outcontig="$tempdir/contigs.nosingle.fasta";

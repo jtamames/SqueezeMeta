@@ -10,7 +10,8 @@ combineSQM(
   trusted_functions_only = FALSE,
   ignore_unclassified_functions = FALSE,
   rescale_tpm = TRUE,
-  rescale_copy_number = TRUE
+  rescale_copy_number = TRUE,
+  recalculate_bin_stats = TRUE
 )
 }
 \arguments{
@@ -25,12 +26,14 @@ combineSQM(
 \item{rescale_tpm}{logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{TRUE}).}
 
 \item{rescale_copy_number}{logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object with the highest RecA/RadA coverages. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected bins or contigs}. If any SQM objects that are being combined contain a functional subset rather than a contig/bins subset, this parameter should be set to \code{FALSE}.}
+
+\item{recalculate_bin_stats}{logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).}
 }
 \value{
-A SQM object
+A SQM or SQMbunch object
 }
 \description{
-Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link{combineSQMlite}}.
+Combine an arbitrary number of SQM objects into a single SQM object (if the input objects contain the same samples, i.e. they come from the same SqueezeMeta run) or a single SQMbunch object. For combining results from sqm_reads.pl or sqm_longreads.pl please check \code{\link{combineSQMlite}}. The parameters below (other than ...) will take only effect if the input objects contain the same samples. Otherwise the input objects will be taken as they are, with no recalculation of taxonomy, function or rescaling,
 }
 \examples{
 data(Hadza)

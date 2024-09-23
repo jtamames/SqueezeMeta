@@ -109,12 +109,13 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 			else { chomp; $size+=length $_; }
 		}
 		close infile2;
+		my $nContigs = keys %store;
 		
 		#-- Call consensus() to find the consensus taxon
 		
 		my(%chimeracheck,%abundancestax);
 		my($sep,$lasttax,$strg,$fulltax,$cattax,$lasttax)="";
-		my($chimerism,$tcount)=0;
+		my($chimerism,$tcount,$chimerism2)=0;
 	
 		foreach my $rank(@ranks) { 
 			my(%accumtax)=();
@@ -134,8 +135,7 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 		 		$abundancestax{$rank}{$ttax}=$perctotal*100;
 				}
 			}
-				
-		
+	
 		#-- Loop for all ranks
 	
 		foreach my $rank(@ranks) { 
@@ -170,29 +170,20 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 			my $perctotal=$times/$totalcount;
 		
 			#-- If it does, store the consensus tax and rank
-		
+
 			if(($percas>=$minconsperc_asig16) && ($perctotal>=$minconsperc_total16) && ($totalcount>=$mincontigs16) && ($times>$times2)) { 
-				#-- Calculation of disparity for this rank
+				
+				#-- New, faster procedure for calculating disparity.
+				#-- Now it is just the ratio of contigs with a different annotation to that of the consensus
+				
 				my($chimera,$nonchimera,$unknown)=0;
-				foreach my $contig(sort keys %store) { 
+				foreach my $contig(sort keys %store) {    #-- New calculation of disparity
 					my $ttax=$taxlist{$contig}{$rank};
-					foreach my $contig2(sort keys %store) { 
-						my $ttax2=$taxlist{$contig2}{$rank}; 
-						next if($contig ge $contig2);
-						if($chimeracheck{$contig}{$contig2} eq "chimera") {	#-- If it was a chimera in previous ranks, it is a chimera now
-							$chimera++;
-							next;
-						}	
-						if($chimeracheck{$contig}{$contig2} eq "unknown") {	#-- If it was an unknown in previous ranks, it is a unknown now
-							$unknown++;
-							next;
-						}						
-						if(($ttax && (!$ttax2)) || ($ttax2 && (!$ttax)) || ((!$ttax2) && (!$ttax))) { $chimeracheck{$contig}{$contig2}="unknown"; } #-- Unknown when one of the ORFs has no classification at this rank
-						elsif($ttax eq $ttax2) { $chimeracheck{$contig}{$contig2}="nochimera"; $nonchimera++; }
-						else { $chimeracheck{$contig}{$contig2}="chimera"; $chimera++; }
-						# if($contig eq "3539") { print "$rank $orf $orf2 -> $ttax $ttax2 -> $chimeracheck{$orf}{$orf2}\n"; }
-						}
-				}
+					if(!$ttax) { $unknown++; }
+					elsif($ttax eq $mtax) { $nonchimera++; } else { $chimera++; }
+					}
+				$chimerism=$chimera/($chimera+$nonchimera);
+	
 				my $totch=$chimera+$nonchimera;
 				if($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
 				print "***$mtax $times $percas $perctotal $totalas $chimerism\n" if $verbose;
@@ -205,7 +196,10 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 				 print "**$fulltax $percas $perctotal -- $times $totalas $totalcount -- $consf\n" if $verbose; 
 				 if($totalas!=$times) { print "***$k$totalas $times\n" if $verbose; }
 				}
-			else { last; }	#-- Prevents looking for consensus in deeper levels if it was not found in the current one
+			else {          #-- Prevents looking for consensus in deeper levels if it was not found in the current one
+				print "***STOPPED! $mtax $times $percas $perctotal $totalas $totalcount\n" if $verbose;
+				last; 
+				}
 			}
 		if(!$fulltax) { $fulltax="No consensus"; $strg="Unknown"; }
 		my $abb=$parents{$lasttax}{wranks};	
@@ -232,8 +226,9 @@ open(outfile1,">$bintax") || die "Can't open $bintax for writing\n";
 			}
 		my $constax;	
 		$constax=consens($abb,$checkm_tax,$taxbinmode);
-		printf outfile2 "Consensus: $constax\tTotal size: $size\tDisparity: %.3f\tConsensus mode: $taxbinmode\n",$chimerism;
-		printf outfile1 "DAS\t$k\tConsensus: $constax\tTotal size: $size\tDisparity: %.3f\n",$chimerism;
+		my $chimstr = sprintf("%.3f", $chimerism); 
+		print outfile2 "Consensus: $constax\tTotal size: $size\tDisparity: $chimstr\tConsensus mode: $taxbinmode\n";
+		print outfile1 "DAS\t$k\tConsensus: $constax\tTotal size: $size\tDisparity: $chimstr\n";
 		close outfile2;
 
  	}

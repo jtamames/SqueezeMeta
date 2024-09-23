@@ -120,7 +120,7 @@ sub splitfiles {
 	close intemp;
 	chomp $wc;
 	$wc=~s/\s+.*//;    #-- Number of lines in the diamond result
-	my $splitlines=int($wc/$numthreads);
+	my $splitlines=int(($wc/$numthreads)+0.5);
 	print syslogfile "  Total lines in Diamond: $wc; Allocating $splitlines in $numthreads threads\n";
 	my $nextp=$splitlines;
 	my ($filelines,$splitorf);

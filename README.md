@@ -36,7 +36,7 @@ SqueezeMeta supports different assembly strategies (co-assembly, sequential, ass
 14) Binning with different methods
 15) Binning integration with DAS tool
 16) Taxonomic assignment of bins, and check for taxonomic disparities
-17) Checking of bins with CheckM
+17) Checking of bins with CheckM2 (and optionally classify them with GTDB-Tk)
 18) Merging of previous results to obtain the bin table
 19) Merging of previous results to obtain the contig table
 20) Prediction of kegg and metacyc patwhays for each bin
@@ -92,8 +92,6 @@ The databases occupy 200Gb, but we recommend having at least 350Gb free disk spa
 Two directories will be generated after running either `make_databases.pl` or `download_databases.pl`.
 - `/download/path/db`, which contains the actual databases.
 - `/download/path/test`, which contains data for a test run of SqueezeMeta.
-
-If `download_databases.pl` or `make_databases.pl` can't find our server, you can instead run `make_databases_alt.pl` (same syntax as `make_databases.pl`) which will try to download the data from an alternative site.
 
 If the SqueezeMeta databases are already built in another location in the system, a different copy of SqueezeMeta can be configured to use them with
 
@@ -151,7 +149,7 @@ The command for running SqueezeMeta has the following syntax:
 * *-a* [megahit,spades,rnaspades,spades-base,canu,flye]: assembler. (default: megahit).
 * *-assembly_options* [string]: Extra options for the assembler (refer to the manual of the specific assembler). Please provide all the extra options as a single quoted string (e.g. _-assembly_options “--opt1 foo --opt2 bar”_)
 * *-c*|*-contiglen* [number]: Minimum length of contigs (Default:200) 
-* *-extassembly* [path]: Path to an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
+* *-extassembly* [path]: Path to a file containing an external assembly provided by the user. The file must contain contigs in the fasta format. This overrides the assembly step of SqueezeMeta.
 * *--sq/--singletons*: unassembled reads will be treated as contigs and included in the contig fasta file resulting from the assembly. This will produce 100% mapping percentages, and will increase BY A LOT the number of contigs to process. Use with caution (Default: no)
 * *-contigid* [string]: Nomenclature for contigs (Default: assembler´s name)
 * *--norename*: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
@@ -160,21 +158,26 @@ The command for running SqueezeMeta has the following syntax:
 * *-db* [file]: Specifies the location of a new taxonomy database (in Diamond format, .dmnd)
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
-* *--nopfam*: Skip Pfam assignment (Default: no) 
+* *--nopfam*: Skip Pfam assignment (Default: no)
+* *--fastnr*: Run DIAMOND in --fast mode for taxonomic assignment (Default: no)
 * *--euk*: Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic population is relevant, as it will yield more annotations. See the manual for details
 * *-consensus* [float]: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
 * *-extdb* [path]: List of additional user-provided databases for functional annotations. More information can be found in the manual
-* *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no) 
+* *--D*|*--doublepass*: Run BlastX ORF prediction in addition to Prodigal (Default: no)
  
 *Mapping* 
-* *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie) 
+* *-map* [bowtie,bwa,minimap2-ont,minimap2-pb,minimap2-sr]: Read mapper (Default: bowtie)
 * *-mapping_options* [string]: Extra options for the mapper (refer to the manual of the specific mapper). Please provide all the extra options as a single quoted string (e.g. _-mapping_options “--opt1 foo --opt2 bar”_)
 
 *Binning*
-* *--nobins*: Skip all binning  (Default: no). Overrides -binners 
-* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat, concoct)  (Default: concoct,metabat)
+* *--nobins*: Skip all binning  (Default: no). Overrides -binners
+* *--onlybins*: Run only assembly, binning and bin statistics (including GTDB-Tk if requested) (Default: no)
+* *-binners* [string]: Comma-separated list with the binning programs to be used (available: maxbin, metabat2, concoct)  (Default: concoct,metabat2)
 * *-taxbinmode* [string]: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
-* *-extbins* [path]: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps.
+* *--nomarkers*: Skip retrieval of universal marker genes from bins. Note that, while this precludes recalculation of bin completeness/contamination in SQMtools for bin refining, you will still get completeness/contamination estimates of the original bins obtained in SqueezeMeta
+* *--gtdbtk*: Run GTDB-Tk to classify the bins. Requires a working GTDB-Tk installation available in your environment
+* *-gtdbtk_data_path* [path]: Path to the GTDB database, by default it is assumed to be present in `/path/to/SqueezeMeta/db/gtdb`
+* *-extbins* [path]: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps
 
 *Performance* 
 * *-t* [number]: Number of threads (Default:12) 
@@ -215,7 +218,7 @@ Sample3	readfileD_1.fastq	pair1	noassembly
 Sample3	readfileD_2.fastq	pair2	noassembly
 ```
 
-The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the `noassembly` value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Similarly, an extra column with the `nobinning` value can be included in order to avoid using those samples for binning. Notice that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped.
+The first column indicates the sample id (this will be the project name in sequential mode), the second contains the file names of the sequences, and the third specifies the pair number of the reads. A fourth optional column can take the `noassembly` value, indicating that these sample must not be assembled with the rest (but will be mapped against the assembly to get abundances). This is the case for RNAseq reads that can hamper the assembly but we want them mapped to get transcript abundance of the genes in the assembly. Similarly, an extra column with the `nobinning` value can be included in order to avoid using those samples for binning. Notice that a sample can have more than one set of paired reads. The sequence files can be in fastq or fasta format, and can be gzipped. If a sample contains paired libraries, it is the user's responsability to make sure that the forward and reverse files are truly paired (i.e. they contain the same number of reads in the same order). Some quality filtering / trimming tools may produce unpaired filtered fastq files from paired input files (particularly if run without the right parameters). This may result in SqueezeMeta failing or producing incorrect results.
 
 ### Restart
 
@@ -353,6 +356,7 @@ Additionally, SqueezeMeta redistributes the following third-party software:
 * [CONCOCT](https://github.com/BinPro/CONCOCT)
 * [DAS tool](https://github.com/cmks/DAS_Tool)
 * [checkm](http://ecogenomics.github.io/CheckM)
+* [checkm2](https://github.com/chklovski/CheckM2/)
 * [comparem](https://github.com/dparks1134/CompareM)
 * [MinPath](http://omics.informatics.indiana.edu/MinPath)
 * [RDP classifier](https://github.com/rdpstaff/classifier)

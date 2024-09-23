@@ -269,32 +269,32 @@ foreach my $tfile(@taxfiles) {
 
 			if(($percas>=$minconsperc_asig9) && ($perctotal>=$minconsperc_total9) && ($totalcount>=$mingenes9) && ($times>$times2)) { 
 	
-				#-- Calculation of disparity for this rank
-				my($chimera,$nonchimera,$unknown)=0;
-				foreach my $orf(sort keys %{ $orfs{$contig} }) { 
-					my $ttax=$taxlist{$contig}{$rank}{$orf}; 
-					foreach my $orf2(sort keys %{ $orfs{$contig} }) { 
-						my $ttax2=$taxlist{$contig}{$rank}{$orf2}; 
-						next if($orf ge $orf2);
-						if($chimeracheck{$orf}{$orf2} eq "chimera") {	#-- If it was a chimera in previous ranks, it is a chimera now
-						#	if($contig eq "3539") { print "$rank $orf $orf2 -> Previous chimera\n"; }
-							$chimera++;
-							next;
-						}	
-						if($chimeracheck{$orf}{$orf2} eq "unknown") {	#-- If it was an unknown in previous ranks, it is a unknown now
-						#	 if($contig eq "3539") { print "$rank $orf $orf2 -> Previous unknown\n"; }
-							$unknown++;
-							next;
-						}						
-						if(($ttax && (!$ttax2)) || ($ttax2 && (!$ttax)) || ((!$ttax2) && (!$ttax))) { $chimeracheck{$orf}{$orf2}="unknown"; } #-- Unknown when one of the ORFs has no classification at this rank
-						elsif($ttax eq $ttax2) { $chimeracheck{$orf}{$orf2}="nochimera"; $nonchimera++; }
-						else { $chimeracheck{$orf}{$orf2}="chimera"; $chimera++; }
-						}
-				}
-
-
-				my $totch=$chimera+$nonchimera;
-				if($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
+				##-- Calculation of disparity for this rank
+				#my($chimera,$nonchimera,$unknown)=0;
+				#foreach my $orf(sort keys %{ $orfs{$contig} }) { 
+				#	my $ttax=$taxlist{$contig}{$rank}{$orf}; 
+				#	foreach my $orf2(sort keys %{ $orfs{$contig} }) { 
+				#		my $ttax2=$taxlist{$contig}{$rank}{$orf2}; 
+				#		next if($orf ge $orf2);
+				#		if($chimeracheck{$orf}{$orf2} eq "chimera") {	#-- If it was a chimera in previous ranks, it is a chimera now
+				#		#	if($contig eq "3539") { print "$rank $orf $orf2 -> Previous chimera\n"; }
+				#			$chimera++;
+				#			next;
+				#		}	
+				#		if($chimeracheck{$orf}{$orf2} eq "unknown") {	#-- If it was an unknown in previous ranks, it is a unknown now
+				#		#	 if($contig eq "3539") { print "$rank $orf $orf2 -> Previous unknown\n"; }
+				#			$unknown++;
+				#			next;
+				#		}						
+				#		if(($ttax && (!$ttax2)) || ($ttax2 && (!$ttax)) || ((!$ttax2) && (!$ttax))) { $chimeracheck{$orf}{$orf2}="unknown"; } #-- Unknown when one of the ORFs has no classification at this rank
+				#		elsif($ttax eq $ttax2) { $chimeracheck{$orf}{$orf2}="nochimera"; $nonchimera++; }
+				#		else { $chimeracheck{$orf}{$orf2}="chimera"; $chimera++; }
+				#		}
+				# }
+				#
+				#
+				#my $totch=$chimera+$nonchimera;
+				#if($totch) { $chimerism=$chimera/($chimera+$nonchimera); } else { $chimerism=0; }
 				$consensus{$rank}=$mtax; 
 				printf outfile1 "   $rank: $totalas\t$mtax: $times\tDisparity: %.3f\n",$chimerism; 
 
@@ -312,11 +312,29 @@ foreach my $tfile(@taxfiles) {
 			$consensusall{$rank}{perctotal}=$perctotal;
 			$consensusall{$rank}{totalcount}=$totalcount;
 			$consensusall{$rank}{disparity}=$chimerism;
-		
+	
 								      
-			# if($totalas!=$times) { print "***$contig $totalas $times\n"; }
-			# last if(!$consensus{$rank});	#-- And exit if there is no consensus for this rank
 			}
+			
+		my($chimera,$nonchimera,$unknown)=0;
+		my $frank=$strg;
+		foreach my $orf(sort keys %{ $orfs{$contig} }) { 
+			my $ttax=$taxlist{$contig}{$frank}{$orf};
+			my $crank=$consensusall{$frank}{tax};
+			# print "$orf*$frank*$ttax*$crank ";
+			if($ttax && $crank && ($ttax ne $crank)) { 
+				$chimera++; 
+				# print " -> chimera: $chimera $nonchimera\n"; 
+				last; 
+							}
+			else { $nonchimera++; }
+		# print "	-> nonchimera: $chimera $nonchimera\n";
+		}
+
+		my $chimerism=$chimera/($chimera+$nonchimera);
+		
+			
+
 
 		#-- Finally, write the output
 		

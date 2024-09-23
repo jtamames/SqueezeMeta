@@ -11,6 +11,7 @@ use Cwd;
 use Linux::MemInfo;
 use lib "."; 
 use Term::ANSIColor qw(:constants);
+use File::Basename;
 
 $|=1;
 
@@ -24,13 +25,13 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($datapath,$installpath,$userdir,$assembler,$outassembly,$mode,$megahit_soft,$assembler_options,$extassembly,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile,$norename,$force_overwrite);
+our($datapath,$installpath,$userdir,$assembler,$outassembly,$mode,$megahit_soft,$assembler_options,$extassembly,$extbins,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$binresultsdir, $contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile,$norename,$force_overwrite);
 
 my($seqformat,$gzipped,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name,%extassemblies,%datasamples);
 
 my $assemblerdir="$installpath/lib/SqueezeMeta";
 
-if((-e $contigsfna) && (-e $contigslen) && (!$force_overwrite)) { print "  Assembly results already present in file $contigsfna, skipping\n"; exit; }
+#if((-e $contigsfna) && (-e $contigslen) && (!$force_overwrite)) { print "  Assembly results already present in file $contigsfna, skipping\n"; exit; }
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
@@ -45,7 +46,7 @@ open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for
 		my($sample,$file,$iden,$mapreq)=split(/\t/,$_);
 		if($mapreq!~/noassembly/) {
 			if($mapreq=~/extassembly\=(.*)/) { $extassemblies{$sample}=$1; }  #-- Store external assemblies if specified in the samples file
-			elsif(($mode eq "sequential") && ($sample eq $projectname)) { $datasamples{$sample}{$iden}{$file}=1; }  #-- If in sequential mode, only assemble the current sample
+			if(($mode eq "sequential") && ($sample eq $projectname)) { $datasamples{$sample}{$iden}{$file}=1; }  #-- If in sequential mode, only assemble the current sample
 			else { $datasamples{$sample}{$iden}{$file}=1; }
 			}
 		}
@@ -58,8 +59,15 @@ if($extassembly) {
 	print "  External assembly provided: $extassembly. Overriding assembly\n";
 	print outsyslog "  External assembly provided: $extassembly. Overriding assembly\n";
 	if(-e $extassembly) {} else { die "Can't find assembly file $extassembly\n"; }
-	$outassembly=$extassembly; 
 	}
+
+#-- If extbins option was specified, skip all assembly steps
+elsif($extbins) {
+        print "  Directory with external bins provided: $extbins. Overriding assembly\n";
+        print outsyslog "  Directory with external bins provided: $extbins. Overriding assembly\n";
+        if(-d $extbins) {} else { die "Can't find bin directory $extbins\n"; }
+        }
+
 
 #-- Otherwise, assembly all samples
 
@@ -68,7 +76,7 @@ elsif($mode ne "coassembly") {		#-- Sequential, merged, seqmerge or clustered: A
 	for my $asamples(sort keys %datasamples) {
 		next if(($mode eq "sequential") && ($projectname ne $asamples));
 		if($extassemblies{$asamples}) { 
-			$outassembly=$extassembly; 
+			$extassembly=$extassemblies{$asamples}; 
 			print "  External assembly provided: $extassembly. Overriding assembly\n";
 			print outsyslog "  External assembly provided: $extassembly. Overriding assembly\n";
 			if(-e $extassembly) {} else { die "Can't find assembly file $extassembly\n"; }
@@ -128,7 +136,7 @@ elsif($mode ne "coassembly") {		#-- Sequential, merged, seqmerge or clustered: A
 			#-- Call the assemblers	
 			
 			my $provname="$interdir/01.$asamples.fasta";
-			if((-e $provname) && (!$force_overwrite)) { print "  Assembly results already present in file $provname, skipping\n"; }
+			if (0) {} #if((-e $provname) && (!$force_overwrite)) { print "  Assembly results already present in file $provname, skipping\n"; }
 			else {
 				if($mode eq "sequential") { $projectname=$asamples; }
 				if($p2) { assembly($projectdir,$asamples,$filen1,$filen2); } else { assembly($projectdir,$asamples,$filen1); }
@@ -239,6 +247,7 @@ if(($mode eq "merged") || ($mode eq "seqmerge")) {
 if($mode eq "clustered") { system("cat $interdir/01*fasta > $contigsfna"); }
 
 if($extassembly) { system("cp $extassembly $contigsfna"); }
+elsif($extbins) {}
 elsif(-e $contigsfna) {
 	$command="$prinseq_soft -fasta $contigsfna -min_len $mincontiglen -out_good $resultpath/prinseq; mv $resultpath/prinseq.fasta $contigsfna > /dev/null 2>&1";
 	print "  Running prinseq (Schmieder et al 2011, Bioinformatics 27(6):863-4) for selecting contigs longer than $mincontiglen \n";
@@ -249,32 +258,63 @@ elsif(-e $contigsfna) {
 	}
 else { die "Assembly not present in $contigsfna, exiting\n"; }	
 	
-#-- Standardization of contig names
+#-- Standardization of contig names (and creating assembly file and bin files if using $extbins)
 
-if(!$norename) {
-	print "  Renaming contigs in $contigsfna\n";
-	open(infile1,$contigsfna) || die "Can't open $contigsfna\n";
-	my $provcontigs="$tempdir/contigs.prov";
-	open(outfile1,">$provcontigs") || die "Can't open $provcontigs for writing\n";
-	my $cocount;
-	# if(!$contigid) { $contigid="$assembler"; }
-	# if(!$contigid) { $contigid=$projectname; }	#-- Change for accomodating COMBINED mode. Instead of the name of the assembler, we use the sample's name
+if(!$norename) { print "  Renaming contigs in $contigsfna\n"; }
+my $provcontigs="$tempdir/contigs.prov";
+open(outfile1,">$provcontigs") || die "Can't open $provcontigs for writing\n";
+
+# What are our input files? Only $contigsfna, unless we are running in -extbins mode
+
+my @fastafiles;
+if(!$extbins) { @fastafiles = ($contigsfna); }
+else {
+	@fastafiles = glob("$extbins/*");
+	if (scalar @fastafiles < 1) { die "No files were found in $extbins\n"; }
+}
+
+# Now process them, changing the contig names if needed
+my $cocount;
+my ($binfile, $path, $suffix);
+my $assembler2 = $assembler;
+if($assembler2 eq "spades-base") { $assembler2 = "spades"; }
+for(@fastafiles) {
+	open(infile1,$_) || die "Can't open $_\n";
+	if($extbins) {
+		($binfile,$path,$suffix) = fileparse($_, qr/\.[^.]*/);
+		$binfile = "$binfile.fa"; # Ensure fa extension for compatibility with step 17
+		$binfile = "$binresultsdir/$binfile";
+		open(outfileB,">$binfile") || die "Can't open $binfile for writing\n";
+		}
 	while(<infile1>) {
 		chomp;
 		next if !$_;
 		if($_=~/^\>([^ ]+)/) {
 			my @fd=split(/\_/,$1); 
-			if($mode eq "clustered") { $contigid=$fd[$#fd]; } else { $contigid=$assembler; }
 			$cocount++;
-			my $newcontigname="$contigid\_$cocount";
-			print outfile1 ">$newcontigname\n";
+			my $newcontigname;
+			if($norename)                 { $newcontigname = $_;                      }
+			elsif($contigid)              { $newcontigname=">$contigid\_$cocount";    }
+			#elsif($extassembly||$extbins) { $newcontigname=">contig\_$cocount";       }
+			#elsif($mode eq "clustered")   { $newcontigname=">$fd[$#fd]\_$cocount";    }
+			#elsif($mode eq "merged")      { $newcontigname=">merged\_$cocount";       }
+			#elsif($mode eq "seqmerge")    { $newcontigname=">seqmerge\_$cocount";     }
+			#else                          { $newcontigname=">$assembler2\_$cocount";  }
+			else                          { $newcontigname=">$projectname\_$cocount"; }
+			print outfile1 "$newcontigname\n";
+			if($extbins) { print outfileB "$newcontigname\n"; }
 			}
-		else { print outfile1 "$_\n"; }
+		else {
+			print outfile1 "$_\n"; 
+			if($extbins) { print outfileB "$_\n"; }
+			}
 		}
 	close infile1;
-	close outfile1;
-	system("mv $provcontigs $contigsfna");
+	if($extbins) { close outfileB; }
 	}
+close outfile1;
+system("mv $provcontigs $contigsfna");
+
 
 #-- Run prinseq_lite for statistics
 

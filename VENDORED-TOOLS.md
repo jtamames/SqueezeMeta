@@ -51,6 +51,9 @@ SqueezeMeta redistributes the following third-party software:
 * [checkm](http://ecogenomics.github.io/CheckM)
   - Work within the SQM directory structure
   - Port to python3
+* [checkm2](https://github.com/chklovski/CheckM2)
+  - Work within the SQM directory structure
+  - Work with newer versions of pandas, scikit-learn
 * [comparem](https://github.com/dparks1134/CompareM)
   - Work within the SQM directory structure
   - Port to python3
@@ -65,3 +68,5 @@ SqueezeMeta redistributes the following third-party software:
 * [SAMtools](http://samtools.sourceforge.net/)
 * [Mothur](https://mothur.org/)
 * [Flye](https://github.com/fenderglass/Flye)
+* [POGENOM](https://github.com/EnvGen/POGENOM)
+  - Only includes the pogenom.pl script, without modifications

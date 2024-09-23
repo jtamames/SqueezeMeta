@@ -4,7 +4,7 @@
 #'
 #' Original code was kindly provided by Giuseppe D'Auria (dauria_giu@gva.es).
 #'
-#' @param SQM A SQM or SQMlite object.
+#' @param SQM A SQM, SQMbunch or SQMlite object.
 #' @param output_name character. Name of the output file containing the Krona charts in html format (default \code{"<project_name>.krona.html")}.
 #' @return No return value, but a krona chart is produced in the current working directory.
 #' @seealso \code{\link{plotTaxonomy}} for plotting the most abundant taxa of a SQM object.
@@ -23,7 +23,7 @@ exportKrona = function(SQM, output_name = NA)
     {
 
     # Check params.
-    if(!inherits(SQM, c('SQM', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
+    if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
 
 
     # Check that kronatools is present.

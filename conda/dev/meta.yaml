@@ -1,15 +1,15 @@
 package:
   name: squeezemeta-dev
-  version: "1.6.3.beta3"
+  version: "1.7.0.beta3"
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
-  git_tag: master
+  git_tag: develop
 
 requirements:
   build:
     - python==3.10
-    - r=3.6
+    - r-base==4.1.3
     - r-ggplot2
     - r-reshape2
     - r-doMC
@@ -19,7 +19,7 @@ requirements:
     - perl-app-cpanminus
     - setuptools
     - cython >=0.19.1
-    - numpy==1.25.0
+    - numpy >=1.9.0
     - scipy >=0.12.0
     - pandas >=0.11.0
     - biopython >=1.62b
@@ -27,27 +27,34 @@ requirements:
     - nose >=1.3.0
     - gsl
     - openmp
-    - samtools==1.11
+    - samtools
     - blas=*=mkl # To avoid openmp
     - readline=8
+    - pydantic >=1.9.2,<2.0a1 # Add gtdb-tk, mOTUlizer and superpang python reqs in build
+    - tqdm >=4.35.0           #  since they will be installed with pip but we'd rather have their deps installed through conda
+    - dendropy >=4.1.0
+    - graph-tool
+    - mappy
+    - python-igraph
+      #- igraph==0.10.8 # Required by mOTUlizer but missing in conda apparently
   run:
     # Packages originally specified in the template
-    - python==3.10.2
-    - setuptools==68.1.2
+    - python==3.10.8
+    - setuptools==68.2.2
     - cython >=0.19.1
-    - numpy==1.25.2
+    - numpy==1.26.2
     - scipy >=0.12.0
     - pandas >=0.11.0
     - biopython >=1.62b
     - scikit-learn >=0.18.0
     - nose >=1.3.0
-    - gsl==2.6
+    - gsl # last time I checked we need v2.7 from conda-forge (the one from anaconda will fail)
     - openmp==8.0.1
-    - samtools==1.11
+    - samtools==1.18
     - blas==1.0
     - future==0.18.3
-    - matplotlib==3.7.2
-    - dendropy==4.6.1
+    - matplotlib==3.8.2
+    - dendropy >=4.1.0
     - pysam==0.20.0
     - biopython==1.81
     - perl==5.26.2
@@ -55,46 +62,118 @@ requirements:
     - perl-dbd-mysql==4.046
     - perl-dbd-sqlite==1.64
     - perl-lwp-simple==6.15
+    - perl-list-moreutils==0.428
     - perl-xml-libxml==2.0132
     - perl-xml-parser==2.44_01
-    - openjdk==11.0.9.1
+    - openjdk==17.0.3
     - ruby==2.5.7
-    - r==3.6
-    - r-ggplot2==3.3.3
+    - r-base==4.1.3
+    - r-ggplot2==3.4.2
     - r-reshape2==1.4.4
     - r-doMC
-    - r-data.table==1.14.0
-    - bioconductor-pathview==1.26.0
+    - r-data.table==1.14.8
+    - bioconductor-pathview==1.34.0
     - tree==2.1.1
-    - readline==8.1
+    - readline==8.2
     - krona==2.8.1
+    # SQUEEZEMETA BINARIES
+    - spades==3.15.5
+    - mothur==1.48.0
+    - kmer-db==1.11.1
+    - metabat2==2.15
+    - bowtie2==2.5.1
+    # GTDBTK
+    - pplacer==1.1.alpha19
+    - prodigal==2.6.3
+    - pydantic >=1.9.2,<2.0a1
+    - mash==2.3
+    - libopenblas==0.3.25
+    - fasttree==2.1.11
+    - hmmer==3.4
+    - tqdm >=4.35.0
+    - skani==0.2.1
+    # SUPERPANG/mOTUlizer
+    - graph-tool==2.45
+    - minimap2==2.26
+    - mappy==2.26
+    #- igraph==0.10.8 # Required by mOTUlizer but missing in conda apparently, should get installed during build
+    - python-igraph==0.10.2
+    - fastani==1.34
+    # PANGENOME PIPELINE
+    - nextflow==24.04.2
+    - seqtk >=1.4
+    - bedtools==2.31.1
+    # POGENOM
+    - vcflib==1.0.1
+    - picard==3.1.1
+    - freebayes==1.3.6
+    # CHECKM2
+    - tensorflow==2.11.0
+    - lightgbm==3.2.1
     # Extra dependencies
     - _sysroot_linux-64_curr_repodata_hack==3
-    - bioconductor-annotationdbi==1.48.0
-    - bioconductor-biobase==2.46.0
-    - bioconductor-biocgenerics==0.32.0
-    - bioconductor-biostrings==2.54.0
-    - bioconductor-graph==1.64.0
-    - bioconductor-iranges==2.20.0
-    - bioconductor-kegggraph==1.46.0
-    - bioconductor-keggrest==1.26.0
-    - bioconductor-org.hs.eg.db==3.10.0
-    - bioconductor-rgraphviz==2.30.0
-    - bioconductor-s4vectors==0.24.0
-    - bioconductor-xvector==0.26.0
-    - bioconductor-zlibbioc==1.32.0
+    - absl-py==2.1.0
+    - aiohttp==3.9.5
+    - aiosignal==1.3.1
+    - arpack==3.7.0
+    - astunparse==1.6.3
+    - async-timeout==4.0.3
+    - at-spi2-atk==2.38.0
+    - at-spi2-core==2.40.3
+    - atk-1.0==2.38.0
+    - attr==2.5.1
+    - attrs==23.2.0
+    - bioconductor-annotationdbi==1.56.2
+    - bioconductor-biobase==2.54.0
+    - bioconductor-biocgenerics==0.40.0
+    - bioconductor-biostrings==2.62.0
+    - bioconductor-genomeinfodb==1.30.1
+    - bioconductor-genomeinfodbdata==1.2.7
+    - bioconductor-graph==1.72.0
+    - bioconductor-iranges==2.28.0
+    - bioconductor-kegggraph==1.54.0
+    - bioconductor-keggrest==1.34.0
+    - bioconductor-org.hs.eg.db==3.14.0
+    - bioconductor-rgraphviz==2.38.0
+    - bioconductor-s4vectors==0.32.4
+    - bioconductor-xvector==0.34.0
+    - bioconductor-zlibbioc==1.40.0
+    - blast==2.15.0
     - blast-legacy==2.2.26
+    - blinker==1.8.2
+    - boost==1.74.0
     - boost-cpp==1.74.0
     - brotli==1.1.0
     - brotli-bin==1.1.0
     - brotli-python==1.1.0
     - bwidget==1.9.14
+    - cached-property==1.5.2
+    - cached_property==1.5.2
+    - cachetools==5.3.3
     - cairo==1.16.0
-    - charset-normalizer==3.2.0
-    - contourpy==1.1.0
-    - cycler==0.11.0
-    - cython==3.0.2
+    - cairomm==1.14.4
+    - cairomm-1.0==1.14.4
+    - capnproto==0.10.2
+    - cffi==1.16.0
+    - charset-normalizer==3.3.2
+    - click==8.1.7
+    - colorama==0.4.6
+    - concoct==1.1.0
+    - contourpy==1.2.0
+    - coreutils==9.4
+    - cryptography==39.0.0
+    - cuda-version==11.8
+    - cudatoolkit==11.8.0
+    - cudnn==8.9.7.29
+    - cycler==0.12.1
+    - cython==3.0.6
+    - dendropy==4.6.1
+    - diamond==2.0.15
+    - entrez-direct==21.6
+    - epoxy==1.5.10
     - expat==2.5.0
+    - fftw==3.3.10
+    - flatbuffers==22.12.06
     - font-ttf-dejavu-sans-mono==2.37
     - font-ttf-inconsolata==3.000
     - font-ttf-source-code-pro==2.038
@@ -102,248 +181,314 @@ requirements:
     - fontconfig==2.14.2
     - fonts-conda-ecosystem==1
     - fonts-conda-forge==1
-    - fonttools==4.42.1
+    - fonttools==4.46.0
     - freetype==2.12.1
     - fribidi==1.0.10
+    - frozenlist==1.4.1
+    - gast==0.4.0
     - gdbm==1.18
+    - gdk-pixbuf==2.42.8
     - gettext==0.21.1
     - giflib==5.2.1
-    - gmp==6.2.1
+    - glpk==5.0
+    - gmp==6.3.0
+    - google-auth==2.29.0
+    - google-auth-oauthlib==0.4.6
+    - google-pasta==0.2.0
+    - graph-tool-base==2.45
     - graphite2==1.3.13
-    - gst-plugins-base==1.18.5
-    - gstreamer==1.18.5
-    - gxx_impl_linux-64==9.5.0
-    - gxx_linux-64==9.5.0
-    - harfbuzz==2.9.1
-    - hdf5==1.10.6
-    - htslib==1.11
-    - idna==3.4
+    - grpcio==1.51.1
+    - gsl==2.7
+    - gst-plugins-base==1.20.3
+    - gstreamer==1.20.3
+    - gtk3==3.24.35
+    - gxx_impl_linux-64==13.2.0
+    - h5py==3.7.0
+    - harfbuzz==5.3.0
+    - hdf5==1.12.1
+    - hicolor-icon-theme==0.17
+    - htslib==1.17
+    - idna==3.7
+    - importlib-metadata==7.1.0
     - intel-openmp==2022.1.0
+    - jack==1.9.21
     - joblib==1.3.2
     - jpeg==9e
+    - k8==0.2.5
+    - keras==2.11.0
+    - keras-preprocessing==1.1.2
     - kernel-headers_linux-64==3.10.0
-    - keyutils==1.6.1
     - kiwisolver==1.4.5
-    - kmer-db==1.11.1
+    - lame==3.100
     - lcms2==2.14
-    - ld_impl_linux-64==2.39
+    - ld_impl_linux-64==2.40
+    - libabseil==20220623.0
     - libblas==3.9.0
     - libbrotlicommon==1.1.0
     - libbrotlidec==1.1.0
     - libbrotlienc==1.1.0
+    - libcap==2.66
     - libcblas==3.9.0
-    - libclang==11.1.0
-    - libedit==3.1.20191231
+    - libclang==14.0.6
+    - libclang13==14.0.6
+    - libcups==2.3.3
+    - libdb==6.2.32
+    - libedit==3.1.20221030
     - libev==4.33
     - libevent==2.1.10
     - libexpat==2.5.0
-    - libgcc-devel_linux-64==9.5.0
-    - libgcc-ng==13.1.0
-    - libgfortran-ng==13.1.0
-    - libgfortran5==13.1.0
-    - libglib==2.76.4
-    - libgomp==13.1.0
+    - libflac==1.4.3
+    - libgcc-devel_linux-64==13.2.0
+    - libgcc-ng==13.2.0
+    - libgfortran-ng==13.2.0
+    - libgfortran5==13.2.0
+    - libgirepository==1.74.0
+    - libglib==2.74.1
+    - libgomp==13.2.0
+    - libgrpc==1.51.1
+    - libhwloc==2.8.0
     - libiconv==1.17
+    - libidn2==2.3.7
     - liblapack==3.9.0
-    - libllvm11==11.1.0
+    - libllvm14==14.0.6
     - libnghttp2==1.51.0
-    - libnsl==2.0.0
+    - libnsl==2.0.1
     - libogg==1.3.4
-    - libopenblas==0.3.24
     - libopus==1.3.1
     - libpng==1.6.39
-    - libsanitizer==9.5.0
-    - libsqlite==3.43.0
+    - libprotobuf==3.21.12
+    - librsvg==2.54.4
+    - libsanitizer==13.2.0
+    - libsndfile==1.1.0
+    - libsqlite==3.44.2
     - libssh2==1.10.0
-    - libstdcxx-devel_linux-64==9.5.0
-    - libstdcxx-ng==13.1.0
+    - libstdcxx-devel_linux-64==13.2.0
+    - libstdcxx-ng==13.2.0
     - libtiff==4.4.0
+    - libtool==2.4.7
+    - libudev1==253
+    - libunistring==0.9.10
     - libvorbis==1.3.7
-    - libwebp==1.2.4
-    - libwebp-base==1.2.4
+    - libwebp-base==1.3.2
     - libzlib==1.2.13
     - llvm-openmp==8.0.1
     - make==4.3
-    - matplotlib-base==3.7.2
-    - metabat2==2.12.1
+    - markdown==3.6
+    - markupsafe==2.1.5
+    - matplotlib-base==3.8.2
+    - metis==5.1.0
     - mkl==2022.1.0
-    - mothur==1.47.0
+    - mpfr==4.2.1
+    - mpg123==1.31.3
+    - mpi==1.0
+    - multidict==6.0.5
     - munkres==1.1.4
     - mysql-common==8.0.32
     - mysql-connector-c==6.1.11
     - mysql-libs==8.0.32
-    - ncbi-vdb==3.0.7
-    - ncurses==6.2
+    - ncbi-vdb==3.0.9
+    - nccl==2.21.5.1
+    - ncurses==6.4
     - nose==1.3.7
     - nspr==4.35
-    - nss==3.92
-    - openblas==0.3.24
+    - nss==3.95
+    - oauthlib==3.2.2
+    - openblas==0.3.25
+    - openjpeg==2.5.0
+    - openmpi==4.1.6
+    - opt_einsum==3.3.0
     - ossuuid==1.6.2
-    - packaging==23.1
-    - pandas==2.1.0
-    - pango==1.48.10
+    - packaging==23.2
+    - pandas==2.1.3
+    - pango==1.50.12
+    - parallel==20231122
     - pcre==8.45
-    - pcre2==10.40
+    - pcre2==10.37
     - perl-app-cpanminus==1.7044
+    - perl-archive-tar==2.32
     - perl-business-isbn==3.004
     - perl-business-isbn-data==20140910.003
     - perl-carp==1.38
+    - perl-common-sense==3.74
+    - perl-compress-raw-bzip2==2.087
+    - perl-compress-raw-zlib==2.087
     - perl-constant==1.33
     - perl-data-dumper==2.173
     - perl-dbi==1.642
     - perl-encode==2.88
     - perl-encode-locale==1.05
     - perl-exporter==5.72
+    - perl-exporter-tiny==1.002001
     - perl-extutils-makemaker==7.36
     - perl-file-path==2.16
     - perl-file-temp==0.2304
+    - perl-io-compress==2.087
+    - perl-io-zlib==1.10
+    - perl-json==4.02
+    - perl-json-xs==2.34
+    - perl-list-moreutils-xs==0.428
     - perl-mime-base64==3.15
     - perl-parent==0.236
+    - perl-pathtools==3.75
+    - perl-scalar-list-utils==1.52
+    - perl-types-serialiser==1.0
     - perl-uri==1.76
     - perl-xml-namespacesupport==1.12
     - perl-xml-sax==1.02
     - perl-xml-sax-base==1.09
     - perl-xsloader==0.24
-    - pillow==9.3.0
-    - pip==23.2.1
-    - pixman==0.40.0
-    - platformdirs==3.10.0
-    - pooch==1.7.0
+    - pillow==9.2.0
+    - pip==23.3.1
+    - pixman==0.42.2
+    - ply==3.11
+    - protobuf==4.21.12
     - pthread-stubs==0.4
-    - pyparsing==3.0.9
-    - pyqt==5.12.3
-    - pyqt-impl==5.12.3
-    - pyqt5-sip==4.19.18
-    - pyqtchart==5.12
-    - pyqtwebengine==5.12.1
+    - pulseaudio==14.0
+    - pyasn1==0.6.0
+    - pyasn1-modules==0.4.0
+    - pycairo==1.25.0
+    - pycparser==2.21
+    - pydantic==1.10.13
+    - pygobject==3.44.1
+    - pyjwt==2.8.0
+    - pyopenssl==23.2.0
+    - pyparsing==3.1.1
+    - pyqt==5.15.7
+    - pyqt5-sip==12.11.0
     - pysocks==1.7.1
     - python-dateutil==2.8.2
+    - python-flatbuffers==24.3.25
     - python-tzdata==2023.3
     - pytz==2023.3.post1
-    - qt==5.12.9
+    - pyu2f==0.1.5
+    - qt-main==5.15.6
     - r-askpass==1.1
-    - r-assertthat==0.2.1
-    - r-backports==1.2.1
-    - r-base==3.6.3
-    - r-bit==4.0.4
+    - r-bit==4.0.5
     - r-bit64==4.0.5
     - r-bitops==1.0_7
-    - r-blob==1.2.1
-    - r-boot==1.3_28
-    - r-brio==1.1.2
-    - r-cachem==1.0.5
-    - r-callr==3.7.0
-    - r-class==7.3_19
-    - r-cli==2.5.0
-    - r-cluster==2.1.2
-    - r-codetools==0.2_18
-    - r-colorspace==2.0_1
-    - r-crayon==1.4.1
-    - r-curl==4.3.1
-    - r-dbi==1.1.1
-    - r-desc==1.3.0
-    - r-diffobj==0.3.4
-    - r-digest==0.6.27
-    - r-domc==1.3.7
+    - r-blob==1.2.4
+    - r-cachem==1.0.8
+    - r-cli==3.6.1
+    - r-codetools==0.2_19
+    - r-colorspace==2.1_0
+    - r-cpp11==0.4.3
+    - r-crayon==1.5.2
+    - r-curl==4.3.3
+    - r-dbi==1.1.3
+    - r-domc==1.3.8
     - r-ellipsis==0.3.2
-    - r-evaluate==0.14
-    - r-fansi==0.4.2
-    - r-farver==2.1.0
-    - r-fastmap==1.1.0
-    - r-foreach==1.5.1
-    - r-foreign==0.8_76
-    - r-glue==1.4.2
-    - r-gtable==0.3.0
-    - r-httr==1.4.2
-    - r-isoband==0.2.4
-    - r-iterators==1.0.13
-    - r-jsonlite==1.7.2
-    - r-kernsmooth==2.23_20
+    - r-fansi==1.0.4
+    - r-farver==2.1.1
+    - r-fastmap==1.1.1
+    - r-foreach==1.5.2
+    - r-glue==1.6.2
+    - r-gtable==0.3.3
+    - r-httr==1.4.6
+    - r-isoband==0.2.7
+    - r-iterators==1.0.14
+    - r-jsonlite==1.8.5
     - r-labeling==0.4.2
-    - r-lattice==0.20_44
-    - r-lifecycle==1.0.0
-    - r-magrittr==2.0.1
-    - r-mass==7.3_54
-    - r-matrix==1.3_3
-    - r-memoise==2.0.0
-    - r-mgcv==1.8_35
-    - r-mime==0.10
+    - r-lattice==0.21_8
+    - r-lifecycle==1.0.3
+    - r-magrittr==2.0.3
+    - r-mass==7.3_58.3
+    - r-matrix==1.5_4.1
+    - r-memoise==2.0.1
+    - r-mgcv==1.8_42
+    - r-mime==0.12
     - r-munsell==0.5.0
-    - r-nlme==3.1_152
-    - r-nnet==7.3_16
-    - r-openssl==1.4.4
-    - r-pillar==1.6.1
+    - r-nlme==3.1_162
+    - r-openssl==2.0.5
+    - r-pillar==1.9.0
     - r-pkgconfig==2.0.3
-    - r-pkgload==1.2.1
     - r-plogr==0.2.0
-    - r-plyr==1.8.6
-    - r-png==0.1_7
-    - r-praise==1.0.0
-    - r-processx==3.5.2
-    - r-ps==1.6.0
-    - r-r6==2.5.0
-    - r-rcolorbrewer==1.1_2
-    - r-rcpp==1.0.6
-    - r-rcurl==1.98_1.3
-    - r-recommended==3.6
-    - r-rematch2==2.1.2
-    - r-rlang==0.4.11
-    - r-rpart==4.1_15
-    - r-rprojroot==2.0.2
-    - r-rsqlite==2.2.5
-    - r-rstudioapi==0.13
-    - r-scales==1.1.1
-    - r-spatial==7.3_14
-    - r-stringi==1.6.2
-    - r-stringr==1.4.0
-    - r-survival==3.2_11
-    - r-sys==3.4
-    - r-testthat==3.0.2
-    - r-tibble==3.1.2
-    - r-utf8==1.2.1
-    - r-vctrs==0.3.8
-    - r-viridislite==0.4.0
-    - r-waldo==0.2.5
-    - r-withr==2.4.2
-    - r-xml==3.99_0.3
-    - requests==2.31.0
-    - scikit-learn==1.3.0
-    - scipy==1.11.2
+    - r-plyr==1.8.8
+    - r-png==0.1_8
+    - r-r6==2.5.1
+    - r-rcolorbrewer==1.1_3
+    - r-rcpp==1.0.10
+    - r-rcurl==1.98_1.12
+    - r-rlang==1.1.1
+    - r-rsqlite==2.3.1
+    - r-scales==1.2.1
+    - r-stringi==1.7.12
+    - r-stringr==1.5.0
+    - r-sys==3.4.2
+    - r-tibble==3.2.1
+    - r-utf8==1.2.3
+    - r-vctrs==0.6.2
+    - r-viridislite==0.4.1
+    - r-withr==2.5.0
+    - r-xml==3.99_0.11
+    - re2==2022.06.01
+    - requests==2.32.3
+    - requests-oauthlib==2.0.0
+    - rsa==4.9
+    - scikit-learn==1.3.2
+    - scipy==1.11.4
     - sed==4.8
+    - seqtk==1.4
+    - sigcpp-2.0==2.10.8
+    - sip==6.7.12
     - six==1.16.0
-    - spades==3.15.5
-    - sqlite==3.37.0
-    - sra-tools==3.0.7
+    - snappy==1.1.10
+    - sparsehash==2.0.4
+    - sra-tools==3.0.9
+    - suitesparse==5.10.1
+    - tabixpp==1.1.2
+    - tbb==2021.7.0
+    - tensorboard==2.11.2
+    - tensorboard-data-server==0.6.1
+    - tensorboard-plugin-wit==1.8.1
+    - tensorflow-base==2.11.0
+    - tensorflow-estimator==2.11.0
+    - termcolor==2.4.0
+    - texttable==1.7.0
     - threadpoolctl==3.2.0
-    - tk==8.6.12
+    - tk==8.6.13
     - tktable==2.10
+    - toml==0.10.2
+    - tomli==2.0.1
     - tornado==6.3.3
-    - typing-extensions==4.7.1
-    - typing_extensions==4.7.1
+    - tqdm==4.66.1
+    - typing-extensions==4.8.0
+    - typing_extensions==4.8.0
     - tzdata==2023c
-    - unicodedata2==15.0.0
-    - urllib3==2.0.4
+    - unicodedata2==15.1.0
+    - urllib3==2.2.1
     - vsearch==2.15.2
-    - wheel==0.41.2
+    - werkzeug==3.0.3
+    - wget==1.20.3
+    - wheel==0.42.0
+    - wrapt==1.16.0
+    - xcb-util==0.4.0
+    - xcb-util-image==0.4.0
+    - xcb-util-keysyms==0.4.0
+    - xcb-util-renderutil==0.3.9
+    - xcb-util-wm==0.4.1
     - xorg-fixesproto==5.0
     - xorg-inputproto==2.3.2
     - xorg-kbproto==1.0.7
-    - xorg-libice==1.1.1
-    - xorg-libsm==1.2.4
-    - xorg-libx11==1.8.6
+    - xorg-libice==1.0.10
+    - xorg-libsm==1.2.3
+    - xorg-libx11==1.8.4
     - xorg-libxau==1.0.11
     - xorg-libxdmcp==1.1.3
     - xorg-libxext==1.3.4
     - xorg-libxfixes==5.0.3
     - xorg-libxi==1.7.10
-    - xorg-libxrender==0.9.11
+    - xorg-libxrender==0.9.10
+    - xorg-libxt==1.3.0
     - xorg-libxtst==1.2.3
     - xorg-recordproto==1.14.2
     - xorg-renderproto==0.11.1
     - xorg-xextproto==7.3.0
     - xorg-xproto==7.0.31
     - yaml==0.2.5
+    - yarl==1.9.4
+    - zipp==3.17.0
     - zlib==1.2.13
+    - zstandard==0.22.0
 
 build:
   noarch: generic

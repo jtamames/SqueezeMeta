@@ -1,15 +1,15 @@
 package:
   name: squeezemeta-dev
-  version: '1.6.3beta1'
+  version: '1.7.0.alpha1'
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
-  git_tag: develop
+  git_tag: binonly
 
 requirements:
   build:
     - python==3.10
-    - r=3.6
+    - r-base==4.1.3
     - r-ggplot2
     - r-reshape2
     - r-doMC
@@ -19,7 +19,7 @@ requirements:
     - perl-app-cpanminus
     - setuptools
     - cython >=0.19.1
-    - numpy==1.25.0
+    - numpy >=1.9.0
     - scipy >=0.12.0
     - pandas >=0.11.0
     - biopython >=1.62b
@@ -27,26 +27,33 @@ requirements:
     - nose >=1.3.0
     - gsl
     - openmp
-    - samtools==1.11
+    - samtools
     - blas=*=mkl # To avoid openmp
     - readline=8
+    - pydantic >=1.9.2,<2.0a1 # Add gtdb-tk, mOTUlizer and superpang python reqs in build
+    - tqdm >=4.35.0           #  since they will be installed with pip but we'd rather have their deps installed through conda
+    - dendropy >=4.1.0
+    - graph-tool
+    - mappy
+    - python-igraph
+      #- igraph==0.10.8 # Required by mOTUlizer but missing in conda apparently
   run:
     - python=3.10
     - setuptools
     - cython >=0.19.1
-    - {{ pin_compatible('numpy') }}
+    - numpy >=1.9.0
     - scipy >=0.12.0
     - pandas >=0.11.0
     - biopython >=1.62b
     - scikit-learn >=0.18.0
     - nose >=1.3.0
-    - gsl
+    - gsl # last time I checked we need v2.7 from conda-forge (the one from anaconda will fail)
     - openmp
-    - samtools==1.11
+    - samtools
     - blas=*=mkl # To avoid openblas which causes trouble with CONCOCT
     - future
     - matplotlib
-    - dendropy
+    - dendropy >=4.1.0
     - pysam==0.20
     - biopython
     - perl=5.26
@@ -54,11 +61,12 @@ requirements:
     - perl-dbd-mysql
     - perl-dbd-sqlite
     - perl-lwp-simple
+    - perl-list-moreutils
     - perl-xml-libxml
     - perl-xml-parser
     - openjdk
     - ruby=2.5
-    - r=3.6
+    - r-base==4.1.3
     - r-ggplot2
     - r-reshape2
     - r-doMC
@@ -68,10 +76,41 @@ requirements:
     - tree
     - readline=8
     - krona
+    # SQUEEZEMETA BINARIES
     - spades
     - mothur
     - kmer-db
     - metabat2
+    - bowtie2
+    # GTDBTK
+    - pplacer
+    - prodigal
+    - pydantic >=1.9.2,<2.0a1
+    - mash
+    - libopenblas
+    - fasttree
+    - hmmer
+    - tqdm >=4.35.0
+    - skani
+    # SUPERPANG/mOTUlizer
+    - graph-tool
+    - minimap2
+    - mappy
+    #- igraph==0.10.8 # Required by mOTUlizer but missing in conda apparently, should get installed during build
+    - python-igraph
+    - fastani
+    # PANGENOME PIPELINE
+    - nextflow
+    - seqtk >=1.4
+    - bedtools
+    # POGENOM
+    - vcflib==1.0.1
+    - picard
+    - freebayes
+    # CHECKM2
+    - tensorflow
+    - lightgbm==3.2.1
+    - diamond==2.0.15 # 2.1.9 caused segfaults
 
 build:
   noarch: generic

@@ -7,7 +7,7 @@
 exportKrona(SQM, output_name = NA)
 }
 \arguments{
-\item{SQM}{A SQM or SQMlite object.}
+\item{SQM}{A SQM, SQMbunch or SQMlite object.}
 
 \item{output_name}{character. Name of the output file containing the Krona charts in html format (default \code{"<project_name>.krona.html")}.}
 }
