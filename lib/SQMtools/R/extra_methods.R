@@ -244,17 +244,13 @@ get.bin.abunds = function(SQM, track_unmapped=FALSE)
 file.exists.zip = function(project_path, file_path)
     {
     zipmode = endsWith(project_path, '.zip')
-    file_exists = TRUE
-    if(zipmode) { f = unz(project_path, file_path) } else { f = sprintf('%s/%s', project_path, file_path) }
-    if(zipmode)
+    file_exists = FALSE
+    if(zipmode) 
         {
-        res=try(suppressWarnings(scan(f, what = 'character', quiet = TRUE, n = 1)), silent=TRUE)
-        if(inherits(res, 'try-error')) { file_exists = FALSE }
-        close(f)
-        }
-    else
+        if(file_path %in% list.files.zip(project_path, NA)) { file_exists = TRUE }
+    } else
         {
-        if(!file.exists(f)) { file_exists = FALSE }
+        if(file.exists(sprintf('%s/%s', project_path, file_path))) { file_exists = TRUE }
         }
     return(file_exists)
     }
@@ -282,11 +278,17 @@ list.files.zip = function(project_path, dir_path)
     else
         {
         all_files = zip_list(project_path)$filename
-        res = all_files[startsWith(all_files, dir_path)]
-        res = gsub(sprintf('^%s', dir_path), '', res)
-        res = gsub('^/', '', res)
-        res = res[res!='']
-        res = unique(sapply(strsplit(res, '/'), `[`, 1))
+        if(is.na(dir_path))
+            {
+            res = all_files
+        } else
+            {
+            res = all_files[startsWith(all_files, dir_path)]
+            res = gsub(sprintf('^%s', dir_path), '', res)
+            res = gsub('^/', '', res)
+            res = res[res!='']
+            res = unique(sapply(strsplit(res, '/'), `[`, 1))
+            }
         }
     return(res)
     }
