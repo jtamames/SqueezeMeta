@@ -109,6 +109,7 @@ requirements:
     # CHECKM2
     - tensorflow
     - lightgbm==3.2.1
+    - diamond==2.0.15 # 2.1.9 caused segfaults
 
 build:
   noarch: generic
