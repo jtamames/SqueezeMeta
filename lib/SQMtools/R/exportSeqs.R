@@ -5,7 +5,13 @@
 #' @export
 exportContigs = function(SQM, output_name = "")
     {
-    seqvec2fasta(SQM$contigs$seqs, output_name)
+    if(!is.null(SQM$contigs$seqs))
+        {
+        seqvec2fasta(SQM$contigs$seqs, output_name)
+    } else
+        {
+        warning('There are no contig sequences in your SQM project. Did you use `load_sequences = FALSE` when loading it?')
+        }
     }
 
 
@@ -16,6 +22,12 @@ exportContigs = function(SQM, output_name = "")
 #' @export
 exportORFs = function(SQM, output_name = "")
     {
-    seqvec2fasta(SQM$orfs$seqs, output_name)
+    if(!is.null(SQM$orfs$seqs))
+        {
+        seqvec2fasta(SQM$orfs$seqs, output_name)
+    } else
+        {
+        warning('There are no orf sequences in your SQM project. Did you use `load_sequences = FALSE` when loading it?')
+        {
     }
 

@@ -71,8 +71,11 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     combSQM$orfs$tpm                   = rbind(combSQM$orfs$tpm, SQM2$orfs$tpm[extraORFs,,drop=FALSE])
     combSQM$orfs$tpm                   = combSQM$orfs$tpm[rownames(combSQM$orfs$table),,drop=FALSE]
     #    Sequences
-    combSQM$orfs$seqs                  = c(combSQM$orfs$seqs, SQM2$orfs$seqs[extraORFs])
-    combSQM$orfs$seqs                  = combSQM$orfs$seqs[rownames(combSQM$orfs$table)]
+    if(!is.null(combSQM$orfs$seqs))
+        {
+        combSQM$orfs$seqs              = c(combSQM$orfs$seqs, SQM2$orfs$seqs[extraORFs])
+        combSQM$orfs$seqs              = combSQM$orfs$seqs[rownames(combSQM$orfs$table)]
+        }
     #    Taxonomy
     combSQM$orfs$tax                   = rbind(combSQM$orfs$tax, SQM2$orfs$tax[extraORFs,,drop=FALSE])
     combSQM$orfs$tax                   = combSQM$orfs$tax[rownames(combSQM$orfs$table),,drop=FALSE]
@@ -103,8 +106,11 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     combSQM$contigs$tpm                = rbind(combSQM$contigs$tpm, SQM2$contigs$tpm[extraContigs,,drop=FALSE])
     combSQM$contigs$tpm                = combSQM$contigs$tpm[rownames(combSQM$contigs$table),,drop=FALSE]
     #    Sequences
-    combSQM$contigs$seqs               = c(combSQM$contigs$seqs, SQM2$contigs$seqs[extraContigs])
-    combSQM$contigs$seqs               = combSQM$contigs$seqs[rownames(combSQM$contigs$table)]
+    if(!is.null(combSQM$contigs$seqs))
+        {
+        combSQM$contigs$seqs           = c(combSQM$contigs$seqs, SQM2$contigs$seqs[extraContigs])
+        combSQM$contigs$seqs           = combSQM$contigs$seqs[rownames(combSQM$contigs$table)]
+        }
     #    Taxonomy
     combSQM$contigs$tax                = rbind(combSQM$contigs$tax, SQM2$contigs$tax[extraContigs,,drop=FALSE])
     combSQM$contigs$tax                = combSQM$contigs$tax[rownames(combSQM$contigs$table),,drop=FALSE]

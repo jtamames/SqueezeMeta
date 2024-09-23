@@ -48,7 +48,10 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
     subSQM$orfs$cov         = subSQM$orfs$cov  [intersect(presentORFs, rownames(subSQM$orfs$cov   )),samples,drop=FALSE]
     subSQM$orfs$cpm         = subSQM$orfs$cpm  [intersect(presentORFs, rownames(subSQM$orfs$cpm   )),samples,drop=FALSE]
     subSQM$orfs$tpm         = subSQM$orfs$tpm  [intersect(presentORFs, rownames(subSQM$orfs$tpm   )),samples,drop=FALSE]
-    subSQM$orfs$seqs        = subSQM$orfs$seqs [intersect(presentORFs,    names(subSQM$orfs$seqs  )),        drop=FALSE]
+    if(!is.null(subSQM$orfs$seqs))
+        {        
+        subSQM$orfs$seqs    = subSQM$orfs$seqs [intersect(presentORFs,    names(subSQM$orfs$seqs  )),        drop=FALSE]
+        }
     subSQM$orfs$tax         = subSQM$orfs$tax  [intersect(presentORFs, rownames(subSQM$orfs$tax   )),       ,drop=FALSE]
     if('tax16S' %in% names(subSQM$orfs))
         {
@@ -70,7 +73,10 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
     subSQM$contigs$cov   = subSQM$contigs$cov  [intersect(presentContigs, rownames(subSQM$contigs$cov  )),samples,drop=FALSE]
     subSQM$contigs$cpm   = subSQM$contigs$cpm  [intersect(presentContigs, rownames(subSQM$contigs$cpm  )),samples,drop=FALSE]
     subSQM$contigs$tpm   = subSQM$contigs$tpm  [intersect(presentContigs, rownames(subSQM$contigs$tpm  )),samples,drop=FALSE]
-    subSQM$contigs$seqs  = subSQM$contigs$seqs [intersect(presentContigs, rownames(subSQM$contigs$seqs )),        drop=FALSE]
+    if(!is.null(subSQM$contigs$seqs))
+        {
+        subSQM$contigs$seqs  = subSQM$contigs$seqs [intersect(presentContigs, rownames(subSQM$contigs$seqs )),        drop=FALSE]
+        }
     subSQM$contigs$tax   = subSQM$contigs$tax  [intersect(presentContigs, rownames(subSQM$contigs$tax  )),       ,drop=FALSE]
     subSQM$contigs$bins  = subSQM$contigs$bins [intersect(presentContigs, rownames(subSQM$contigs$bins )),       ,drop=FALSE]
     
@@ -415,7 +421,10 @@ subsetORFs_ = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = 
     subSQM$orfs$cpm                   = SQM$orfs$cpm    [orfs    ,,drop=FALSE]
     subSQM$orfs$tpm                   = SQM$orfs$tpm    [orfs    ,,drop=FALSE]
     #    Sequences
-    subSQM$orfs$seqs                  = SQM$orfs$seqs   [orfs]
+    if(!is.null(subSQM$orfs$seqs))
+        { 
+        subSQM$orfs$seqs              = SQM$orfs$seqs   [orfs]
+        }
     subSQM$orfs$tax                   = SQM$orfs$tax    [orfs    ,,drop=FALSE]
     #    Taxonomy
     if('tax16S' %in% names(subSQM$orfs))
@@ -437,7 +446,10 @@ subsetORFs_ = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = 
     subSQM$contigs$cpm                = SQM$contigs$cpm  [contigs,,drop=FALSE]
     subSQM$contigs$tpm                = SQM$contigs$tpm  [contigs,,drop=FALSE]
     #    Sequences
-    subSQM$contigs$seqs               = SQM$contigs$seqs [contigs]
+    if(!is.null(subSQM$contigs$seqs))
+        {
+        subSQM$contigs$seqs           = SQM$contigs$seqs [contigs]
+        }
     #    Taxonomy
     subSQM$contigs$tax                = SQM$contigs$tax  [contigs,,drop=FALSE]
     #    Binning info
