@@ -132,14 +132,14 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
     {
     if(length(project_path) == 1)
         {
-        SQM = loadSQM_(project_path, tax_mode, trusted_functions_only, engine)
+        SQM = loadSQM_(project_path, tax_mode, trusted_functions_only, load_sequences, engine)
     } else
         {
         projs = list()
         for(p in project_path)
             {
             message(sprintf('Loading project in %s', p))
-	    projs = c(projs, list(loadSQM_(p, tax_mode, trusted_functions_only, engine)))
+	    projs = c(projs, list(loadSQM_(p, tax_mode, trusted_functions_only, load_sequences, engine)))
     }
         SQM = combineSQM(projs)
         }
@@ -149,7 +149,7 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', trusted_functions_only
 
 #' @importFrom utils read.table tail
 #' @importFrom stats aggregate
-loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_only = FALSE, engine = 'data.table')
+loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_only = FALSE, load_sequences = TRUE, engine = 'data.table')
     {
     if(!tax_mode %in% c('allfilter', 'prokfilter', 'nofilter'))
         {
@@ -336,9 +336,9 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     goodContigCols                = colnames(SQM$contigs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$contigs$table))]
     SQM$contigs$table             = SQM$contigs$table[,goodContigCols]
 
-    message('    sequences...')
     if(load_sequences)
         {
+        message('    sequences...')
         SQM$contigs$seqs          = read.namedvector.zip(project_path, sprintf('results/tables/%s.contig.sequences.tsv', project_name), engine=engine)
         SQM$contigs$seqs          = SQM$contigs$seqs[rownames(SQM$contigs$table)]
         }

@@ -8,6 +8,7 @@ loadSQM(
   project_path,
   tax_mode = "prokfilter",
   trusted_functions_only = FALSE,
+  load_sequences = TRUE,
   engine = "data.table"
 )
 }
@@ -17,6 +18,8 @@ loadSQM(
 \item{tax_mode}{character, which taxonomic classification should be loaded? SqueezeMeta applies the identity thresholds described in \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4005636/}{Luo \emph{et al.}, 2014}. Use \code{allfilter} for applying the minimum identity threshold to all taxa, \code{prokfilter} for applying the threshold to Bacteria and Archaea, but not to Eukaryotes, and \code{nofilter} for applying no thresholds at all (default \code{prokfilter}).}
 
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}). Will only have an effect if \code{project_path} is not a zip file, and \code{project_path/results/tables} is not already present.}
+
+\item{load_sequences}{logical. If \code{TRUE}, contig and orf sequences will be loaded in the SQM object. Setting it to \code{FALSE} will reduce memory usage. Default \code{TRUE}.}
 
 \item{engine}{character. Engine used to load the ORFs and contigs tables. Either \code{data.frame} or \code{data.table} (significantly faster if your project is large). Default \code{data.table}.}
 }

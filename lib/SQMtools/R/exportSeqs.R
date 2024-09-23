@@ -28,6 +28,6 @@ exportORFs = function(SQM, output_name = "")
     } else
         {
         warning('There are no orf sequences in your SQM project. Did you use `load_sequences = FALSE` when loading it?')
-        {
+        }
     }
 
