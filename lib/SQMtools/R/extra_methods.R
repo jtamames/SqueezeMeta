@@ -60,7 +60,7 @@ rowMaxs = function(table)
     }
 
 
-merge.numeric.matrices = function(m1, m2)
+merge_numeric_matrices = function(m1, m2)
     {
     notIn1 = setdiff(rownames(m2), rownames(m1))
     m1 = rbind(m1, matrix(0, nrow=length(notIn1), ncol=ncol(m1), dimnames=list(notIn1, colnames(m1))))
@@ -119,7 +119,7 @@ file.exists.zip = function(project_path, file_path)
     }
 
 
-open.conn.zip = function(project_path, file_path)
+open_conn_zip = function(project_path, file_path)
     # remember to open/close conns explicitly later after calling this function if needed!
     #  some functions (eg read.table) will open and close the connection by themselves, so there's nothing to be done
     #  others (eg scan) seem to open it but not close it

@@ -183,7 +183,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
 	warning(sprintf('Your project was created with SqueezeMeta v1.5, while this is SQMtools %s. You can ignore this message if things are working fine for you, but if you experience any issue consider using the right version of SQMtools for this project', sqmtools_version)
 	    )
     } else {
-	conn = open.conn.zip(project_path, 'creator.txt')
+	conn = open_conn_zip(project_path, 'creator.txt')
 	project_version = gsub(',','',scan(conn, what = 'character', quiet = T)[2])
 	close(conn)
         if(project_version != sqmtools_version)
@@ -228,7 +228,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     SQM$misc$project_name        = project_name
 
     message('Loading total reads')
-    conn            = open.conn.zip(project_path, sprintf('results/10.%s.mappingstat', project_name))
+    conn            = open_conn_zip(project_path, sprintf('results/10.%s.mappingstat', project_name))
     lines           = readLines(conn)
     close(conn)
     evilLines       = (substr(lines,1,1) == '#' & substr(lines,1,8) != '# Sample') | substr(lines,1,1) == ''
@@ -282,7 +282,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     if(file.exists.zip(project_path, sprintf('results/18.%s.bintable', project_name)) & file.exists.zip(project_path, sprintf('results/tables/%s.orf.marker.genes.tsv', project_name)))
         {
         message('    checkm markers...')
-        conn                     = open.conn.zip(project_path, sprintf('results/tables/%s.orf.marker.genes.tsv', project_name))
+        conn                     = open_conn_zip(project_path, sprintf('results/tables/%s.orf.marker.genes.tsv', project_name))
         lines                    = readLines(conn)
         close(conn)
 	lines                    = strsplit(lines, split='\t')

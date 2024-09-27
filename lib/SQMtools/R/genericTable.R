@@ -10,7 +10,7 @@ read.generic.table.zip = function(project_path, file_path, engine = 'data.frame'
     if(engine == 'data.frame')
         {
         extra_args = extra_args[names(extra_args) %in% names(formals(read.table))]
-        extra_args$file = open.conn.zip(project_path, file_path) # see open.conn.zip in extra_methods.R
+        extra_args$file = open_conn_zip(project_path, file_path) # see open_conn_zip in extra_methods.R
         res = do.call(read.table, extra_args)
     } else if(engine == 'data.table')
         {
