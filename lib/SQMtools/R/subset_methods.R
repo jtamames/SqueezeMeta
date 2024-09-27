@@ -138,7 +138,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
-#' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
+#' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{FALSE}).
 #' @seealso \code{\link{subsetTax}}, \code{\link{subsetORFs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 #' @return SQM object containing only the requested function.
 #' @examples
@@ -150,7 +150,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 #' @export
 subsetFun = function(SQM, fun, columns = NULL, ignore_case=TRUE, fixed=FALSE,
                      trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE,
-                     rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = TRUE, allow_empty = FALSE)
+                     rescale_tpm = FALSE, rescale_copy_number = FALSE, recalculate_bin_stats = FALSE, allow_empty = FALSE)
     {
     return(subsetDispatch(subsetFun_, SQM, fun, columns=columns, ignore_case = ignore_case, fixed = fixed,
                      trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
@@ -205,7 +205,7 @@ subsetFun_ = function(SQM, fun, columns, ignore_case, fixed,
 #' @examples
 #' data(Hadza)
 #' Hadza.Prevotella = subsetTax(Hadza, "genus", "Prevotella")
-#' Hadza.Proteobacteria = subsetTax(Hadza, "phylum", "Proteobacteria")
+#' Hadza.Bacteroidota = subsetTax(Hadza, "phylum", "Bacteroidota")
 #' @export
 subsetTax = function(SQM, rank, tax, trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, recalculate_bin_stats = TRUE, allow_empty = FALSE)
     {

@@ -5,6 +5,7 @@
 #' @export
 exportContigs = function(SQM, output_name = "")
     {
+    if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     if(!is.null(SQM$contigs$seqs))
         {
         seqvec2fasta(SQM$contigs$seqs, output_name)
@@ -22,6 +23,7 @@ exportContigs = function(SQM, output_name = "")
 #' @export
 exportORFs = function(SQM, output_name = "")
     {
+    if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     if(!is.null(SQM$orfs$seqs))
         {
         seqvec2fasta(SQM$orfs$seqs, output_name)
