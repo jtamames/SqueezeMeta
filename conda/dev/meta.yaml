@@ -14,6 +14,7 @@ requirements:
     - r-reshape2
     - r-doMC
     - r-data.table
+    - r-zip
     - bioconductor-pathview
     - perl=5.26
     - perl-app-cpanminus
@@ -72,6 +73,7 @@ requirements:
     - r-reshape2==1.4.4
     - r-doMC
     - r-data.table==1.14.8
+    - r-zip
     - bioconductor-pathview==1.34.0
     - tree==2.1.1
     - readline==8.2

@@ -378,8 +378,9 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
         message('Loading bins')
         message('    table...')
         SQM$bins                  = list()
-        SQM$bins$table            = read.generic.table.zip(project_path, sprintf('results/18.%s.bintable', project_name), engine = 'data.frame',
-                                                           header=TRUE, sep='\t', row.names=1, quote='', comment.char='', skip=1, as.is=TRUE, check.names=FALSE)
+        SQM$bins$table            = read.generic.table.zip(project_path, sprintf('results/18.%s.bintable', project_name),
+                                                           engine = 'data.frame', header=TRUE, sep='\t', row.names=1,
+                                                           quote='', comment.char='', skip=1, as.is=TRUE, check.names=FALSE)
 	message('    abundances...')
 	bin_abunds                = get.bin.abunds(SQM, track_unmapped=TRUE)
         SQM$bins$abund            = bin_abunds[['abund']]
@@ -390,9 +391,19 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
         SQM$bins$cpm              = bin_abunds[['cpm']]
 	
         message('    taxonomy...')
-        SQM$bins$tax              = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.bin.tax.tsv', project_name), engine = 'data.frame',
+        SQM$bins$tax              = as.matrix(read.generic.table.zip(project_path,
+                                                                     sprintf('results/tables/%s.bin.tax.tsv', project_name),
+                                                                     engine = 'data.frame',
 							             header=TRUE, row.names=1, sep='\t'))
-	SQM$bins$table            = SQM$bins$table[,c('Method', 'Num contigs', 'GC perc', 'Tax 16S', 'Disparity', 'Completeness', 'Contamination')]
+        if('Tax GTDB-Tk' %in% colnames(SQM$bins$table))
+            {
+            goodcols = c('Method', 'Num contigs', 'GC perc', 'Tax 16S', 'Tax GTDB-Tk')
+        } else 
+            {
+            goodcols = c('Method', 'Num contigs', 'GC perc', 'Tax 16S')
+            }
+        goodcols = c(goodcols, c('Disparity', 'Completeness','Contamination'))
+	SQM$bins$table            = SQM$bins$table[,goodcols]
     } else
         {
 	warning('    There are no binning results in your project. Skipping...')
