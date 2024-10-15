@@ -112,7 +112,7 @@ Arguments:
    --nobins: Skip all binning  (Default: no). Overrides -binners
    --onlybins: Run only assembly, binning and bin statistics (including GTDB-Tk if requested) (Default: no)
    -binners: Comma-separated list with the binning programs to be used (available: maxbin, metabat2, concoct)  (Default: concoct,metabat2)
-   -taxbinmode <s,c,s+c,c+s>: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s)
+   -taxbinmode <s,c,s+c,c+s>: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s). THIS HAS BEEN DEPRECATED, USE --gtdbtk INSTEAD IF YOU NEED A MORE PRECISE BIN TAXONOMY.
    --nomarkers: Skip retrieval of universal marker genes from bins (you will still get completeness/contamination estimates, but won't be able to do bin refining in SQMtools)
    --gtdbtk: Run GTDB-Tk to classify the bins. Requires a working GTDB-Tk installation in available in your environment
    -gtdbtk_data_path: Path to the GTDB database, by default it is assumed to be present in /path/to/SqueezeMeta/db/gtdb
@@ -258,14 +258,16 @@ else {
         if($nobins and $onlybins)    { $dietext.="--nobins --onlybins can not be provided at the same time\n"; }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($gtdbtk) {
-		if(! -e "$gtdbtk_data_path/fastani/genome_paths.tsv") {
+		if(! -e "$gtdbtk_data_path/markers/pfam/Pfam-A.hmm") {
 			$dietext.="--gtdbtk was provided but we can't find the GTDB-Tk database at $gtdbtk_data_path. Please provide the right path to the database through the -gtdbtk_data_path argument\n"; 
-			$dietext.="Note that the GTDB-Tk database is not provided as part of SqueezeMeta, and needs to be downloaded separetely\n";
+			$dietext.="Note that the GTDB-Tk database is not provided as part of SqueezeMeta, and needs to be downloaded separately\n";
 			$dietext.="More info can be found at https://ecogenomics.github.io/GTDBTk/installing/index.html\n";
 			}
 		}
-	 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  exit; } 
+	 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; } 
 	}
+
+if($taxbinmode ne "s") { warn "\n-taxbinmode has been deprecated and will be ignored.\nUse --gtdbtk if you need a more precise bin taxonomy\n\n"; }
 
 #------------------------------------- CHECKING FILES AND START RUN -----------------------------------------------
 
