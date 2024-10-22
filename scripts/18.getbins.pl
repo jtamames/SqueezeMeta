@@ -92,7 +92,7 @@ if($gtdbtk) {
 	while(<infileG>) {
 		chomp;
 		if($_=~/^user_genome/) { next; }
-		my @k=split(/\s+/,$_);
+		my @k=split("\t",$_);
 		my $bin=$k[0];
 		my $tax=$k[1];
 		$bins{$binmethod}{$bin}{gtdbtktax}=$tax;
