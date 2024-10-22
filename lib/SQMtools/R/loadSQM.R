@@ -335,7 +335,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     colnames(SQM$contigs$tpm)     = gsub('TPM ', '', colnames(SQM$contigs$tpm), fixed=TRUE)
 
     goodContigCols                = colnames(SQM$contigs$table)[!grepl('Raw read|TPM|Coverage|Tax|Raw base', colnames(SQM$contigs$table))]
-    SQM$contigs$table             = SQM$contigs$table[,goodContigCols]
+    SQM$contigs$table             = SQM$contigs$table[,goodContigCols,drop=FALSE]
 
     if(load_sequences)
         {
@@ -347,7 +347,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     message('    taxonomy...')
     SQM$contigs$tax               = as.matrix(read.generic.table.zip(project_path, sprintf('results/tables/%s.contig.tax.%s.tsv', project_name, tax_mode), engine = engine,
                                                                      header=TRUE, row.names=1, sep='\t'))
-    SQM$contigs$tax               = SQM$contigs$tax[rownames(SQM$contigs$table),]
+    SQM$contigs$tax               = SQM$contigs$tax[rownames(SQM$contigs$table),,drop=FALSE]
 
 					  
     if(file.exists.zip(project_path, sprintf('results/18.%s.bintable', project_name)))
@@ -403,7 +403,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
             goodcols = c('Method', 'Num contigs', 'GC perc', 'Tax 16S')
             }
         goodcols = c(goodcols, c('Disparity', 'Completeness','Contamination'))
-	SQM$bins$table            = SQM$bins$table[,goodcols]
+	SQM$bins$table            = SQM$bins$table[,goodcols,drop=FALSE]
     } else
         {
 	warning('    There are no binning results in your project. Skipping...')
