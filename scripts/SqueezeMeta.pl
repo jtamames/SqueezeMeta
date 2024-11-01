@@ -986,7 +986,7 @@ sub pipeline {
 
 
     #-------------------------------- STEP22: Make summary tables
-	if($rpoint<=22) {
+	if($rpoint<=22 && ((!$test) || ($test>=22))) {
 		my $contigout="$resultpath/tables/$projectname.contig.sequences.tsv";
 		my $wsize=checksize($contigout);
 		if(($wsize>0) && (!$force_overwrite)) { print "Results in $contigout already found, skipping step 22\n"; }
