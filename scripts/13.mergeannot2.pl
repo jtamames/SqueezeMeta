@@ -32,7 +32,7 @@ tie %samples,"Tie::IxHash";
 
 	#-- CREATING GENE TABLE
 
-open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
+open(syslogfile,">$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 print "  Creating table in $mergedfile\n";
 print syslogfile "  Creating table in $mergedfile\n";
 open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
