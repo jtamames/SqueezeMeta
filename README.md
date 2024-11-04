@@ -41,8 +41,9 @@ SqueezeMeta supports different assembly strategies (co-assembly, sequential, ass
 19) Merging of previous results to obtain the contig table
 20) Prediction of kegg and metacyc patwhays for each bin
 21) Final statistics for the run
+22) Generation of tables with aggregated taxonomic and functional profiles
 
-Detailed information about the different steps of the pipeline can be found in the PDF manual.
+Detailed information about the different steps of the pipeline can be found in the manual.
 
 
 ## 2. Installation
@@ -154,8 +155,9 @@ The command for running SqueezeMeta has the following syntax:
 * *-contigid* [string]: Nomenclature for contigs (Default: assembler´s name)
 * *--norename*: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
  
-*Annotation* 
-* *-db* [file]: Specifies the location of a new taxonomy database (in Diamond format, .dmnd)
+*Annotation*
+* *-g* [int]: Number of targets for DIAMOND global ranking during taxonomic assignment (Default: 100)
+* *-db* [file]: Specifies the location of a new taxonomy database (in DIAMOND format, .dmnd)
 * *--nocog*: Skip COG assignment (Default: no) 
 * *--nokegg*: Skip KEGG assignment (Default: no) 
 * *--nopfam*: Skip Pfam assignment (Default: no)

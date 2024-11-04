@@ -88,6 +88,7 @@ $gtdbtk_data_path = "$databasepath/gtdb";
 #-- Variables
 
 $blocksize       = 8;
+$globalranking   = 100;
 $nodiamond       = 0;
 $fastnr          = 0;
 $nocog           = 0;
