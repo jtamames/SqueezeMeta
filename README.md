@@ -57,7 +57,7 @@ conda config --set solver libmamba
 
 and then use conda to install SqueezeMeta
 
-`conda create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan  squeezemeta=1.6 --no-channel-priority`
+`conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan  squeezemeta=1.6 --no-channel-priority`
 
 This will create a new conda environment named SqueezeMeta, which must then be activated.
 
