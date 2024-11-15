@@ -1,6 +1,6 @@
 package:
   name: squeezemeta-dev
-  version: "1.7.0.beta7"
+  version: "1.7.0.beta8"
 
 source:
   git_url: https://github.com/jtamames/squeezemeta.git
