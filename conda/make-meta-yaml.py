@@ -44,8 +44,14 @@ def main(args):
                     'python_abi',
                     'sysroot_linux-64',
                     'xz',
-                    'zstd'
+                    'zstd',
+                    'motulizer',
+                    'superpang',
+                    'gtdbtk',
+                    'speedict',
+                    'igraph',
                    }
+
     name = 'squeezemeta' if not args.dev else 'squeezemeta-dev'
     if args.git_tag:
         git_tag = args.git_tag
@@ -91,7 +97,7 @@ def main(args):
                     line += '\nchannels:'
                     line += '\n  - conda-forge'
                     line += '\n  - bioconda'
-                    line += '\n  - anaconda'
+                    line += '\n  - nodefaults'
             if section == 'version' and sline:
                 line = f'  version: "{args.version}"'
             if section == 'git_tag' and sline:
