@@ -97,7 +97,7 @@ def main(args):
                     line += '\nchannels:'
                     line += '\n  - conda-forge'
                     line += '\n  - bioconda'
-                    line += '\n  - anaconda'
+                    line += '\n  - nodefaults'
             if section == 'version' and sline:
                 line = f'  version: "{args.version}"'
             if section == 'git_tag' and sline:
