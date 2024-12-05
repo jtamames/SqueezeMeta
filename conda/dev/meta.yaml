@@ -510,7 +510,7 @@ about:
           To install this package with mamba run:
           \n
           \n
-          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c anaconda -c fpusan squeezemeta --no-channel-priority`
+          `mamba create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta-dev --no-channel-priority --override-channels`
           \n
           \n
           And activate it with:
