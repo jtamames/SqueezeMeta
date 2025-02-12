@@ -1,0 +1,1 @@
+conda mambabuild -c conda-forge -c bioconda --override-channels .
