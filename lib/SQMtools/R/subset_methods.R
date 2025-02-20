@@ -568,43 +568,18 @@ subsetORFs_ = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = 
             }
     }
 
-    if(!is.null(subSQM$misc$RecA_cov))
+    ### COPY NUMBERS
+    subSQM$misc$single_copy_cov = get_median_single_copy_cov(subSQM)
+
+    if(!any(is.na(subSQM$misc$single_copy_cov)) & rescale_copy_number)
         {
-        if(rescale_copy_number)
+        subSQM$misc$single_copy_cov = get_median_single_copy_cov(subSQM)
+        for(method in names(subSQM$functions))
             {
-            if('COG0468' %in% rownames(COG$cov))
-                {
-                if(all(COG$cov['COG0468',]>0))
-	            {
-                    RecA = COG$cov['COG0468',]
-		}else
-	            {
-	            warning('RecA has zero abundance in at least one sample in this subset. Will not rescale copy numbers.')
-		    RecA = SQM$misc$RecA_cov
-		    }
-            }else
-                {
-                warning('RecA is not present in this subset. Will not rescale copy numbers.')
-                RecA = SQM$misc$RecA_cov
-                } 
-        }else
-           {
-           RecA = SQM$misc$RecA_cov
-           }
-        if('KEGG' %in% names(subSQM$functions)) { subSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA) }
-        if('COG'  %in% names(subSQM$functions)) { subSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA) }
-        if('PFAM' %in% names(subSQM$functions)) { subSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA) }
-        for(method in subSQM$misc$ext_annot_sources)
-            {
-            subSQM$functions[[method]]$copy_number = t(t(ext_annots[[method]]$cov) / RecA)
+            subSQM$functions[[method]]$copy_number = t(t(subSQM$functions[[method]]$cov) / subSQM$misc$single_copy_cov)
             }
-        subSQM$misc$RecA_cov              = RecA
         }
 
-
-    #subSQM$total_reads		     = colSums(subSQM$contigs$abund)
-
-    ### Total reads
     return(subSQM)
     }
 

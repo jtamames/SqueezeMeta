@@ -227,43 +227,17 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
             }
     }
 
+    ### COPY NUMBERS
+    SQM$misc$single_copy_cov = get_median_single_copy_cov(combiSQM)
 
-    if(!is.null(combSQM$misc$RecA_cov))
+    if(!any(is.na(combiSQM$misc$single_copy_cov)) & rescale_copy_number)
         {
-        if(rescale_copy_number)
+        combiSQM$misc$single_copy_cov = get_median_single_copy_cov(combiSQM)
+        for(method in names(combiSQM$functions))
             {
-            if('COG0468' %in% rownames(COG$cov))
-		{
-                if(all(COG$cov['COG0468',]>0))
-                    {
-                    RecA = COG$cov['COG0468',]
-                }else
-                    {
-                    warning('RecA has zero abundance in at least one sample in this subset. Will not rescale copy numbers.')
-		    RecA = pmax(SQM1$misc$RecA_cov, SQM2$misc$RecA_cov) # use the largest and hope for the best.
-                    }
-            }else
-                {
-                warning('RecA is not present in this subset. Will not rescale copy numbers.')
-                RecA = pmax(SQM1$misc$RecA_cov, SQM2$misc$RecA_cov) # use the largest and hope for the best.
-                }
-        }else
-            {
-            RecA = pmax(SQM1$misc$RecA_cov, SQM2$misc$RecA_cov) # use the largest and hope for the best.
+            combiSQM$functions[[method]]$copy_number = t(t(combiSQM$functions[[method]]$cov) / combiSQM$misc$single_copy_cov)
             }
-        if('KEGG' %in% names(combSQM$functions)) { combSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA) }
-        if('COG' %in% names(combSQM$functions))  { combSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA) }
-        if('PFAM' %in% names(combSQM$functions)) { combSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA) }
-        for(method in combSQM$misc$ext_annot_sources)
-            {
-            combSQM$functions[[method]]$copy_number = t(t(ext_annots[[method]]$cov) / RecA)
-            }
-
-        combSQM$misc$RecA_cov              = RecA
         }
-
-    ### Total reads
-    #combSQM$total_reads               = colSums(combSQM$contigs$abund)
 
     return(combSQM)
     }

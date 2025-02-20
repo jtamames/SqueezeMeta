@@ -7,7 +7,7 @@
 plotFunctions(
   SQM,
   fun_level = "KEGG",
-  count = "tpm",
+  count = "copy_number",
   N = 25,
   fun = NULL,
   samples = NULL,

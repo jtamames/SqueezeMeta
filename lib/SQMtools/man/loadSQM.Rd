@@ -8,6 +8,7 @@ loadSQM(
   project_path,
   tax_mode = "prokfilter",
   trusted_functions_only = FALSE,
+  single_copy_genes = "MGOGs",
   load_sequences = TRUE,
   engine = "data.table"
 )
@@ -18,6 +19,8 @@ loadSQM(
 \item{tax_mode}{character, which taxonomic classification should be loaded? SqueezeMeta applies the identity thresholds described in \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4005636/}{Luo \emph{et al.}, 2014}. Use \code{allfilter} for applying the minimum identity threshold to all taxa, \code{prokfilter} for applying the threshold to Bacteria and Archaea, but not to Eukaryotes, and \code{nofilter} for applying no thresholds at all (default \code{prokfilter}).}
 
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}). Will only have an effect if \code{project_path} is not a zip file, and \code{project_path/results/tables} is not already present.}
+
+\item{single_copy_genes}{character, source of single copy genes for copy number normalization, either \code{RecA} (COG0468, RecA/RadA), \code{MGOGs} (COGs for 10 single copy and housekeeping genes, Salazar, G \emph{et al.} 2019), \code{MGKOs} (KOs for 10 single copy and housekeeping genes, Salazar, G \emph{et al.}, 2019) or \code{USiCGs} (KOs for 15 single copy genes, Carr \emph{et al.}, 2013. Table S1). For \code{MGOGs}, \code{MGKOs} and \code{USiCGs}, the median coverage of a set of single copy genes will be used for normalization. Default \code{MGOGs}.}
 
 \item{load_sequences}{logical. If \code{TRUE}, contig and orf sequences will be loaded in the SQM object. Setting it to \code{FALSE} will reduce memory usage. Default \code{TRUE}.}
 
@@ -53,8 +56,8 @@ The SQM object is a nested list which contains the following information:
                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
-                    \tab \bold{$tax16S}            \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab 16S taxonomy       \cr
-                    \tab \bold{$markers}           \tab                      \tab \emph{list}             \tab orfs              \tab (n/a)          \tab CheckM markers     \cr
+                    \tab \bold{$tax16S}            \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab 16S rRNA taxonomy       \cr
+                    \tab \bold{$markers}           \tab                      \tab \emph{list}             \tab orfs              \tab (n/a)          \tab CheckM1 markers    \cr
 \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr
                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (reads) \cr
                     \tab \bold{$bases}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (bases) \cr
