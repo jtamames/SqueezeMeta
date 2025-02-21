@@ -163,6 +163,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' @param N integer Plot the \code{N} most abundant functions (default \code{25}).
 #' @param fun character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
+#' @param display_function_names logical. Plot function names alongside function IDs, if available (default \code{TRUE}).
 #' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{TRUE}).
 #' @param ignore_unclassified logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).
 #' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
@@ -174,7 +175,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
-plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25, fun = NULL, samples = NULL, ignore_unmapped = TRUE, ignore_unclassified = TRUE, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
+plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25, fun = NULL, samples = NULL, display_function_names = TRUE, ignore_unmapped = TRUE, ignore_unclassified = TRUE, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
     {
     if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM, SQMbunch or a SQMlite object') }
     if (!fun_level %in% names(SQM$functions))
@@ -233,8 +234,9 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25,
 
     data = mostAbundant(data, N = N, items = fun)
 
-    # Add KEGG & COG names
-    if (fun_level %in% c('COG', 'KEGG'))
+    # Add KEGG & COG names, also extnames if available
+    names_string = paste0(fun_level, '_names')
+    if (names_string %in% names(SQM$misc) & display_function_names)
         {
         item_name = SQM$misc[[paste0(fun_level, '_names')]][rownames(data)]
         item_name[is.na(item_name)] = 'no_name'
@@ -242,6 +244,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25,
         item_name = sapply(item_name, FUN = function(x) paste(strwrap(x, width = 50), collapse = '\n'))
         rownames(data) = item_name
         }
+
     # Put unclassified and unmapped at the bottom
     if('Unclassified' %in% rownames(data)) # Put unclassified at the bottom.
         {
