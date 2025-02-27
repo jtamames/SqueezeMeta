@@ -5,14 +5,7 @@
 #' @export
 exportContigs = function(SQM, output_name = "")
     {
-    if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
-    if(!is.null(SQM$contigs$seqs))
-        {
-        seqvec2fasta(SQM$contigs$seqs, output_name)
-    } else
-        {
-        warning('There are no contig sequences in your SQM project. Did you use `load_sequences = FALSE` when loading it?')
-        }
+    exportSeqs(SQM, 'contigs', output_name)
     }
 
 
@@ -23,13 +16,30 @@ exportContigs = function(SQM, output_name = "")
 #' @export
 exportORFs = function(SQM, output_name = "")
     {
-    if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
-    if(!is.null(SQM$orfs$seqs))
-        {
-        seqvec2fasta(SQM$orfs$seqs, output_name)
-    } else
-        {
-        warning('There are no orf sequences in your SQM project. Did you use `load_sequences = FALSE` when loading it?')
-        }
+    exportSeqs(SQM, 'orfs', output_name)
     }
 
+exportSeqs = function(SQM, seqtype, output_name = "")
+    {
+    if(!inherits(SQM, c('SQM', 'SQMbunch'))) { stop('The first argument must be a SQM object') }
+    if(inherits(SQM, 'SQM'))
+        {
+        projs = list(SQM)
+        names(projs) = SQM$misc$project_name
+    } else
+        {
+        projs = SQM$projects
+        }
+    seqvec = c()
+    for(projname in names(projs))
+        {
+	seqs = projs[[projname]][[seqtype]]$seqs
+        seqvec = c(seqvec, seqs)        
+        if(is.null(seqs))
+            {
+            warning(sprintf('There are no sequences in project %s. Did you use `load_sequences = FALSE` when loading it?', projname))
+            }
+        }
+    if(length(seqvec)) { seqvec2fasta(seqvec, output_name) } else { stop('No sequences were found') }
+    }
+ 

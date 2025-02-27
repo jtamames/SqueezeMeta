@@ -346,7 +346,7 @@ subsetRand = function(SQM, N)
 #' @param contigs_override character. Optional vector of contigs to be included in the subsetted object.
 #' @return SQM object containing the requested ORFs.
 #' @section A note on contig/bins subsetting:
-#' While this function selects the contigs and bins that contain the desired orfs, it DOES NOT recalculate contig/bin abundance and statistics based on the selected ORFs only. This means that the abundances presented in tables such as \code{SQM$contig$abund} or \code{SQM$bins$tpm} will still refer to the complete contigs and bins, regardless of whether only a fraction of their ORFs are actually present in the returned SQM object. This is also true for the statistics presented in \code{SQM$contigs$table} and \code{SQM$bins$table}.
+#' While this function selects the contigs and bins that contain the desired orfs, it DOES NOT recalculate contig abundance and statistics based on the selected ORFs only. This means that the abundances presented in tables such as \code{SQM$contig$abund} will still refer to the complete contigs, regardless of whether only a fraction of their ORFs are actually present in the returned SQM object. This is also true for the statistics presented in \code{SQM$contigs$table}. Bin statistics may be recalculated if \code{rescale_copy_number} is set to \code{TRUE}, but recalculation will be based on contigs, not ORFs.
 #' @examples
 #' data(Hadza)
 #' # Select the 100 most abundant ORFs in our dataset.
