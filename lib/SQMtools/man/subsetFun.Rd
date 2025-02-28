@@ -19,7 +19,7 @@ subsetFun(
 )
 }
 \arguments{
-\item{SQM}{SQM object to be subsetted.}
+\item{SQM}{SQM or SQMbunch object to be subsetted.}
 
 \item{fun}{character. Pattern to search for in the different functional classifications.}
 
@@ -40,10 +40,10 @@ subsetFun(
 \item{recalculate_bin_stats}{logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{FALSE}).}
 }
 \value{
-SQM object containing only the requested function.
+SQM or SQMbunch object containing only the requested function.
 }
 \description{
-Create a SQM object containing only the ORFs with a given function, and the contigs and bins that contain them.
+Create a SQM or SQMbunch object containing only the ORFs with a given function, and the contigs and bins that contain them.
 }
 \examples{
 data(Hadza)

@@ -15,6 +15,9 @@ create_bin(SQM, bin, contigs, delete_overlapping_bins = FALSE)
 
 \item{delete_overlapping_bins}{logical. If \code{TRUE}, bins that originally contained any of the provided contigs will be removed from the object. Default \code{FALSE}.}
 }
+\value{
+SQM object with the new binning information, including recalculated bin statistics if possible.
+}
 \description{
 Create a bin from a vector of contigs
 }

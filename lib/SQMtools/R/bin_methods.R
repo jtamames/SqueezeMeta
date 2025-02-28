@@ -5,6 +5,7 @@
 #' @param SQM A SQM object.
 #' @param bin character. Name of the bin to be created.
 #' @param minimum_overlap_for_removal numeric. Fraction of marker genes in the contigs present in another contig needed to suggest it for removal. If set to \code{1} (default), contigs will only suggested for removal if their markers fully overlap with those in another contig (and thus completeness will not change after removing them). Smaller values will result in more contigs being suggested for removal, which will further reduce contamination at the expense of some completeness.
+#' @return A character vector with the contigs deemed to be redundant. A heatmap showing how marker genes overlap over different contigs will also be produced. 
 #' @seealso \code{\link{create_bin}}, \code{\link{remove_contigs_from_bin}}
 #' @examples
 #' data(Hadza)
@@ -77,6 +78,7 @@ find_redundant_contigs = function(SQM, bin, minimum_overlap_for_removal = 1) {
 #' @param bin character. Name of the bin to be created.
 #' @param contigs character. Vector with the names of the contigs that will be included in the new bin.
 #' @param delete_overlapping_bins logical. If \code{TRUE}, bins that originally contained any of the provided contigs will be removed from the object. Default \code{FALSE}.
+#' @return SQM object with the new binning information, including recalculated bin statistics if possible.
 #' @seealso \code{\link{find_redundant_contigs}}, \code{\link{remove_contigs_from_bin}}
 #' @export
 create_bin = function(SQM, bin, contigs, delete_overlapping_bins = FALSE) {
@@ -120,6 +122,7 @@ create_bin = function(SQM, bin, contigs, delete_overlapping_bins = FALSE) {
 #' @param SQM A SQM object.
 #' @param bin character. Name of the bin from which the contigs will be removed.
 #' @param contigs character. Vector with the names of the contigs that will be removed from the new bin.
+#' @return SQM object with the new binning information, including recalculated bin statistics if possible.
 #' @seealso \code{\link{find_redundant_contigs}}, \code{\link{create_bin}}
 #' @export
 remove_contigs_from_bin = function(SQM, bin, contigs) {

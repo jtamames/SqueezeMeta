@@ -13,6 +13,9 @@ remove_contigs_from_bin(SQM, bin, contigs)
 
 \item{contigs}{character. Vector with the names of the contigs that will be removed from the new bin.}
 }
+\value{
+SQM object with the new binning information, including recalculated bin statistics if possible.
+}
 \description{
 Remove contigs from a given bin
 }

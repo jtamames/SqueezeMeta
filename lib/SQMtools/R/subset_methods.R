@@ -128,8 +128,8 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 
 #' Filter results by function
 #'
-#' Create a SQM object containing only the ORFs with a given function, and the contigs and bins that contain them.
-#' @param SQM SQM object to be subsetted.
+#' Create a SQM or SQMbunch object containing only the ORFs with a given function, and the contigs and bins that contain them.
+#' @param SQM SQM or SQMbunch object to be subsetted.
 #' @param fun character. Pattern to search for in the different functional classifications.
 #' @param columns character. Restrict the search to the provided column names from \code{SQM$orfs$table}. If not provided the search will be performed in all the columns containing functional information (default \code{NULL}).
 #' @param ignore_case logical Make pattern matching case-insensitive (default \code{TRUE}).
@@ -140,7 +140,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
 #' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{FALSE}).
 #' @seealso \code{\link{subsetTax}}, \code{\link{subsetORFs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
-#' @return SQM object containing only the requested function.
+#' @return SQM or SQMbunch object containing only the requested function.
 #' @examples
 #' data(Hadza)
 #' Hadza.iron = subsetFun(Hadza, "iron")
@@ -191,7 +191,7 @@ subsetFun_ = function(SQM, fun, columns, ignore_case, fixed,
 
 #' Filter results by taxonomy
 #'
-#' Create a SQM object containing only the contigs with a given consensus taxonomy, the ORFs contained in them and the bins that contain them.
+#' Create a SQM or SQMbunch object containing only the contigs with a given consensus taxonomy, the ORFs contained in them and the bins that contain them.
 #' @param SQM SQM object to be subsetted.
 #' @param rank character. The taxonomic rank from which to select the desired taxa (\code{superkingdom}, \code{phylum}, \code{class}, \code{order}, \code{family}, \code{genus}, \code{species})
 #' @param tax character. The taxon to select.
@@ -200,7 +200,7 @@ subsetFun_ = function(SQM, fun, columns, ignore_case, fixed,
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected taxon}.
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected taxon}.
 #' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
-#' @return SQM object containing only the requested taxon.
+#' @return SQM or SQMbunch object containing only the requested taxon.
 #' @seealso \code{\link{subsetFun}}, \code{\link{subsetContigs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 #' @examples
 #' data(Hadza)

@@ -34,10 +34,10 @@ subsetTax(
 \item{recalculate_bin_stats}{logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).}
 }
 \value{
-SQM object containing only the requested taxon.
+SQM or SQMbunch object containing only the requested taxon.
 }
 \description{
-Create a SQM object containing only the contigs with a given consensus taxonomy, the ORFs contained in them and the bins that contain them.
+Create a SQM or SQMbunch object containing only the contigs with a given consensus taxonomy, the ORFs contained in them and the bins that contain them.
 }
 \examples{
 data(Hadza)

@@ -13,6 +13,9 @@ find_redundant_contigs(SQM, bin, minimum_overlap_for_removal = 1)
 
 \item{minimum_overlap_for_removal}{numeric. Fraction of marker genes in the contigs present in another contig needed to suggest it for removal. If set to \code{1} (default), contigs will only suggested for removal if their markers fully overlap with those in another contig (and thus completeness will not change after removing them). Smaller values will result in more contigs being suggested for removal, which will further reduce contamination at the expense of some completeness.}
 }
+\value{
+A character vector with the contigs deemed to be redundant. A heatmap showing how marker genes overlap over different contigs will also be produced.
+}
 \description{
 Find contigs with overlapping marker genes in a given bin, and suggest contigs to be removed in order to reduce contamination without affecting completeness. Note that this can give a quick idea of the contigs that are sources of contamination within a bin, but is not a replacement for proper bin refininement with other tools such as anvi\'o.
 }
