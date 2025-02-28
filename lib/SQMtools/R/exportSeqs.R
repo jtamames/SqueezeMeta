@@ -19,9 +19,53 @@ exportORFs = function(SQM, output_name = "")
     exportSeqs(SQM, 'orfs', output_name)
     }
 
+
+#' Export the bins of a SQM object
+#'
+#' @param SQM A SQM object.
+#' @param output_dir. Existing output directory to which to write the bins.
+#' @export
+exportBins = function(SQM, output_dir = "")
+    {
+    if(!inherits(SQM, c('SQM', 'SQMbunch'))) { stop('The first argument must be a SQM or SQMbunch object') }
+    if(inherits(SQM, 'SQM'))
+        {
+        projs = list(SQM)
+        names(projs) = SQM$misc$project_name
+    } else
+        {
+        projs = SQM$projects
+        }
+    seen_bins = c()
+    for(projname in names(projs))
+        {
+        proj = projs[[projname]]
+        if(is.null(proj$bins))
+            {
+            warning(sprintf('Project %s does not contain bins', projname))
+            next
+            }
+        bins = unique(proj$contigs$bins[,1])
+        bins = bins[bins != 'No_bin']
+        for(b in bins)
+            {
+            contigs  = rownames(proj$contigs$bins)[proj$contigs$bins[,1]==b]
+            if(b %in% seen_bins)
+                {
+                warning(sprintf('Bin %s is present in project %s but a bin with a similar name was found in another project in this bunch. Skipping', b, projname))
+                next
+                }
+            seqvec2fasta(proj$contigs$seqs[contigs], sprintf('%s/%s.fasta', output_dir, b))
+            seen_bins = c(seen_bins, b)
+            }
+        }
+    }
+
+
+
 exportSeqs = function(SQM, seqtype, output_name = "")
     {
-    if(!inherits(SQM, c('SQM', 'SQMbunch'))) { stop('The first argument must be a SQM object') }
+    if(!inherits(SQM, c('SQM', 'SQMbunch'))) { stop('The first argument must be a SQM or SQMbunch object') }
     if(inherits(SQM, 'SQM'))
         {
         projs = list(SQM)
@@ -34,7 +78,12 @@ exportSeqs = function(SQM, seqtype, output_name = "")
     for(projname in names(projs))
         {
 	seqs = projs[[projname]][[seqtype]]$seqs
-        seqvec = c(seqvec, seqs)        
+        duplic = intersect(names(seqs), names(seqvec))
+        if(length(duplic))
+            {
+            warning(sprintf('Project %s contains %s sequence names that were also present in other projects in this object', projname, length(duplic)))
+            }
+        seqvec = c(seqvec, seqs)
         if(is.null(seqs))
             {
             warning(sprintf('There are no sequences in project %s. Did you use `load_sequences = FALSE` when loading it?', projname))
