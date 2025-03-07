@@ -7,14 +7,9 @@
 SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 ************************************************************************
 
--  Find the SqueezeMeta paper at:
-   https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full
--  Find a second paper on how to analyse the output of SqueezeMeta at:
-   https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-020-03703-2
--  Check some papers using SqueezeMeta:
-   https://github.com/jtamames/SqueezeMeta/wiki/Some-papers-using-SqueezeMeta-(non-comprehensive-list)
--  Make sure to `check the
-   wiki! <https://github.com/jtamames/SqueezeMeta/wiki>`__
+-  Find the SqueezeMeta paper `here <https://www.frontiersin.org/articles/10.3389/fmicb.2018.03349/full>`_
+-  Find a second paper on how to analyse the output of SqueezeMeta `here <https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-020-03703-2>`_
+-  Make sure to `check the documentation <https://squeezemeta.readthedocs.io>`_ and the `wiki! <https://github.com/jtamames/SqueezeMeta/wiki>`_
 
 1. What is SqueezeMeta?
 =======================
@@ -92,15 +87,13 @@ be available on ``$PATH``.
 
 Alternatively, you can download the latest release from the GitHub
 repository and uncompress the tarball in a suitable directory. The
-tarball includes the SqueezeMeta scripts as well as the third-party
-software redistributed with SqueezeMeta. The ``INSTALL`` files contain
-detailed installation instructions, including all the external libraries
-required to make SqueezeMeta run in a vanilla Ubuntu 20.04. Note that
-you may need different libraries and potentially recompiling some
-binaries from source in order for the manual install to work in other
-Ubuntu versions or other distributions. The conda method is now the
-recommended way to install SqueezeMeta, and we will no longer
-support issues regarding manual installation.
+tarball includes the SqueezeMeta scripts as well as the `third-party
+software <https://squeezemeta.readthedocs.io/en/stable/installation.html#vendored-tools>`_
+redistributed with SqueezeMeta. Note that, you may need to provide
+additional dependencies, and potentially recompile some
+binaries from source in order for the manual install to work.
+The conda method is now the recommended way to install SqueezeMeta,
+and we will not prioritize support to issues regarding manual installation.
 
 The ``test_install.pl`` script can be run in order to check whether the
 required dependencies are available in your environment.
@@ -170,8 +163,8 @@ multi-metagenome support. These modes are:
 
 -  **Merged mode**: if many big samples are available, co-assembly could
    crash because of memory requirements. This mode achieves a comparable
-   resul with a procedure inspired by the one used by Benjamin Tully for
-   analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw).
+   resul with a procedure inspired by `the one used by Benjamin Tully for
+   analysing TARA Oceans data <https://dx.doi.org/10.17504/protocols.io.hfqb3mw>`_.
    Briefly, samples are assembled individually and the resulting contigs are
    merged in a single co-assembly. Then the analysis proceeds as in the
    co-assembly mode. This is not the recommended procedure (use
@@ -220,7 +213,8 @@ Scripts location
 
 The scripts composing the SqueezeMeta pipeline can be found in the
 ``/path/to/SqueezeMeta/scripts`` directory. Other utility scripts can be
-found in the ``/path/to/SqueezeMeta/utils`` directory. See the documentation
+found in the ``/path/to/SqueezeMeta/utils`` directory.
+See `here <https://squeezemeta.readthedocs.io/en/stable/utils.html>`_
 for more information on utility scripts.
 
 Execution
@@ -323,9 +317,12 @@ Arguments
 
 [-–euk]
     Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic
-    population is relevant, as it will yield more annotations (see the documentation for details).
+    population is relevant, as it will yield more annotations (see the
+    `documentation <https://squeezemeta.readthedocs.io/en/stable/alg_details.html#taxonomic-annotation-of-eukaryotic-orfs>`_
+    for details).
     Note that, regardless of whether this option is selected or not, that result will be available as part of the aggregated
-    taxonomy tables generated at the last step of the pipeline and also when loading the project into *SQMtools*
+    taxonomy tables generated at the last step of the pipeline and also when loading the project into
+    `SQMtools <https://squeezemeta.readthedocs.io/en/stable/SQMtools.html>`_
     so this is only relevant if you are planning to use the intermediate files directly.
 
 [-consensus <float>]
@@ -532,7 +529,9 @@ file in the input directory as an individual bin.
 
 Version 1.0 implements the possibility of using one or several
 user-provided databases for functional annotation. This is invoked using
-the ``-extdb`` option. Please refer to the documentation for details.
+the ``-extdb`` option. Please refer to the 
+`documentation <https://squeezemeta.readthedocs.io/en/stable/adv_annotation.html#using-external-databases-for-functional-annotation>`_
+for details.
 
 8. Extra sensitive detection of ORFs
 ====================================
@@ -597,7 +596,7 @@ run on 16Gb of memory, and allows the *in situ* analysis of Oxford
 Nanopore MinION reads. Under such computational limitations, we have
 been able to coassemble and analyze 10 MinION metagenomes (taken from
 SRA project
-`SRP163045 <https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045>`__) in
+`SRP163045 <https://www.ncbi.nlm.nih.gov/sra/?term=SRP163045>`_) in
 less than 4 hours.
 
 12. Tips for working in a computing cluster
@@ -630,7 +629,7 @@ remove it, download the new version and configure it with
 
 SqueezeMeta comes with a variety of options to explore the results and
 generate different plots. These are fully described in the documentation
-and in the `wiki <https://github.com/jtamames/SqueezeMeta/wiki>`__.
+and in the `wiki <https://github.com/jtamames/SqueezeMeta/wiki>`_.
 Briefly, the three main ways to analyze the output of SqueezeMeta are
 the following:
 
@@ -639,30 +638,32 @@ the following:
    :align: right
    :alt: Downstream analysis of SqueezeMeta results
 
-1) **Integration with R:** We provide the *SQMtools* R package, which
-allows to easily load a whole SqueezeMeta project and expose the results
-into R. The package includes functions to select particular taxa or
-functions and generate plots. The package also makes the different
-tables generated by SqueezeMeta easily available for third-party R
+1) **Integration with R:** We provide the
+`SQMtools <https://squeezemeta.readthedocs.io/en/stable/SQMtools.html>`_
+R package, which allows to easily load a whole SqueezeMeta project and
+expose the results into R. The package includes functions to select
+particular taxa or functions and generate plots. The package also makes
+the different tables generated by SqueezeMeta easily available for third-party R
 packages such as *vegan* (for multivariate analysis), *DESeq2* (for
 differential abundance testing) or for custom analysis pipelines. See
 examples
-`here <https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results>`__.
+`here <https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results>`_.
 **SQMtools can also be used in Mac or Windows**, meaning that you can
 run SqueezeMeta in your Linux server and then move the results to your
 own computer and analyze them there. See advice for this below.
 
 2) **Integration with the anvi’o analysis pipeline:** We provide a
-compatibility layer for loading SqueezeMeta results into the anvi’o
+`compatibility layer <https://squeezemeta.readthedocs.io/en/stable/utils.html#integration-with-anvi-o>`_
+for loading SqueezeMeta results into the anvi’o
 analysis and visualization platform
 (http://merenlab.org/software/anvio/). This includes a built-in query
 language for selecting the contigs to be visualized in the anvi’o
 interactive interface. See examples
-`here <https://github.com/jtamames/SqueezeMeta/wiki/Loading-SQM-results-into-anvi'o>`__.
+`here <https://github.com/jtamames/SqueezeMeta/wiki/Loading-SQM-results-into-anvi'o>`_.
 
-We also include utility scripts for generating
-`itol <https://itol.embl.de/>`__ and
-`pavian <https://ccb.jhu.edu/software/pavian/>`__ -compatible outputs.
+We also include `utility scripts <https://squeezemeta.readthedocs.io/en/stable/utils.html#integration-with-external-tools>`_
+for generating `itol <https://itol.embl.de/>`_ and
+`pavian <https://ccb.jhu.edu/software/pavian/>`_ -compatible outputs.
 
 15. Analyzing SqueezeMeta results in your desktop computer
 ==========================================================
@@ -670,25 +671,32 @@ We also include utility scripts for generating
 Many users run SqueezeMeta remotely (e.g. in a computing cluster).
 However it is easier to explore the results interactively from your own
 computer. Since version 1.6.2, we provide an easy way to achieve this.
+
 1) In the system in which you ran SqueezeMeta, run the utility script
 ``sqm2zip.py /path/to/my_project /output/dir``, where
 ``/path/to/my_project`` is the path to the output of SqueezeMeta, and
-``/output/dir`` an arbitrary output directory. 2) This will generate a
+``/output/dir`` an arbitrary output directory
+
+2) This will generate a
 file in ``/output/dir`` named ``my_project.zip``, which contains the
 essential files needed to load your project into SQMtools. Transfer this
-file to your desktop computer. 3) Assuming R is present in your desktop
-computer, you can install SQMtools with
+file to your desktop computer.
+
+3) Assuming R is present in your desktop
+computer, you can install `SQMtools <https://squeezemeta.readthedocs.io/en/stable/SQMtools.html>`_ with
 ``if (!require("BiocManager", quietly = TRUE)) { install.packages("BiocManager")}; BiocManager::install("SQMtools")``.
 This will work seamlessly in Windows and Mac computers, for Linux you
-may need to previously install the *libcurl* development library. 4) You
-can load the project directly from the zip file (no need for
+may need to previously install the *libcurl* development library.
+
+4) You can load the project directly from the zip file (no need for
 decompressing) with
 ``import(SQMtools); SQM = loadSQM("/path/to/my_project.zip")``.
 
 16. Alternative analysis modes
 ==============================
 
-In addition to the main SqueezeMeta pipeline, we provide extra scripts
+In addition to the main SqueezeMeta pipeline, we provide
+`extra scripts <https://squeezemeta.readthedocs.io/en/stable/alt_modes.html>`_
 that enable the analysis of individual reads and the annotation of sequences
 
 1) **sqm_reads.pl**: This script performs taxonomic and functional
@@ -702,7 +710,7 @@ than one ORF can be found in the same read (e.g. as happens in PacBio or
 MinION reads).
 
 3) **sqm_hmm_reads.pl**: This script provides a wrapper to the
-`Short-Pair <https://sourceforge.net/projects/short-pair/>`__ software,
+`Short-Pair <https://sourceforge.net/projects/short-pair/>`_ software,
 which allows to screen the reads for particular functions using an
 ultra-sensitive HMM algorithm.
 
@@ -728,37 +736,37 @@ programs into the SqueezeMeta pipeline. See the documentation for details.
 SqueezeMeta is distributed under a GPL-3 license. Additionally,
 SqueezeMeta redistributes the following third-party software:
 
-- `trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`__
-- `Megahit <https://github.com/voutcn/megahit>`__
-- `Spades <http://cab.spbu.ru/software/spades>`__
-- `canu <https://github.com/marbl/canu>`__
-- `prinseq <http://prinseq.sourceforge.net>`__
-- `kmer-db <https://github.com/refresh-bio/kmer-db>`__
-- `cd-hit <https://github.com/weizhongli/cdhit>`__
-- `amos <http://www.cs.jhu.edu/~genomics/AMOS>`__
-- `mummer <https://github.com/mummer4/mummer>`__
-- `hmmer <http://hmmer.org/>`__
-- `barrnap <https://github.com/tseemann/barrnap>`__
-- `aragorn <http://130.235.244.92/ARAGORN/>`__
-- `prodigal <https://github.com/hyattpd/Prodigal>`__
-- `DIAMOND <https://github.com/bbuchfink/diamond>`__
-- `bwa <https://github.com/lh3/bwa>`__
-- `minimap2 <https://github.com/lh3/minimap2>`__
-- `bowtie2 <http://bowtie-bio.sourceforge.net/bowtie2/index.shtml>`__
-- `MaxBin <https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html>`__
-- `MetaBAT <https://bitbucket.org/berkeleylab/metabat>`__
-- `CONCOCT <https://github.com/BinPro/CONCOCT>`__
-- `DAS tool <https://github.com/cmks/DAS_Tool>`__
-- `checkm <http://ecogenomics.github.io/CheckM>`__
-- `checkm2 <https://github.com/chklovski/CheckM2/>`__
-- `comparem <https://github.com/dparks1134/CompareM>`__
-- `MinPath <http://omics.informatics.indiana.edu/MinPath>`__
-- `RDP classifier <https://github.com/rdpstaff/classifier>`__
-- `pullseq <https://github.com/bcthomas/pullseq>`__
-- `Short-Pair <https://sourceforge.net/projects/short-pair/>`__
-- `SAMtools <http://samtools.sourceforge.net/>`__
-- `Mothur <https://mothur.org/>`__
-- `Flye <https://github.com/fenderglass/Flye>`__
+- `trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`_
+- `Megahit <https://github.com/voutcn/megahit>`_
+- `Spades <http://cab.spbu.ru/software/spades>`_
+- `canu <https://github.com/marbl/canu>`_
+- `prinseq <http://prinseq.sourceforge.net>`_
+- `kmer-db <https://github.com/refresh-bio/kmer-db>`_
+- `cd-hit <https://github.com/weizhongli/cdhit>`_
+- `amos <http://www.cs.jhu.edu/~genomics/AMOS>`_
+- `mummer <https://github.com/mummer4/mummer>`_
+- `hmmer <http://hmmer.org/>`_
+- `barrnap <https://github.com/tseemann/barrnap>`_
+- `aragorn <http://130.235.244.92/ARAGORN/>`_
+- `prodigal <https://github.com/hyattpd/Prodigal>`_
+- `DIAMOND <https://github.com/bbuchfink/diamond>`_
+- `bwa <https://github.com/lh3/bwa>`_
+- `minimap2 <https://github.com/lh3/minimap2>`_
+- `bowtie2 <http://bowtie-bio.sourceforge.net/bowtie2/index.shtml>`_
+- `MaxBin <https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html>`_
+- `MetaBAT <https://bitbucket.org/berkeleylab/metabat>`_
+- `CONCOCT <https://github.com/BinPro/CONCOCT>`_
+- `DAS tool <https://github.com/cmks/DAS_Tool>`_
+- `checkm <http://ecogenomics.github.io/CheckM>`_
+- `checkm2 <https://github.com/chklovski/CheckM2/>`_
+- `comparem <https://github.com/dparks1134/CompareM>`_
+- `MinPath <http://omics.informatics.indiana.edu/MinPath>`_
+- `RDP classifier <https://github.com/rdpstaff/classifier>`_
+- `pullseq <https://github.com/bcthomas/pullseq>`_
+- `Short-Pair <https://sourceforge.net/projects/short-pair/>`_
+- `SAMtools <http://samtools.sourceforge.net/>`_
+- `Mothur <https://mothur.org/>`_
+- `Flye <https://github.com/fenderglass/Flye>`_
 
 19. About
 =========

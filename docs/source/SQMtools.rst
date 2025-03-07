@@ -2,7 +2,7 @@
 The SQMtools R package
 **********************
 
-This package provides an easy way to expose the different results of SqueezeMeta (orfs, contigs, bins, taxonomy, functions…) into R, as well as a set of utility functions to filter and display SqueezeMeta results.
+**This package provides an easy way to expose the different results of SqueezeMeta (orfs, contigs, bins, taxonomy, functions…) into R, as well as a set of utility functions to filter and display SqueezeMeta results.**
 
 .. note::
   The documentation below aims to describe the philosophy, usage, and internals of the SQMtools package, initially described `here <https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-020-03703-2>`_. For detailed (albeit maybe a bit outdated) usage examples see also the `wiki entry <https://github.com/jtamames/SqueezeMeta/wiki/Using-R-to-analyze-your-SQM-results>`_.
@@ -180,7 +180,7 @@ Working with bins
 ``remove_contigs_from_bin`` and ``create_bin`` will return a new *SQM* object containing the new binning information, including recalculation of bin contamination/completeness using CheckM1 markers.
 
 .. note::
-  While this provides a fast way of removing obviously redundant contigs or creating custom bins within the *SQMtools* package, if you want to perform a more careful bin/MAG curation you should probably consider other tools such as anvi’o. You can always use the ``create_bin`` function to re-create the anvi’o curated bin into SQMtools.
+  While this provides a fast way of removing obviously redundant contigs or creating custom bins within the *SQMtools* package, if you want to perform a more careful bin/MAG curation you should probably consider other tools such as anvi’o. You can always use the ``create_bin`` function to re-create the anvi’o curated bin into *SQMtools*.
 
 Data normalization strategies
 =============================

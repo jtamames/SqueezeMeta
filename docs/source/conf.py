@@ -6,8 +6,8 @@ project = 'SqueezeMeta'
 copyright = '2018, Javier Tamames & Fernando Puente-Sánchez'
 author = 'Javier Tamames & Fernando Puente-Sánchez'
 
-release = '1.7.0.alpha8'
 version = '1.7.0'
+release = version
 
 # -- General configuration
 
