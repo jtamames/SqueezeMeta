@@ -598,7 +598,7 @@ Usage
 """""
 .. code-block:: console
 
-  anvi-filter-sqm.py -p <profile_db> -c <contigs_db> -t <contigs_taxonomy_file> -q <query> [options]``
+  anvi-filter-sqm.py -p <profile_db> -c <contigs_db> -t <contigs_taxonomy_file> -q <query> [options]
 
 Arguments
 """""""""

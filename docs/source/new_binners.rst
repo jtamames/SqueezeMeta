@@ -8,13 +8,13 @@ Next, edit the ``SqueezeMeta_conf.pl`` file in the ``scripts`` directory of the 
 
 .. code-block:: perl
   
-  %binscripts=('maxbin',"$installpath/lib/SqueezeMeta/bin_maxbin.pl",'metabat2',"$installpath/lib/SqueezeMeta/bin_metabat2.pl",'concoct',"$installpath/lib/SqueezeMeta/bin_concoct.pl");
+  %binscripts=("maxbin","$installpath/lib/SqueezeMeta/bin_maxbin.pl","metabat2","$installpath/lib/SqueezeMeta/bin_metabat2.pl","concoct","$installpath/lib/SqueezeMeta/bin_concoct.pl");
 
 This tells SqueezeMeta the available scripts for running binners. Add your new script:
 
 .. code-block:: perl
 
-  %binscripts=('maxbin',"$installpath/lib/SqueezeMeta/bin_maxbin.pl",'metabat2',"$installpath/lib/SqueezeMeta/bin_metabat2.pl",'concoct',"$installpath/lib/SqueezeMeta/bin_concoct.pl",’amazingbinner’,"mylocation/amazingbinner.py");
+  %binscripts=("maxbin","$installpath/lib/SqueezeMeta/bin_maxbin.pl","metabat2","$installpath/lib/SqueezeMeta/bin_metabat2.pl","concoct","$installpath/lib/SqueezeMeta/bin_concoct.pl","amazingbinner","mylocation/amazingbinner.py");
 
 Where ``"mylocation"`` is the directory where you put your script (You may want to move it to the ``lib/SqueezeMeta`` directory in the SqueezeMeta installation, to have all binning scripts in one place).
 
@@ -92,7 +92,7 @@ This line is a hash (equivalent to a dict in python), telling SqueezeMeta the na
 
 .. code-block:: perl
 
-  %assemblers = ("megahit","assembly_megahit.pl","spades", "assembly_spades.pl","canu","assembly_canu.pl","flye", "assembly_flye.pl",”idba”,”assembly_idba.pl”);
+  %assemblers = ("megahit","assembly_megahit.pl","spades", "assembly_spades.pl","canu","assembly_canu.pl","flye", "assembly_flye.pl","idba","assembly_idba.pl");
 
 Save it, and you are done. Now you can run a SqueezeMeta project using your new “idba” assembler:
 
