@@ -254,12 +254,12 @@ computer. Since version 1.6.2, we provide an easy way to achieve this.
 
 1) In the system in which you ran SqueezeMeta, run the utility script
 :ref:`sqm2zip` with
-  ::
+  .. code-block:: console
 
     sqm2zip.py /path/to/my_project /output/dir
   
-  , where ``/path/to/my_project`` is the path to the output of SqueezeMeta, and
-  ``/output/dir`` an arbitrary output directory.
+, where ``/path/to/my_project`` is the path to the output of SqueezeMeta, and
+``/output/dir`` an arbitrary output directory.
 
 2) This will generate a
 file in ``/output/dir`` named ``my_project.zip``, which contains the
@@ -268,7 +268,7 @@ file to your desktop computer.
 
 3) Assuming R is present in your desktop
 computer, you can install SQMtools with:
-  ::
+  .. code-block:: r
     
     if (!require("BiocManager", quietly = TRUE)) { install.packages("BiocManager")}
     BiocManager::install("SQMtools")
@@ -278,7 +278,7 @@ may need to previously install the *libcurl* development library.
 
 4) You can load the project directly from the zip file (no need for
 decompressing) with
-  ::
+  .. code-block:: r
   
     import(SQMtools)
     SQM = loadSQM("/path/to/my_project.zip")

@@ -133,58 +133,102 @@ So, in order to control which software is called by SqueezeMeta, modify the *Ext
 SqueezeMeta redistributes the following third-party software. Note that, for compatibility versions, we now use conda to provide some of these. A given tool *should* be replaceable by its original version if has no custom patch listed, or has ONLY the "Work within the SQM directory structure" patch listed:
 
 - `trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`_
-- `MEGAHIT <https://github.com/voutcn/megahit`_
+
+- `MEGAHIT <https://github.com/voutcn/megahit>`_
+
 - `SPAdes <http://cab.spbu.ru/software/spades>`_
-  - Work within the SQM directory structure
+
+    - Work within the SQM directory structure
+
 - `Canu <https://github.com/marbl/canu>`_
+
 - `prinseq <http://prinseq.sourceforge.net>`_
+
 - `kmer-db <https://github.com/refresh-bio/kmer-db>`_
+
 - `CD-HIT <https://github.com/weizhongli/cdhit>`_
-  - Recompile with MAX_SEQ=20000000
+
+    - Recompile with MAX_SEQ=20000000
+
 - `amos <http://www.cs.jhu.edu/~genomics/AMOS>`_
-  - Work within the SQM directory structure
-  - Add multithreading in nucmer calls (minimus2)
-  - Add a custom minimus2 script for the SQM-seqmerge mode
+
+    - Work within the SQM directory structure
+    - Add multithreading in nucmer calls (minimus2)
+    - Add a custom minimus2 script for the SQM-seqmerge mode
+
 - `mummer <https://github.com/mummer4/mummer>`_
+
 - `hmmer <http://hmmer.org/>`_
+
 - `barrnap <https://github.com/tseemann/barrnap>`_
-  - Work within the SQM directory structure
-  - Add ``-dbdir`` as an additional command line argument
+
+    - Work within the SQM directory structure
+    - Add ``-dbdir`` as an additional command line argument
+
 - `aragorn <http://130.235.244.92/ARAGORN/>`_
+
 - `prodigal <https://github.com/hyattpd/Prodigal>`_
+
 - `DIAMOND <https://github.com/bbuchfink/diamond>`_
+
 - `bwa <https://github.com/lh3/bwa>`_
+
 - `minimap2 <https://github.com/lh3/minimap2>`_
+
 - `bowtie2 <http://bowtie-bio.sourceforge.net/bowtie2/index.shtml>`_
+
 - `MaxBin <https://downloads.jbei.org/data/microbial_communities/MaxBin/MaxBin.html>`_
-  - Work within the SQM directory structure
-  - Add ``-markerpath`` as an additional command line argument
+
+    - Work within the SQM directory structure
+    - Add ``-markerpath`` as an additional command line argument
+
 - `MetaBAT <https://bitbucket.org/berkeleylab/metabat>`_
+
 - `CONCOCT <https://github.com/BinPro/CONCOCT>`_
-  - Fix an error in transform.py with newer version of scikit-kearn
-- `DAS Tool https://github.com/cmks/DAS_Tool`_
-  - Add extra logging, remove some superfluous error messages
-  - Explicitly load `library(methods)` in DAS_Tool.R since Rscript does not load it on startup (even if R console does)
+
+    - Fix an error in transform.py with newer version of scikit-kearn
+
+- `DAS Tool https://github.com/cmks/DAS_Tool>`_
+
+    - Add extra logging, remove some superfluous error messages
+    - Explicitly load `library(methods)` in DAS_Tool.R since Rscript does not load it on startup (even if R console does)
+
 - `checkm <http://ecogenomics.github.io/CheckM>`_
-  - Work within the SQM directory structure
-  - Port to python3
+
+    - Work within the SQM directory structure
+    - Port to python3
+
 - `checkm2 <https://github.com/chklovski/CheckM2>`_
-  - Work within the SQM directory structure
-  - Work with newer versions of pandas, scikit-learn
+
+    - Work within the SQM directory structure
+    - Work with newer versions of pandas, scikit-learn
+
 - `comparem <https://github.com/dparks1134/CompareM>`_
-  - Work within the SQM directory structure
-  - Port to python3
-- `MinPath http://omics.informatics.indiana.edu/MinPath`_
-  - Work within the SQM directory structure
-  - Port to python3
+
+    - Work within the SQM directory structure
+    - Port to python3
+
+- `MinPath <http://omics.informatics.indiana.edu/MinPath>`_
+
+    - Work within the SQM directory structure
+    - Port to python3
+
 - `RDP classifier <https://github.com/rdpstaff/classifier>`_
+
 - `pullseq <https://github.com/bcthomas/pullseq>`_
+
 - `Short-Pair <https://sourceforge.net/projects/short-pair/>`_
-  - Work within the SQM directory structure
-  - Port to python3
+
+    - Work within the SQM directory structure
+    - Port to python3
+
 - `SAMtools <http://samtools.sourceforge.net/>`_
+
 - `Mothur <https://mothur.org/>`_
+
 - `Flye <https://github.com/fenderglass/Flye>`_
+
 - `POGENOM <https://github.com/EnvGen/POGENOM>`_
-  - Only includes the pogenom.pl script, without modifications
+
+    - Only includes the pogenom.pl script, without modifications
 
