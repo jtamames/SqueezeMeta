@@ -619,6 +619,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     
     if(!any(is.na(SQM$misc$single_copy_cov)))
         {
+        message(sprintf('    Using %s for copy number normalization', SQM$misc$single_copy_genes))
         for(method in names(SQM$functions))
             {
             SQM$functions[[method]]$copy_number = t(t(SQM$functions[[method]]$cov) / SQM$misc$single_copy_cov)
