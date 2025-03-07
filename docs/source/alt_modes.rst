@@ -18,7 +18,7 @@ Usage
 ^^^^^
 The usage of ``sqm_reads.pl`` is very similar to that of SqueezeMeta:
 
-::
+.. code-block:: console
 
  sqm_reads.pl -p <project_name> -s <equiv_file> -f <raw_fastq_dir> [options]
 
@@ -119,7 +119,7 @@ Usage
 ^^^^^
 The usage of ``sqm_longreads.pl`` is the same than that of :ref:`sqm_reads.pl <sqm_reads>`:
 
-::
+.. code-block:: console
 
   sqm_longreads.pl -p <project_name> -s <equiv_file> -f <raw_fastq_dir> [options]
 
@@ -201,7 +201,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 ^^^^^
-::
+.. code-block:: console
 
   sqm_hmm_reads.pl -pfam <PFAM_list> -pair1 <pair1_fasta_file>  -pair2 <pair2_fasta_file> [options]
 
@@ -259,7 +259,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 ^^^^^
-::
+.. code-block:: console
 
   sqm_mapper.pl -r <reference> -s <sample_file> -f <reads_directory>  -g <gff_file> -o <output_directory> [options]
 
@@ -346,7 +346,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 ^^^^^
-::
+.. code-block:: console
 
   sqm_annot.pl -s <samples_file> -f <sequence_file_directory> [options]
 

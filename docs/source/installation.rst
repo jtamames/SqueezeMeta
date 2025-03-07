@@ -7,7 +7,7 @@ and CentOS). The easiest way to install it is by using conda. The
 default conda solver might however be slow solving the dependencies, so
 it’s better to first set up the libmamba solver with
 
-::
+.. code-block:: console
 
    conda update -n base conda # if your conda version is below 22.11
    conda install -n base conda-libmamba-solver
@@ -15,14 +15,14 @@ it’s better to first set up the libmamba solver with
 
 and then use conda to install SqueezeMeta
 
-::
+.. code-block:: console
 
    conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.7 --no-channel-priority --override-channels
 
 This will create a new conda environment named SqueezeMeta, which must
 then be activated.
 
-::
+.. code-block:: console
 
    conda activate SqueezeMeta
 
@@ -41,7 +41,7 @@ and we will not prioritize support to issues regarding manual installation.
 The ``test_install.pl`` script can be run in order to check whether the
 required dependencies are available in your environment.
 
-::
+.. code-block:: console
 
     /path/to/SqueezeMeta/utils/install_utils/test_install.pl
 
@@ -53,7 +53,7 @@ and eggnog, KEGG and Pfam for functional assignment. The script
 *download_databases.pl* can be run to download a pre-formatted version
 of all the databases required by SqueezeMeta.
 
-::
+.. code-block:: console
    
    /path/to/SqueezeMeta/utils/install_utils/download_databases.pl /download/path
 
@@ -64,7 +64,7 @@ server, which can at times be unreachable.
 Alternatively, the script ``make_databases.pl`` can be run to download
 from source and format the latest version of the databases.
 
-::
+.. code-block:: console
 
    /path/to/SqueezeMeta/utils/install_utils/make_databases.pl /download/path
 
@@ -88,7 +88,7 @@ If the SqueezeMeta databases are already built in another location in
 the system, a different copy of SqueezeMeta can be configured to use
 them with
 
-::
+.. code-block:: console
 
    /path/to/SqueezeMeta/utils/install_utils/configure_nodb.pl /path/to/db
 
@@ -104,7 +104,7 @@ Updating SqueezeMeta
 Assuming your databases are not inside the SqueezeMeta directory, just
 remove it, download the new version and configure it with
 
-::
+.. code-block:: console
 
   /path/to/SqueezeMeta/utils/install_utils/configure_nodb.pl /path/to/db
 
