@@ -277,6 +277,7 @@ unpaired filtered fastq files from paired input files (particularly if
 run without the right parameters). This may result in SqueezeMeta
 failing or producing incorrect results.
 
+.. _restart:
 Restart
 =======
 
