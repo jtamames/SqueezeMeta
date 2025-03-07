@@ -32,9 +32,6 @@ tie %samples,"Tie::IxHash";
 
 	#-- CREATING GENE TABLE
 
-open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
-print "  Creating table in $mergedfile\n";
-print syslogfile "  Creating table in $mergedfile\n";
 open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
 
 	#-- Headers
@@ -57,55 +54,13 @@ if($opt_db) {
 		chomp;
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		print outfile1 "\t$dbname\t$dbname NAME";
+		$optlist{$dbname}=1;
 		}
 	close infile0;
 	}
 
-foreach my $cnt(keys %samples) { 
-	print outfile1 "\tTPM $cnt";
-	}
-foreach my $cnt(keys %samples) { 
-	print outfile1 "\tCoverage $cnt";
-	}
-foreach my $cnt(keys %samples) { 
-	print outfile1 "\tRaw read count $cnt";
-	}
-foreach my $cnt(keys %samples) { 
-	print outfile1 "\tRaw base count $cnt"; 
-	}	
-print outfile1 "\tHits"; 
-if($seqsinfile13) { print outfile1 "\tAASEQ"; }
-print outfile1 "\n";
-
-
-	#-- CREATING GENE TABLE
-
-open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
-
-	#-- Headers
-
-open(infile1,$mappingfile) || die "Can't open samples file in $mappingfile\n";
-while(<infile1>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	$_=~s/\r//g;
-	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-	$samples{$sample}=1; 
-	}
-close infile1;
-
-print outfile1 "#--Created by $0, ",scalar localtime,"\n";
-print outfile1 "ORF ID\tContig ID\tMolecule\tMethod\tLength NT\tLength AA\tGC perc\tGene name\tTax\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
-if($opt_db) {
-	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
-	while(<infile0>) {
-		chomp;
-		next if(!$_ || ($_=~/\#/));
-		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		print outfile1 "\t$dbname\t$dbname NAME";
-		}
-	close infile0;
+foreach my $dbname(sort keys %optlist) {
+	print outfile1 "\t$dbname\t$dbname NAME";
 	}
 
 foreach my $cnt(keys %samples) { print outfile1 "\tTPM $cnt"; }

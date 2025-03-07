@@ -10,7 +10,8 @@ subsetBins(
   trusted_functions_only = FALSE,
   ignore_unclassified_functions = FALSE,
   rescale_tpm = TRUE,
-  rescale_copy_number = TRUE
+  rescale_copy_number = TRUE,
+  allow_empty = FALSE
 )
 }
 \arguments{

@@ -20,7 +20,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$interdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode,$singletons,$mappingstat);
+our($datapath,$tempdir,$interdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode,$singletons,$mappingstat,$onlybins);
 
 my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
@@ -79,23 +79,25 @@ close infile2;
 
 	#-- Statistics on contigs (disparity, assignment..)
 
-open(infile3,$contigtable) || warn "Can't open $contigtable\n";
-while(<infile3>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	my @k=split(/\t/,$_);
-	my @mtax=split(/\;/,$k[1]);
-	foreach my $p(@mtax) {
-		my($trank,$ttax)=split(/\_/,$p);
-		$contigs{$trank}++;
-		$contax{$trank}{$ttax}++;
+if(!$onlybins) {
+	open(infile3,$contigtable) || warn "Can't open $contigtable\n";
+	while(<infile3>) {
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		my @k=split(/\t/,$_);
+		my @mtax=split(/\;/,$k[1]);
+		foreach my $p(@mtax) {
+			my($trank,$ttax)=split(/\_/,$p);
+			$contigs{$trank}++;
+			$contax{$trank}{$ttax}++;
+			}
+		if($k[2]==0) { $contigs{chimerism}{0}++; }
+		else { $contigs{chimerism}{more0}++; }
+		if($k[2]>=0.1) { $contigs{chimerism}{0.1}++; }
+		if($k[2]>=0.25) { $contigs{chimerism}{0.25}++; }
 		}
-	if($k[2]==0) { $contigs{chimerism}{0}++; }
-	else { $contigs{chimerism}{more0}++; }
-	if($k[2]>=0.1) { $contigs{chimerism}{0.1}++; }
-	if($k[2]>=0.25) { $contigs{chimerism}{0.25}++; }
+	close infile3;
 	}
-close infile3;
 
 my %singletonsample;
 if($singletons) {		#-- Count singleton raw reads
@@ -116,74 +118,77 @@ if($singletons) {		#-- Count singleton raw reads
 my $header;
 my @head;
 my %genes;
-open(infile4,$mergedfile) || warn "Can't open $mergedfile\n";
-while(<infile4>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	if(!$header) { $header=$_; @head=split(/\t/,$header); next; }
-	$genes{totgenes}++;
-	my @k=split(/\t/,$_);
-	if($singletonsample{$k[1]}) { $genes{$singletonsample{$k[1]}}{singletons}++; $genes{total}{singletons}++; }
-	my $taxorf;
-	foreach(my $pos=0; $pos<=$#k; $pos++) {
-		my $f=$head[$pos];
-		if($f eq "Tax") { 
-			$taxorf=$k[$pos]; 
-			if(!$taxorf) { $genes{notassigned}++; }
-			}
-		if(($f eq "KEGG ID") && $k[$pos]) { $genes{kegg}++; }
-		if(($f eq "COG ID") && $k[$pos]) { $genes{cog}++; }
-		if(($f eq "PFAM") && $k[$pos]) { $genes{pfam}++; }
-		if(($f eq "Molecule") && ($k[$pos] eq "rRNA")) { $genes{rnas}++; }
-		if(($f eq "Molecule") && (($k[$pos] eq "tRNA") || ($k[$pos] eq "tmRNA"))) { $genes{trnas}++; }
-		if($f eq "Method") { $genes{method}{$k[$pos]}++; }
-		if(($f eq "Hits") && !$k[$pos]) { $genes{orphans}++; }
-		if(($f eq "Hits") && $k[$pos] && (!$taxorf)) { $genes{notassignedwhits}++; }
-		if($opt{$f} && $k[$pos]) { $genes{$f}++; }
-		if($f=~/Raw Read Count (.*)/i) {
-			my $tsam=$1;
-			if($k[$pos]>0) {
-				$genes{$tsam}{totgenes}++; 
-				foreach(my $pos2=0; $pos2<=$#k; $pos2++) {
-					my $f2=$head[$pos2];
-					if($f eq "Tax") { 
-						$taxorf=$k[$pos]; 
-						if(!$taxorf && $k[$pos2]) { $genes{$tsam}{notassigned}++; }
+if(!$onlybins) {
+	open(infile4,$mergedfile) || warn "Can't open $mergedfile\n";
+	while(<infile4>) {
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		if(!$header) { $header=$_; @head=split(/\t/,$header); next; }
+		$genes{totgenes}++;
+		my @k=split(/\t/,$_);
+		if($singletonsample{$k[1]}) { $genes{$singletonsample{$k[1]}}{singletons}++; $genes{total}{singletons}++; }
+		my $taxorf;
+		foreach(my $pos=0; $pos<=$#k; $pos++) {
+			my $f=$head[$pos];
+			if($f eq "Tax") { 
+				$taxorf=$k[$pos]; 
+				if(!$taxorf) { $genes{notassigned}++; }
+				}
+			if(($f eq "KEGG ID") && $k[$pos]) { $genes{kegg}++; }
+			if(($f eq "COG ID") && $k[$pos]) { $genes{cog}++; }
+			if(($f eq "PFAM") && $k[$pos]) { $genes{pfam}++; }
+			if(($f eq "Molecule") && ($k[$pos] eq "rRNA")) { $genes{rnas}++; }
+			if(($f eq "Molecule") && (($k[$pos] eq "tRNA") || ($k[$pos] eq "tmRNA"))) { $genes{trnas}++; }
+			if($f eq "Method") { $genes{method}{$k[$pos]}++; }
+			if(($f eq "Hits") && !$k[$pos]) { $genes{orphans}++; }
+			if(($f eq "Hits") && $k[$pos] && (!$taxorf)) { $genes{notassignedwhits}++; }
+			if($opt{$f} && $k[$pos]) { $genes{$f}++; }
+			if($f=~/Raw Read Count (.*)/i) {
+				my $tsam=$1;
+				if($k[$pos]>0) {
+					$genes{$tsam}{totgenes}++; 
+					foreach(my $pos2=0; $pos2<=$#k; $pos2++) {
+						my $f2=$head[$pos2];
+						if($f eq "Tax") { 
+							$taxorf=$k[$pos]; 
+							if(!$taxorf && $k[$pos2]) { $genes{$tsam}{notassigned}++; }
+							}
+						if(($f2 eq "KEGG ID") && $k[$pos2]) { $genes{$tsam}{kegg}++; }
+						if(($f2 eq "COG ID") && $k[$pos2]) { $genes{$tsam}{cog}++; }
+						if(($f2 eq "PFAM") && $k[$pos2]) { $genes{$tsam}{pfam}++; }
+						if($f2 eq "Method") { $genes{$tsam}{method}{$k[$pos2]}++; }
+						if(($f2 eq "Molecule") && ($k[$pos2] eq "rRNA")) { $genes{$tsam}{rnas}++; }
+						if(($f2 eq "Molecule") && (($k[$pos2] eq "tRNA") || ($k[$pos2] eq "tmRNA"))) { $genes{$tsam}{trnas}++; }
+						if(($f2 eq "Hits") && !$k[$pos2]) { $genes{$tsam}{orphans}++; }
+						if(($f2 eq "Hits") && $k[$pos2] && (!$taxorf)) { $genes{$tsam}{notassignedwhits}++; }
+						if($opt{$f2} && $k[$pos2]) { $genes{$tsam}{$f2}++; }
 						}
-					if(($f2 eq "KEGG ID") && $k[$pos2]) { $genes{$tsam}{kegg}++; }
-					if(($f2 eq "COG ID") && $k[$pos2]) { $genes{$tsam}{cog}++; }
-					if(($f2 eq "PFAM") && $k[$pos2]) { $genes{$tsam}{pfam}++; }
-					if($f2 eq "Method") { $genes{$tsam}{method}{$k[$pos2]}++; }
-					if(($f2 eq "Molecule") && ($k[$pos2] eq "rRNA")) { $genes{$tsam}{rnas}++; }
-					if(($f2 eq "Molecule") && (($k[$pos2] eq "tRNA") || ($k[$pos2] eq "tmRNA"))) { $genes{$tsam}{trnas}++; }
-					if(($f2 eq "Hits") && !$k[$pos2]) { $genes{$tsam}{orphans}++; }
-					if(($f2 eq "Hits") && $k[$pos2] && (!$taxorf)) { $genes{$tsam}{notassignedwhits}++; }
-					if($opt{$f2} && $k[$pos2]) { $genes{$tsam}{$f2}++; }
 					}
 				}
 			}
 		}
-	}
-close infile4;
+	close infile4;
 
-open(infile4,$mcountfile)  || warn "Can't open $mcountfile\n";
-my $cheader=<infile4>;
-chomp $cheader;
-my @chead=split(/\t/,$cheader);
-while(<infile4>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	my @k=split(/\t/,$_);
-	my @tp=split(/\_/,$k[1]);
-	my $thistax=$tp[$#tp];
-	for(my $tpos=2; $tpos<=$#k; $tpos++) {
-		my $tfield=$chead[$tpos];
-		next if($tfield!~/bases$/);
-		$tfield=~s/ bases//;
-		$abundance{$k[0]}{$tfield}{$thistax}+=$k[$tpos];
+
+	open(infile4,$mcountfile)  || warn "Can't open $mcountfile\n";
+	my $cheader=<infile4>;
+	chomp $cheader;
+	my @chead=split(/\t/,$cheader);
+	while(<infile4>) {
+		chomp;
+		next if(!$_ || ($_=~/^\#/));
+		my @k=split(/\t/,$_);
+		my @tp=split(/\_/,$k[1]);
+		my $thistax=$tp[$#tp];
+		for(my $tpos=2; $tpos<=$#k; $tpos++) {
+			my $tfield=$chead[$tpos];
+			next if($tfield!~/bases$/);
+			$tfield=~s/ bases//;
+			$abundance{$k[0]}{$tfield}{$thistax}+=$k[$tpos];
+			}
 		}
+	close infile4;	
 	}
-close infile4;	
 
 	#-- Statistics on bins (disparity, assignment..)
 

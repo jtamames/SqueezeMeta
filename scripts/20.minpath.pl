@@ -18,7 +18,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$extdatapath,$contigsinbins,$mergedfile,$tempdir,$interdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction20,$binresultsdir);
+our($installpath,$extdatapath,$contigsinbins,$mergedfile,$tempdir,$interdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction20,$minnumber20,$binresultsdir);
 
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 
@@ -106,6 +106,7 @@ close outsyslog;
 sub outres {
 	my $clas=shift;
 	my $totpath;
+	if(!$minnumber20) { $minnumber20=2; } #-- Compatibility with previous versions not having this parameter
 	open(outfile5,">$resultpath/20.$project.$clas.pathways") || die "Can't open $resultpath/20.$project.$clas.pathways for writing\n";
 	print outfile5 "Bin\tTax\tPathways found";
 	foreach my $pt(sort keys %allpaths) { print outfile5 "\t$pt"; $totpath++; }
@@ -114,13 +115,13 @@ sub outres {
 	foreach my $pt(sort keys %allpaths) { print outfile5 "\t$pathgenes{total}{$pt}"; }
 	print outfile5 "\n";
 	foreach my $mt(sort keys %pathways) {
-		print outfile5 "$mt\t$bintax{$mt}\t$totalpathways{$mt}";
+		my($pv,$pathfound);
 		foreach my $pt(sort keys %allpaths) { 
 			my $fraction=$pathgenes{$mt}{$pt}/$pathgenes{total}{$pt};
-			my $pv;
-			if((($fraction>=$minfraction20) || ($pathgenes{$mt}{$pt}>=5)) && ($pathways{$mt}{$pt})) { $pv=$pathgenes{$mt}{$pt} } else { $pv="NF"; }
-			print outfile5 "\t$pv"; 
+			if((($fraction>=$minfraction20) || ($pathgenes{$mt}{$pt}>=$minnumber20)) && ($pathways{$mt}{$pt})) { $pv.="\t$pathgenes{$mt}{$pt}"; $pathfound++; } else { $pv.="\tNF"; }
+			
 			}
+		print outfile5 "$mt\t$bintax{$mt}\t$pathfound"."$pv";
 		print outfile5 "\n";
 		}
 	close outfile5;

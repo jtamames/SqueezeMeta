@@ -10,13 +10,14 @@ read.namedvector = function(file, engine = 'data.frame')
     } else if (engine == 'data.table')
         {
         ta = data.table::fread(file, sep='\t')
-	res = unlist(ta[,2])
+        res = unlist(ta[,2])
         names(res) = unlist(ta[,1])
         }
     return(res)
     }
 
-#' @importFrom utils tail unzip
+#' @importFrom utils tail
+#' @importFrom zip unzip
 read.namedvector.zip = function(project_path, file_path, engine = 'data.frame')
     {
     zipmode = endsWith(project_path, '.zip')
@@ -26,11 +27,11 @@ read.namedvector.zip = function(project_path, file_path, engine = 'data.frame')
     } else # since data.table::fread can't read from connections we need to do uncompress the file before reading it
         {
         unzip(project_path, file_path, exdir = tempdir(), junkpaths = TRUE) # junkpaths=TRUE so the file is extracted directly into tempdir()
-	f = tail(unlist(strsplit(file_path, split = '/')), 1)               #  instead of creating "results" or "intermediate" directories
-	f = sprintf('%s/%s', tempdir(), f)                                  #  mostly so we can remove it easily after using it
-	res = read.namedvector(f, engine = engine)
-	unlink(f)
-	}
+        f = tail(unlist(strsplit(file_path, split = '/')), 1)               #  instead of creating "results" or "intermediate" directories
+        f = sprintf('%s/%s', tempdir(), f)                                  #  mostly so we can remove it easily after using it
+        res = read.namedvector(f, engine = engine)
+        unlink(f)
+        }
     return(res)
     }
 
@@ -59,7 +60,7 @@ rowMaxs = function(table)
     }
 
 
-merge.numeric.matrices = function(m1, m2)
+merge_numeric_matrices = function(m1, m2)
     {
     notIn1 = setdiff(rownames(m2), rownames(m1))
     m1 = rbind(m1, matrix(0, nrow=length(notIn1), ncol=ncol(m1), dimnames=list(notIn1, colnames(m1))))
@@ -72,7 +73,7 @@ merge.numeric.matrices = function(m1, m2)
 
 named.unique = function(v)
     {
-    return(v[!duplicated(v)])
+    return(v[!duplicated(names(v))])
     }
 
 
@@ -106,23 +107,19 @@ check.samples = function(SQM, samples)
 file.exists.zip = function(project_path, file_path)
     {
     zipmode = endsWith(project_path, '.zip')
-    file_exists = TRUE
-    if(zipmode) { f = unz(project_path, file_path) } else { f = sprintf('%s/%s', project_path, file_path) }
-    if(zipmode)
+    file_exists = FALSE
+    if(zipmode) 
         {
-        res=try(suppressWarnings(scan(f, what = 'character', quiet = TRUE, n = 1)), silent=TRUE)
-        if(inherits(res, 'try-error')) { file_exists = FALSE }
-        close(f)
-        }
-    else
+        if(file_path %in% list.files.zip(project_path, NA)) { file_exists = TRUE }
+    } else
         {
-        if(!file.exists(f)) { file_exists = FALSE }
+        if(file.exists(sprintf('%s/%s', project_path, file_path))) { file_exists = TRUE }
         }
     return(file_exists)
     }
 
 
-open.conn.zip = function(project_path, file_path)
+open_conn_zip = function(project_path, file_path)
     # remember to open/close conns explicitly later after calling this function if needed!
     #  some functions (eg read.table) will open and close the connection by themselves, so there's nothing to be done
     #  others (eg scan) seem to open it but not close it
@@ -133,7 +130,7 @@ open.conn.zip = function(project_path, file_path)
     }
 
 
-#' @importFrom utils unzip
+#' @importFrom zip zip_list
 list.files.zip = function(project_path, dir_path)
     {
     zipmode = endsWith(project_path, '.zip')
@@ -143,12 +140,18 @@ list.files.zip = function(project_path, dir_path)
         }
     else
         {
-        all_files = unzip(project_path, list = TRUE)[[1]]
-        res = all_files[startsWith(all_files, dir_path)]
-        res = gsub(sprintf('^%s', dir_path), '', res)
-	res = gsub('^/', '', res)
-	res = res[res!='']
-	res = unique(sapply(strsplit(res, '/'), `[`, 1))
+        all_files = zip_list(project_path)$filename
+        if(is.na(dir_path))
+            {
+            res = all_files
+        } else
+            {
+            res = all_files[startsWith(all_files, dir_path)]
+            res = gsub(sprintf('^%s', dir_path), '', res)
+            res = gsub('^/', '', res)
+            res = res[res!='']
+            res = unique(sapply(strsplit(res, '/'), `[`, 1))
+            }
         }
     return(res)
     }

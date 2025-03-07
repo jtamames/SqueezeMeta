@@ -11,14 +11,15 @@ my $DOWNLOAD_KEGG               = 1;
 my $DOWNLOAD_NR                 = 1;
 my $DOWNLOAD_EGGNOG             = 1;
 my $DOWNLOAD_PFAM               = 1;
+my $DOWNLOAD_CHECKM2            = 1;
 my $LCA_RECTAXA                 = 1;
 my $LCA_NRINDEX                 = 1;
 my $LCA_TAXID_TREE              = 1;
 my $LCA_TAXID_DB                = 1;
 my $LCA_PARENTS_DB              = 1;
-my $REMOVE_NR                   = 0;
-my $REMOVE_TAXDUMP              = 0;
-my $REMOVE_LCA_TAX_INTERMEDIATE = 0;
+my $REMOVE_NR                   = 1;
+my $REMOVE_TAXDUMP              = 1;
+my $REMOVE_LCA_TAX_INTERMEDIATE = 1;
 
 if(!$ARGV[0]) { die "Please provide a download directory!   "; }
 
@@ -56,29 +57,29 @@ system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db
 ### Download test data (-U '' so that we give the server an user agent string, it complains otherwise).
 if($DOWNLOAD_TEST){
 	print "\nDownloading and unpacking test data...\n\n";
-	download_confirm("test.tar.gz", "test.md5", "$host/SqueezeMeta/", $download_dir);
+	download_confirm("test.tar.gz", "test.md5", $host, $download_dir);
 }
 
 
 ### Download general db tarball. (-U '' so that we give the server an user agent string, it complains otherwise)
 if($DOWNLOAD_GENERAL){
 	print "Downloading and unpacking general database tarball...\n";
-	download_confirm("db.tar.gz", "db.md5", "$host/SqueezeMeta/", $download_dir);
+	download_confirm("db.tar.gz", "db.md5", $host, $download_dir);
 }
 
 
 ### Download and unpack silva databases
 if($DOWNLOAD_SILVA){
 	print "Downloading and unpacking SILVA databases (https://www.arb-silva.de/silva-license-information)...\n";
-	download_confirm("silva.nr_v132.align.gz", "silva.nr_v132.align.md5",  "$host/SqueezeMeta/", $database_dir);
-	download_confirm("silva.nr_v132.tax.gz", "silva.nr_v132.tax.md5",  "$host/SqueezeMeta/", $database_dir);
+	download_confirm("silva.nr_v132.align.gz", "silva.nr_v132.align.md5",  $host, $database_dir);
+	download_confirm("silva.nr_v132.tax.gz", "silva.nr_v132.tax.md5",  $host, $database_dir);
 }
 
 
 ### Download and create kegg db.
 if($DOWNLOAD_KEGG){
 	print "\nDownloading and creating kegg database...\n\n";
-	download_confirm("kegg.db.gz", "kegg.db.md5", "$host/SqueezeMeta/", $database_dir);
+	download_confirm("kegg.db.gz", "kegg.db.md5", $host, $database_dir);
 	my $command = "$installpath/bin/diamond makedb --in $database_dir/kegg.db -d $database_dir/keggdb -p 8";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\nThis probably means that your download got interrupted, you ran out of disk space, or something is wrong with your DIAMOND binary\n\n"; }
@@ -113,6 +114,13 @@ if($DOWNLOAD_PFAM){
 }
 
 
+### Download CheckM2 reference db.
+if($DOWNLOAD_CHECKM2){
+	print "\nDownloading Checkm2 reference...\n\n";
+	download_confirm("uniref100.KO.1.dmnd.gz", "uniref100.KO.1.dmnd.md5",  $host, $database_dir);
+}
+
+
 ### Create LCA database from nr data.
 if($LCA_RECTAXA and $LCA_NRINDEX and $LCA_TAXID_TREE and $LCA_TAXID_DB and $LCA_PARENTS_DB){
 	print "\nCreating lca.db...\n";
@@ -120,12 +128,15 @@ if($LCA_RECTAXA and $LCA_NRINDEX and $LCA_TAXID_TREE and $LCA_TAXID_DB and $LCA_
 	system "mkdir $lca_dir";
 }
 
+
 if($LCA_RECTAXA){
 	print "\n  Running rectaxa.pl\n";
 	my $command = "perl $libpath/install_utils/rectaxa.pl $lca_dir";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\n"; }
 }
+if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
+
 
 if($LCA_NRINDEX){
 	print "\n  Running nrindex.pl\n";
@@ -133,6 +144,8 @@ if($LCA_NRINDEX){
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\n"; }
 }
+if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
+
 
 if($LCA_TAXID_TREE){
 	print "\n  Running taxid_tree.pl\n";
@@ -143,6 +156,7 @@ if($LCA_TAXID_TREE){
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:     $command\n\n"; }
 }
+
 
 if($LCA_TAXID_DB){
 	print "\n  Creating sqlite database taxid.db\n\n";
@@ -159,6 +173,7 @@ if($LCA_TAXID_DB){
 	system("md5sum $lca_dir/taxid.db > $lca_dir/taxid.md5");
 }
 
+
 if($LCA_PARENTS_DB){
 	print "\n  Creating sqlite database parents.db\n\n";
 	if(-e "$lca_dir/parents.db") { system("rm $lca_dir/parents.db"); }
@@ -170,9 +185,6 @@ if($LCA_PARENTS_DB){
 	if($ecode!=0) { die "Error running command:     $command\n\n"; }
 }
 
-
-if($REMOVE_NR) { system ("rm -r $database_dir/nr.faa"); }
-if($REMOVE_TAXDUMP) { system("rm $lca_dir/*dmp $lca_dir/new_taxdump.tar.gz"); }
 if($REMOVE_LCA_TAX_INTERMEDIATE) { system("rm $lca_dir/nr.taxlist.db $lca_dir/taxid_tree.txt $lca_dir/taxatree.txt"); }
 
 

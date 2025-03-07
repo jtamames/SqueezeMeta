@@ -2,14 +2,15 @@
 
 library(data.table)
 
-#' @importFrom utils read.table unzip tail
+#' @importFrom utils read.table tail
+#' @importFrom zip unzip
 read.generic.table.zip = function(project_path, file_path, engine = 'data.frame', ...)
     {
     extra_args = list(...)
     if(engine == 'data.frame')
         {
         extra_args = extra_args[names(extra_args) %in% names(formals(read.table))]
-        extra_args$file = open.conn.zip(project_path, file_path) # see open.conn.zip in extra_methods.R
+        extra_args$file = open_conn_zip(project_path, file_path) # see open_conn_zip in extra_methods.R
         res = do.call(read.table, extra_args)
     } else if(engine == 'data.table')
         {
@@ -52,6 +53,7 @@ generic.table = function(x)
 
 #' @export
 #' @noRd
+#' @importFrom data.table data.table
 `[.generic.data.table` = function(x,i,j, drop = TRUE)
     {
     
@@ -79,9 +81,10 @@ generic.table = function(x)
 
     sj = 'j'
 
-    expression = sprintf('x[%s,%s, with=FALSE,drop=%s]', si, sj, drop)
+    expression = sprintf('x[%s,%s, with=FALSE]', si, sj)
     res = eval(parse(text=expression))
     if(!is.null(dim(res))){ rownames(res) = names; class(res) = c('generic.data.table', class(res));  }
+    if(drop & ncol(res)==1) { res = res[[1]] }
     return (res)
     }
 

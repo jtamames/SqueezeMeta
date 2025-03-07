@@ -1,13 +1,14 @@
 #' Combine several SQM objects
 #'
-#' Combine an arbitrary number of SQM objects into a single SQM object. The input objects must be subsets of the same original SQM object (i.e. from the same SqueezeMeta run). For combining results from different runs please check \code{\link{combineSQMlite}}.
+#' Combine an arbitrary number of SQM objects into a single SQM object (if the input objects contain the same samples, i.e. they come from the same SqueezeMeta run) or a single SQMbunch object. For combining results from sqm_reads.pl or sqm_longreads.pl please check \code{\link{combineSQMlite}}. The parameters below (other than ...) will take only effect if the input objects contain the same samples. Otherwise the input objects will be taken as they are, with no recalculation of taxonomy, function or rescaling,
 #' @param ... an arbitrary number of SQM objects. Alternatively, a single list containing an arbitrary number of SQM objects.
 #' @param tax_source character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}). If the objects being combined contain a subset of taxa or bins, this parameter can be set to \code{TRUE}.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{TRUE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object with the highest RecA/RadA coverages. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected bins or contigs}. If any SQM objects that are being combined contain a functional subset rather than a contig/bins subset, this parameter should be set to \code{FALSE}.
-#' @return A SQM object
+#' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
+#' @return A SQM or SQMbunch object
 #' @seealso \code{\link{subsetFun}}, \code{\link{subsetTax}}, \code{\link{combineSQMlite}}
 #' @examples
 #' data(Hadza)
@@ -19,19 +20,31 @@
 #' proteo.amins = subsetFun(proteo, "Amino acid metabolism")
 #' bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=FALSE)
 #' @export
-combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE)
+combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, recalculate_bin_stats = TRUE)
     {
     inSQM = list(...)
-    # if there is only one argument and this argument is a list, treat it as a list containing SQM objects
+    ### if there is only one argument and this argument is a list, treat it as a list containing SQM objects
     if(length(inSQM) == 1 & inherits(inSQM[[1]], 'list')) { inSQM = list(...)[[1]] }
-    # intermediate function so that we can pass extra args to combineSQM
-    myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number)
-    return(Reduce(myFun, inSQM))
+    ### check whether the input objects come from the same project or not
+    projNames = sapply(inSQM, FUN=function(proj) proj$misc$project_name)
+    if(length(unique(projNames))==1)
+        {
+        # intermediate function so that we can pass extra args to combineSQM
+        myFun = function(SQM1, SQM2) combineSQM_(SQM1, SQM2, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, recalculate_bin_stats)
+        combSQM = Reduce(myFun, inSQM)
+    } else
+        {
+	combSQM = combineSQMlite(inSQM)
+	combSQM$projects = inSQM
+	names(combSQM$projects) = projNames
+        class(combSQM) = 'SQMbunch'
+        }
+    return(combSQM)
     }
 
 
 #' @importFrom stats aggregate
-combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE)
+combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, recalculate_bin_stats = TRUE)
     {
 
     if(!inherits(SQM1, 'SQM') | !inherits(SQM2, 'SQM')) { stop('This function only accepts SQM objects') }
@@ -58,12 +71,25 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     combSQM$orfs$tpm                   = rbind(combSQM$orfs$tpm, SQM2$orfs$tpm[extraORFs,,drop=FALSE])
     combSQM$orfs$tpm                   = combSQM$orfs$tpm[rownames(combSQM$orfs$table),,drop=FALSE]
     #    Sequences
-    combSQM$orfs$seqs                  = c(combSQM$orfs$seqs, SQM2$orfs$seqs[extraORFs])
-    combSQM$orfs$seqs                  = combSQM$orfs$seqs[rownames(combSQM$orfs$table)]
+    if(!is.null(combSQM$orfs$seqs))
+        {
+        combSQM$orfs$seqs              = c(combSQM$orfs$seqs, SQM2$orfs$seqs[extraORFs])
+        combSQM$orfs$seqs              = combSQM$orfs$seqs[rownames(combSQM$orfs$table)]
+        }
     #    Taxonomy
     combSQM$orfs$tax                   = rbind(combSQM$orfs$tax, SQM2$orfs$tax[extraORFs,,drop=FALSE])
     combSQM$orfs$tax                   = combSQM$orfs$tax[rownames(combSQM$orfs$table),,drop=FALSE]
-    
+    if('tax16S' %in% names(combSQM$orfs))
+        {
+        combSQM$orfs$tax16S            = c(combSQM$orfs$tax16S, SQM2$orfs$tax16S[extraORFs])
+	combSQM$orfs$tax16S            = combSQM$orfs$tax16S[rownames(combSQM$orfs$table)]
+        }
+    #    Markers
+    if('markers' %in% names(combSQM$orfs))
+        {
+        combSQM$orfs$markers               = c(combSQM$orfs$markers, SQM2$orfs$markers[extraORFs])
+        combSQM$orfs$markers               = combSQM$orfs$markers[rownames(combSQM$orfs$table)]
+        }
     ### Contigs
     extraContigs                       = setdiff(rownames(SQM2$contigs$table), rownames(SQM1$contigs$table))
     #    Table
@@ -80,8 +106,11 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     combSQM$contigs$tpm                = rbind(combSQM$contigs$tpm, SQM2$contigs$tpm[extraContigs,,drop=FALSE])
     combSQM$contigs$tpm                = combSQM$contigs$tpm[rownames(combSQM$contigs$table),,drop=FALSE]
     #    Sequences
-    combSQM$contigs$seqs               = c(combSQM$contigs$seqs, SQM2$contigs$seqs[extraContigs])
-    combSQM$contigs$seqs               = combSQM$contigs$seqs[rownames(combSQM$contigs$table)]
+    if(!is.null(combSQM$contigs$seqs))
+        {
+        combSQM$contigs$seqs           = c(combSQM$contigs$seqs, SQM2$contigs$seqs[extraContigs])
+        combSQM$contigs$seqs           = combSQM$contigs$seqs[rownames(combSQM$contigs$table)]
+        }
     #    Taxonomy
     combSQM$contigs$tax                = rbind(combSQM$contigs$tax, SQM2$contigs$tax[extraContigs,,drop=FALSE])
     combSQM$contigs$tax                = combSQM$contigs$tax[rownames(combSQM$contigs$table),,drop=FALSE]
@@ -90,84 +119,81 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         {
         combSQM$contigs$bins           = rbind(combSQM$contigs$bins, SQM2$contigs$bins[extraContigs,,drop=FALSE])
         combSQM$contigs$bins           = combSQM$contigs$bins[rownames(combSQM$contigs$table),,drop=FALSE]
+	### Bins
+        if(recalculate_bin_stats & (!('tax16S' %in% names(combSQM$orfs)) & 'markers' %in% names(combSQM$orfs)))
+            {
+            warning('You requested to recalculate bin stats but 16S or marker gene info are missing. Will not recalculate bin stats')
+            }
+	# Table and Taxonomy
+        if(recalculate_bin_stats & ('tax16S' %in% names(combSQM$orfs) & 'markers' %in% names(combSQM$orfs)))
+            {
+            bin_stats                 = get.bin.stats(combSQM)
+            combSQM$bins$table        = bin_stats[['table']]
+            combSQM$bins$tax          = bin_stats[['tax']] 
+        }else
+            {
+            extraBins                 = setdiff(rownames(SQM2$bins$table), rownames(SQM1$bins$table))
+            combSQM$bins$table        = rbind(combSQM$bins$table, SQM2$bins$table[extraBins,,drop=FALSE])
+            combSQM$bins$table        = combSQM$bins$table[sort(rownames(combSQM$bins$table)),,drop=FALSE]
+            combSQM$bins$tax          = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=FALSE])
+            combSQM$bins$tax          = combSQM$bins$tax[rownames(combSQM$bins$table),,drop=FALSE]
+            }
 
-    ### Bins
-
-        extraBins                      = setdiff(rownames(SQM2$bins$table), rownames(SQM1$bins$table))
-        #    Table
-        combSQM$bins$table             = rbind(combSQM$bins$table, SQM2$bins$table[extraBins,,drop=FALSE])
-        combSQM$bins$table             = combSQM$bins$table[sort(rownames(combSQM$bins$table)),,drop=FALSE]
         #    Abundances
-	x = aggregate(combSQM$contigs$abund, by=list(combSQM$contigs$bins[,1]), FUN=sum)
-        rownames(x)                    = x[,1]
-        x = x[rownames(combSQM$bin$table),-1]
-        nobin                          = colSums(combSQM$contigs$abund) - colSums(x)
-        if(sum(nobin)>0)               { x['No_bin',] = nobin }
+        bin_abunds                    = get.bin.abunds(combSQM)
+        combSQM$bins$abund            = bin_abunds[['abund']]
+        combSQM$bins$percent          = bin_abunds[['percent']]
+        combSQM$bins$bases            = bin_abunds[['bases']]
+        combSQM$bins$length           = bin_abunds[['length']]
+        combSQM$bins$cov              = bin_abunds[['cov']]
+        combSQM$bins$cpm              = bin_abunds[['cpm']]
 
-        combSQM$bins$abund             = as.matrix(x)
-        combSQM$bins$percent           = 100 * t(t(combSQM$bins$abund) / combSQM$total_reads)
-
-        x = aggregate(combSQM$contigs$bases, by=list(combSQM$contigs$bins[,1]), FUN=sum)
-        rownames(x)                    = x[,1]
-        x = x[rownames(combSQM$bin$table),-1]
-        combSQM$bins$bases             = as.matrix(x)
-
-        l = aggregate(combSQM$contigs$table$Length, by=list(combSQM$contigs$bins[,1]), FUN=sum)
-        n = l[,1]; l = l[,-1]; names(l) = n
-        l = l[rownames(combSQM$bin$table)]
-        combSQM$bins$length            = l
-        combSQM$bins$cov               = combSQM$bins$bases / combSQM$bins$length
-	combSQM$bins$cpm               = t(t(combSQM$bins$cov) / (combSQM$total_reads / 1000000))
-
-        #    Taxonomy
-        combSQM$bins$tax               = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=FALSE])
-        combSQM$bins$tax               = combSQM$bins$tax[rownames(combSQM$bins$table),,drop=FALSE]
         }
 
     ### Taxonomy   
-    combSQM$taxa$superkingdom$abund    = aggregate_taxa(combSQM, 'superkingdom', tax_source)
-    combSQM$taxa$phylum$abund          = aggregate_taxa(combSQM, 'phylum'      , tax_source)
-    combSQM$taxa$class$abund           = aggregate_taxa(combSQM, 'class'       , tax_source)
-    combSQM$taxa$order$abund           = aggregate_taxa(combSQM, 'order'       , tax_source)
-    combSQM$taxa$family$abund          = aggregate_taxa(combSQM, 'family'      , tax_source)
-    combSQM$taxa$genus$abund           = aggregate_taxa(combSQM, 'genus'       , tax_source)
-    combSQM$taxa$species$abund         = aggregate_taxa(combSQM, 'species'     , tax_source)
+    combSQM$taxa$superkingdom$abund   = aggregate_taxa(combSQM, 'superkingdom', tax_source)
+    combSQM$taxa$phylum$abund         = aggregate_taxa(combSQM, 'phylum'      , tax_source)
+    combSQM$taxa$class$abund          = aggregate_taxa(combSQM, 'class'       , tax_source)
+    combSQM$taxa$order$abund          = aggregate_taxa(combSQM, 'order'       , tax_source)
+    combSQM$taxa$family$abund         = aggregate_taxa(combSQM, 'family'      , tax_source)
+    combSQM$taxa$genus$abund          = aggregate_taxa(combSQM, 'genus'       , tax_source)
+    combSQM$taxa$species$abund        = aggregate_taxa(combSQM, 'species'     , tax_source)
 
-    combSQM$taxa$superkingdom$percent  = 100 * t(t(combSQM$taxa$superkingdom$abund) / combSQM$total_reads) #colSums(combSQM$taxa$superkingdom$abund))
-    combSQM$taxa$phylum$percent        = 100 * t(t(combSQM$taxa$phylum$abund)       / combSQM$total_reads) #colSums(combSQM$taxa$phylum$abund))
-    combSQM$taxa$class$percent         = 100 * t(t(combSQM$taxa$class$abund)        / combSQM$total_reads) #colSums(combSQM$taxa$class$abund))
-    combSQM$taxa$order$percent         = 100 * t(t(combSQM$taxa$order$abund)        / combSQM$total_reads) #colSums(combSQM$taxa$order$abund))
-    combSQM$taxa$family$percent        = 100 * t(t(combSQM$taxa$family$abund)       / combSQM$total_reads) #colSums(combSQM$taxa$family$abund))
-    combSQM$taxa$genus$percent         = 100 * t(t(combSQM$taxa$genus$abund)        / combSQM$total_reads) #colSums(combSQM$taxa$genus$abund))
-    combSQM$taxa$species$percent       = 100 * t(t(combSQM$taxa$species$abund)      / combSQM$total_reads) #colSums(combSQM$taxa$species$abund))
+    combSQM$taxa$superkingdom$percent = 100 * t(t(combSQM$taxa$superkingdom$abund) / combSQM$total_reads) #colSums(combSQM$taxa$superkingdom$abund))
+    combSQM$taxa$phylum$percent       = 100 * t(t(combSQM$taxa$phylum$abund)       / combSQM$total_reads) #colSums(combSQM$taxa$phylum$abund))
+    combSQM$taxa$class$percent        = 100 * t(t(combSQM$taxa$class$abund)        / combSQM$total_reads) #colSums(combSQM$taxa$class$abund))
+    combSQM$taxa$order$percent        = 100 * t(t(combSQM$taxa$order$abund)        / combSQM$total_reads) #colSums(combSQM$taxa$order$abund))
+    combSQM$taxa$family$percent       = 100 * t(t(combSQM$taxa$family$abund)       / combSQM$total_reads) #colSums(combSQM$taxa$family$abund))
+    combSQM$taxa$genus$percent        = 100 * t(t(combSQM$taxa$genus$abund)        / combSQM$total_reads) #colSums(combSQM$taxa$genus$abund))
+    combSQM$taxa$species$percent      = 100 * t(t(combSQM$taxa$species$abund)      / combSQM$total_reads) #colSums(combSQM$taxa$species$abund))
 
     ### Functions
     if('KEGG' %in% names(combSQM$functions))
         {
-        KEGG                           = aggregate_fun(combSQM, 'KEGG', trusted_functions_only, ignore_unclassified_functions)
-        combSQM$functions$KEGG$abund   = KEGG$abund
-        combSQM$functions$KEGG$bases   = KEGG$bases
-        combSQM$functions$KEGG$cov     = KEGG$cov
-	combSQM$functions$KEGG$cpm     = t(t(combSQM$functions$KEGG$cov) / (combSQM$total_reads / 1000000))
+        KEGG                          = aggregate_fun(combSQM, 'KEGG', trusted_functions_only, ignore_unclassified_functions)
+        combSQM$functions$KEGG$abund  = KEGG$abund
+        combSQM$functions$KEGG$bases  = KEGG$bases
+        combSQM$functions$KEGG$cov    = KEGG$cov
+	combSQM$functions$KEGG$cpm    = t(t(combSQM$functions$KEGG$cov) / (combSQM$total_reads / 1000000))
         }
 
     if('COG' %in% names(combSQM$functions))
         {
-        COG                            = aggregate_fun(combSQM, 'COG' , trusted_functions_only, ignore_unclassified_functions)
-        combSQM$functions$COG$abund    = COG$abund
-        combSQM$functions$COG$bases    = COG$bases
-        combSQM$functions$COG$cov      = COG$cov
-	combSQM$functions$COG$cpm      = t(t(combSQM$functions$COG$cov) / (combSQM$total_reads / 1000000))
+        COG                           = aggregate_fun(combSQM, 'COG' , trusted_functions_only, ignore_unclassified_functions)
+        combSQM$functions$COG$abund   = COG$abund
+        combSQM$functions$COG$bases   = COG$bases
+        combSQM$functions$COG$cov     = COG$cov
+	combSQM$functions$COG$cpm     = t(t(combSQM$functions$COG$cov) / (combSQM$total_reads / 1000000))
         }
 
 
     if('PFAM' %in% names(combSQM$functions))
         {
-        PFAM                           = aggregate_fun(combSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
-        combSQM$functions$PFAM$abund   = PFAM$abund
-        combSQM$functions$PFAM$bases   = PFAM$bases
-        combSQM$functions$PFAM$cov     = PFAM$cov
-	combSQM$functions$PFAM$cpm     = t(t(combSQM$functions$PFAM$cov) / (combSQM$total_reads / 1000000))
+        PFAM                          = aggregate_fun(combSQM, 'PFAM', trusted_functions_only, ignore_unclassified_functions)
+        combSQM$functions$PFAM$abund  = PFAM$abund
+        combSQM$functions$PFAM$bases  = PFAM$bases
+        combSQM$functions$PFAM$cov    = PFAM$cov
+	combSQM$functions$PFAM$cpm    = t(t(combSQM$functions$PFAM$cov) / (combSQM$total_reads / 1000000))
         }
 
     ext_annots = list()
@@ -201,43 +227,17 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
             }
     }
 
+    ### COPY NUMBERS
+    SQM$misc$single_copy_cov = get_median_single_copy_cov(combiSQM)
 
-    if(!is.null(combSQM$misc$RecA_cov))
+    if(!any(is.na(combiSQM$misc$single_copy_cov)) & rescale_copy_number)
         {
-        if(rescale_copy_number)
+        combiSQM$misc$single_copy_cov = get_median_single_copy_cov(combiSQM)
+        for(method in names(combiSQM$functions))
             {
-            if('COG0468' %in% rownames(COG$cov))
-		{
-                if(all(COG$cov['COG0468',]>0))
-                    {
-                    RecA = COG$cov['COG0468',]
-                }else
-                    {
-                    warning('RecA has zero abundance in at least one sample in this subset. Will not rescale copy numbers.')
-		    RecA = pmax(SQM1$misc$RecA_cov, SQM2$misc$RecA_cov) # use the largest and hope for the best.
-                    }
-            }else
-                {
-                warning('RecA is not present in this subset. Will not rescale copy numbers.')
-                RecA = pmax(SQM1$misc$RecA_cov, SQM2$misc$RecA_cov) # use the largest and hope for the best.
-                }
-        }else
-            {
-            RecA = pmax(SQM1$misc$RecA_cov, SQM2$misc$RecA_cov) # use the largest and hope for the best.
+            combiSQM$functions[[method]]$copy_number = t(t(combiSQM$functions[[method]]$cov) / combiSQM$misc$single_copy_cov)
             }
-        if('KEGG' %in% names(combSQM$functions)) { combSQM$functions$KEGG$copy_number = t(t(KEGG$cov) / RecA) }
-        if('COG' %in% names(combSQM$functions))  { combSQM$functions$COG$copy_number  = t(t(COG$cov ) / RecA) }
-        if('PFAM' %in% names(combSQM$functions)) { combSQM$functions$PFAM$copy_number = t(t(PFAM$cov) / RecA) }
-        for(method in combSQM$misc$ext_annot_sources)
-            {
-            combSQM$functions[[method]]$copy_number = t(t(ext_annots[[method]]$cov) / RecA)
-            }
-
-        combSQM$misc$RecA_cov              = RecA
         }
-
-    ### Total reads
-    #combSQM$total_reads               = colSums(combSQM$contigs$abund)
 
     return(combSQM)
     }

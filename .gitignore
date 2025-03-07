@@ -20,5 +20,6 @@ lib/checkm/DATA_CONFIG
 lib/classifier/*
 bin/mummer/.libs/*
 bin/classifier.jar
+lib/checkm2/version/diamond_path.json
 .*swp
 ToDo

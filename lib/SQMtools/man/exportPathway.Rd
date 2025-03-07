@@ -20,7 +20,7 @@ exportPathway(
 )
 }
 \arguments{
-\item{SQM}{A SQM or SQMlite object.}
+\item{SQM}{A SQM, SQMbunch or SQMlite object.}
 
 \item{pathway_id}{character. The five-number KEGG pathway identifier. A list of all pathway identifiers can be found in \url{https://www.genome.jp/kegg/pathway.html}.}
 

@@ -7,10 +7,11 @@
 plotFunctions(
   SQM,
   fun_level = "KEGG",
-  count = "tpm",
+  count = "copy_number",
   N = 25,
   fun = NULL,
   samples = NULL,
+  display_function_names = TRUE,
   ignore_unmapped = TRUE,
   ignore_unclassified = TRUE,
   gradient_col = c("ghostwhite", "dodgerblue4"),
@@ -19,7 +20,7 @@ plotFunctions(
 )
 }
 \arguments{
-\item{SQM}{A SQM or SQMlite object.}
+\item{SQM}{A SQM, SQMbunch or SQMlite object.}
 
 \item{fun_level}{character. Either \code{"KEGG"}, \code{"COG"}, \code{"PFAM"} or any other custom database used for annotation (default \code{"KEGG"}).}
 
@@ -30,6 +31,8 @@ plotFunctions(
 \item{fun}{character. Custom functions to plot. If provided, it will override \code{N} (default \code{NULL}).}
 
 \item{samples}{character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).}
+
+\item{display_function_names}{logical. Plot function names alongside function IDs, if available (default \code{TRUE}).}
 
 \item{ignore_unmapped}{logical. Don't include unmapped reads in the plot (default \code{TRUE}).}
 

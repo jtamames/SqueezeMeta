@@ -24,7 +24,7 @@ plotTaxonomy(
 )
 }
 \arguments{
-\item{SQM}{A SQM or a SQMlite object.}
+\item{SQM}{A SQM, SQMbunch or a SQMlite object.}
 
 \item{rank}{Taxonomic rank to plot (default \code{phylum}).}
 

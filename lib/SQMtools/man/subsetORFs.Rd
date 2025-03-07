@@ -12,7 +12,9 @@ subsetORFs(
   ignore_unclassified_functions = FALSE,
   rescale_tpm = FALSE,
   rescale_copy_number = FALSE,
-  contigs_override = NULL
+  recalculate_bin_stats = TRUE,
+  contigs_override = NULL,
+  allow_empty = FALSE
 )
 }
 \arguments{
@@ -30,6 +32,8 @@ subsetORFs(
 
 \item{rescale_copy_number}{logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.}
 
+\item{recalculate_bin_stats}{logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).}
+
 \item{contigs_override}{character. Optional vector of contigs to be included in the subsetted object.}
 }
 \value{
@@ -40,7 +44,7 @@ Create a SQM object containing only the requested ORFs, and the contigs and bins
 }
 \section{A note on contig/bins subsetting}{
 
-While this function selects the contigs and bins that contain the desired orfs, it DOES NOT recalculate contig/bin abundance and statistics based on the selected ORFs only. This means that the abundances presented in tables such as \code{SQM$contig$abund} or \code{SQM$bins$tpm} will still refer to the complete contigs and bins, regardless of whether only a fraction of their ORFs are actually present in the returned SQM object. This is also true for the statistics presented in \code{SQM$contigs$table} and \code{SQM$bins$table}.
+While this function selects the contigs and bins that contain the desired orfs, it DOES NOT recalculate contig abundance and statistics based on the selected ORFs only. This means that the abundances presented in tables such as \code{SQM$contig$abund} will still refer to the complete contigs, regardless of whether only a fraction of their ORFs are actually present in the returned SQM object. This is also true for the statistics presented in \code{SQM$contigs$table}. Bin statistics may be recalculated if \code{rescale_copy_number} is set to \code{TRUE}, but recalculation will be based on contigs, not ORFs.
 }
 
 \examples{

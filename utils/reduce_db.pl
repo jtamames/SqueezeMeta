@@ -90,6 +90,7 @@ if($download) {
 	print "Downloading a new nr database\n";
 	my $command="wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz -nc -P $dbfile";
 	system($command);
+	$dbfile.="/nr.gz";
 	}
 elsif(-e $dbfile) {} 
 else { die "$helpshort\nnr database does not exist in $dbfile, please provide a correct name\n"; }

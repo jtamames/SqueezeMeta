@@ -9,10 +9,7 @@ exportTable(table, output_name)
 \arguments{
 \item{table}{vector, matrix or data.frame. The table to be written.}
 
-\item{output_name}{character. Name of the output file.}
-}
-\value{
-No return value, but a table is produced in the current working directory.
+\item{output_name.}{Either a character string naming a file or a connection open for writing.  ‘""’ indicates output to the console.}
 }
 \description{
 This function is a wrapper for R's write.table function.

@@ -38,7 +38,7 @@ combineSQMlite_ = function(SQM1, SQM2)
         combSQM$taxa[[rank]] = list()
 	for(count in names(SQM1$taxa[[rank]]))
             {
-            combSQM$taxa[[rank]][[count]] = merge.numeric.matrices(SQM1$taxa[[rank]][[count]], SQM2$taxa[[rank]][[count]])
+            combSQM$taxa[[rank]][[count]] = merge_numeric_matrices(SQM1$taxa[[rank]][[count]], SQM2$taxa[[rank]][[count]])
             }
         }
 
@@ -50,7 +50,7 @@ combineSQMlite_ = function(SQM1, SQM2)
         {
         for(count in common_counts)
             {
-            combSQM$functions[[method]][[count]] = merge.numeric.matrices(SQM1$functions[[method]][[count]], SQM2$functions[[method]][[count]])
+            combSQM$functions[[method]][[count]] = merge_numeric_matrices(SQM1$functions[[method]][[count]], SQM2$functions[[method]][[count]])
             }
         }
 

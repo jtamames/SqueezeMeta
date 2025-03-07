@@ -96,9 +96,4 @@ system("$scriptdir/07.fun3assign.pl $projectdir");
 system("$scriptdir/12.funcover.pl $projectdir");
 system("$scriptdir/13.mergeannot2.pl $projectdir");
 system("$scriptdir/21.stats.pl $projectdir");
-		
-		
-		
-	
-	
-
+system("$scriptdir/../utils/sqm2tables.py $projectdir $projectdir/results/tables --force-overwrite");
