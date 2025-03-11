@@ -492,7 +492,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 #' @param max_scale_value numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).
 #' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
-#' @seealso \code{\link{plotBins}} for plotting the most abundant bins of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+#' @seealso \code{\link{plotTaxa}} for plotting the most abundant taxa of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 #' @examples
 #' data(Hadza)
 #' # Bins distribution.
@@ -504,6 +504,10 @@ plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, 
     if (!count %in% c('abund', 'percent', 'cov', 'cpm'))
     {
         stop('count must be either "abund", "percent", "cov", "cpm"')
+    }
+    if(is.null(SQM[['bins']]))
+    {
+        stop('This project contains no bins!')
     }
     if ('Other' %in% rownames(SQM[['bins']][[count]]))
     {
