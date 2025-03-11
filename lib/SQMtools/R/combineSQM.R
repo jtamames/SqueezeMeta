@@ -237,6 +237,12 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
             {
             combSQM$functions[[method]]$copy_number = t(t(combSQM$functions[[method]]$cov) / combSQM$misc$single_copy_cov)
             }
+    } else
+        {
+        for(method in names(combiSQM$functions))
+            {
+             combiSQM$functions[[method]]$copy_number =  combiSQM$functions[[method]]$copy_number[rownames(combiSQM$functions[[method]]$abund),]
+            }
         }
 
     return(combSQM)

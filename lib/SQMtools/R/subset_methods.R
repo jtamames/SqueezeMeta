@@ -578,6 +578,12 @@ subsetORFs_ = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = 
             {
             subSQM$functions[[method]]$copy_number = t(t(subSQM$functions[[method]]$cov) / subSQM$misc$single_copy_cov)
             }
+    } else
+        {
+        for(method in names(subSQM$functions))
+            {
+             subSQM$functions[[method]]$copy_number =  subSQM$functions[[method]]$copy_number[rownames(subSQM$functions[[method]]$abund),]
+            }
         }
 
     return(subSQM)
