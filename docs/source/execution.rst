@@ -15,7 +15,7 @@ Execution
 
 The command for running SqueezeMeta has the following syntax:
 
-::
+.. code-block:: console
 
    SqueezeMeta.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>
 
@@ -221,7 +221,7 @@ Information
 Example SqueezeMeta call
 ========================
 
-::
+.. code-block:: console
 
    SqueezeMeta.pl -m coassembly -p test -s test.samples -f mydir --nopfam -miniden 50
 
@@ -277,13 +277,14 @@ unpaired filtered fastq files from paired input files (particularly if
 run without the right parameters). This may result in SqueezeMeta
 failing or producing incorrect results.
 
+.. _restart:
 Restart
 =======
 
 Any interrupted SqueezeMeta run can be restarted using the program the
 flag ``--restart``. It has the syntax:
 
-::
+.. code-block:: console
 
    SqueezeMeta.pl -p <projectname> --restart
 
@@ -293,7 +294,7 @@ progress.txt file to find out the point where the run stopped.
 Alternatively, the run can be restarted from a specific step by issuing
 the command:
 
-::
+.. code-block:: console
 
    SqueezeMeta.pl -p <projectname> --restart -step <step_to_restart_from>
 
@@ -301,7 +302,7 @@ By default, already completed steps will not be repeated when
 restarting, even if requested with ``-step``. In order to repeat already
 completed steps you must also provide the flag ``--force_overwrite``. For example
 
-::
+.. code-block:: console
 
    ``SqueezeMeta.pl --restart -p <projectname> -step 6 --force_overwrite
 
@@ -321,7 +322,7 @@ Running scripts
 Also, any individual script of the pipeline can be run using the same
 syntax:
 
-::
+.. code-block:: console
 
    <script> <projectname>
 

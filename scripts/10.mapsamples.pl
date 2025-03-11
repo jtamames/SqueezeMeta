@@ -340,7 +340,7 @@ sub sqm_counter {
 
 	my ($bedfilectgs, $bedfileorfs, $countfile);
 
-	my $use_fork=0;
+	my $use_fork=1;
 
 	for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
 		$bedfilectgs = @bed_chunk_files_contigs[$thread-1]; # zero indexing

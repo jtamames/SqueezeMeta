@@ -228,14 +228,14 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     }
 
     ### COPY NUMBERS
-    SQM$misc$single_copy_cov = get_median_single_copy_cov(combiSQM)
+    combSQM$misc$single_copy_cov = get_median_single_copy_cov(combSQM)
 
-    if(!any(is.na(combiSQM$misc$single_copy_cov)) & rescale_copy_number)
+    if(!any(is.na(combSQM$misc$single_copy_cov)) & rescale_copy_number)
         {
-        combiSQM$misc$single_copy_cov = get_median_single_copy_cov(combiSQM)
-        for(method in names(combiSQM$functions))
+        combSQM$misc$single_copy_cov = get_median_single_copy_cov(combSQM)
+        for(method in names(combSQM$functions))
             {
-            combiSQM$functions[[method]]$copy_number = t(t(combiSQM$functions[[method]]$cov) / combiSQM$misc$single_copy_cov)
+            combSQM$functions[[method]]$copy_number = t(t(combSQM$functions[[method]]$cov) / combSQM$misc$single_copy_cov)
             }
         }
 

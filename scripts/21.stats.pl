@@ -209,17 +209,25 @@ if(!$nobins) {
 				my($trank,$ttax)=split(/\:/,$p);
 				$bins{$method}{$trank}++;
 				}
-			if($k[8]>=50) { $bins{$method}{complete}{50}++; }
-			if($k[8]>=75) { $bins{$method}{complete}{75}++; }
-			if($k[8]>=90) { $bins{$method}{complete}{90}++; }
-			if($k[9]<10) { $bins{$method}{contamination}{10}++; }
-			if($k[9]>=50) { $bins{$method}{contamination}{50}++; }
-			if($k[7]==0) { $bins{$method}{chimerism}{0}++; }
+			my $chimerism = $k[7];
+			my $completeness = $k[8];
+			my $contamination = $k[9];
+			if(index($header, "Tax GTDB-Tk") != -1) {
+				$chimerism = $k[8];
+				$completeness = $k[9];
+				$contamination = $k[10];
+				}
+			if($completeness>=50) { $bins{$method}{complete}{50}++; }
+			if($completeness>=75) { $bins{$method}{complete}{75}++; }
+			if($completeness>=90) { $bins{$method}{complete}{90}++; }
+			if($contamination<10) { $bins{$method}{contamination}{10}++; }
+			if($contamination>=50) { $bins{$method}{contamination}{50}++; }
+			if($chimerism==0) { $bins{$method}{chimerism}{0}++; }
 			else { $bins{$method}{chimerism}{more0}++; }
-			if($k[7]>=0.1) { $bins{$method}{chimerism}{0.1}++; }
-			if($k[7]>=0.25) { $bins{$method}{chimerism}{0.25}++; }
-			if(($k[8]>=90) && ($k[9]<10)) { $bins{$method}{hiqual}++; }
-			if(($k[8]>=75) && ($k[9]<10)) { $bins{$method}{goodqual}++; }
+			if($chimerism>=0.1) { $bins{$method}{chimerism}{0.1}++; }
+			if($chimerism>=0.25) { $bins{$method}{chimerism}{0.25}++; }
+			if(($completeness>=90) && ($contamination<10)) { $bins{$method}{hiqual}++; }
+			if(($completeness>=75) && ($contamination<10)) { $bins{$method}{goodqual}++; }
 			}
 		close infile5;
 		}

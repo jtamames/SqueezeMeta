@@ -6,6 +6,14 @@ Scripts, output files and file format
     Most of the information contained in the output files listed below can be more easily explored through :doc:`SQMtools`.
 
 
+Upon startup, the pipeline will initially create the following files:
+
+- ``<project>/creator.txt``: text file containing the SqueezeMeta version when the project was created
+- ``<project>/SqueezeMeta_conf.pl``: run configuration. You will need to edit this file and :ref:`restart <restart>` if you want to change parameters mid-run
+- ``<project>/parameters.pl``: additional parameters
+- ``<project>/methods.txt``: text file containing names a citations of the software that is called during the run
+- ``<project>/syslog``: text file containing the commands being called by the pipeline and their STDOUT/STDERR outputs, useful for debugging
+
 Step 1: Assembly
 ================
 

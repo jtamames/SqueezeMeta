@@ -14,7 +14,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 ^^^^^
-::
+.. code-block:: console
 
   sqm2zip.py <project_path> <output_dir> [options]
 
@@ -63,7 +63,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 ^^^^^
-::
+.. code-block:: console
 
   sqm2tables.py <project_path> <output_dir> [options]
 
@@ -149,7 +149,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 Usage
 ^^^^^
 
-::
+.. code-block:: console
 
   sqmreads2tables.py <project_path> <output_dir> [options]
 
@@ -234,7 +234,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 ^^^^^
-::
+.. code-block:: console
 
   combine-sqm-tables.py <project_paths> [options]
 
@@ -300,7 +300,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 ^^^^^
-::
+.. code-block:: console
 
   cover.pl -i <input_file> [options]
 
@@ -385,7 +385,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 ^^^^^
-::
+.. code-block:: console
 
   add_database.pl <project_path> <database_file>
 
@@ -402,7 +402,7 @@ This script generates the files for creating a radial plot of abundances using i
 
 Usage
 """""
-::
+.. code-block:: console
 
   sqm2itol.pl <project_path> [options]
 
@@ -447,7 +447,7 @@ This script creates data on  the existence of enzymatic reactions that can be pl
 
 Usage
 """""
-::
+.. code-block:: console
 
   sqm2ipath.pl <project_path> [options]
 
@@ -503,7 +503,7 @@ the Pavian tool (https://github.com/fbreitwieser/pavian). It works with projects
 
 Usage
 """""
-::
+.. code-block:: console
 
   sqm2pavian.pl <project_path> [mode]
 
@@ -537,7 +537,7 @@ This script creates an anvi’o database from a SqueezeMeta project. The databas
 
 Usage
 """""
-::
+.. code-block:: console
 
   anvi-load-sqm.py -p <project> -o <output> [options]
 
@@ -596,9 +596,9 @@ a simple query syntax.  This script can be found in the ``/path/to/SqueezeMeta/u
 
 Usage
 """""
-::
+.. code-block:: console
 
-  anvi-filter-sqm.py -p <profile_db> -c <contigs_db> -t <contigs_taxonomy_file> -q <query> [options]``
+  anvi-filter-sqm.py -p <profile_db> -c <contigs_db> -t <contigs_taxonomy_file> -q <query> [options]
 
 Arguments
 """""""""
@@ -659,7 +659,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 """""
-::
+.. code-block:: console
 
   remove_duplicate_markers.pl <project_name> [bin_name]
 
@@ -683,7 +683,7 @@ This script can be found in the ``/path/to/SqueezeMeta/utils/`` directory, but i
 
 Usage
 """""
-::
+.. code-block:: console
 
   find_missing_markers.pl <project_name> [bin_name]
 

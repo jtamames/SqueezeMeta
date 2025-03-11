@@ -19,8 +19,8 @@ multi-metagenome support. These modes are:
 
 -  **Merged mode:** if many big samples are available, co-assembly could
    crash because of memory requirements. This mode achieves a comparable
-   resul with a procedure inspired by the one used by Benjamin Tully for
-   analysing TARA Oceans data (https://dx.doi.org/10.17504/protocols.io.hfqb3mw).
+   result with a procedure inspired by `the one used by Benjamin Tully for
+   analysing TARA Oceans data <https://dx.doi.org/10.17504/protocols.io.hfqb3mw>`_.
    Briefly, samples are assembled individually and the resulting contigs are
    merged in a single co-assembly. Then the analysis proceeds as in the
    co-assembly mode. This is not the recommended procedure (use
@@ -253,8 +253,12 @@ However it is easier to explore the results interactively from your own
 computer. Since version 1.6.2, we provide an easy way to achieve this.
 
 1) In the system in which you ran SqueezeMeta, run the utility script
-:ref:`sqm2zip` with ``sqm2zip.py /path/to/my_project /output/dir``, where
-``/path/to/my_project`` is the path to the output of SqueezeMeta, and
+:ref:`sqm2zip` with
+  .. code-block:: console
+
+    sqm2zip.py /path/to/my_project /output/dir
+  
+, where ``/path/to/my_project`` is the path to the output of SqueezeMeta, and
 ``/output/dir`` an arbitrary output directory.
 
 2) This will generate a
@@ -263,11 +267,18 @@ essential files needed to load your project into SQMtools. Transfer this
 file to your desktop computer.
 
 3) Assuming R is present in your desktop
-computer, you can install SQMtools with
-``if (!require("BiocManager", quietly = TRUE)) { install.packages("BiocManager")}; BiocManager::install("SQMtools")``.
+computer, you can install SQMtools with:
+  .. code-block:: r
+    
+    if (!require("BiocManager", quietly = TRUE)) { install.packages("BiocManager")}
+    BiocManager::install("SQMtools")
+
 This will work seamlessly in Windows and Mac computers, for Linux you
 may need to previously install the *libcurl* development library.
 
 4) You can load the project directly from the zip file (no need for
 decompressing) with
-``import(SQMtools); SQM = loadSQM("/path/to/my_project.zip")``.
+  .. code-block:: r
+  
+    import(SQMtools)
+    SQM = loadSQM("/path/to/my_project.zip")

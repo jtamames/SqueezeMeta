@@ -6,15 +6,15 @@ Version 1.5 of SqueezeMeta allows connecting other binning tools than the shippe
 
 Next, edit the ``SqueezeMeta_conf.pl`` file in the ``scripts`` directory of the SqueezeMeta installation. You will see a line like this:
 
-::
+.. code-block:: perl
   
-  %binscripts=('maxbin',"$installpath/lib/SqueezeMeta/bin_maxbin.pl",'metabat2',"$installpath/lib/SqueezeMeta/bin_metabat2.pl",'concoct',"$installpath/lib/SqueezeMeta/bin_concoct.pl");
+  %binscripts=("maxbin","$installpath/lib/SqueezeMeta/bin_maxbin.pl","metabat2","$installpath/lib/SqueezeMeta/bin_metabat2.pl","concoct","$installpath/lib/SqueezeMeta/bin_concoct.pl");
 
 This tells SqueezeMeta the available scripts for running binners. Add your new script:
 
-::
+.. code-block:: perl
 
-  %binscripts=('maxbin',"$installpath/lib/SqueezeMeta/bin_maxbin.pl",'metabat2',"$installpath/lib/SqueezeMeta/bin_metabat2.pl",'concoct',"$installpath/lib/SqueezeMeta/bin_concoct.pl",’amazingbinner’,"mylocation/amazingbinner.py");
+  %binscripts=("maxbin","$installpath/lib/SqueezeMeta/bin_maxbin.pl","metabat2","$installpath/lib/SqueezeMeta/bin_metabat2.pl","concoct","$installpath/lib/SqueezeMeta/bin_concoct.pl","amazingbinner","mylocation/amazingbinner.py");
 
 Where ``"mylocation"`` is the directory where you put your script (You may want to move it to the ``lib/SqueezeMeta`` directory in the SqueezeMeta installation, to have all binning scripts in one place).
 
@@ -22,7 +22,9 @@ Next, give execution permissions to the script (for instance, ``chmod a+x myloca
 
 And you are done! Now, for running SqueezeMeta with your new binner, just mention it using the ``-binners`` option, for instance:
 
-``SqueezeMeta.pl -p myrun -s mysamples -f /path/to/sequences -m coassembly -binners maxbin,metabat,concoct,amazingbinner``
+.. code-block:: console
+
+  SqueezeMeta.pl -p myrun -s mysamples -f /path/to/sequences -m coassembly -binners maxbin,metabat,concoct,amazingbinner
 
 From version 1.6, SqueezeMeta also allows the connection of other assemblers than the ones shipped with the distro (MEGAHIT, SPAdes, Canu and Flye). Here I will teach you a practical example of how to do it, showing the plugging of the IDBA-UD assembler (https://github.com/loneknightpy/idba) (Peng et al, Bioinformatics 2012, 28:111420–1428; https://doi.org/10.1093/bioinformatics/bts174).
 
@@ -30,7 +32,7 @@ I will assume that you already installed the IDBA-UD software and put it somewhe
 
 What you need to do is to create a script to run the assembler. Your script will be called by the SqueezeMeta pipeline. I named my script ``assembly_idba.pl``, and it looks like this:
 
-::
+.. code-block:: perl
 
   #!/usr/bin/perl
   use strict;
@@ -82,16 +84,18 @@ In the script I run a formatting script ``fq2fa`` provided by IDBA-UD, to put th
 
 To plug this into SqueezeMeta, the first thing to do is to move your script to the place where all other assembly scripts are, which is the ``<installpath>/lib/SqueezeMeta`` directory (where "installpath" is the installation directory of SqueezeMeta. You will see there other scripts for running assemblers, like ``assembly_megahit.pl``, ``assembly_spades.pl``, etc). Then, edit the ``SqueezeMeta_conf.pl`` file in the ``scripts`` directory of the SqueezeMeta installation. You will see a line like this:
 
-::
+.. code-block:: perl
 
  %assemblers = ("megahit","assembly_megahit.pl","spades", "assembly_spades.pl","canu","assembly_canu.pl","flye", "assembly_flye.pl");
 
 This line is a hash (equivalent to a dict in python), telling SqueezeMeta the names of the available assemblers and the associated scripts for running them. Just add yours. Remember that the name you specify will be the one to run the assembler:
 
-::
+.. code-block:: perl
 
-  %assemblers = ("megahit","assembly_megahit.pl","spades", "assembly_spades.pl","canu","assembly_canu.pl","flye", "assembly_flye.pl",”idba”,”assembly_idba.pl”);
+  %assemblers = ("megahit","assembly_megahit.pl","spades", "assembly_spades.pl","canu","assembly_canu.pl","flye", "assembly_flye.pl","idba","assembly_idba.pl");
 
 Save it, and you are done. Now you can run a SqueezeMeta project using your new “idba” assembler:
 
-``SqueezeMeta.pl -m coassembly -f mydir -s mysamples.samples -p idba_test -a idba``
+.. code-block:: console
+
+  SqueezeMeta.pl -m coassembly -f mydir -s mysamples.samples -p idba_test -a idba
