@@ -85,13 +85,30 @@ splitfiles();
 
 print "  Starting multithread LCA in $numthreads threads\n";
 print syslogfile "  Starting multithread LCA in $numthreads threads\n";
-my $threadnum;
-for($threadnum=1; $threadnum<=$numthreads; $threadnum++) {
-#print "$threadnum ";
-my $thr=threads->create(\&current_thread,$threadnum);
+my $use_fork=1;
+for(my $thread=1; $thread<=$numthreads; $thread++) {
+	if($use_fork) {
+		my $pid = fork;
+		die if not defined $pid;
+		if (not $pid) { # $pid will be 0 if this is a child process, the parent will don't run this
+			current_thread($thread);
+			exit;
+		}
+	}
+	else { 
+		my $thr=threads->create(\&current_thread,$thread);
+	}
 }
-#print "\n";
-$_->join() for threads->list();
+
+# Thread/children cleanup.
+if($use_fork) {
+	for(my $thread=1; $thread<=$numthreads; $thread++) {
+			my $finished = wait(); # wait till all the children have stopped
+			}
+}
+else {
+	$_->join() for threads->list();
+}
 
 my $catcommand="cat ";
 for(my $h=1; $h<=$numthreads; $h++) { $catcommand.="$tempdir/fun3tax\_$h.wranks "; }
