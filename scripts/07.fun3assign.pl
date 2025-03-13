@@ -36,7 +36,7 @@ if(!$nocog) {
 		$cogdiamond="$tempdir/08.$project.fun3.blastx.cog.m8";
 		$fun3cog="$tempdir/08.$project.fun3.blastx.cog";
 		}
-	if((-e $fun3cog) && (!$force_overwrite)) { 
+	if((-e $fun3cog) && (!$force_overwrite) && 0) { # The last 0 disables this 
 		print "  Found COG annotation file in $fun3cog, skipping\n"; 	
 		print syslogfile "  Found COG annotation file in $fun3cog, skipping\n";
 		}
@@ -128,7 +128,7 @@ if(!$nokegg) {
 		$keggdiamond="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		$fun3kegg="$tempdir/08.$project.fun3.blastx.kegg";
 		}
-	if((-e $fun3kegg) && (!$force_overwrite)) { 
+	if((-e $fun3kegg) && (!$force_overwrite) && 0) { # The last 0 disables this
 		print "  Found KEGG annotation file in $fun3kegg, skipping\n"; 	
 		print syslogfile "  Found KEGG annotation file in $fun3kegg, skipping\n";
 		}
@@ -226,7 +226,7 @@ if($opt_db) {
 		if($blastx) { $optdbresult="$tempdir/08.$project.fun3.blastx.$dbname"; }
 		print syslogfile "  Reading $dbname hits from $optdbdiamond\n";	
 
-		if((-e $optdbresult) && (!$force_overwrite)) { print "  Result found in $optdbresult for database $optdbresult, skipping\n"; next; }
+		#if((-e $optdbresult) && (!$force_overwrite)) { print "  Result found in $optdbresult for database $optdbresult, skipping\n"; next; }
 		
 		open(infile1,$optdbdiamond) || die "Can't open opt_db file $optdbdiamond\n";
 		open(outfile1,">$optdbresult") || die "Can't open $optdbresult for writing\n";
@@ -314,7 +314,7 @@ if(!$nopfam) {
 	#-- Read the Pfam data for the pfam.dat file
 
 	print " PFAM";
-	if((-e $fun3pfam)  && (!$force_overwrite)) { 
+	if((-e $fun3pfam)  && (!$force_overwrite) && 0) { # the last 0 disables this 
 		print "  Found COG annotation file in $fun3cog, skipping\n"; 	
 		print syslogfile "  Found COG annotation file in $fun3cog, skipping\n";
 	}
