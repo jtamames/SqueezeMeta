@@ -1,3 +1,5 @@
+utils::globalVariables(c('CheckMProkaryote'))
+
 #' Find redundant contigs within a bin
 #'
 #' Find contigs with overlapping marker genes in a given bin, and suggest contigs to be removed in order to reduce contamination without affecting completeness. Note that this can give a quick idea of the contigs that are sources of contamination within a bin, but is not a replacement for proper bin refininement with other tools such as anvi\'o.
