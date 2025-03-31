@@ -129,10 +129,10 @@ combineSQM
    .. code:: R
 
       data(Hadza)
-      # Select Carbohydrate metabolism ORFs in Bacteroidetes,
+      # Select Carbohydrate metabolism ORFs in Bacteroidota,
       #  and Amino acid metabolism ORFs in Proteobacteria
-      bact = subsetTax(Hadza, "phylum", "Bacteroidetes")
+      bact = subsetTax(Hadza, "phylum", "Bacteroidota")
       bact.carb = subsetFun(bact, "Carbohydrate metabolism")
-      proteo = subsetTax(Hadza, "phylum", "Proteobacteria")
-      proteo.amins = subsetFun(proteo, "Amino acid metabolism")
-      bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=FALSE)
+      baci = subsetTax(Hadza, "phylum", "Bacillota")
+      baci.amins = subsetFun(baci, "Amino acid metabolism")
+      bact.carb_proteo.amins = combineSQM(bact.carb, baci.amins, rescale_copy_number=FALSE)

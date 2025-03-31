@@ -26,14 +26,14 @@ exportTable
    .. rubric:: Arguments
       :name: arguments
 
-   +------------------+--------------------------------------------------+
-   | ``table``        | vector, matrix or data.frame. The table to be    |
-   |                  | written.                                         |
-   +------------------+--------------------------------------------------+
-   | ``output_name.`` | Either a character string naming a file or a     |
-   |                  | connection open for writing. ‘""’ indicates      |
-   |                  | output to the console.                           |
-   +------------------+--------------------------------------------------+
+   +-----------------+---------------------------------------------------+
+   | ``table``       | vector, matrix or data.frame. The table to be     |
+   |                 | written.                                          |
+   +-----------------+---------------------------------------------------+
+   | ``output_name`` | Either a character string naming a file or a      |
+   |                 | connection open for writing. ‘""’ indicates       |
+   |                 | output to the console.                            |
+   +-----------------+---------------------------------------------------+
 
    .. rubric:: Examples
       :name: examples

@@ -113,6 +113,8 @@ subsetFun
    |                                  | the subsetted object (default    |
    |                                  | ``FALSE``).                      |
    +----------------------------------+----------------------------------+
+   | ``allow_empty``                  | (internal use only).             |
+   +----------------------------------+----------------------------------+
 
    .. rubric:: Value
       :name: value

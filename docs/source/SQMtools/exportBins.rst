@@ -26,7 +26,7 @@ exportBins
    .. rubric:: Arguments
       :name: arguments
 
-   =============== =====================================================
-   ``SQM``         A SQM object.
-   ``output_dir.`` Existing output directory to which to write the bins.
-   =============== =====================================================
+   ============== =====================================================
+   ``SQM``        A SQM object.
+   ``output_dir`` Existing output directory to which to write the bins.
+   ============== =====================================================

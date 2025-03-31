@@ -37,7 +37,7 @@ USiCGs
       :name: source
 
    `Carr et al., 2013. Table
-   S1 <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3798274/bin/pcbi.1003292.s016.xls>`__.
+   S1 <https://pmc.ncbi.nlm.nih.gov/articles/instance/3798274/bin/pcbi.1003292.s016.xls>`__.
 
    .. rubric:: References
       :name: references
@@ -45,7 +45,7 @@ USiCGs
    Carr, Shen-Orr & Borenstein (2013). Reconstructing the Genomic
    Content of Microbiome Taxa through Shotgun Metagenomic Deconvolution
    *PLoS Comput. Biol.* **9**:e1003292.
-   (`PubMed <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3798274/>`__).
+   (`PubMed <https://pmc.ncbi.nlm.nih.gov/articles/PMC3798274/>`__).
 
    .. rubric:: See Also
       :name: see-also

@@ -41,8 +41,8 @@ loadSQMlite
    | ``tax_mode``    | character, which taxonomic classification should  |
    |                 | be loaded? SqueezeMeta applies the identity       |
    |                 | thresholds described in `Luo et al.,              |
-   |                 | 2014 <https://w                                   |
-   |                 | ww.ncbi.nlm.nih.gov/pmc/articles/PMC4005636/>`__. |
+   |                 | 2014 <https                                       |
+   |                 | ://pmc.ncbi.nlm.nih.gov/articles/PMC4005636/>`__. |
    |                 | Use ``allfilter`` for applying the minimum        |
    |                 | identity threshold to all taxa (default),         |
    |                 | ``prokfilter`` for applying the threshold to      |

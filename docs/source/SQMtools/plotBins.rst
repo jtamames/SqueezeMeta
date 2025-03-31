@@ -101,7 +101,7 @@ plotBins
    .. rubric:: See Also
       :name: see-also
 
-   ``plotTaxa`` for plotting the most abundant taxa of a SQM object;
+   ``plotTaxonomy`` for plotting the most abundant taxa of a SQM object;
    ``plotBars`` and ``plotHeatmap`` for plotting barplots or heatmaps
    with arbitrary data.
 
