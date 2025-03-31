@@ -59,5 +59,5 @@ data(Hadza)
 plotBins(Hadza)
 }
 \seealso{
-\code{\link{plotBins}} for plotting the most abundant bins of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
+\code{\link{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.
 }

@@ -2,7 +2,7 @@
 #'
 #' This function is a wrapper for R's write.table function.
 #' @param table vector, matrix or data.frame. The table to be written.
-#' @param output_name. Either a character string naming a file or a connection open for writing.  ‘""’ indicates output to the console.
+#' @param output_name Either a character string naming a file or a connection open for writing.  ‘""’ indicates output to the console.
 #' @examples
 #' \donttest{
 #' data(Hadza)
@@ -19,6 +19,6 @@
 #' @export
 exportTable = function(table, output_name)
     {
-    write.table(table, output_name, col.names=NA, sep='\t', quote=FALSE)
+    write.table(as.data.frame(table), output_name, col.names=NA, sep='\t', quote=FALSE)
     }
 

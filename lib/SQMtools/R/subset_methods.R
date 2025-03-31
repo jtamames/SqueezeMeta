@@ -139,6 +139,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
 #' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{FALSE}).
+#' @param allow_empty (internal use only).
 #' @seealso \code{\link{subsetTax}}, \code{\link{subsetORFs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 #' @return SQM or SQMbunch object containing only the requested function.
 #' @examples
@@ -200,6 +201,7 @@ subsetFun_ = function(SQM, fun, columns, ignore_case, fixed,
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected taxon}.
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected taxon}.
 #' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
+#' @param allow_empty (internal use only).
 #' @return SQM or SQMbunch object containing only the requested taxon.
 #' @seealso \code{\link{subsetFun}}, \code{\link{subsetContigs}}, \code{\link{subsetSamples}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.
 #' @examples
@@ -241,6 +243,7 @@ subsetTax_ = function(SQM, rank, tax, trusted_functions_only, ignore_unclassifie
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected bins}.
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers for each function will represent the average copy number of that function \emph{per genome of the selected bins}.
+#' @param allow_empty (internal use only).
 #' @return SQM object containing only the requested bins.
 #' @seealso \code{\link{subsetContigs}}, \code{\link{subsetORFs}}
 #' @examples 
@@ -283,6 +286,7 @@ subsetBins_ = function(SQM, bins, trusted_functions_only, ignore_unclassified_fu
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{FALSE}).
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
 #' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
+#' @param allow_empty (internal use only).
 #' @return SQM object containing only the selected contigs.
 #' @seealso \code{\link{subsetORFs}}
 #' @examples
@@ -344,6 +348,7 @@ subsetRand = function(SQM, N)
 #' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object. By default it is set to \code{FALSE}, which means that the returned copy numbers for each function will represent the average copy number of that function per genome in the parent object.
 #' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
 #' @param contigs_override character. Optional vector of contigs to be included in the subsetted object.
+#' @param allow_empty (internal use only).
 #' @return SQM object containing the requested ORFs.
 #' @section A note on contig/bins subsetting:
 #' While this function selects the contigs and bins that contain the desired orfs, it DOES NOT recalculate contig abundance and statistics based on the selected ORFs only. This means that the abundances presented in tables such as \code{SQM$contig$abund} will still refer to the complete contigs, regardless of whether only a fraction of their ORFs are actually present in the returned SQM object. This is also true for the statistics presented in \code{SQM$contigs$table}. Bin statistics may be recalculated if \code{rescale_copy_number} is set to \code{TRUE}, but recalculation will be based on contigs, not ORFs.
@@ -577,6 +582,12 @@ subsetORFs_ = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = 
         for(method in names(subSQM$functions))
             {
             subSQM$functions[[method]]$copy_number = t(t(subSQM$functions[[method]]$cov) / subSQM$misc$single_copy_cov)
+            }
+    } else
+        {
+        for(method in names(subSQM$functions))
+            {
+             subSQM$functions[[method]]$copy_number =  subSQM$functions[[method]]$copy_number[rownames(subSQM$functions[[method]]$abund),]
             }
         }
 

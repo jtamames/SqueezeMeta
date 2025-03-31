@@ -12,13 +12,13 @@
 #' @seealso \code{\link{subsetFun}}, \code{\link{subsetTax}}, \code{\link{combineSQMlite}}
 #' @examples
 #' data(Hadza)
-#' # Select Carbohydrate metabolism ORFs in Bacteroidetes,
+#' # Select Carbohydrate metabolism ORFs in Bacteroidota,
 #' #  and Amino acid metabolism ORFs in Proteobacteria
-#' bact = subsetTax(Hadza, "phylum", "Bacteroidetes")
+#' bact = subsetTax(Hadza, "phylum", "Bacteroidota")
 #' bact.carb = subsetFun(bact, "Carbohydrate metabolism")
-#' proteo = subsetTax(Hadza, "phylum", "Proteobacteria")
-#' proteo.amins = subsetFun(proteo, "Amino acid metabolism")
-#' bact.carb_proteo.amins = combineSQM(bact.carb, proteo.amins, rescale_copy_number=FALSE)
+#' baci = subsetTax(Hadza, "phylum", "Bacillota")
+#' baci.amins = subsetFun(baci, "Amino acid metabolism")
+#' bact.carb_proteo.amins = combineSQM(bact.carb, baci.amins, rescale_copy_number=FALSE)
 #' @export
 combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE, recalculate_bin_stats = TRUE)
     {
@@ -228,15 +228,15 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
     }
 
     ### COPY NUMBERS
-    SQM$misc$single_copy_cov = get_median_single_copy_cov(combiSQM)
+    combSQM$misc$single_copy_cov = get_median_single_copy_cov(combSQM)
 
-    if(!any(is.na(combiSQM$misc$single_copy_cov)) & rescale_copy_number)
+    if(any(is.na(combSQM$misc$single_copy_cov)) | rescale_copy_number) # use the largest and hope for the best
         {
-        combiSQM$misc$single_copy_cov = get_median_single_copy_cov(combiSQM)
-        for(method in names(combiSQM$functions))
-            {
-            combiSQM$functions[[method]]$copy_number = t(t(combiSQM$functions[[method]]$cov) / combiSQM$misc$single_copy_cov)
-            }
+        combSQM$misc$single_copy_cov = pmax(SQM1$misc$single_copy_cov, SQM2$misc$single_copy_cov) 
+        }
+    for(method in names(combSQM$functions))
+        {
+        combSQM$functions[[method]]$copy_number = t(t(combSQM$functions[[method]]$cov) / combSQM$misc$single_copy_cov)
         }
 
     return(combSQM)

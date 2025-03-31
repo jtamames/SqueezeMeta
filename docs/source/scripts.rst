@@ -6,6 +6,14 @@ Scripts, output files and file format
     Most of the information contained in the output files listed below can be more easily explored through :doc:`SQMtools`.
 
 
+Upon startup, the pipeline will initially create the following files:
+
+- ``<project>/creator.txt``: text file containing the SqueezeMeta version when the project was created
+- ``<project>/SqueezeMeta_conf.pl``: run configuration. You will need to edit this file and :ref:`restart <restart>` if you want to change parameters mid-run
+- ``<project>/parameters.pl``: additional parameters
+- ``<project>/methods.txt``: text file containing names a citations of the software that is called during the run
+- ``<project>/syslog``: text file containing the commands being called by the pipeline and their STDOUT/STDERR outputs, useful for debugging
+
 Step 1: Assembly
 ================
 
@@ -345,7 +353,7 @@ Files produced
     - Column 8: disparity of the bin
     - Column 9: completeness of the bin (CheckM2)
     - Column 10: contamination of the bin (CheckM2)
-    - Column 11: strain heterogeneity of the bin (checkM)
+    - Column 11: strain heterogeneity of the bin (Empty, since CheckM2 does not provide it, but the field is still present for backwards compatibility)
     - Column 12 and beyond: coverage and TPM values for the bin in each sample.
 
 .. note::                                                                                                                              If GTDB-Tk was run to classify the bins by adding the ``-gtdbtk`` option, an additional column named ``Tax GTDB-Tk`` will be present after column 4 in the file ``<project>/results/18.<project>.bintable``

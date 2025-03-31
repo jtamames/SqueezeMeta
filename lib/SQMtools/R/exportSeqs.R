@@ -1,7 +1,7 @@
 #' Export the contigs of a SQM object
 #'
 #' @param SQM A SQM object.
-#' @param output_name. A connection, or a character string naming the file to print to. If "" (the default), sequences will be printed to the standard output connection.
+#' @param output_name A connection, or a character string naming the file to print to. If "" (the default), sequences will be printed to the standard output connection.
 #' @export
 exportContigs = function(SQM, output_name = "")
     {
@@ -12,7 +12,7 @@ exportContigs = function(SQM, output_name = "")
 #' Export the ORFs of a SQM object
 #'
 #' @param SQM A SQM object.
-#' @param output_name. A connection, or a character string naming the file to print to. If "" (the default), sequences will be printed to the standard output connection.
+#' @param output_name A connection, or a character string naming the file to print to. If "" (the default), sequences will be printed to the standard output connection.
 #' @export
 exportORFs = function(SQM, output_name = "")
     {
@@ -23,7 +23,7 @@ exportORFs = function(SQM, output_name = "")
 #' Export the bins of a SQM object
 #'
 #' @param SQM A SQM object.
-#' @param output_dir. Existing output directory to which to write the bins.
+#' @param output_dir Existing output directory to which to write the bins.
 #' @export
 exportBins = function(SQM, output_dir = "")
     {

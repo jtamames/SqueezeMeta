@@ -91,7 +91,7 @@ if($pair1!~/\.fasta\b|\.fa\b/) { print RED; print "WARNING: This script requires
 
 if(!$outfile) { $outfile="sqm_pfam.out"; }
 my $pfamfile="pfam.hmm";
-my $pfamseed="pfam.seed";
+my $pfamseed="Pfam-A.seed";
 
 get_pfam();
 rewrite_files();
@@ -102,7 +102,7 @@ sub run_short_pairs {
 	print "\nRunning ShortPair for PFAM $pfam\n  (This can take a while, please be patient)\n";
 	my $command="$shortpair_soft -m $pfamfile -s $pfamseed -x $tempfile1 -y $tempfile2 -o $outfile";
 	system($command);
-	system("rm *alldomains.allframe*; rm fragment_length*; rm hmms.sav; rm pfam.seed.sav; rm $pfamfile; rm $pfamseed");
+	system("rm *alldomains.allframe*; rm fragment_length*; rm hmms.sav; rm $pfamseed.sav; rm $pfamfile; rm $pfamseed");
 	system("rm $tempfile1; rm $tempfile2");
 	system("rm -r Protein; rm -r Out_extracted; rm -r out1; rm -r HMMs; rm -r faaSP; rm -r fastaSP");
 	my $currtime=timediff();
@@ -165,17 +165,16 @@ sub get_pfam {		#-- Retrieving corresponding pfam from PFAM
 	foreach my $tpfam(@plist) {
 		print "Getting Pfam and alignment for $tpfam\n";
 		
-		#-- WARNING: Pfam has been DISCONTINUED and it is now included in UniProt, which means that pfam.xfam.org no longer exists.
-		#-- for now, the pfam-legacy.xfam.org URL still works, but can cause trouble in the future.
 		
-		my $hmm_query="wget -nv http://pfam-legacy.xfam.org/family/$tpfam/hmm -O $tpfam.hmm";
+		my $hmm_query="wget -nv https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/$tpfam?annotation=hmm -O $tpfam.hmm.gz; gunzip $tpfam.hmm.gz";
 		system $hmm_query;
 		if(-e $pfamfile) { system("cat $pfamfile $tpfam.hmm > outh; mv outh $pfamfile; rm $tpfam.hmm"); }
 		else { system("mv $tpfam.hmm $pfamfile"); }
-		my $ali_query="wget -nv http://pfam-legacy.xfam.org/family/$tpfam/alignment/seed -O $tpfam.seed";
-		system $ali_query;
-		if(-e $pfamseed) { system("cat $pfamseed $tpfam.seed > outh; mv outh $pfamseed; rm $tpfam.seed"); }
-		else { system("mv $tpfam.seed $pfamseed"); }
+		unless(-e $pfamseed) {
+			my $ali_query = "wget https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz; gunzip Pfam-A.seed.gz";
+			system $ali_query;
+			if($pfamseed ne "Pfam-A.seed") { system "mv Pfam-A.seed $pfamseed"; }
+		}
 		}
 	}
 	

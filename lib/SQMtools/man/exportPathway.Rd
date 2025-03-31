@@ -7,7 +7,7 @@
 exportPathway(
   SQM,
   pathway_id,
-  count = "tpm",
+  count = "copy_number",
   samples = NULL,
   split_samples = FALSE,
   sample_colors = NULL,
@@ -24,7 +24,7 @@ exportPathway(
 
 \item{pathway_id}{character. The five-number KEGG pathway identifier. A list of all pathway identifiers can be found in \url{https://www.genome.jp/kegg/pathway.html}.}
 
-\item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"tpm"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
+\item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"copy_number"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
 
 \item{samples}{character. An optional vector with the names of the samples to export. If absent, all samples will be exported (default \code{NULL}).}
 

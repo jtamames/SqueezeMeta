@@ -29,7 +29,7 @@ exportPathway
       exportPathway(
         SQM,
         pathway_id,
-        count = "tpm",
+        count = "copy_number",
         samples = NULL,
         split_samples = FALSE,
         sample_colors = NULL,
@@ -57,11 +57,11 @@ exportPathway
    |                        | ``"bases"`` for raw base counts, ``"tpm"`` |
    |                        | for TPM normalized values or               |
    |                        | ``"copy_number"`` for copy numbers         |
-   |                        | (default ``"tpm"``). Note that a given     |
-   |                        | count type might not available in this     |
-   |                        | object (e.g. TPM or copy number in SQMlite |
-   |                        | objects originating from a SQM reads       |
-   |                        | project).                                  |
+   |                        | (default ``"copy_number"``). Note that a   |
+   |                        | given count type might not available in    |
+   |                        | this object (e.g. TPM or copy number in    |
+   |                        | SQMlite objects originating from a SQM     |
+   |                        | reads project).                            |
    +------------------------+--------------------------------------------+
    | ``samples``            | character. An optional vector with the     |
    |                        | names of the samples to export. If absent, |

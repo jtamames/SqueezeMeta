@@ -1,3 +1,4 @@
+#' @importFrom stats median
 get_median_single_copy_cov = function(SQM)
     {
     scg = SQM$misc$single_copy_genes
@@ -39,7 +40,14 @@ get_median_single_copy_cov = function(SQM)
         }
    
     # Calculate median single copy gene coverage
-    cov = apply(SQM$functions[[source_annot]]$cov[genes,,drop=FALSE], 2, median)
+    cov_source = SQM$functions[[source_annot]]$cov
+    present_genes = intersect(genes, rownames(cov_source))
+    if(!length(present_genes))
+        {
+        warning('The selected single copy genes were missing from your dataset, can not calculate copy numbers')
+        return(NA)
+        }
+    cov = apply(cov_source[present_genes,,drop=FALSE], 2, median)
 
     if(any(cov==0))
         {
