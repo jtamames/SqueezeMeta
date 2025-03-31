@@ -9,7 +9,7 @@ exportBins(SQM, output_dir = "")
 \arguments{
 \item{SQM}{A SQM object.}
 
-\item{output_dir.}{Existing output directory to which to write the bins.}
+\item{output_dir}{Existing output directory to which to write the bins.}
 }
 \description{
 Export the bins of a SQM object

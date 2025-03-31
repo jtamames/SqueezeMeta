@@ -18,6 +18,7 @@
 #' #  which will also remove them from the original bin
 #' Hadza.new.2 = create_bin(Hadza, "new_bin_name", candidates_for_removal)
 #' @export
+#' @importFrom utils combn
 find_redundant_contigs = function(SQM, bin, minimum_overlap_for_removal = 1) {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     if(!('tax16S' %in% names(SQM$orfs)) & 'markers' %in% names(SQM$orfs)) {
@@ -94,7 +95,7 @@ create_bin = function(SQM, bin, contigs, delete_overlapping_bins = FALSE) {
         bins_in_new_table = bin
     } else { bins_in_new_table = c(oldbins, bin) }
 
-    new_stats = SQMtools:::get.bin.stats(newSQM, bins_in_new_table)
+    new_stats = get.bin.stats(newSQM, bins_in_new_table)
     newSQM$bins$table[bins_in_new_table,] = new_stats[['table']][bins_in_new_table,]
     newSQM$bins$table[bins_in_new_table,'Method'] = 'Custom'
     newSQM$bins$tax = as.data.frame(newSQM$bins$tax)
@@ -137,7 +138,7 @@ remove_contigs_from_bin = function(SQM, bin, contigs) {
         }
     newSQM = SQM
     newSQM$contigs$bins[contigs,1] = 'No_bin'
-    new_stats = SQMtools:::get.bin.stats(newSQM, bin)
+    new_stats = get.bin.stats(newSQM, bin)
     newSQM$bins$table[bin,] = new_stats[['table']][bin,]
     newSQM$bins$table[bin,'Method'] = 'Custom'
     newSQM$bins$tax  [bin,] = new_stats[['tax'  ]][bin,]

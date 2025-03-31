@@ -35,6 +35,8 @@ subsetORFs(
 \item{recalculate_bin_stats}{logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).}
 
 \item{contigs_override}{character. Optional vector of contigs to be included in the subsetted object.}
+
+\item{allow_empty}{(internal use only).}
 }
 \value{
 SQM object containing the requested ORFs.
