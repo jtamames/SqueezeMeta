@@ -9,7 +9,7 @@ seqvec2fasta(seqvec, output_name = "")
 \arguments{
 \item{seqvec}{vector. The vector to be written as a fasta string.}
 
-\item{output_name.}{A connection, or a character string naming the file to print to. If "" (the default), sequences will be printed to the standard output connection.}
+\item{output_name}{A connection, or a character string naming the file to print to. If "" (the default), sequences will be printed to the standard output connection.}
 }
 \description{
 Print a named vector of sequences as a fasta-formatted string

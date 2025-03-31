@@ -1,3 +1,4 @@
+#' @importFrom stats median
 get_median_single_copy_cov = function(SQM)
     {
     scg = SQM$misc$single_copy_genes

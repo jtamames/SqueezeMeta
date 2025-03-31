@@ -116,15 +116,12 @@ if($opt_db) {
 		next if(!$_ || ($_=~/\#/));
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
 		my $outdb="$interdir/04.$project.$dbname.diamond";
-		if(-e $outdb) { print "  File $outdb for database $dbname found, skipping run\n"; print outsyslog "  File $outdb for database $dbname found, skipping run\n"; }
-		else {
-			$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
-			print " $dbname";
-			print outsyslog "Running Diamond for $dbname: $command\n";
-			my $ecode = system $command;
-			if($ecode!=0) { die "Error running command:    $command"; }
-			print outmet "$dbname, ";
-			}
+		$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
+		print " $dbname";
+		print outsyslog "Running Diamond for $dbname: $command\n";
+		my $ecode = system $command;
+		if($ecode!=0) { die "Error running command:    $command"; }
+		print outmet "$dbname, ";
 		}
 }
 

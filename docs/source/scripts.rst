@@ -353,7 +353,7 @@ Files produced
     - Column 8: disparity of the bin
     - Column 9: completeness of the bin (CheckM2)
     - Column 10: contamination of the bin (CheckM2)
-    - Column 11: strain heterogeneity of the bin (checkM)
+    - Column 11: strain heterogeneity of the bin (Empty, since CheckM2 does not provide it, but the field is still present for backwards compatibility)
     - Column 12 and beyond: coverage and TPM values for the bin in each sample.
 
 .. note::                                                                                                                              If GTDB-Tk was run to classify the bins by adding the ``-gtdbtk`` option, an additional column named ``Tax GTDB-Tk`` will be present after column 4 in the file ``<project>/results/18.<project>.bintable``
