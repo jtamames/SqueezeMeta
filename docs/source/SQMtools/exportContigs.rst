@@ -26,11 +26,11 @@ exportContigs
    .. rubric:: Arguments
       :name: arguments
 
-   +------------------+--------------------------------------------------+
-   | ``SQM``          | A SQM object.                                    |
-   +------------------+--------------------------------------------------+
-   | ``output_name.`` | A connection, or a character string naming the   |
-   |                  | file to print to. If "" (the default), sequences |
-   |                  | will be printed to the standard output           |
-   |                  | connection.                                      |
-   +------------------+--------------------------------------------------+
+   +-----------------+---------------------------------------------------+
+   | ``SQM``         | A SQM object.                                     |
+   +-----------------+---------------------------------------------------+
+   | ``output_name`` | A connection, or a character string naming the    |
+   |                 | file to print to. If "" (the default), sequences  |
+   |                 | will be printed to the standard output            |
+   |                 | connection.                                       |
+   +-----------------+---------------------------------------------------+

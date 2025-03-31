@@ -47,8 +47,8 @@ loadSQM
    |                            | classification should be loaded?       |
    |                            | SqueezeMeta applies the identity       |
    |                            | thresholds described in `Luo et al.,   |
-   |                            | 2014 <https://www.ncbi.nlm             |
-   |                            | .nih.gov/pmc/articles/PMC4005636/>`__. |
+   |                            | 2014 <https://pmc.ncbi                 |
+   |                            | .nlm.nih.gov/articles/PMC4005636/>`__. |
    |                            | Use ``allfilter`` for applying the     |
    |                            | minimum identity threshold to all      |
    |                            | taxa, ``prokfilter`` for applying the  |
@@ -455,8 +455,8 @@ loadSQM
       topKEGG = topKEGG[topKEGG!="Unclassified"]
       # Which functions do those KEGG IDs represent?
       Hadza$misc$KEGG_names[topKEGG]
-      # What is the relative abundance of the Gammaproteobacteria class across samples?
-      Hadza$taxa$class$percent["Gammaproteobacteria",]
+      # What is the relative abundance of the Negativicutes class across samples?
+      Hadza$taxa$class$percent["Negativicutes",]
       # Which information is stored in the orf, contig and bin tables?
       colnames(Hadza$orfs$table)
       colnames(Hadza$contigs$table)
