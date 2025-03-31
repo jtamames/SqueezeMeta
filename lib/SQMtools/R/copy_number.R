@@ -1,3 +1,6 @@
+#' @import utils 
+utils::globalVariables(c('RecA', 'MGOGs', 'MGKOs', 'USiCGs'))
+
 #' @importFrom stats median
 get_median_single_copy_cov = function(SQM)
     {
