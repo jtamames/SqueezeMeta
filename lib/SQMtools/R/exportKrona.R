@@ -14,7 +14,7 @@
 #' # Check that kronatools is present.
 #' ecode = system('ktImportText', ignore.stdout = TRUE, ignore.stderr = TRUE)
 #' # If so, run.
-#' if(ecode==0) { exportKrona(Hadza) }
+#' if(ecode==0) { exportKrona(Hadza, output_name = file.path(tempdir(), "krona.html")) }
 #' }
 #' @importFrom utils write.table
 #' @export
