@@ -121,7 +121,7 @@ We vendor third-party software since
 
 Over time some of the vendored tools have been replaced by conda packages. This was a natural transition to make as most of our users were using conda for installing SqueezeMeta, and some vendored binaries had trouble running in different linux distributions/versions. However we still redistribute all the tools listed below, even if some of them are no longer used by default. 
 
-The *External software* section of the ``SqueezeMeta/scripts/SqueezeMeta_conf.pl`` file controls all the software that is called by the pipeline. The executable called for each program is stored in a different variable. If no path to the executable is listed there, the exectuable will be assumed to be present in ``$PATH`` (e.g. because it is provided by a conda environment). For example:
+The *External software* section of the ``SqueezeMeta/scripts/SqueezeMeta_conf.pl`` file controls all the software that is called by the pipeline. The executable called for each program is stored in a different variable. If no path to the executable is listed there, the executable will be assumed to be present in ``$PATH`` (e.g. because it is provided by a conda environment). For example:
 
 - ``$spades_soft = "$installpath/bin/SPAdes/spades.py";`` will take the ``spades.py`` executable that we vendor with SqueezeMeta
 - ``$spades_soft = "spades.py";`` will take whatever ``spades.py`` executable available in ``$PATH``
