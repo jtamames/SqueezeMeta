@@ -47,8 +47,8 @@ loadSQM
    |                            | classification should be loaded?       |
    |                            | SqueezeMeta applies the identity       |
    |                            | thresholds described in `Luo et al.,   |
-   |                            | 2014 <https://pmc.ncbi                 |
-   |                            | .nlm.nih.gov/articles/PMC4005636/>`__. |
+   |                            | 2014 <https://                         |
+   |                            | pubmed.ncbi.nlm.nih.gov/24589583/>`__. |
    |                            | Use ``allfilter`` for applying the     |
    |                            | minimum identity threshold to all      |
    |                            | taxa, ``prokfilter`` for applying the  |

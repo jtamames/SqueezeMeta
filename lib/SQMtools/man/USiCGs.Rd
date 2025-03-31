@@ -8,7 +8,7 @@
 Character vector with the KEGG identifiers for 15 Universal Single Copy Genes.
 }
 \source{
-\href{https://pmc.ncbi.nlm.nih.gov/articles/instance/3798274/bin/pcbi.1003292.s016.xls}{Carr \emph{et al.}, 2013. Table S1}.
+\href{https://pubmed.ncbi.nlm.nih.gov/24146609/}{Carr \emph{et al.}, 2013. Table S1}.
 }
 \usage{
 data(USiCGs)
@@ -41,7 +41,7 @@ KEGG.copynumber = t(t(Hadza$functions$KEGG$cov) / USiCGs.cov)
 Carr, Shen-Orr & Borenstein (2013). 
 Reconstructing the Genomic Content of Microbiome Taxa through Shotgun Metagenomic Deconvolution
 \emph{PLoS Comput. Biol.} \bold{9}:e1003292.
-(\href{https://pmc.ncbi.nlm.nih.gov/articles/PMC3798274/}{PubMed}).
+(\href{https://pubmed.ncbi.nlm.nih.gov/24146609/}{PubMed}).
 }
 \seealso{
 \code{\link{MGOGs}} and \code{\link{MGKOs}} for an alternative set of single copy genes, and for examples on how to generate copy numbers.

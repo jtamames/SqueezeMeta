@@ -35,7 +35,7 @@ CheckMProkaryote
    Parks, Imelfort, Skennerton, Hugenholtz & Tyson (2015). CheckM:
    assessing the quality of microbial genomes recovered from isolates,
    single cells, and metagenomes *Genome Res.* **25**:1043-1055.
-   (`PubMed <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4484387/>`__).
+   (`PubMed <https://pubmed.ncbi.nlm.nih.gov/25977477/>`__).
 
    .. rubric:: See Also
       :name: see-also
