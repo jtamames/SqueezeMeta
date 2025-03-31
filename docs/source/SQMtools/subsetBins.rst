@@ -87,6 +87,8 @@ subsetBins
    |                                  | function *per genome of the      |
    |                                  | selected bins*.                  |
    +----------------------------------+----------------------------------+
+   | ``allow_empty``                  | (internal use only).             |
+   +----------------------------------+----------------------------------+
 
    .. rubric:: Value
       :name: value

@@ -101,6 +101,8 @@ subsetTax
    |                                  | the subsetted object (default    |
    |                                  | ``TRUE``).                       |
    +----------------------------------+----------------------------------+
+   | ``allow_empty``                  | (internal use only).             |
+   +----------------------------------+----------------------------------+
 
    .. rubric:: Value
       :name: value

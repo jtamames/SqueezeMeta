@@ -27,15 +27,15 @@ seqvec2fasta
    .. rubric:: Arguments
       :name: arguments
 
-   +------------------+--------------------------------------------------+
-   | ``seqvec``       | vector. The vector to be written as a fasta      |
-   |                  | string.                                          |
-   +------------------+--------------------------------------------------+
-   | ``output_name.`` | A connection, or a character string naming the   |
-   |                  | file to print to. If "" (the default), sequences |
-   |                  | will be printed to the standard output           |
-   |                  | connection.                                      |
-   +------------------+--------------------------------------------------+
+   +-----------------+---------------------------------------------------+
+   | ``seqvec``      | vector. The vector to be written as a fasta       |
+   |                 | string.                                           |
+   +-----------------+---------------------------------------------------+
+   | ``output_name`` | A connection, or a character string naming the    |
+   |                 | file to print to. If "" (the default), sequences  |
+   |                 | will be printed to the standard output            |
+   |                 | connection.                                       |
+   +-----------------+---------------------------------------------------+
 
    .. rubric:: Examples
       :name: examples

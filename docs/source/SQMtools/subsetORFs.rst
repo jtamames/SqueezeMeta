@@ -105,6 +105,8 @@ subsetORFs
    |                                  | contigs to be included in the    |
    |                                  | subsetted object.                |
    +----------------------------------+----------------------------------+
+   | ``allow_empty``                  | (internal use only).             |
+   +----------------------------------+----------------------------------+
 
    .. rubric:: Value
       :name: value
