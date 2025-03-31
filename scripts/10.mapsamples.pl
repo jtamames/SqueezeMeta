@@ -315,14 +315,16 @@ print "  Output in $mappingstat\n";
 close outfile3;
 if($mapper eq "bowtie" or $mapper eq "bwa") {
 	system("rm $bowtieref.*");	#-- Deleting bowtie references
+}
 if(-e $gff_file) {
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
 	my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
 	print outsyslog "Sorting mapcount table: $command\n";
 	system($command);
 	#-- Remove temp files
-	system("rm $tempdir/count.*"); }
+	system("rm $tempdir/count.*");
 }
+
 
 
 
