@@ -11,6 +11,7 @@ use Cwd;
 use Tie::IxHash;
 use lib ".";
 use threads;
+use Scalar::Util qw(looks_like_number);
 
 my $pwd=cwd();
 
@@ -85,7 +86,7 @@ my $numthreads_counter= $numthreads;
 my $ncontigs = keys %lencontig;
 if($numthreads_counter > $ncontigs) { $numthreads_counter = $ncontigs; }
 
-my(@contigchunks, @bed_chunk_files_contigs, @bed_chunk_files_orfs, @count_chunk_files);
+my(@contigchunks, @bed_chunk_files_contigs, @bed_chunk_files_orfs, @count_chunk_files, %sample_mapcount_files);
 my(%genesincontigs,%genespos,%long_gen,@genes_ordered);
 
 	#-- If a gff file is available, prepare for ORF counting
@@ -116,6 +117,47 @@ if(-e $gff_file) {
 	        $genespos{$genid} = [$initgen, $endgen];
 	        $long_gen{$genid}=$endgen-$initgen+1;
 	        }
+	
+	#-- Sort the genes since in the gff file they are ordered by predictor (prodigal, barrnap, aragorn) instead of name
+        @genes_ordered = sort bypos @genes_ordered;
+
+        sub bypos {
+		my ($contignum_a, $initpos_a, $endpos_a) = @{parse_gene_id($a)};
+		my ($contignum_b, $initpos_b, $endpos_b) = @{parse_gene_id($b)};
+		my $contigcomp;
+		my $res;
+		# contignum will be a number in most cases but could be a string
+		#  if using external contigs and using --norename. So we'll check
+		if(looks_like_number($contignum_a) and looks_like_number($contignum_b)) {
+			# Compare numerically
+			$contigcomp = $contignum_a - $contignum_b;
+		}
+		else {
+			# Compare lexicographically instead
+			$contigcomp = $contignum_a cmp $contignum_b;
+			}
+		if($contigcomp > 0) { $res = 1;}
+		elsif($contigcomp < 0) { $res = -1; }
+		else {
+			if($initpos_a > $initpos_b) { $res = 1; }
+			elsif($initpos_a < $initpos_b) { $res = -1; }
+			else {
+				if($endpos_a > $endpos_b) { $res = 1; }
+				elsif($endpos_a < $endpos_b) { $res = -1; }
+				else { $res = 0; }
+			}
+		}
+		return($res);
+	}
+
+	sub parse_gene_id {
+		my $gene_id   = shift;
+		my @fields    = split(/_/,$gene_id);
+		my $contignum = $fields[$#fields-1];
+		my $initpos   = ${@genespos{$gene_id}}[0];
+		my $endpos    = ${@genespos{$gene_id}}[1];
+		return( [$contignum, $initpos, $endpos] );
+	}
 
 	#-- Split the contigs into $numthreads_counter chunks and create bed files for them
 	# Create 2D array
@@ -152,6 +194,11 @@ if(-e $gff_file) {
 		undef @contigchunks;
 		undef %genesincontigs;
 		undef %genespos;
+
+	#-- Create a hash mapping sample names to temporary mapcount file paths for each sample
+	foreach my $thissample(keys %allsamples) {
+		$sample_mapcount_files{$thissample} = "$tempdir/$thissample.mapcount";
+		}
 	}
 else {
 	print outsyslog "\nWARNING: $gff_file not found, will not do counting of gene abundances\n\n";
@@ -159,11 +206,19 @@ else {
 
         #-- Creates Bowtie2 or BWA reference for mapping (index the contigs)
 
+my $allsamplesmapped = 1;
+foreach my $thissample(keys %allsamples) {
+	my $bamfile="$bamdir/$projectname.$thissample.bam";
+	my $baifile="$bamdir/$projectname.$thissample.bam.bai";
+	if(! -e $bamfile or ! -e $baifile) { $allsamplesmapped = 0; }
+	}
+
 if($mapper eq "bowtie") {
 	print "  Mapping with Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n";
 	print outmet "Read mapping against contigs was performed using Bowtie2 (Langmead and Salzberg 2012, Nat Methods 9(4), 357-9)\n"; 
-	#if(-e "$bowtieref.1.bt2") { print "  Found reference in $bowtieref.1.bt2, skipping\n"; } #This will only trigger if index building was incomplete, which beats the purpose
-	if(0){}
+	if( (-e "$bowtieref.1.bt2" or $allsamplesmapped) and !$force_overwrite) {
+		print "  Mapping reference is present or all samples are already mapped, skipping indexing\n";
+		}
         else {
         	print("  Creating reference from contigs\n");
                 my $bowtie_command="$bowtie2_build_soft --quiet $contigsfna $bowtieref";
@@ -174,8 +229,9 @@ if($mapper eq "bowtie") {
 elsif($mapper eq "bwa") {
 	print "  Mapping with BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
 	print outmet "Read mapping against contigs was performed using BWA (Li and Durbin 2009, Bioinformatics 25(14), 1754-60)\n"; 
-	#if(-e "$bowtieref.bwt") { print "Found reference in $bowtieref.bwt, Skipping\n"; }
-        if(0){}
+        if( (-e "$bowtieref.bwt" or $allsamplesmapped ) and !$force_overwrite) {
+		print "  Mapping reference is present or all samples are already mapped, skipping indexing\n";
+		}
 	else {
         	print("Creating reference.\n");
                 my $bwa_command="$bwa_soft index -p $bowtieref $contigsfna";
@@ -296,7 +352,9 @@ foreach my $thissample(keys %allsamples) {
 	
 	if(-e $gff_file) {
 		print outsyslog "Calling sqm_counter: Sample $thissample, BAM $bamfile, Number of reads $totalreads\n";
-        	sqm_counter(\@contigchunks,\@genes_ordered,\%long_gen,$thissample,$bamfile,\@bed_chunk_files_contigs,\@count_chunk_files,$totalreads,$mapper,$verbose);
+        	sqm_counter(\@contigchunks,\@genes_ordered,\%long_gen,$thissample,$bamfile,
+                            \@bed_chunk_files_contigs,\@count_chunk_files,\%sample_mapcount_files,
+                            $totalreads,$mapper,$verbose);
 		}
 	}
 if($warnmes) { 
@@ -311,33 +369,65 @@ if($warnmes) {
 
 close outfile1;
 
-print "  Output in $mappingstat\n";
-close outfile3;
-if($mapper eq "bowtie" or $mapper eq "bwa") {
-	system("rm $bowtieref.*");	#-- Deleting bowtie references
-}
 if(-e $gff_file) {
+	print outsyslog "Sorting mapcount table\n";
+	print "  Sorting mapcount table\n";
+	open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
+	print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
+	print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
+
+	#-- We have one mapcount file per sample, each containing one line per gene in the same order
+	#-- Instead, we want a single mapcount file in which results are ordered by gene (with the samples in the same order)
 	#-- Sorting the mapcount table is needed for reading it with low memory consumption in step 13
-	my $command="sort -T $tempdir -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
-	print outsyslog "Sorting mapcount table: $command\n";
-	system($command);
+
+	my %fileobjects;
+	foreach my $thissample(keys %sample_mapcount_files) {
+		open my $fh, $sample_mapcount_files{$thissample};
+		$fileobjects{$thissample} = $fh;
+	}
+	my $line="placeholder";
+	my $fh;
+	# We will read the first line (first gene) for all the mapcount files, then the second, etc
+	# We overwrite the $line variable as we iterate over all files
+	# The "defined $line" check is only done after we finish reading a set of lines from all the files
+	#  e.g. the first line for all files, the second line for all files, etc...
+	# So it will become false after we read the last line from the last file
+ 	# This works because all of them have the same number of reads
+	while(defined $line) {
+		# Read the first line (first gene) for all the mapcount files, then the second, etc
+		foreach my $thissample(keys %allsamples) { # keys %allsamples will be sorted by input order due to Tie::IxHash
+			$fh = $fileobjects{$thissample};
+			$line = <$fh>;
+			print outfile3 $line;
+		} 
+	}
+	close outfile3;	
+	close $_ foreach values %fileobjects;
 	#-- Remove temp files
 	system("rm $tempdir/count.*");
+	system("rm $tempdir/*.mapcount");
 }
 
-
+#-- Remove references
+if($mapper eq "bowtie" or $mapper eq "bwa") {
+	system("rm -f $bowtieref.*");      #-- Deleting bowtie references
+}
+print "  Output in $mappingstat\n";
 
 
 #----------------- sqm_counter counting 
 
 sub sqm_counter {
 	print "  Counting with sqm_counter: Opening $numthreads_counter threads\n";
-	my($contigchunks,$genes_ordered,$long_gen,$thissample,$bamfile,$bed_chunk_files_contigs,$count_chunk_files,$totalreadcount,$mapper)=@_;
+	my($contigchunks,$genes_ordered,$long_gen,$thissample,$bamfile,
+           $bed_chunk_files_contigs,$count_chunk_files,$sample_mapcount_files,
+           $totalreadcount,$mapper)=@_;
 	@contigchunks = @{$contigchunks};
 	@genes_ordered = @{$genes_ordered};
 	%long_gen = %{$long_gen};
 	@bed_chunk_files_contigs = @{$bed_chunk_files_contigs};
 	@count_chunk_files = @{$count_chunk_files};
+	%sample_mapcount_files = %{$sample_mapcount_files};
 	my %accum;
 
 	my ($bedfilectgs, $bedfileorfs, $countfile);
@@ -393,7 +483,11 @@ sub sqm_counter {
 		}
 	$accumrpk/=1000000;
 
-	#-- Go through genes as they appeared in the gff for: 1) include all ORFs, even these with no counts, and 2) in the fixed order
+	#-- Write a temporary mapcount file for this sample
+	my $sm = $sample_mapcount_files{$thissample};
+	open(outfileSM,">$sm") || die "Can't open mapcount file $sm for writing\n";
+
+	#-- Iterate over @genes_ordered to 1) include all ORFs, even these with no counts, and 2) have them in a fixed order
 
 	foreach my $currentgene (@genes_ordered) {
 		my $longt=$long_gen{$currentgene};
@@ -401,9 +495,9 @@ sub sqm_counter {
 		my $coverage=$accum{$currentgene}{bases}/$longt;
 		my $rpkm=($accum{$currentgene}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
 		my $tpm=$rpk{$currentgene}/$accumrpk;
-		printf outfile3 "$currentgene\t$longt\t$accum{$currentgene}{reads}\t$accum{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm;
+		printf outfileSM "$currentgene\t$longt\t$accum{$currentgene}{reads}\t$accum{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm;
 		}
-	close infilegff;
+	close outfileSM;
 
 }
 

@@ -510,9 +510,6 @@ my $lastorf;
 print "  Reading RPKMs and Coverages\n";
 print syslogfile"  Reading RPKMs and Coverages from $mapcountfile\n";
 
-#-- Sorting the mapcount table is needed for reading it with low memory consumption. This is done in step10 but it is here for compatibility with previous versions
-
-
 open(infile12,$mapcountfile) || warn "Can't open mapping file $mapcountfile\n";
 while(<infile12>) {
 	chomp;
