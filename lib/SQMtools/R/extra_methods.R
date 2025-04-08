@@ -18,7 +18,8 @@ read.namedvector = function(file, engine = 'data.frame')
 
 #' @importFrom utils tail
 #' @importFrom zip unzip
-read.namedvector.zip = function(project_path, file_path, engine = 'data.frame')
+#' @importFrom Biostrings DNAStringSet BStringSet
+read.namedvector.zip = function(project_path, file_path, type = 'text', engine = 'data.frame')
     {
     zipmode = endsWith(project_path, '.zip')
     if(!zipmode)
@@ -32,6 +33,8 @@ read.namedvector.zip = function(project_path, file_path, engine = 'data.frame')
         res = read.namedvector(f, engine = engine)
         unlink(f)
         }
+    # Convert to Biostring if this is a sequence (can't use AAStringSet for the ORFs since there are also rRNAs/tRNAs)
+    if(type=='DNA') { res = DNAStringSet(res) } else if (type == 'AA') { res = BStringSet(res) }
     return(res)
     }
 

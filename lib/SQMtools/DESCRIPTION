@@ -11,8 +11,8 @@ Maintainer: Fernando Puente-Sánchez <fernando.puente.sanchez@slu.se>
 Depends: R (>= 3.5.0)
 biocViews:
 LazyDataCompression: xz
-Imports: zip, reshape2, ggplot2, pathview, data.table
-Suggests: vegan, DESeq2
+Imports: zip, reshape2, ggplot2, pathview, data.table, Biostrings
+Suggests: vegan, microeco
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

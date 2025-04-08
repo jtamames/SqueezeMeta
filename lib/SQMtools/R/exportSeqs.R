@@ -61,8 +61,7 @@ exportBins = function(SQM, output_dir = "")
         }
     }
 
-
-
+#' @importFrom Biostrings writeXStringSet
 exportSeqs = function(SQM, seqtype, output_name = "")
     {
     if(!inherits(SQM, c('SQM', 'SQMbunch'))) { stop('The first argument must be a SQM or SQMbunch object') }
@@ -74,7 +73,7 @@ exportSeqs = function(SQM, seqtype, output_name = "")
         {
         projs = SQM$projects
         }
-    seqvec = c()
+    seqvec = NA
     for(projname in names(projs))
         {
 	seqs = projs[[projname]][[seqtype]]$seqs
@@ -83,12 +82,14 @@ exportSeqs = function(SQM, seqtype, output_name = "")
             {
             warning(sprintf('Project %s contains %s sequence names that were also present in other projects in this object', projname, length(duplic)))
             }
-        seqvec = c(seqvec, seqs)
         if(is.null(seqs))
             {
             warning(sprintf('There are no sequences in project %s. Did you use `load_sequences = FALSE` when loading it?', projname))
             }
+        # concatenating an empty vector and a XStringSet would return a list instead of a larger XStringSet, so we do this
+        # seqvec starts being NA so on the first project we read we overwrite with the sequences, THEN we concatenate
+        if(is.na(seqvec[1])) { seqvec = seqs } else { seqvec = c(seqvec, seqs) }
         }
-    if(length(seqvec)) { seqvec2fasta(seqvec, output_name) } else { stop('No sequences were found') }
+    if(length(seqvec)) { writeXStringSet(seqvec, output_name) } else { stop('No sequences were found') }
     }
  

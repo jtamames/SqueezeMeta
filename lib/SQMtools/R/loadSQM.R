@@ -275,7 +275,8 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     if(load_sequences)
         { 
         message('    sequences...')
-        SQM$orfs$seqs            = read.namedvector.zip(project_path, sprintf('results/tables/%s.orf.sequences.tsv', project_name), engine=engine)
+        SQM$orfs$seqs            = read.namedvector.zip(project_path, sprintf('results/tables/%s.orf.sequences.tsv', project_name),
+                                                        type = 'AA', engine=engine)
         }
     
     message('    taxonomy...')
@@ -283,7 +284,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
 							            header=TRUE, row.names=1, sep='\t'))
     if(file.exists.zip(project_path, sprintf('results/tables/%s.orf.16S.tsv', project_name)))
         {
-        SQM$orfs$tax16S = read.namedvector.zip(project_path, sprintf('results/tables/%s.orf.16S.tsv', project_name), engine=engine)
+        SQM$orfs$tax16S = read.namedvector.zip(project_path, sprintf('results/tables/%s.orf.16S.tsv', project_name), type = 'text', engine=engine)
         }
 
     if(file.exists.zip(project_path, sprintf('results/18.%s.bintable', project_name)) & file.exists.zip(project_path, sprintf('results/tables/%s.orf.marker.genes.tsv', project_name)))
@@ -347,7 +348,8 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
     if(load_sequences)
         {
         message('    sequences...')
-        SQM$contigs$seqs          = read.namedvector.zip(project_path, sprintf('results/tables/%s.contig.sequences.tsv', project_name), engine=engine)
+        SQM$contigs$seqs          = read.namedvector.zip(project_path, sprintf('results/tables/%s.contig.sequences.tsv', project_name),
+                                                         type = 'DNA', engine=engine)
         SQM$contigs$seqs          = SQM$contigs$seqs[rownames(SQM$contigs$table)]
         }
 
