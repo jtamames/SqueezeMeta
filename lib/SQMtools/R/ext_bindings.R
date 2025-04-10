@@ -11,7 +11,6 @@
 #' @param include_seqs logical. Whether to include sequences or not if creating a microtable from contigs (default \code{FALSE}).
 #' @return A \code{\link[microeco]{microtable}}. 
 #' @seealso \code{\link{SQM_to_phyloseq}} for exporting a SQM/SQMlite/SQM object as a phyloseq object.
-#' @importFrom microeco microtable
 #' @export
 SQM_to_microeco = function(SQM, features = 'genus', count = 'abund', md = NULL, bin_tax_source = 'SQM', include_seqs = FALSE)
     {
@@ -40,7 +39,6 @@ SQM_to_microeco = function(SQM, features = 'genus', count = 'abund', md = NULL, 
 #' @param include_seqs logical. Whether to include sequences or not if creating a microtable from ORFs or contigs (default \code{FALSE}).
 #' @return A phyloseq object.
 #' @seealso \code{\link{SQM_to_microeco}} for exporting a SQM/SQMlite/SQM object as a microtable object.
-#' @importFrom phyloseq phyloseq otu_table tax_table sample_data merge_phyloseq
 #' @export
 SQM_to_phyloseq = function(SQM, features = 'genus', count = 'abund', md = NULL, bin_tax_source = 'SQM', include_seqs = FALSE)
     {
