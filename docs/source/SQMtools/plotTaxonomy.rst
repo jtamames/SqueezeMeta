@@ -97,7 +97,7 @@ plotTaxonomy
    +--------------------------------+------------------------------------+
    | ``no_partial_classifications`` | logical. Treat reads not fully     |
    |                                | classified at the requested level  |
-   |                                | (e.g. "Unclassified bacteroidetes" |
+   |                                | (e.g. "Unclassified Bacteroidota"  |
    |                                | at the class level or below) as    |
    |                                | fully unclassified. This takes     |
    |                                | effect before                      |

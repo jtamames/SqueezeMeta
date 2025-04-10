@@ -7,16 +7,25 @@
 #' @param features character. Either \code{"orfs"}, \code{"contigs"}, \code{"bins"}, any taxonomic rank included in \code{SQM$taxa} or any functional classication included in \code{SQM$functions} (default \code{"tax"}). Note that a given feature type might not be available in this objects (e.g. \code{"contigs"} in SQMlite objects originating from a SQM reads project).
 #' @param count character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"cov"} for coverages, code{"cpm"} for coverages per million reads, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"abund"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).
 #' @param md data.frame. A optional data.frame containing metadata for the samples in the SQM object.
+#' @param nocds character. Either \code{"treat_separately"} to treat features annotated as No CDS separately, \code{"treat_as_unclassified"} to treat them as Unclassified or \code{"ignore"} to ignore them in the output (default \code{"treat_separately"}).
+#' @param no_partial_classifications logical. When \code{features} is a taxonomic rank, treat features not fully classified at the requested level (e.g. "Unclassified bacteroidota" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain features that were fully classified at the requested level (default \code{FALSE}).
+#' @param ignore_unclassified logical. When \code{features} is a taxonomic rank or functional category, don't include unclassified reads in the output (default \code{FALSE}).
+#' @param ignore_unmapped logical. Don't include unmapped reads in the output (default \code{FALSE}).
 #' @param bin_tax_source character. Source of taxonomy when \code{features = "bins"}, either \code{"SQM"} of \code{"gtdb"} (default  \code{"gtdb"}).
 #' @param include_seqs logical. Whether to include sequences or not if creating a microtable from contigs (default \code{FALSE}).
 #' @return A \code{\link[microeco]{microtable}}. 
 #' @seealso \code{\link{SQM_to_phyloseq}} for exporting a SQM/SQMlite/SQM object as a phyloseq object.
 #' @export
-SQM_to_microeco = function(SQM, features = 'genus', count = 'abund', md = NULL, bin_tax_source = 'SQM', include_seqs = FALSE)
+SQM_to_microeco = function(SQM, features = 'genus', count = 'abund', md = NULL,
+                           nocds = 'treat_separately', no_partial_classifications = FALSE,
+                           ignore_unclassified = FALSE, ignore_unmapped = FALSE,
+                           bin_tax_source = 'SQM', include_seqs = FALSE)
     {
     if(!require(microeco)) { stop('The `microeco` package must be installed in order to use this function') }
     # We let argument checking be done by prepare_export_tables
-    res = prepare_export_tables(SQM, features, count, bin_tax_source, include_seqs)
+    res = prepare_export_tables(SQM, features, count,
+                                nocds, no_partial_classifications, ignore_unclassified, ignore_unmapped,
+                                bin_tax_source, include_seqs)
     if(features=='orfs') { res[['seqs']] = NULL } # since microtable only accepts DNAStringSets
     mt = microtable$new(otu_table = as.data.frame(res[['counts']]),
 		        tax_table = as.data.frame(res[['tax']]),
@@ -35,16 +44,24 @@ SQM_to_microeco = function(SQM, features = 'genus', count = 'abund', md = NULL, 
 #' @param features character. Either \code{"orfs"}, \code{"contigs"}, \code{"bins"}, any taxonomic rank included in \code{SQM$taxa} or any functional classication included in \code{SQM$functions} (default \code{"tax"}). Note that a given feature type might not be available in this objects (e.g. \code{"contigs"} in SQMlite objects originating from a SQM reads project).
 #' @param count character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"cov"} for coverages, code{"cpm"} for coverages per million reads, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"abund"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).
 #' @param md data.frame. A optional data.frame containing metadata for the samples in the SQM object.
+#' @param nocds character. Either \code{"treat_separately"} to treat features annotated as No CDS separately, \code{"treat_as_unclassified"} to treat them as Unclassified or \code{"ignore"} to ignore them in the output (default \code{"treat_separately"}).
+#' @param no_partial_classifications logical. When \code{features} is a taxonomic rank, treat features not fully classified at the requested level (e.g. "Unclassified bacteroidota" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain features that were fully classified at the requested level (default \code{FALSE}).
+#' @param ignore_unclassified logical. When \code{features} is a taxonomic rank or functional category, don't include unclassified reads in the output (default \code{FALSE}).
+#' @param ignore_unmapped logical. Don't include unmapped reads in the output (default \code{FALSE}).
 #' @param bin_tax_source character. Source of taxonomy when \code{features = "bins"}, either \code{"SQM"} of \code{"gtdb"} (default  \code{"gtdb"}).
 #' @param include_seqs logical. Whether to include sequences or not if creating a microtable from ORFs or contigs (default \code{FALSE}).
 #' @return A phyloseq object.
 #' @seealso \code{\link{SQM_to_microeco}} for exporting a SQM/SQMlite/SQM object as a microtable object.
 #' @export
-SQM_to_phyloseq = function(SQM, features = 'genus', count = 'abund', md = NULL, bin_tax_source = 'SQM', include_seqs = FALSE)
+SQM_to_phyloseq = function(SQM, features = 'genus', count = 'abund', md = NULL,                                                                                 nocds = 'treat_separately', no_partial_classifications = FALSE,
+                           ignore_unclassified = FALSE, ignore_unmapped = FALSE,
+                           bin_tax_source = 'SQM', include_seqs = FALSE)
     {
     if(!require(phyloseq)) { stop('The `phyloseq` package must be installed in order to use this function') }
     # We let argument checking be done by prepare_export_tables
-    res = prepare_export_tables(SQM, features, count, bin_tax_source, include_seqs)
+    res = prepare_export_tables(SQM, features, count,
+                                nocds, no_partial_classifications, ignore_unclassified, ignore_unmapped,
+                                bin_tax_source, include_seqs)
     ps = phyloseq(otu_table(res[['counts']], taxa_are_rows = TRUE))
     if(!is.null(res[['tax' ]]))
         {
@@ -57,10 +74,16 @@ SQM_to_phyloseq = function(SQM, features = 'genus', count = 'abund', md = NULL, 
     return(ps)
     }
 
-prepare_export_tables = function(SQM, features, count, bin_tax_source, include_seqs)
+prepare_export_tables = function(SQM, features, count,
+                                 nocds, no_partial_classifications, ignore_unclassified, ignore_unmapped,
+                                 bin_tax_source, include_seqs)
     {
     if(!inherits(SQM, c('SQM', 'SQMlite', 'SQMbunch'))) { stop('The first argument must be a SQM or SQMbunch object') }
     if(!bin_tax_source %in% c('SQM', 'gtdb')) { stop('bin_tax_source mush be either "SQM" or "gtdb"') }
+    if(!nocds %in% c('treat_separately', 'treat_as_unclassified', 'ignore'))
+        {
+        stop('nocds must be "treat_separately", "treat_as_unclassified" or "ignore"')
+        }
     if(features %in% c('orfs', 'contigs', 'bins'))
         {
         if(!inherits(SQM, c('SQM')))
@@ -103,6 +126,51 @@ prepare_export_tables = function(SQM, features, count, bin_tax_source, include_s
         stop('features must be "orfs", "contigs", "bins", any taxonomic rank included in SQM$taxa or any functional classication included in SQM$functions')
         }
 
+    # Handle No CDS
+    if(nocds == 'treat_as_unclassified' & 'No CDS' %in% rownames(counts))
+        {
+        if(!'Unclassified' %in% rownames(counts))
+            {
+            # Create from scratch
+            counts['Unclassified',] = counts['No CDS',,drop=FALSE]
+        } else
+            {
+            # Or add Unclassified and No CDS
+            counts['Unclassified',] = counts['Unclassified',,drop=FALSE] + counts['No CDS',,drop=FALSE]
+            }
+        }
+    if(nocds %in% c('ignore', 'treat_as_unclassified')) # we remove them from the table in both cases
+        {
+        counts = counts[rownames(counts)!='No CDS',,drop=FALSE]
+        }
+
+    # Handle partial classifications
+    if(no_partial_classifications & features %in% names(SQM$taxa))
+        {
+        partials = grepl('^Unclassified', rownames(counts)) & rownames(counts) != 'Unclassified'
+        partials_abund = colSums(counts[partials,,drop=FALSE])
+        if(!'Unclassified' %in% rownames(counts))
+            {
+            counts['Unclassified',] = partials_abund
+        } else 
+            {
+            counts['Unclassified',] = counts['Unclassified',,drop=FALSE] + partials_abund
+            }
+        counts = counts[!partials,,drop=FALSE]
+        }
+
+    # Remove Unclassified if needed
+    if(ignore_unclassified)
+        {
+        counts = counts[rownames(counts) != 'Unclassified',,drop=FALSE]
+        }    
+
+    # Remove Unmapped if needed
+    if(ignore_unmapped)
+        {
+        counts = counts[rownames(counts)!='Unmapped',,drop=FALSE]
+        }
+
     # Fix tax table
     if(!is.null(tax))
         {
@@ -114,7 +182,7 @@ prepare_export_tables = function(SQM, features, count, bin_tax_source, include_s
             {
             tax = rbind(tax, matrix(rn, nrow=1, ncol=ncol(tax), dimnames = list(c(rn), colnames(tax))))
             }
-        tax = tax[rownames(counts),]
+        tax = tax[rownames(counts),,drop=FALSE]
         }
 
     return( list(counts = counts, tax = tax, seqs = seqs) )

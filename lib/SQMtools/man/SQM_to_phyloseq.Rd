@@ -9,6 +9,10 @@ SQM_to_phyloseq(
   features = "genus",
   count = "abund",
   md = NULL,
+  nocds = "treat_separately",
+  no_partial_classifications = FALSE,
+  ignore_unclassified = FALSE,
+  ignore_unmapped = FALSE,
   bin_tax_source = "SQM",
   include_seqs = FALSE
 )
@@ -21,6 +25,14 @@ SQM_to_phyloseq(
 \item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"cov"} for coverages, code{"cpm"} for coverages per million reads, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"abund"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
 
 \item{md}{data.frame. A optional data.frame containing metadata for the samples in the SQM object.}
+
+\item{nocds}{character. Either \code{"treat_separately"} to treat features annotated as No CDS separately, \code{"treat_as_unclassified"} to treat them as Unclassified or \code{"ignore"} to ignore them in the output (default \code{"treat_separately"}).}
+
+\item{no_partial_classifications}{logical. When \code{features} is a taxonomic rank, treat features not fully classified at the requested level (e.g. "Unclassified bacteroidota" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain features that were fully classified at the requested level (default \code{FALSE}).}
+
+\item{ignore_unclassified}{logical. When \code{features} is a taxonomic rank or functional category, don't include unclassified reads in the output (default \code{FALSE}).}
+
+\item{ignore_unmapped}{logical. Don't include unmapped reads in the output (default \code{FALSE}).}
 
 \item{bin_tax_source}{character. Source of taxonomy when \code{features = "bins"}, either \code{"SQM"} of \code{"gtdb"} (default  \code{"gtdb"}).}
 
