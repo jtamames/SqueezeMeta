@@ -46,7 +46,12 @@ SQM_to_phyloseq = function(SQM, features = 'genus', count = 'abund', md = NULL, 
     # We let argument checking be done by prepare_export_tables
     res = prepare_export_tables(SQM, features, count, bin_tax_source, include_seqs)
     ps = phyloseq(otu_table(res[['counts']], taxa_are_rows = TRUE))
-    if(!is.null(res[['tax' ]])) { ps = merge_phyloseq(ps, tax_table(res[['tax']])) }
+    if(!is.null(res[['tax' ]]))
+        {
+        tt = tax_table(as.matrix(res[['tax']]))
+        rownames(tt) = rownames(res[['tax']]) # because phyloseq is dumb
+        ps = merge_phyloseq(ps, tt)
+        }
     if(!is.null(res[['seqs']])) { ps = merge_phyloseq(ps, res[['seqs']]          ) }
     if(!is.null(md)           ) { ps = merge_phyloseq(ps, sample_data(md)        ) }
     return(ps)
@@ -87,7 +92,6 @@ prepare_export_tables = function(SQM, features, count, bin_tax_source, include_s
         {
         counts = get_counts(SQM$taxa[[features]], features, count)
         tax = as.data.frame(t(data.frame(strsplit(SQM$misc$tax_names_long[[features]], ';'), check.names = FALSE)))
-        tax = tax[rownames(counts),] # We don't bother modifying SQM$misc$tax_names_long when subsetting so we need this
         seqs = NULL
     } else if(features %in% names(SQM$functions))
         {
@@ -108,7 +112,7 @@ prepare_export_tables = function(SQM, features, count, bin_tax_source, include_s
         extra_rows = setdiff(rownames(counts), rownames(tax))
         for(rn in extra_rows)
             {
-            tax = rbind(tax, matrix(rn, nrow=1, ncol=7, dimnames = list(c(rn), colnames(tax))))
+            tax = rbind(tax, matrix(rn, nrow=1, ncol=ncol(tax), dimnames = list(c(rn), colnames(tax))))
             }
         tax = tax[rownames(counts),]
         }

@@ -17,7 +17,7 @@ and then use conda to install SqueezeMeta
 
 .. code-block:: console
 
-   conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.7 --no-channel-priority --override-channels
+   conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta --no-channel-priority --override-channels
 
 If the environment does not solve and you get a message saying that
 ``__cuda`` is missing in your system, try adding ``CONDA_OVERRIDE_CUDA=12.4``
