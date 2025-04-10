@@ -140,7 +140,8 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
     SQM$taxa$genus$percent        = 100 * t(t(SQM$taxa$genus$abund)        / colSums(SQM$taxa$genus$abund       ))
     SQM$taxa$species$percent      = 100 * t(t(SQM$taxa$species$abund)      / colSums(SQM$taxa$species$abund     ))
 
-    
+   
+    # Make vectors translating long taxonomy strings into the name of the lowest rank 
     SQM$misc$tax_names_long                 = list()
 
     SQM$misc$tax_names_long$superkingdom    = rownames(SQM$tax$superkingdom$abund)
@@ -164,9 +165,16 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
     SQM$misc$tax_names_long$species         = rownames(SQM$tax$species$abund)
     names(SQM$misc$tax_names_long$species)  = sapply(strsplit(SQM$misc$tax_names_long$species, split=';s_'), FUN = function(x) x[2]) 
 
+    # Different species can have the same name, notorious example is `Buchnera`, both an eukaryote and a prokaryote
+    # Make a fix to avoid duplicate names
+    for(rank in names(SQM$misc$tax_names_long))
+        {
+        names(SQM$misc$tax_names_long[[rank]]) = make.unique(names(SQM$misc$tax_names_long[[rank]]))
+        }
+
+    # Now make a named vector connecting short names and long names
     SQM$misc$tax_names_short                = unlist(lapply(SQM$misc$tax_names_long, names))
     names(SQM$misc$tax_names_short)         = unlist(SQM$misc$tax_names_long)
-
 
     # Use short names for taxonomy tables, since it makes it easier to search for specific taxa
     rownames(SQM$taxa$superkingdom$abund)   = SQM$misc$tax_names_short[rownames(SQM$taxa$superkingdom$abund)]
