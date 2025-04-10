@@ -477,6 +477,10 @@ subsetORFs_ = function(SQM, orfs, tax_source = 'orfs', trusted_functions_only = 
             subSQM$bins$table         = SQM$bins$table[bins,,drop=FALSE]
             subSQM$bins$tax           = SQM$bins$tax  [bins,,drop=FALSE]
             }
+        if(!is.null(SQM$bins$tax_gtdb))
+            {
+            subSQM$bins$tax_gtdb      = SQM$bins$tax_gtdb[bins,,drop=FALSE]
+            }
 	#    Abundances
 	bin_abunds                    = get.bin.abunds(subSQM)
 	subSQM$bins$abund             = bin_abunds[['abund']]

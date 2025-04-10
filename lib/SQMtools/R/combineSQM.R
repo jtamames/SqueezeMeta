@@ -125,6 +125,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
             warning('You requested to recalculate bin stats but 16S or marker gene info are missing. Will not recalculate bin stats')
             }
 	# Table and Taxonomy
+        extraBins                     = setdiff(rownames(SQM2$bins$table), rownames(SQM1$bins$table))
         if(recalculate_bin_stats & ('tax16S' %in% names(combSQM$orfs) & 'markers' %in% names(combSQM$orfs)))
             {
             bin_stats                 = get.bin.stats(combSQM)
@@ -132,14 +133,17 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
             combSQM$bins$tax          = bin_stats[['tax']] 
         }else
             {
-            extraBins                 = setdiff(rownames(SQM2$bins$table), rownames(SQM1$bins$table))
             combSQM$bins$table        = rbind(combSQM$bins$table, SQM2$bins$table[extraBins,,drop=FALSE])
             combSQM$bins$table        = combSQM$bins$table[sort(rownames(combSQM$bins$table)),,drop=FALSE]
             combSQM$bins$tax          = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=FALSE])
             combSQM$bins$tax          = combSQM$bins$tax[rownames(combSQM$bins$table),,drop=FALSE]
             }
-
-        #    Abundances
+        if(!is.null(SQM1$bins$tax_gtdb) | !is.null(SQM2$bins$tax_gtdb))
+            {
+            combSQM$bins$tax_gtdb     = rbind(combSQM$bins$tax_gtdb, SQM2$bins$tax_gtdb[extraBins,,drop=FALSE])
+            combSQM$bins$tax_gtdb     = combSQM$bins$tax_gtdb[rownames(combSQM$bins$table),,drop=FALSE]
+            }
+        # Abundances
         bin_abunds                    = get.bin.abunds(combSQM)
         combSQM$bins$abund            = bin_abunds[['abund']]
         combSQM$bins$percent          = bin_abunds[['percent']]

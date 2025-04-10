@@ -46,6 +46,7 @@ library(data.table)
 #'                     \tab \bold{$cov}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab coverages          \cr
 #'                     \tab \bold{$cpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab covs. / 10^6 reads \cr
 #'                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy           \cr
+#'                     \tab \bold{$tax_gtdb}          \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab GTDB taxonomy      \cr
 #' \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances (reads) \cr
 #'                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages        \cr
 #'                     \tab \bold{$phylum}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab abundances (reads) \cr
@@ -406,12 +407,11 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
 							             header=TRUE, row.names=1, sep='\t'))
         if('Tax GTDB-Tk' %in% colnames(SQM$bins$table))
             {
-            goodcols = c('Method', 'Num contigs', 'GC perc', 'Tax 16S', 'Tax GTDB-Tk')
-        } else 
-            {
-            goodcols = c('Method', 'Num contigs', 'GC perc', 'Tax 16S')
+            SQM$bins$tax_gtdb = as.data.frame(t(data.frame(strsplit(SQM$bins$table[,'Tax GTDB-Tk'], ';'))))
+            rownames(SQM$bins$tax_gtdb) = rownames(SQM$bins$table)
+            colnames(SQM$bins$tax_gtdb) = colnames(SQM$bins$tax)
             }
-        goodcols = c(goodcols, c('Disparity', 'Completeness','Contamination'))
+        goodcols = c('Method', 'Num contigs', 'GC perc', 'Tax 16S', 'Disparity', 'Completeness','Contamination')
 	SQM$bins$table            = SQM$bins$table[,goodcols,drop=FALSE]
     } else
         {
