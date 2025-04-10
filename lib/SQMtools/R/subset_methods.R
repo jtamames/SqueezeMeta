@@ -195,7 +195,7 @@ subsetFun_ = function(SQM, fun, columns, ignore_case, fixed,
 #' Create a SQM or SQMbunch object containing only the contigs with a given consensus taxonomy, the ORFs contained in them and the bins that contain them.
 #' @param SQM SQM object to be subsetted.
 #' @param rank character. The taxonomic rank from which to select the desired taxa (\code{superkingdom}, \code{phylum}, \code{class}, \code{order}, \code{family}, \code{genus}, \code{species})
-#' @param tax character. The taxon to select.
+#' @param tax character. A taxon or vector of taxa to be selected.
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object. By default it is set to \code{TRUE}, which means that the returned TPMs will be scaled \emph{by million of reads of the selected taxon}.
@@ -221,7 +221,7 @@ subsetTax_ = function(SQM, rank, tax, trusted_functions_only, ignore_unclassifie
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
     if(!rank %in% colnames(SQM$contigs$tax)) { stop(sprintf('Valid taxonomic ranks are %s', paste(colnames(SQM$contigs$tax), collapse = ', '))) }
-    goodContigs = rownames(SQM$contigs$tax)[SQM$contigs$tax[,rank] == tax]
+    goodContigs = rownames(SQM$contigs$tax)[SQM$contigs$tax[,rank] %in% tax]
     return ( subsetContigs(SQM, goodContigs,
                            trusted_functions_only = trusted_functions_only,
                            ignore_unclassified_functions=ignore_unclassified_functions,

@@ -230,6 +230,10 @@ loadSQM
    |         | *$tax** |         | aracter |         | ranks   | axonomy |
    |         |         |         | matrix* |         |         |         |
    +---------+---------+---------+---------+---------+---------+---------+
+   |         | **$tax  |         | *ch     | bins    | tax.    | GTDB    |
+   |         | _gtdb** |         | aracter |         | ranks   | t       |
+   |         |         |         | matrix* |         |         | axonomy |
+   +---------+---------+---------+---------+---------+---------+---------+
    | **      | **$     | **$     | *       | superk  | samples | abu     |
    | $taxa** | superki | abund** | numeric | ingdoms |         | ndances |
    |         | ngdom** |         | matrix* |         |         | (reads) |

@@ -21,7 +21,7 @@ subsetTax(
 
 \item{rank}{character. The taxonomic rank from which to select the desired taxa (\code{superkingdom}, \code{phylum}, \code{class}, \code{order}, \code{family}, \code{genus}, \code{species})}
 
-\item{tax}{character. The taxon to select.}
+\item{tax}{character. A taxon or vector of taxa to be selected.}
 
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).}
 

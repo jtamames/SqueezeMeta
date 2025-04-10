@@ -48,7 +48,8 @@ subsetTax
    |                                  | ``order``, ``family``,           |
    |                                  | ``genus``, ``species``)          |
    +----------------------------------+----------------------------------+
-   | ``tax``                          | character. The taxon to select.  |
+   | ``tax``                          | character. A taxon or vector of  |
+   |                                  | taxa to be selected.             |
    +----------------------------------+----------------------------------+
    | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
    |                                  | highly trusted functional        |
