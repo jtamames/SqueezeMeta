@@ -27,8 +27,13 @@ before the installation command:
 
    CONDA_OVERRIDE_CUDA=12.4 conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.7 --no-channel-priority --override-channels
 
-This will create a new conda environment named SqueezeMeta, which must
-then be activated.
+If you change ``squeezemeta`` to ``squeezemeta-dev`` you will instead
+get the latest development version. This will contain additional bugfixes
+and features, but potentially also new bugs, as it will not have been
+tested as thoroughly as the stable version.
+
+The commands above will create a new conda environment named SqueezeMeta,
+which must then be activated.
 
 .. code-block:: console
 
@@ -39,7 +44,7 @@ be available on ``$PATH``.
 
 Alternatively, you can download the latest release from the GitHub
 repository and uncompress the tarball in a suitable directory. The
-tarball includes the SqueezeMeta scripts as well as the ref:`third-party software <Vendored tools`
+tarball includes the SqueezeMeta scripts as well as the ref:`third-party software <Vendored tools>`
 redistributed with SqueezeMeta. Note that, you may need to provide
 additional dependencies, and potentially recompile some 
 binaries from source in order for the manual install to work.

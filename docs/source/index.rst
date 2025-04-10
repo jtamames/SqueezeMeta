@@ -18,7 +18,7 @@ via binning procedures. Thus, SqueezeMeta features several characteristics:
 4) Support for the annotation and quantification of :ref:`pre-existing assemblies or collections of genomes <extassembly>`
 5) Support for :ref:`de-novo metatranscriptome assembly <metatranscriptomics>` and :ref:`hybrid metagenomics/metatranscriptomics projects <metag metat>`
 6) Support for the :ref:`annotation of unassembled shotgun metagenomic reads <alt modes short>`
-7) An :doc:`R package <SQMtools>` to easily explore your results
+7) An :doc:`R package <SQMtools>` to easily explore your results, including bindings for `microeco <https://chiliubio.github.io/microeco/>`_ and `phyloseq <https://joey711.github.io/phyloseq/>`_
 
 .. note::
   Check out the :doc:`use_cases` section for more information.

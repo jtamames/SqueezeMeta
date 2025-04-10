@@ -14,7 +14,7 @@ Design philosophy
 
 - Make basic plots representing its taxonomical and functional composition
 - Subset it to select only certain taxa, functions or bins/MAGs
-- Access the individual components of the object (e.g. taxonomy tables, contig sequences, bin qualities, etc) in order to perform custom analyses or feed the data to other R packages
+- Access the individual components of the object (e.g. taxonomy tables, contig sequences, bin qualities, etc) in order to perform custom analyses or feed the data to other R packages. In particular, we provide :ref:`bindings <bindings>` for `microeco <https://chiliubio.github.io/microeco/>`_ and `phyloseq <https://joey711.github.io/phyloseq/>`_, but all the data can also be accessed directly. 
 
 **The main idea behind SQMtools is to speed up the exploration of metagenomic results by facilitating data inspection and filtering.** A standard workflow in *SQMtools* usually involves:
 
@@ -168,6 +168,14 @@ The following functions work with arbitrary tables/matrices:
 - :doc:`SQMtools/plotBars`
 - :doc:`SQMtools/plotHeatmap`
 - :doc:`SQMtools/exportTable`
+
+.. _bindings::
+Interacting with other R packages
+=================================
+As described in :ref:`SQM object`, all the relevant information is exposed as R data.frames, data.tables, matrices or vectors, and can be used directly as inputs for other R packages or custom analysis scripts. For convenience, we also provide the following functions to load the data contained in an *SQM*, *SQMbunch* or *SQMlite* object into other microbiome analysis libraries:
+
+- :doc:`SQMtools/SQM_to_microeco`
+- :doc:`SQMtools/SQM_to_phyloseq`
 
 Working with bins
 =================
