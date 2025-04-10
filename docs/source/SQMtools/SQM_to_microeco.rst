@@ -16,7 +16,7 @@ SQM_to_microeco
       :name: description
 
    This function will convert the selected features from a SQM object
-   into an object of the codemicrotable class from the
+   into an object of the ``microtable`` class from the
    `microeco <https://chiliubio.github.io/microeco>`__ package. When
    possible, it will also include the taxonomy of the included features.
    Optionally, it accepts a meta table that will be passed as provided

@@ -30,7 +30,7 @@ SQM_to_microeco(
 A \code{\link[microeco]{microtable}}.
 }
 \description{
-This function will convert the selected features from a SQM object into an object of the code{\link[microeco]{microtable}} class from the \href{https://chiliubio.github.io/microeco}{microeco} package. When possible, it will also include the taxonomy of the included features. Optionally, it accepts a meta table that will be passed as provided to \code{microtable$new}.
+This function will convert the selected features from a SQM object into an object of the \code{\link[microeco]{microtable}} class from the \href{https://chiliubio.github.io/microeco}{microeco} package. When possible, it will also include the taxonomy of the included features. Optionally, it accepts a meta table that will be passed as provided to \code{microtable$new}.
 }
 \seealso{
 \code{\link{SQM_to_phyloseq}} for exporting a SQM/SQMlite/SQM object as a phyloseq object.
