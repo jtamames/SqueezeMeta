@@ -42,7 +42,7 @@ SQM_to_phyloseq(
 A phyloseq object.
 }
 \description{
-This function will convert the selected features from a SQM object into a phyloseq object from the \href{https://joey711.github.io/phyloseq/}{phyloseq} package. When possible, it will also include the taxonomy of the included features. Optionally, it accepts a meta table that will be passed as provided to the \code{phyloseq} object constructor.
+This function will convert the selected features from a SQM object into a phyloseq object from the \href{https://joey711.github.io/phyloseq/}{phyloseq} package. When possible, it will also include the taxonomy of the included features  (for functional classifications, the taxonomy table will instead include the description of each feature ID). Optionally, it accepts a meta table that will be passed as provided to the \code{phyloseq} object constructor.
 }
 \seealso{
 \code{\link{SQM_to_microeco}} for exporting a SQM/SQMlite/SQM object as a microtable object.

@@ -1,6 +1,6 @@
 #' Convert a SQM object into a microtable object from the \emph{microeco} package
 #'
-#' This function will convert the selected features from a SQM object into an object of the \code{\link[microeco]{microtable}} class from the \href{https://chiliubio.github.io/microeco}{microeco} package. When possible, it will also include the taxonomy of the included features. Optionally, it accepts a meta table that will be passed as provided to \code{microtable$new}.  
+#' This function will convert the selected features from a SQM object into an object of the \code{\link[microeco]{microtable}} class from the \href{https://chiliubio.github.io/microeco}{microeco} package. When possible, it will also include the taxonomy of the included features (for functional classifications, the taxonomy table will instead include the description of each feature ID). Optionally, it accepts a meta table that will be passed as provided to \code{microtable$new}.  
 #'  
 #'
 #' @param SQM A SQM, SQMbunch or SQMlite object.
@@ -26,9 +26,10 @@ SQM_to_microeco = function(SQM, features = 'genus', count = 'abund', md = NULL,
     res = prepare_export_tables(SQM, features, count,
                                 nocds, no_partial_classifications, ignore_unclassified, ignore_unmapped,
                                 bin_tax_source, include_seqs)
+    if(!is.null(res[['tax']])) { res[['tax']] = as.data.frame(res[['tax']]) }
     if(features=='orfs') { res[['seqs']] = NULL } # since microtable only accepts DNAStringSets
     mt = microtable$new(otu_table = as.data.frame(res[['counts']]),
-		        tax_table = as.data.frame(res[['tax']]),
+		        tax_table = res[['tax']],
 		        rep_fasta = res[['seqs']],
                         sample_table = md)
     return(mt)
@@ -37,7 +38,7 @@ SQM_to_microeco = function(SQM, features = 'genus', count = 'abund', md = NULL,
 
 #' Convert a SQM object into a phyloseq object from the \emph{phyloseq} package
 #'
-#' This function will convert the selected features from a SQM object into a phyloseq object from the \href{https://joey711.github.io/phyloseq/}{phyloseq} package. When possible, it will also include the taxonomy of the included features. Optionally, it accepts a meta table that will be passed as provided to the \code{phyloseq} object constructor.
+#' This function will convert the selected features from a SQM object into a phyloseq object from the \href{https://joey711.github.io/phyloseq/}{phyloseq} package. When possible, it will also include the taxonomy of the included features  (for functional classifications, the taxonomy table will instead include the description of each feature ID). Optionally, it accepts a meta table that will be passed as provided to the \code{phyloseq} object constructor.
 #'
 #'
 #' @param SQM A SQM, SQMbunch or SQMlite object.
@@ -120,6 +121,12 @@ prepare_export_tables = function(SQM, features, count,
         {
         counts = get_counts(SQM$functions[[features]], features, count)
         tax = NULL
+        feature_names = paste0(features, "_names")
+        if(feature_names %in% names(SQM$misc))
+            {
+            tax = data.frame(SQM$misc[[feature_names]])[rownames(counts),,drop=FALSE]
+            colnames(tax) = features
+            }
         seqs = NULL
     } else
         {
@@ -174,8 +181,11 @@ prepare_export_tables = function(SQM, features, count,
     # Fix tax table
     if(!is.null(tax))
         {
-        # Change rank names to fit microeco defaults
-        colnames(tax) = c('Domain', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species')[1:ncol(tax)]
+        if(features %in% c('bins', names(SQM$taxa)))
+            {
+            # Change rank names to fit microeco defaults
+            colnames(tax) = c('Domain', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species')[1:ncol(tax)]
+            }
         # Add extra rows for things like "Unmapped" and "No_bin"
         extra_rows = setdiff(rownames(counts), rownames(tax))
         for(rn in extra_rows)
