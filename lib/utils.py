@@ -270,7 +270,6 @@ def parse_tax_table(tax_table, noCDS = set()):
     orf_tax = {}
     orf_tax_wranks = {}
     with open(tax_table) as infile:
-        infile.readline() # Burn comment.
         for line in infile:
             line = line.strip().split('\t')
             if line[0] in noCDS: # This will actually not happen, since noCDS contigs are completely absent from the 06 results
