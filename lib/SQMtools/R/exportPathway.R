@@ -9,13 +9,13 @@
 #' @param split_samples logical. Generate a different output file for each sample (default \code{FALSE}).
 #' @param sample_colors character. An optional vector with the plotting colors for each sample (default \code{NULL}).
 #' @param log_scale logical. Use a base 10 logarithmic transformation for the color scale. Will have no effect if \code{fold_change_groups} is provided (default \code{FALSE}).
-#' @param fold_change_groups list. An optional list containing two vectors of samples. If provided, the function will generate a single plot displaying the log2 fold-change between the average abundances of both groups of samples ( log(second group / first group) ) (default \code{NULL}).
+#' @param fold_change_groups list. An optional list containing two vectors of samples. If provided, the function will generate a single plot displaying the log2 fold-change between the median abundances of both groups of samples ( log(second group / first group) ) (default \code{NULL}).
 #' @param fold_change_colors character. An optional vector with the plotting colors of both groups in the fold-change plot. Will be ignored if \code{fold_change_group} is not provided. 
 #' @param max_scale_value numeric. Maximum value to include in the color scale. By default it is the maximum value in the selected samples (if plotting abundances in samples) or the maximum absolute log2 fold-change (if plotting fold changes) (default \code{NULL}).
 #' @param color_bins numeric. Number of bins used to generate the gradient in the color scale (default \code{10}).
 #' @param output_suffix character. Suffix to be added to the output files (default \code{"pathview"}).
 #' @param output_dir character. Directory in which to write the output files (default \code{"."}).
-#' @return No return value, but Pathview figures are produced in the current working directory.
+#' @return A \code{ggplot} if \code{split_samples = FALSE} and the \code{\link{ggpattern}} package is installed, otherwise nothing. Additionally, Pathview figures will be written in the directory specified by \code{output_dir}.
 #' @seealso \code{\link{plotFunctions}} for plotting the most functions taxa of a SQM object.
 #' @examples
 #' \donttest{
@@ -37,8 +37,8 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
     {
     ### Check params.
     if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
-    if(!count %in% c('abund', 'percent', 'bases', 'tpm', 'copy_number'))
-        {
+    if(!count %in% names(SQM$functions$KEGG)) # We could also add custom counts here by assigning e.g. a CLR matrix to
+        {                                     #  SQM$functions$KEGG$clr
         stop('count must be "abund", "percent", "bases", "tpm" or "copy_number"')
         }
     if( count == 'bases' & is.null(SQM[['functions']][['KEGG']][[count]]) )
@@ -72,18 +72,19 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
 
     check.samples(SQM, samples)
  
-    if(count %in% c('percent', 'copy_number')) { pseudocount = 0.001 } else { pseudocount = 1 }
- 
+    #if(count %in% c('percent', 'copy_number')) { pseudocount = 0.001 } else { pseudocount = 1 }
+    if(!count %in% c('abund', 'bases')) { pseudocount = 0.001 } else { pseudocount = 1 }
     ### Select data matrix.
     if(count=='percent') { mat = 100 * t(t(SQM$functions$KEGG$abund) / colSums(SQM$functions$KEGG$abund))
     } else { mat = SQM$functions$KEGG[[count]] }
 
-    if(ncol(mat) > 24)
+    ### Do stuff.
+    if(!is.null(samples)) { mat = mat[,samples,drop=FALSE] }
+
+    if(ncol(mat) > 24 & is.null(fold_change_groups))
         {
         warning('We\'ve found that pathview fails when trying to display more than 24 different items, so unless you are grouping your samples with fold_change_groups this will likely not work')
         }
-    ### Do stuff.
-    if(!is.null(samples)) { mat = mat[,samples,drop=FALSE] }
 
     if(!is.null(sample_colors))
         {
@@ -114,7 +115,7 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
         {
         # Calculate fold change and overwrite submat and plot.data.gene.
         submat = submat + pseudocount
-        log2FC = log(rowMeans(submat[,fold_change_groups[[2]],drop=FALSE]) / rowMeans(submat[,fold_change_groups[[1]],drop=FALSE]), 2)
+        log2FC = log(rowMedians(submat[,fold_change_groups[[2]],drop=FALSE]) / rowMedians(submat[,fold_change_groups[[1]],drop=FALSE]), 2)
         submat = cbind(submat[,0], log2FC = log2FC)
 	zeros = submat==0
 	plot.data.gene = cbind(plot.data.gene[,!colnames(plot.data.gene) %in% SQM$misc$samples], log2FC = log2FC)
@@ -168,18 +169,19 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
     cols.ts.gene[zeros] = bg.col # In log2FC plots, if we have an even number of color bins, rxns with zero FC (i.e. absent rxns) will not be exactly white.
 
     ### PLOT
+    # Switch to the output directory (since pathwview will always write to pwd)
     thiswd = getwd()
-    on.exit(setwd(thiswd))
+    on.exit(setwd(thiswd)) # Make sure to return to the original working directory even on exit, even if we fail
     setwd(output_dir)
     # Are reactions represented as arrows in this map?? If so, keggview.native may fail
     if('line' %in% unique(node.data$shape[node.data$type=='ortholog']))
         {
         warning('This map uses lines to represent reactions, and we\'ve had isues using keggview native plot in this case.
                  We will switch to graph mode instead')
-	parseKGML2Graph2 = utils::getFromNamespace("parseKGML2Graph2", "pathview") 
+	parseKGML2Graph2 = utils::getFromNamespace('parseKGML2Graph2', 'pathview') 
         gR1 = parseKGML2Graph2(xml.file, genes = FALSE, 
                                expand = FALSE, split.group = FALSE)
-        plot.data.cpd=pathview::node.map(NULL, node.data, node.types="compound")
+        plot.data.cpd=pathview::node.map(NULL, node.data, node.types='compound')
 	plot.data.cpd$labels=pathview::cpdkegg2name(plot.data.cpd$labels)[,2]
 	mapped.cnodes=rownames(plot.data.cpd)
 	node.data$labels[mapped.cnodes]=plot.data.cpd$labels
@@ -199,6 +201,83 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
         }
     file.remove(sprintf('%s/ko%s.png', output_dir, pathway_id))
     file.remove(sprintf('%s/ko%s.xml', output_dir, pathway_id))
-    return(invisible(NULL)) 
+    
+    ggp = NULL
+    if(!split_samples)
+        {
+        if('ggpattern' %in% rownames(installed.packages()) & 'magick' %in% rownames(installed.packages()))
+            {
+            nice_labels= c(abund='Raw abundance', percent = 'Percentage', bases='Bases',
+                           cpm = 'Coverage per million reads', tpm='TPM', copy_number='Copy number')
+            if(count %in% names(nice_labels)) { nice_label = nice_labels[count] } else { nice_label = count }
+            geom_tile_pattern = utils::getFromNamespace('geom_tile_pattern', 'ggpattern')
+            if(!is.null(fold_change_groups))
+                {
+                if(!is.null(names(fold_change_groups))) { group_names = names(fold_change_groups)
+                } else { group_names = c('Group 1', 'Group 2') }
+                scale_color = scale_color_gradient2(high = fold_change_colors[2],
+                                                    mid = 'white',
+                                                    low = fold_change_colors[1])
+                scale_fill = scale_fill_manual(values = fold_change_colors)
+                col_lab = sprintf('Log2FC %s', nice_label)
+                imgfile = sprintf('ko%s.%s.png', pathway_id, output_suffix)
+            } else
+                {
+                group_names = colnames(mat)
+                if(length(samples)==1)
+                    {
+                    imgfile = sprintf('ko%s.%s.png', pathway_id, output_suffix)
+                } else
+                    {
+                    imgfile = sprintf('ko%s.%s.multi.png', pathway_id, output_suffix)
+                    }
+                if(length(unique(sample_colors))==1) { high = sample_colors[1] } else { high = 'black' }
+                scale_color = scale_color_gradient(high = high, low = 'white')
+                scale_fill = scale_fill_manual(values = sample_colors)
+                if(log_scale) { col_lab = sprintf('Log10 %s', nice_label) } else { col_lab = nice_label }
+                }
+            # Put the image created by pathview into a ggplot with the right legend
+            # We will create a fake plot using geom_point() to get our color gradient legend
+            #  and geom_tile_pattern to get both the image at the center of the plot, and the fill sample/group legend
+            # We create a fake data.frame with the sample/group info and the max/min gradient values
+            df = data.frame(scale = rep(c(min_scale_value, max_scale_value), length(group_names)),
+                            val = rep(0, 2 * length(group_names)),
+                            Group = factor(rep(group_names, 2), levels=group_names))
+            # Due to how ggpattern and/or magick works, it seemed to be caching my image files
+            # This meant that if I ran the command several times but kept the name of the output file the same
+            #  it would keep including the first image even after deleting everything
+            # So I will just copy the image to /tmp/ with a random name every time and make geom_tile_pattern
+            #  read from there
+            # Note that the plot can not be made if the file is no longer there (e.g. because we saved the whole
+            #  session and then tried to remake the plot somewhere else)  
+            imgfile_rand = sprintf('%s.png', tempfile())
+            file.copy(from=imgfile, to=imgfile_rand)
+
+            # Now do the plot
+            ggp = ggplot(df, aes(x='a', y=val, fill=Group, col = scale)) + 
+                    geom_point() + geom_bar(stat='identity', width=0) +
+                    geom_tile_pattern(data = data.frame(x='a', val=0), mapping = aes(x=x, y=val), fill = 'white',
+                                        inherit.aes = FALSE, pattern='image', pattern_filename=imgfile_rand) +
+                    scale_color + scale_fill +
+                    # Make sure that the legends appear in a consistent order
+                    guides(fill = guide_legend(order = 1)) +
+                    labs(color = col_lab) + 
+                    # We would use theme_void() to simplify, but also messes up legend position a bit so we do it manually
+                    theme(axis.line=element_blank(),axis.text.x=element_blank(),
+                          axis.text.y=element_blank(),axis.ticks=element_blank(),
+                          axis.title.x=element_blank(),
+                          axis.title.y=element_blank(),
+                          panel.background=element_blank(),
+                          panel.border=element_blank(),
+                          panel.grid.major=element_blank(),
+                          panel.grid.minor=element_blank(),
+                          plot.background=element_blank())
+        } else
+            {
+            warning(sprintf('The `ggpattern` and `magick` packages need to be installed in order to produce a ggplot\n
+                             However, the image files were written to %s', output_dir))
+            }
+        }
+    if(is.null(ggp)) { return(invisible(NULL)) } else { return(ggp) }
     }
 

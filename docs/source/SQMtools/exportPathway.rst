@@ -85,7 +85,7 @@ exportPathway
    |                        | vectors of samples. If provided, the       |
    |                        | function will generate a single plot       |
    |                        | displaying the log2 fold-change between    |
-   |                        | the average abundances of both groups of   |
+   |                        | the median abundances of both groups of    |
    |                        | samples ( log(second group / first group)  |
    |                        | ) (default ``NULL``).                      |
    +------------------------+--------------------------------------------+
@@ -115,8 +115,9 @@ exportPathway
    .. rubric:: Value
       :name: value
 
-   No return value, but Pathview figures are produced in the current
-   working directory.
+   A ``ggplot`` if ``split_samples = FALSE`` and the ``ggpattern``
+   package is installed, otherwise nothing. Additionally, Pathview
+   figures will be written in the directory specified by ``output_dir``.
 
    .. rubric:: See Also
       :name: see-also

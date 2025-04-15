@@ -158,3 +158,5 @@ list.files.zip = function(project_path, dir_path)
         }
     return(res)
     }
+
+rowMedians = function(x) apply(x, 1, median, na.rm=TRUE)
