@@ -18,9 +18,11 @@ SQM_to_phyloseq
    This function will convert the selected features from a SQM object
    into a phyloseq object from the
    `phyloseq <https://joey711.github.io/phyloseq/>`__ package. When
-   possible, it will also include the taxonomy of the included features.
-   Optionally, it accepts a meta table that will be passed as provided
-   to the ``phyloseq`` object constructor.
+   possible, it will also include the taxonomy of the included features
+   (for functional classifications, the taxonomy table will instead
+   include the description of each feature ID). Optionally, it accepts a
+   meta table that will be passed as provided to the ``phyloseq`` object
+   constructor.
 
    .. rubric:: Usage
       :name: usage

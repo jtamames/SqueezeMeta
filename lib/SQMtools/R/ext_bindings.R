@@ -122,10 +122,16 @@ prepare_export_tables = function(SQM, features, count,
         counts = get_counts(SQM$functions[[features]], features, count)
         tax = NULL
         feature_names = paste0(features, "_names")
+        feature_paths = paste0(features, "_paths")
         if(feature_names %in% names(SQM$misc))
             {
             tax = data.frame(SQM$misc[[feature_names]])[rownames(counts),,drop=FALSE]
             colnames(tax) = features
+            if(feature_paths %in% names(SQM$misc))
+                {
+                tax[,feature_paths] = SQM$misc[[feature_paths]][rownames(counts)]
+                tax = tax[,c(feature_paths, features),drop=FALSE]
+                }
             }
         seqs = NULL
     } else
