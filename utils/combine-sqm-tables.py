@@ -152,7 +152,7 @@ def main(args):
             if not args.sqmreads:
                 command = ['{}/utils/sqm2tables.py'.format(SQMpath), '{}'.format(projPath), '{}/results/tables'.format(projPath)]
                 if args.ignore_unclassified:
-                    command.append('--ignore_unclassified')
+                    command.append('--ignore-unclassified')
             else:
                 command = ['{}/utils/sqmreads2tables.py'.format(SQMpath), '{}'.format(projPath), '{}/results/tables'.format(projPath)]
             if args.trusted_functions:
