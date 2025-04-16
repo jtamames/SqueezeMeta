@@ -969,7 +969,7 @@ sub pipeline {
 
     #-------------------------------- STEP21: Make stats		
 
-	if($rpoint<=21) {
+	if($rpoint<=21  && ((!$test) || ($test>=21))) {
 		my $statfile="$resultpath/21.$projectname.stats";
 		my $wsize=checksize($statfile);
             	if(($wsize>2) && (!$force_overwrite)) { print "Statistics in $statfile already found, skipping step 21\n"; }
