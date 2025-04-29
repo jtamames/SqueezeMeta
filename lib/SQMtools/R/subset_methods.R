@@ -55,7 +55,7 @@ subsetSamples = function(SQM, samples, remove_missing = TRUE)
     subSQM$orfs$tax         = subSQM$orfs$tax  [intersect(presentORFs, rownames(subSQM$orfs$tax   )),       ,drop=FALSE]
     if('tax16S' %in% names(subSQM$orfs))
         {
-        subSQM$orfs$tax16   = SQM$orfs$tax16S  [intersect(presentORFs, rownames(subSQM$orfs$tax16S)),       ,drop=FALSE]
+        subSQM$orfs$tax16   = SQM$orfs$tax16S  [intersect(presentORFs, rownames(subSQM$orfs$tax16S)),        drop=FALSE]
         }
     if('markers' %in% names(subSQM$orfs))
         {
