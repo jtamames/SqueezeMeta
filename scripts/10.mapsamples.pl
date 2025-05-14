@@ -282,20 +282,19 @@ foreach my $thissample(keys %allsamples) {
 		my $a2=join(" ",@pair2);	
 		if($#pair2>0) {	$command.="cat $a2 > $tempdir/$par2name; "; } else { $command.="cp $a2 $tempdir/$par2name; "; }	
 		}
-	print "  Getting raw reads\n";
-	#print "$command\n";
-	print outsyslog "Getting raw reads for $thissample: $command\n";
-	system $command; 
-	
-	#-- Now we start mapping reads against contigs
-	
-	print "  Aligning to reference with $mapper\n";
 	$samfile="$bamdir/$projectname.$thissample.sam";
 	$bamfile="$bamdir/$projectname.$thissample.bam";
 	$baifile="$bamdir/$projectname.$thissample.bam.bai";
 	if(-e $bamfile and -e $baifile and !$force_overwrite) { print "  BAM file already found in $bamfile, skipping\n"; }
 	else {
-
+		print "  Getting raw reads\n";
+		#print "$command\n";
+		print outsyslog "Getting raw reads for $thissample: $command\n";
+		system $command; 
+	
+		#-- Now we start mapping reads against contigs
+	
+		print "  Aligning to reference with $mapper\n";
 		#-- Support for single reads
        		if(!$mapper || ($mapper eq "bowtie")) {
            		if($formatseq eq "fasta") { $formatoption="-f"; }
