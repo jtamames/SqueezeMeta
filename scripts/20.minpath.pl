@@ -6,6 +6,21 @@ use lib ".";
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $scriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $scriptdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$scriptdir/..");
+
 my $pwd=cwd();
 my $projectdir=$ARGV[0];
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
@@ -18,7 +33,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$extdatapath,$contigsinbins,$mergedfile,$tempdir,$interdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction20,$minnumber20,$binresultsdir);
+our($extdatapath,$contigsinbins,$mergedfile,$tempdir,$interdir,$resultpath,$minpath_soft,$methodsfile,$syslogfile,$bintable,$minfraction20,$minnumber20,$binresultsdir);
 
 my(%pathid,%ec,%ecs,%kegg,%inbin,%bintax);
 

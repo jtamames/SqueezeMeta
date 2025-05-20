@@ -7,6 +7,21 @@ use strict;
 use Cwd;
 use lib ".";
 
+use File::Basename;
+use Cwd 'abs_path';
+our $sqmlibdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $sqmlibdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $sqmlibdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$sqmlibdir/../..");
+
 my $pwd=cwd();
 
 my $projectdir=$ARGV[0];
@@ -19,7 +34,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($contigsfna,$contigcov,$bindir,$installpath,$metabat_soft,$jgi_summ_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$contigslen,$mappingfile,$methodsfile,$maxchimerism14,$mingenes14,$smallnoannot14,%bindirs,$syslogfile,$numthreads);
+our($contigsfna,$contigcov,$bindir,$metabat_soft,$jgi_summ_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$contigslen,$mappingfile,$methodsfile,$maxchimerism14,$mingenes14,$smallnoannot14,%bindirs,$syslogfile,$numthreads);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 

@@ -11,6 +11,21 @@ use Tie::IxHash;
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $scriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $scriptdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$scriptdir/..");
+
 my $pwd=cwd();
 my $projectdir=$ARGV[0];
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }

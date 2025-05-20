@@ -13,6 +13,21 @@ use Cwd 'abs_path';
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $scriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $scriptdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$scriptdir/..");
+
 my $pwd=cwd();
 my $projectpath=$ARGV[0];
 my $outdir=$ARGV[1];
@@ -31,10 +46,9 @@ if((!$project) or (!$outdir)) { die "Usage: sqm2anvio.pl <project name> <output 
 
 #-- Configuration variables from conf file
 
-our($installdir,$resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$contigsinbins,$datapath);
+our($resultpath,$datapath,$gff_file,$gff_file_blastx,$mergedfile,$contigsfna,$contigsinbins,$datapath);
 
 our $scriptdir = abs_path(dirname(__FILE__));
-our $installpath = "$scriptdir/../..";
 
 my $version="1.2";
 my $gff;

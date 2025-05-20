@@ -11,6 +11,21 @@ use lib ".";
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $scriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $scriptdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$scriptdir/..");
+
 my $pwd=cwd();
 my $taxreq=$ARGV[1];	#-- Invoke it with a name of taxon to get just functions for that taxon
 
@@ -25,7 +40,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$resultpath,$extpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass,$minraw12,$syslogfile);
+our($datapath,$resultpath,$extpath,$kegglist,$coglist,$ntfile,$fun3tax,$fun3kegg,$fun3cog,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$nokegg,$nocog,$mapcountfile,$doublepass,$minraw12,$syslogfile);
 
 print "  Calculating coverage for functions\n";
 my(%funs,%taxf,%validid,%tfun,%totalbases,%totalreads,%allsamples,%funstat,%longorfs,%taxcount,%optdb);

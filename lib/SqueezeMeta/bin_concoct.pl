@@ -9,6 +9,21 @@ use lib ".";
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $sqmlibdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $sqmlibdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $sqmlibdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$sqmlibdir/../..");
+
 my $pwd=cwd();
 my $projectpath=$ARGV[0];
 if(!$projectpath) { die "Please provide a valid project name or project path\n"; }
@@ -21,7 +36,7 @@ do "$projectpath/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath, $samtools_soft, $concoct_dir,$databasepath,$contigsfna,$singletons,$contigcov,$tempdir,$interdir,$mappingfile,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
+our($samtools_soft, $concoct_dir,$databasepath,$contigsfna,$singletons,$contigcov,$tempdir,$interdir,$mappingfile,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 

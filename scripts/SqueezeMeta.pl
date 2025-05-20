@@ -323,7 +323,7 @@ print "\n\n";
 
 my $pdir;
 
-my %conf=('version',$version,'mode',$mode,'installpath',$installpath,'projectname',$projectname,'userdir',$rawfastq,
+my %conf=('version',$version,'mode',$mode,'projectname',$projectname,'userdir',$rawfastq,
   'blocksize',$blocksize,'globalranking', $globalranking, 'nodiamond',$nodiamond,'singletons',$singletons,'nocog',$nocog,'nokegg',$nokegg,
   'nopfam',$nopfam,'fastnr',$fastnr,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'nomarkers',$nomarkers,
   'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
@@ -1063,7 +1063,6 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 	print outfile5 "\$version = \"$conf{version}\";\n";
 	print outfile5 "\$mode = \"$conf{mode}\";\n";
 	print outfile5 "\$date = \"",scalar localtime,"\";\n\n";
-	print outfile5 "\$installpath = \"$installpath\";\n";
 	# print outfile5 "\$userdir = \"$rawfastq\";\n";
 	if($cleaning) { print outfile5 "\$userdir       = \"$projectdir/data/raw_fastq\";\n"; }
 	else { print outfile5 "\$userdir       = \"$rawfastq\";\n";    }       

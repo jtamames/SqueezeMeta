@@ -15,6 +15,21 @@ use File::Basename;
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $scriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $scriptdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$scriptdir/..");
+
 my $pwd=cwd();
 my $projectdir=$ARGV[0];
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
@@ -25,7 +40,7 @@ my $project=$projectname;
 
 #-- Configuration variables from conf file
 
-our($datapath,$installpath,$userdir,$assembler,$outassembly,$mode,$megahit_soft,$assembler_options,$extassembly,$extbins,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$binresultsdir, $contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile,$norename,$force_overwrite);
+our($datapath,$userdir,$assembler,$outassembly,$mode,$megahit_soft,$assembler_options,$extassembly,$extbins,$contigid,$numthreads,$spades_soft,$flye_soft,$prinseq_soft,$mappingfile,$trimmomatic_soft,$canu_soft,$canumem,$mincontiglen,$resultpath,$interdir,$tempdir,$binresultsdir, $contigsfna,$contigslen,$cleaning,$cleaningoptions,$scriptdir,$singletons,$methodsfile,$syslogfile,$norename,$force_overwrite);
 
 my($seqformat,$gzipped,$outassemby,$trimmomatic_command,$command,$thisname,$contigname,$seq,$len,$par1name,$par2name,%extassemblies,%datasamples);
 

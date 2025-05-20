@@ -9,6 +9,21 @@ use lib ".";
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $scriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $scriptdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$scriptdir/..");
+
 my($complete_cutoff,$contamination_cutoff,$funclass,$reqfunctions,$abunmethod,$maxabun,$hel,$project);
 
 #-- Define help text
@@ -47,7 +62,7 @@ do "$projectpath/SqueezeMeta_conf.pl";
 our($projectname);
 my $project=$projectname;
 
-our($installpath,$extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,$binresultsdir);
+our($extdatapath,$contigsinbins,$mergedfile,$aafile,$tempdir,$resultpath,$minpath_soft,$bintable,$extpath,$binresultsdir);
 
 if(!$complete_cutoff) { $complete_cutoff=30; }		#-- Do not consider bins below this level of completion
 if(!$contamination_cutoff) { $contamination_cutoff=100; }		#-- Do not consider bins above this level of contamination

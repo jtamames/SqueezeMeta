@@ -10,6 +10,21 @@ my $pwd=cwd();
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $sqmlibdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $sqmlibdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $sqmlibdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$sqmlibdir/../..");
+
 my $projectdir=$ARGV[0];
 my $mergestep=$ARGV[1];
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }

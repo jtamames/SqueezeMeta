@@ -10,6 +10,21 @@ use lib ".";
 
 $|=1;
 
+use File::Basename;
+use Cwd 'abs_path';
+our $scriptdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $scriptdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $scriptdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$scriptdir/..");
+
 my $pwd=cwd();
 
 my $projectdir=$ARGV[0];
@@ -23,7 +38,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($installpath,$datapath,$taxlist,$binresultsdir,$checkm_soft,$checkm2_soft,$alllog,$resultpath,$tempdir,$minsize17,$numthreads,$interdir,$methodsfile,$syslogfile,$checkmfile,$nomarkers,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
+our($datapath,$taxlist,$binresultsdir,$checkm_soft,$checkm2_soft,$alllog,$resultpath,$tempdir,$minsize17,$numthreads,$interdir,$methodsfile,$syslogfile,$checkmfile,$nomarkers,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 

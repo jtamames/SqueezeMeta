@@ -32,13 +32,15 @@ from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
 path.insert(0, '{}/../lib/'.format(utils_home))
 data_dir = '{}/../data'.format(utils_home)
+install_path = abspath('{}/../'.format(utils_home))
 
 from utils import parse_conf_file, parse_mappingstat, parse_orf_table, parse_tax_table, parse_contig_table, parse_contig_tax, parse_bin_table, parse_tax_string, read_orf_names, aggregate_tax_abunds, normalize_abunds, map_checkm_marker_genes, write_orf_seqs, write_contig_seqs, write_RDP_16S, write_row_dict, TAXRANKS, TAXRANKS_SHORT 
 
 
 def main(args):
     ### Get result files paths from SqueezeMeta_conf.pl
-    perlVars = parse_conf_file(args.project_path, override = {'$projectdir': args.project_path})
+    perlVars = parse_conf_file(args.project_path,
+                               override = {'$projectdir': args.project_path, '$installpath': install_path})
     nokegg, nocog, nopfam, doublepass = map(int, [perlVars['$nokegg'], perlVars['$nocog'], perlVars['$nopfam'], perlVars['$doublepass']])
 
     ### Create output dir.

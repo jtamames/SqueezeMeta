@@ -1,13 +1,26 @@
 #!/usr/bin/env perl
 
-$|=1;
-
 use strict;
 use Cwd;
 use Linux::MemInfo;
 use lib ".";
 
 $|=1;
+
+use File::Basename;
+use Cwd 'abs_path';
+our $sqmlibdir;
+if(-l __FILE__)
+        {
+        my $symlinkpath = dirname(__FILE__);
+        my $symlinkdest = readlink(__FILE__);
+        $sqmlibdir = dirname(abs_path("$symlinkpath/$symlinkdest"));
+        }
+else
+        {
+        $sqmlibdir = abs_path(dirname(__FILE__));
+        }
+our $installpath = abs_path("$sqmlibdir/../..");
 
 my $pwd=cwd();
 my $projectdir=$ARGV[0];
@@ -20,8 +33,6 @@ our($projectname);
 my $project=$projectname;
 
 #-- Configuration variables from conf file
-
-our($installpath);
 
 # Just pass things to assembly_spades.pl, which can deal with different spades modes.
 my $command="perl $installpath/lib/SqueezeMeta/assembly_spades.pl $projectdir $sample $par1name $par2name";
