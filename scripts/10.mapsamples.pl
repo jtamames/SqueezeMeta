@@ -507,8 +507,11 @@ sub sqm_counter {
 		my $longt=$long_gen{$currentgene};
 		next if(!$longt);
 		my $coverage=$accum{$currentgene}{bases}/$longt;
-		my $rpkm=($accum{$currentgene}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
-		my $tpm=$rpk{$currentgene}/$accumrpk;
+		my ($rpkm, $tpm) = (0,0); # avoid divisions by zero if the BAM has no reads (can happen with custom flags)
+		if($totalreadcount) {
+			$rpkm=($accum{$currentgene}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
+			$tpm=$rpk{$currentgene}/$accumrpk;
+			}
 		printf outfileSM "$currentgene\t$longt\t$accum{$currentgene}{reads}\t$accum{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm;
 		}
 	close outfileSM;
@@ -643,8 +646,9 @@ sub contigcov {
 		$totalreadlength+=length $t[9];
 	}
 	close infile4;
-	
-	my $mapperc=($mappedreads/$totalreadcount)*100;
+
+	my $mapperc = 0; # avoid divisions by zero if the BAM has no reads (can happen with custom flags)
+	if($totalreadcount) { $mapperc=($mappedreads/$totalreadcount)*100; }
 	if($mapperc<50) { $warnmes=1; }
 	printf outfile1 "$thissample\t$totalreadcount\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics
 
@@ -665,8 +669,11 @@ sub contigcov {
 		my $longt=$lencontig{$rc};
 		next if(!$longt);
 		my $coverage=$readcount{$rc}{lon}/$longt;
-		my $rpkm=($readcount{$rc}{reads}*1000000)/(($longt/1000)*$totalreadcount); #-- Length of contig in Kbs
-		my $tpm=$rp{$rc}/$accumrpk;
+		my ($rpkm, $tpm) = (0,0);
+		if($totalreadcount) { # avoid divisions by zero if the BAM has no reads (can happen with custom flags)
+			$rpkm=($readcount{$rc}{reads}*1000000)/(($longt/1000)*$totalreadcount); #-- Length of contig in Kbs
+			$tpm=$rp{$rc}/$accumrpk;
+			}
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
 		else { printf outfile4 "$rc\t%.2f\t%.1f\t%.1f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
 		}
