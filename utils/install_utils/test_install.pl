@@ -92,6 +92,7 @@ if(!$ecode) {
 	check_python_library("nose");
 	check_python_library("cython");
         check_python_library("future");
+	check_python_library("tensorflow");
 	#check_python_library("madeToFail");
 }
 

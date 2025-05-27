@@ -17,7 +17,7 @@ The command for running SqueezeMeta has the following syntax:
 
 .. code-block:: console
 
-   SqueezeMeta.pl -m <mode> -p <projectname> -s <equivfile> -f <raw fastq dir> <options>
+   SqueezeMeta.pl -m <mode> -p <project_name> -s <samples_file> -f <raw_fastq_dir> <options>
 
 Arguments
 =========
