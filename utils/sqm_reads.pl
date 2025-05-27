@@ -46,7 +46,7 @@ do "$scriptdir/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
 our($databasepath);
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$euknofilter,$methodsfile,$printversion);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$fastnr,$euknofilter,$methodsfile,$printversion);
 
 my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -61,6 +61,7 @@ Arguments:
    -f|-seq: Fastq read files' directory (REQUIRED)
    
  Options:
+   --fastnr: Run DIAMOND in --fast mode for taxonomic assignment (Default: no)
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nodiamond: Skip Diamond runs, assuming that you already did it (Default: no)
@@ -81,7 +82,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "e|evalue=f" => \$evalue,   
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
-		     "nodiamond" => \$nodiamond,   
+		     "nodiamond" => \$nodiamond,
+		     "fastnr" => \$fastnr,
 		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
@@ -234,6 +236,7 @@ foreach my $thissample(keys %allsamples) {
 		my $outfile_tax="$thissampledir/$thisfile.tax.wranks";
 		my $outfile_tax_nofilter="$thissampledir/$thisfile.tax_nofilter.wranks";
 		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b $blocksize -o $outfile";
+		if($fastnr) { $blastx_command .= " --fast"; }
 		# print "Running BlastX: $blastx_command\n";
 		my %iblast;
 		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 

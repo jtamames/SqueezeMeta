@@ -38,6 +38,9 @@ Mandatory parameters
 
 Options
 """""""
+[-–fastnr]
+    Run DIAMOND in ``-–fast`` mode for taxonomic assignment
+
 [–-nocog]
     Skip COG assignment
 
@@ -139,6 +142,9 @@ Mandatory parameters
 
 Options
 """""""
+[-–fastnr]
+    Run DIAMOND in ``-–fast`` mode for taxonomic assignment
+
 [–-nocog]
     Skip COG assignment
 
