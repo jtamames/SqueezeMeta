@@ -63,6 +63,7 @@ $mcountfile      = "$resultpath/11.$projectname.mcount";        #-- From mcount.
 $mergedfile      = "$resultpath/13.$projectname.orftable";      #-- Gene table file
 $bintax          = "$interdir/16.$projectname.bintax";          #-- From addtax2.pl
 $checkmfile	 = "$interdir/17.$projectname.checkM";	#-- From checkm_batch.pl
+$gtdbtkfile      = "$interdir/17.$projectname.gtdbtk";
 $bincov          = "$interdir/18.$projectname.bincov";          #-- Coverage of bins, from getbins.pl
 $bintable        = "$resultpath/18.$projectname.bintable";      #-- Mapping of contigs in bins, from getbins.pl
 $contigsinbins   = "$interdir/18.$projectname.contigsinbins";   #-- Bin to which each contig belongs
@@ -82,25 +83,31 @@ $bowtieref = "$datapath/$projectname.bowtie";   #-- Contigs formatted for Bowtie
 $pfam_db   = "$databasepath/Pfam-A.hmm";
 $mothur_r  = "$databasepath/silva.nr_v132.align";
 $mothur_t  = "$databasepath/silva.nr_v132.tax";
+$gtdbtk_data_path = "$databasepath/gtdb";
 
 #-- Variables
 
-$blocksize       = 8;
-$nodiamond       = 0;
-$fastnr          = 0;
-$nocog           = 0;
-$nokegg          = 0;
-$nopfam          = 0;
-$euknofilter     = 0;
-$nobins          = 0;
-$doublepass      = 0;
-$norename	 = 0;
-$singletons      = 0;
-$cleaning        = 0;
-$cleaningoptions = "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
-$mapper          = "bowtie";
-$binners	 = "metabat2,concoct";
-$mapping_options = "";
+$blocksize          = 8;
+$globalranking      = 100;
+$nodiamond          = 0;
+$fastnr             = 0;
+$nocog              = 0;
+$nokegg             = 0;
+$nopfam             = 0;
+$euknofilter        = 0;
+$nobins             = 0;
+$onlybins           = 0;
+$nomarkers          = 0;
+$gtdbtk             = 0;
+$doublepass         = 0;
+$norename	    = 0;
+$singletons         = 0;
+$cleaning           = 0;
+$cleaningoptions    = "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
+$mapper             = "bowtie";
+$binners            = "metabat2,concoct";
+$diamond_nr_options = "";
+$mapping_options    = "";
 
 
 #-- External software

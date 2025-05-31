@@ -45,7 +45,7 @@ close inv;
 our $pwd=cwd();
 
 our($nodiamond,$fastnr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$globalranking,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
+our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$globalranking,$diamond_nr_options,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
 our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile,$nomarkers);
 our(%bindirs,%dasdir,%binscripts,%assemblers);
 
@@ -90,7 +90,7 @@ Arguments:
    
  Mapping: 
    -map: mapping software <bowtie, bwa, minimap2-ont, minimap2-pb, minimap2-sr> (Default: bowtie) 
-   -mapping_options [options]: Extra options to be passed when calling the mapper
+   -mapping_options <string>: Extra options to be passed when calling the mapper
 
  ONT support: 
    --minion: Run on MinION reads (assembler: canu; mapper: minimap2-ont; consensus: 20) (Default: no)
@@ -98,16 +98,17 @@ Arguments:
  Annotation:
    -g <int>: Number of targets for DIAMOND global ranking during taxonomic assignment (Default: 100) 
    -db <file>: Specify a new taxonomic database
-   --nodiamond: Check if Diamond results are already in place, and just in that case skips the Diamond run (Default: no)
+   --nodiamond: Check if DIAMOND results are already in place, and just in that case skips the DIAMOND run (Default: no)
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
    --fastnr: Run DIAMOND in --fast mode for taxonomic assignment (Default: no)
    --euk: Drop identity filters for eukaryotic annotation (Default: no)
    -consensus <value>: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
-   --D|--doublepass: First pass looking for genes using gene prediction, second pass using Diamond BlastX  (Default: no)
+   --D|--doublepass: First pass looking for genes using gene prediction, second pass using DIAMOND BlastX  (Default: no)
    -extdb <database file>: List of user-provided databases
-   -b|-block-size <block size>: block size for diamond against the nr database (Default: calculate automatically)
+   -b|-block-size <block size>: block size for DIAMOND against the nr database (Default: calculate automatically)
+   -diamond_nr_options <string>: Extra options to be passed when calling DIAMOND against the nr database
    
  Binning:
    --nobins: Skip all binning  (Default: no). Overrides -binners
@@ -170,6 +171,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "D|doublepass" => \$doublepass, 
 		     "b|block_size=i" => \$blocksize,
                      "g|global_ranking=i" => \$globalranking,
+		     "diamond_nr_options=s" => \$diamond_nr_options,
 		     "e|evalue=f" => \$evalue,   
 		     "minidentity=f" => \$miniden,   
 		     "assembly_options=s" => \$assembler_options,
@@ -324,7 +326,8 @@ print "\n\n";
 my $pdir;
 
 my %conf=('version',$version,'mode',$mode,'projectname',$projectname,'userdir',$rawfastq,
-  'blocksize',$blocksize,'globalranking', $globalranking, 'nodiamond',$nodiamond,'singletons',$singletons,'nocog',$nocog,'nokegg',$nokegg,
+  'blocksize',$blocksize,'globalranking', $globalranking, 'nodiamond',$nodiamond,'singletons',
+   $singletons,'nocog',$nocog,'nokegg',$nokegg, 'diamond_nr_options', $diamond_nr_options,
   'nopfam',$nopfam,'fastnr',$fastnr,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'nomarkers',$nomarkers,
   'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
   'norename',$norename,'mapper',$mapper,'mapping_options',$mapping_options,'cleaning',$cleaning,
@@ -1073,6 +1076,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		if   ($_=~/^\$projectname/)     { print outfile5 "\$projectname = \"$conf{projectname}\";\n";         }
 		elsif($_=~/^\$blocksize/)       { print outfile5 "\$blocksize       = $conf{blocksize};\n";           }
 		elsif($_=~/^\$globalranking/)   { print outfile5 "\$globalranking   = $conf{globalranking};\n";       }
+		elsif($_=~/^\$diamond_nr_options/){ print outfile5 "\$diamond_nr_options = \"$conf{diamond_nr_options}\";\n";}
 		elsif($_=~/^\$nodiamond/)       { print outfile5 "\$nodiamond       = $conf{nodiamond};\n";           }
 		elsif($_=~/^\$fastnr/)          { print outfile5 "\$fastnr          = $conf{fastnr};\n";              }
 		elsif($_=~/^\$singletons/)      { print outfile5 "\$singletons      = $conf{singletons};\n";          }

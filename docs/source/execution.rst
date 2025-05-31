@@ -132,6 +132,11 @@ Annotation
 [–D|–-doublepas]
     Run BlastX ORF prediction in addition to Prodigal. See :ref:`Extra sensitive ORFs`
 
+[-diamond_nr_options <string>]
+    Extra options to be passed when calling DIAMOND against the nr database.
+    Please provide all the extra options as a single quoted string
+    (e.g. ``-diamond_nr_options "–opt1 foo –opt2 bar"``)
+
 Mapping
 -------
 

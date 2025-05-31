@@ -453,8 +453,13 @@ Arguments
 [-extdb <path>]
     File with a list of additional user-provided databases for functional annotations. See `Using external databases for functional annotation <https://squeezemeta.readthedocs.io/en/stable/adv_annotation.html#using-external-databases-for-functional-annotation>`_
 
-[–D|–-doublepas]
+[–D|–-doublepass]
     Run BlastX ORF prediction in addition to Prodigal (Default: no)
+
+[-diamond_nr_options <string>]
+    Extra options to be passed when calling DIAMOND against the nr database.
+    Please provide all the extra options as a single quoted string
+    (e.g. ``-diamond_nr_options "–opt1 foo –opt2 bar"``)
 
 **Mapping**
 
