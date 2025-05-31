@@ -46,7 +46,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$newtaxdb,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir,$methodsfile,$syslogfile);
+our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$newtaxdb,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$fastnr,$diamond_nr_options,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir,$methodsfile,$syslogfile);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
@@ -213,6 +213,8 @@ sub run_blastx {
 
 	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet --range-culling -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
+	if($fastnr) { $blastx_command .= " --fast "; }
+	if($diamond_nr_options) { $blastx_command .= " $diamond_nr_options"; }
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	system $blastx_command;
@@ -409,7 +411,7 @@ sub remaketaxtables {
 			#-- Sorting first by contig ID, then by position in contig
 
 		open(outfile3,">$resulting_table") || die "Can't open $resulting_table for writing\n";
-		print outfile3 "# Created by $0 merging $original_table and $blastx_table,",scalar localtime,"\n";
+		#print outfile3 "# Created by $0 merging $original_table and $blastx_table,",scalar localtime,"\n";
 		my (@listorfs,@sortedorfs);
 		foreach my $orf(keys %intable) {
 			my @y=split(/\_|\-/,$orf);
