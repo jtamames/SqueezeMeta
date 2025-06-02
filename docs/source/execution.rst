@@ -29,7 +29,7 @@ Mandatory parameters
     Mode: See :ref:`Assembly strategy` (REQUIRED)
 
 [-p <string>]
-    Project name (REQUIRED in coassembly and merged modes)
+    Project name (REQUIRED except when in the ``sequential`` mode)
 
 [-s|samples <path>]
     Samples file, see :ref:`Samples file` (REQUIRED)

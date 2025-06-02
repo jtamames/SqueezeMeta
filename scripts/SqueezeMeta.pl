@@ -68,7 +68,7 @@ Arguments:
    -m <mode>: Mode (sequential, coassembly, merged, seqmerge) (REQUIRED)
    -s|-samples <samples file>: Samples file (REQUIRED)
    -f|-seq <sequence dir>: fastq/fasta read files' directory (REQUIRED)
-   -p <project name>: Project name (REQUIRED in coassembly and merged modes)
+   -p <project name>: Project name (REQUIRED except when in the sequential mode)
   
  Restarting
    --restart: Restarts the given project where it stopped (project must be speciefied with -p option) (will NOT overwite previous results, unless --force-overwrite is also provided)
@@ -133,6 +133,9 @@ Arguments:
  Information:
    -v: Version number  
    -h: This help 
+
+  See full documentation at https://squeezemeta.readthedocs.io
+  Search and report issues at https://github.com/jtamames/SqueezeMeta/issues
      
 END_MESSAGE
 
@@ -188,7 +191,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "verbose" => \$verbose,
 		     "v" => \$ver,
 		     "h" => \$hel
-		    );
+		    ) or die "Run `SqueezeMeta.pl -h` for a list of valid arguments\n";
 
 #-- Set some default values
 
