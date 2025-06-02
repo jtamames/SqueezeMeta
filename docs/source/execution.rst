@@ -22,16 +22,16 @@ The command for running SqueezeMeta has the following syntax:
 Arguments
 =========
 
-Mandatory parameters
+Basic parameters
 --------------------
 
 [-m <sequential|coassembly|merged|seqmerge>]
     Mode: See :ref:`Assembly strategy` (REQUIRED)
 
-[-p <string>]
-    Project name (REQUIRED except when in the ``sequential`` mode)
+[-r|-reference <path>]
+    Path to a fasta file with contigs (if ``-m extassembly``) or to a directory containing external genomes/bins (one fasta file per genome/bin, if ``-m extbins``) (REQUIRED,- if ``-m extassembly`` or ``-m extbins``)
 
-[-s|samples <path>]
+[-s|-samples <path>]
     Samples file, see :ref:`Samples file` (REQUIRED)
 
 [-f|-seq <path>]
@@ -78,15 +78,6 @@ Assembly
 
 [-c|-contiglen <int>]
     Minimum length of contigs (default: ``200``)
-
-[-extassembly <path>]
-    Path to a file containing an external assembly provided by the user. The file must contain contigs
-    in the fasta format. This overrides the assembly step of SqueezeMeta
-
-[-extbins <path>]
-    Path to a directory containing external genomes/bins provided by the user.
-    There must be one file per genome/bin, each containing contigs in the fasta format.
-    This overrides the assembly and binning steps
 
 [-–sq|-–singletons]
     Unassembled reads will be treated as contigs and
@@ -168,11 +159,6 @@ Binning
     Run only assembly, binning and bin statistics
     (including GTDB-Tk if requested)
 
-[-extbins <path>]
-    Path to a directory containing external genomes/bins provided by the user.
-    There must be one file per genome/bin, each containing contigs in the fasta format.
-    This overrides the assembly and binning steps
-
 [-–nomarkers]
     Skip retrieval of universal marker genes from bins.
     Note that, while this precludes recalculation of bin
@@ -228,6 +214,18 @@ Information
 
 [-h]
     Display help
+
+Deprecated options
+------------------
+
+[-extassembly <path>]
+    External assembly, path to a fasta file with contigs (overrides the assembly step). This still works, but we recommend using ``-m extassembly -reference <file>`` instead
+
+[-extbins <path>]
+    Path to a directory containing external genomes/bins (one fasta file per genome/bin, overrides the assembly and binning steps). This still works, but we recommend using ``-m extbins -reference <directory>`` instead
+
+[-taxbinmode <s|c|s+c|c+s>]
+    Source of taxonomy annotation of bins. This has been deprecated, and SqueezeMeta will always use its own taxonomy (equivalent to ``-taxbinmode s`` in older versions) regarless of the value of this argument. You can add the flag ``--gtdbtk`` if you need a more precise bin taxonomy in addition to the one provided by default
 
 Example SqueezeMeta call
 ========================

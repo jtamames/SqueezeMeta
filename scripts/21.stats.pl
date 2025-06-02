@@ -35,7 +35,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$tempdir,$interdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$mode,$singletons,$mappingstat,$onlybins);
+our($datapath,$tempdir,$interdir,$prinseq_soft,$mincontiglen,$resultpath,$contigsfna,$contigtable,$nobins,$mergedfile,$mcountfile,$opt_db,$bintable,$evalue,$miniden,$mincontiglen,$assembler,$singletons,$mappingstat,$onlybins);
 
 my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');

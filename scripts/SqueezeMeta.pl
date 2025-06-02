@@ -45,7 +45,7 @@ close inv;
 our $pwd=cwd();
 
 our($nodiamond,$fastnr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
-our($numsamples,$numthreads,$canumem,$mode,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$globalranking,$diamond_nr_options,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
+our($numsamples,$numthreads,$canumem,$mode,$reference,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$globalranking,$diamond_nr_options,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
 our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile,$nomarkers);
 our(%bindirs,%dasdir,%binscripts,%assemblers);
 
@@ -64,8 +64,9 @@ Usage: SqueezeMeta.pl -m <mode> -p <project name> -s <samples file> -f <sequence
 
 Arguments:
 
-  Mandatory parameters:
-   -m <mode>: Mode (sequential, coassembly, merged, seqmerge) (REQUIRED)
+  Basic parameters:
+   -m <mode>: Mode (sequential, coassembly, merged, seqmerge, extassembly, extbins) (REQUIRED)
+   -r|-reference <path>: Path to a fasta file with contigs (if `-m extassembly`) or to a directory containing external genomes/bins (one fasta file per genome/bin, if `-m extbins`) (REQUIRED, if `-m extassembly` or `-m extbins`)
    -s|-samples <samples file>: Samples file (REQUIRED)
    -f|-seq <sequence dir>: fastq/fasta read files' directory (REQUIRED)
 
@@ -73,20 +74,19 @@ Arguments:
    -p <project path>: Output project path (default: SQM)
 
   Restarting
-   --restart: Restarts the given project where it stopped (project must be speciefied with -p option) (will NOT overwite previous results, unless --force-overwrite is also provided)
-   -step <step number>: In combination with --restart, restarts the project starting in the given step number (combine with --force_overwrite to regenerate results)
+   --restart: Restarts the given project where it stopped (project must be speciefied with the `-p` option) (will NOT overwite previous results, unless `--force-overwrite` is also provided)
+   -step <step number>: In combination with `--restart`, restarts the project starting in the given step number (combine with `--force_overwrite` to regenerate results)
    --force_overwrite: Do not check for previous results, and overwrite existing ones
    
  Filtering: 
    --cleaning: Filters with Trimmomatic (Default: No)
-   -cleaning_options [options]: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
+   -cleaning_options <string>: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
    
  Assembly: 
    -a: assembler <megahit, spades, rnaspades, spades-base, canu, flye> (Default: megahit)
-   -assembly_options [options]: Extra options to be passed when calling the mapper
+   -assembly_options [options]: Extra options to be passed when calling the assembler
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
-   -extassembly <file>: External assembly, path to a fasta file with contigs (overrides all assembly steps).
-   --sg|--singletons: Add unassembled reads to the contig file, as if they were contigs  
+   --sg|--singletons: Add unassembled reads to the contig file, as if they were contigs
    -contigid <string>: Nomenclature for contigs (Default: assembler´s name)
    --norename: Don't rename contigs (Use at your own risk, characters like '_' in contig names will make it crash)
    
@@ -104,7 +104,7 @@ Arguments:
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
-   --fastnr: Run DIAMOND in --fast mode for taxonomic assignment (Default: no)
+   --fastnr: Run DIAMOND in `--fast` mode for taxonomic assignment (Default: no)
    --euk: Drop identity filters for eukaryotic annotation (Default: no)
    -consensus <value>: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
    --D|--doublepass: First pass looking for genes using gene prediction, second pass using DIAMOND BlastX  (Default: no)
@@ -116,17 +116,15 @@ Arguments:
    --nobins: Skip all binning  (Default: no). Overrides -binners
    --onlybins: Run only assembly, binning and bin statistics (including GTDB-Tk if requested) (Default: no)
    -binners: Comma-separated list with the binning programs to be used (available: maxbin, metabat2, concoct)  (Default: concoct,metabat2)
-   -taxbinmode <s,c,s+c,c+s>: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s). THIS HAS BEEN DEPRECATED, USE --gtdbtk INSTEAD IF YOU NEED A MORE PRECISE BIN TAXONOMY.
    --nomarkers: Skip retrieval of universal marker genes from bins (you will still get completeness/contamination estimates, but won't be able to do bin refining in SQMtools)
    --gtdbtk: Run GTDB-Tk to classify the bins. Requires a working GTDB-Tk installation in available in your environment
-   -gtdbtk_data_path: Path to the GTDB database, by default it is assumed to be present in /path/to/SqueezeMeta/db/gtdb
-   -extbins: Path to a directory containing external genomes/bins provided by the user. There must be one file per genome/bin, containing each contigs in the fasta format. This overrides the assembly and binning steps
+   -gtdbtk_data_path: Path to the GTDB database, by default it is assumed to be present in `/path/to/SqueezeMeta/db/gtdb`
 
  
  Performance:
    -t <threads>: Number of threads (Default: 12)
    -canumem <mem>: memory for canu in Gb (Default: 32)
-   --lowmem: run on less than 16Gb of memory (Default:no)
+   --lowmem: attempt to run on less than 16Gb of memory (Default: no)
 
  Other:
    -test <step>: Running in test mode, stops AFTER the given step number
@@ -134,11 +132,16 @@ Arguments:
    
  Information:
    -v: Version number  
-   -h: This help 
+   -h: This help
 
-  See full documentation at https://squeezemeta.readthedocs.io
-  Search and report issues at https://github.com/jtamames/SqueezeMeta/issues
-     
+ Deprecated options:
+   -extassembly <file>: External assembly, path to a fasta file with contigs (overrides the assembly step). This still works, but we recommend using `-m extassembly -reference <file>` instead
+   -extbins <directory>: Path to a directory containing external genomes/bins (one fasta file per genome/bin, overrides the assembly and binning steps). This still works, but we recommend using `-m extbins -reference <directory>` instead
+   -taxbinmode <s,c,s+c,c+s>: Source of taxonomy annotation of bins (s: SqueezeMeta; c: CheckM; s+c: SqueezeMeta+CheckM;  c+s: CheckM+SqueezeMeta; (Default: s). This has been deprecated, use `--gtdbtk` instead if you need a more precise bin taxonomy.
+
+  
+ See full documentation at https://squeezemeta.readthedocs.io
+ Search and report issues at https://github.com/jtamames/SqueezeMeta/issues     
 END_MESSAGE
 
 #-- Handle variables from command line
@@ -147,6 +150,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "lowmem" => \$lowmem,
 		     "canumem=i" => \$canumem,
                      "m|mode=s" => \$mode,
+                     "r|reference=s" => \$reference,
                      "c|contiglen=i" => \$mincontiglen,
                      "contigid=s" => \$contigid,  
 	             "a=s" => \$assembler,
@@ -197,37 +201,38 @@ my $result = GetOptions ("t=i" => \$numthreads,
 
 #-- Set some default values
 
-if(!$projectdir) { $projectdir = "SQM"; }
-if(!$numthreads) { $numthreads=12; }
-if(!$canumem) { $canumem="NF"; }
-if(!$mincontiglen) { $mincontiglen=200; }
-if(!$assembler) { $assembler="megahit"; }
-if(!$mapper) { $mapper="bowtie"; }
-if(!$blocksize) { $blocksize="NF"; }
-if(!$globalranking) { $globalranking=100; }
-if(!$nodiamond) { $nodiamond=0; }
-if(!$singletons) { $singletons=0; }
-if(!$nocog) { $nocog=0; }
-if(!$nokegg) { $nokegg=0; }
-if(!$nopfam) { $nopfam=0; }
-if(!$fastnr) { $fastnr=0; }
-if(!$euknofilter) { $euknofilter=0; }
-if(!$doublepass) { $doublepass=0; }
-if(!$nobins) { $nobins=0; }
-if(!$onlybins) { $onlybins = 0; }
-if(!$nomarkers) { $nomarkers = 0; }
-if(!$gtdbtk) { $gtdbtk=0; }
+if(!$projectdir)       { $projectdir = "SQM"; }
+if(!$numthreads)       { $numthreads=12; }
+if(!$canumem)          { $canumem="NF"; }
+if(!$mincontiglen)     { $mincontiglen=200; }
+if(!$assembler)        { $assembler="megahit"; }
+if(!$mapper)           { $mapper="bowtie"; }
+if(!$blocksize)        { $blocksize="NF"; }
+if(!$globalranking)    { $globalranking=100; }
+if(!$nodiamond)        { $nodiamond=0; }
+if(!$singletons)       { $singletons=0; }
+if(!$nocog)            { $nocog=0; }
+if(!$nokegg)           { $nokegg=0; }
+if(!$nopfam)           { $nopfam=0; }
+if(!$fastnr)           { $fastnr=0; }
+if(!$euknofilter)      { $euknofilter=0; }
+if(!$doublepass)       { $doublepass=0; }
+if(!$nobins)           { $nobins=0; }
+if(!$onlybins)         { $onlybins = 0; }
+if(!$nomarkers)        { $nomarkers = 0; }
+if(!$gtdbtk)           { $gtdbtk=0; }
 if(!$gtdbtk_data_path) { eval(`grep "^\\\$gtdbtk_data_path" $scriptdir/SqueezeMeta_conf.pl`); }
-if(!$binners) { $binners="concoct,metabat2"; }
-if(!$taxbinmode) { $taxbinmode="s"; }
-if(!$nomaxbin) { $nomaxbin=0; }
-if(!$nometabat) { $nometabat=0; }
-if(!$norename) { $norename=0; }
-if(!$force_overwrite) { $force_overwrite=0; }
-if(!$restart) { $restart=0; }
-if(!$cleaningoptions) { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
-if(!$cleaning) { $cleaning=0; $cleaningoptions=""; } 
-if($consensus) { $consensus/=100; }
+if(!$binners)          { $binners="concoct,metabat2"; }
+if(!$taxbinmode)       { $taxbinmode="s"; }
+if(!$nomaxbin)         { $nomaxbin=0; }
+if(!$nometabat)        { $nometabat=0; }
+if(!$norename)         { $norename=0; }
+if(!$force_overwrite)  { $force_overwrite=0; }
+if(!$restart)          { $restart=0; }
+if(!$cleaningoptions)  { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
+if(!$cleaning)         { $cleaning=0; $cleaningoptions=""; } 
+if($consensus)         { $consensus/=100; }
+if($reference)         { $reference=abs_path($reference); }
 
 $mode=~tr/A-Z/a-z/;
 if($opt_db) { $opt_db = abs_path($opt_db); }
@@ -258,25 +263,32 @@ if($restart) {
 else {
 	if(!$rawfastq)  { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
 	if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
-	if(!$mode)      { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
-	if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
-	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
-	# if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
+	if(!$mode)      { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged, extassembly, extbins)\n"; }
+	if($mode!~/sequential|coassembly|merged|seqmerge|extassembly|extbins/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are `sequential`, `coassembly`, `merged`, `seqmerge`, `extassembly` and `extbins`\n"; }
+	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are `bowtie`, `bwa`, `minimap2-ont`, `minimap2-pb` or `minimap2-sr`\n"; }
 	if($newtaxdb) { if(-e "$newtaxdb.dmnd") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
-	if($extassembly && $extbins) { $dietext.="-extassembly and -extbins can not be provided at the same time\n"; }
-        if($nobins and $onlybins)    { $dietext.="--nobins --onlybins can not be provided at the same time\n"; }
+	if($extassembly && $extbins) { $dietext.="`-extassembly` and `-extbins` can not be provided at the same time\n"; }
+        if($nobins and $onlybins)    { $dietext.="`--nobins` and `--onlybins` can not be provided at the same time\n"; }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }
 	if($gtdbtk) {
 		if(! -e "$gtdbtk_data_path/markers/pfam/Pfam-A.hmm") {
-			$dietext.="--gtdbtk was provided but we can't find the GTDB-Tk database at $gtdbtk_data_path. Please provide the right path to the database through the -gtdbtk_data_path argument\n"; 
+			$dietext.="`--gtdbtk` was provided but we can't find the GTDB-Tk database at $gtdbtk_data_path. Please provide the right path to the database through the `-gtdbtk_data_path` argument\n"; 
 			$dietext.="Note that the GTDB-Tk database is not provided as part of SqueezeMeta, and needs to be downloaded separately\n";
 			$dietext.="More info can be found at https://ecogenomics.github.io/GTDBTk/installing/index.html\n";
 			}
 		}
-	 if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; } 
-	}
+	if($mode=~/extassembly|extbins/i and !$reference) { $dietext.="`-reference` needs to be specified when using `-m $mode`\n"; }
 
-if($taxbinmode ne "s") { warn "\n-taxbinmode has been deprecated and will be ignored.\nUse --gtdbtk if you need a more precise bin taxonomy\n\n"; }
+	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; } 
+	
+	if($taxbinmode ne "s") { warn "\n`-taxbinmode` has been deprecated and will be ignored.\nUse `--gtdbtk` if you need a more precise bin taxonomy\n"; }
+
+	# Check whether extassembly and extbins, otherwise set them now based on $reference
+	if($extassembly) { warn "\n`-extassembly` has been deprecated.\nThis will still work for backward compatibility reasons, but we recommend `-m extassembly -r <fasta>` instead\n"; }
+	if($extbins) { warn "\n`-extbins` has been deprecated.\nThis will still work for backward compatibility reasons, but we recommend `-m extassembly -r <dir>` instead\n"; }
+	if($mode eq "extassembly") { $extassembly = $reference; }
+	elsif($mode eq "extbins")  { $extbins = $reference; }
+	}
 
 #------------------------------------- CHECKING FILES AND START RUN -----------------------------------------------
 
@@ -400,7 +412,7 @@ else {      #-- FOR SEQUENTIAL MODE
 	if($empty) { die "Directory structure and conf files created. Exiting\n"; }
 
 
-}                        #------ END
+} #------ END
 
 
 

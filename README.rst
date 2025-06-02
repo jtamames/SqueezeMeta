@@ -192,8 +192,8 @@ Usage considerations
 Choosing an assembly strategy
 =============================
 
-SqueezeMeta can be run in four different modes, depending of the type of
-multi-metagenome support. These modes are:
+SqueezeMeta can be run in four different assembly modes, depending on the
+type of multi-metagenome support. These modes are:
 
 -  **Sequential mode**: All samples are treated individually and analysed
    sequentially.
@@ -248,17 +248,17 @@ conjunction with ``–assembly options`` when one wants to fully customize
 the call to SPAdes, e.g. for assembling single cell genomes.
 
 Analizing user-supplied assemblies or bins
-==========================================
+------------------------------------------
 
-An user-supplied assembly can be passed to SqueezeMeta with the flag
-``-extassembly <your_assembly.fasta>``. The contigs in that fasta file
+An user-supplied assembly can be passed to SqueezeMeta with the flags
+``-m extassembly -r <your_assembly.fasta>``. The contigs in that fasta file
 will be analyzed by the SqueezeMeta pipeline starting from step 2.
 With this, you will be able to annotate your assembly, estimate its
 abundance in your metagenomes/metatranscriptomes, and perform binning on it.
 
 Additionally, a set of pre-existing genomes and bins can be passed to
-SqueezeMeta with the flag ``-extbins <path_to_dir_with_bins>``. This will
-work similarly to ``-extassembly``, but SqueezeMeta will treat each fasta
+SqueezeMeta with the flag ``-m extbins -r <path_to_dir_with_bins>``. This will
+work similarly to ``-m extassembly``, but SqueezeMeta will treat each fasta
 file in the input directory as an individual bin.
 
 Using external databases for functional annotation
@@ -348,12 +348,15 @@ The command for running SqueezeMeta has the following syntax:
 Arguments
 =========
 
-**Mandatory parameters**
+**Basic parameters**
 
-[-m <sequential|coassembly|merged|seqmerge>]
+[-m <sequential|coassembly|merged|seqmerge|extassembly|extbins>]
     Mode: See *Choosing an assembly strategy*. (REQUIRED)
 
-[-s|samples <path>]
+[-r|-reference <path>]
+    Path to a fasta file with contigs (if ``-m extassembly``) or to a directory containing external genomes/bins (one fasta file per genome/bin, if ``-m extbins``) (REQUIRED,- if ``-m extassembly`` or ``-m extbins``)
+
+[-s|-samples <path>]
     Samples file (REQUIRED)
 
 [-f|-seq <path>]
@@ -395,15 +398,6 @@ Arguments
 
 [-c|-contiglen <int>]
     Minimum length of contigs (default: ``200``)
-
-[-extassembly <path>]
-    Path to a file containing an external assembly provided by the user. The file must contain contigs
-    in the fasta format. This overrides the assembly step of SqueezeMeta
-
-[-extbins <path>]
-    Path to a directory containing external genomes/bins provided by the user.
-    There must be one file per genome/bin, each containing contigs in the fasta format.
-    This overrides the assembly and binning steps
 
 [-–sq|-–singletons]
     Unassembled reads will be treated as contigs and
@@ -484,11 +478,6 @@ Arguments
 [-–onlybins]
     Run only assembly, binning and bin statistics
     (including GTDB-Tk if requested)
-
-[-extbins <path>]
-    Path to a directory containing external genomes/bins provided by the user.
-    There must be one file per genome/bin, each containing contigs in the fasta format.
-    This overrides the assembly and binning steps
 
 [-–nomarkers]
     Skip retrieval of universal marker genes from bins.

@@ -6,8 +6,8 @@ Use cases
 Choosing an assembly strategy
 =============================
 
-SqueezeMeta can be run in four different modes, depending of the type of
-multi-metagenome support. These modes are:
+SqueezeMeta can be run in four different assembly modes, depending on the
+type of multi-metagenome support. These modes are:
 
 -  **Sequential mode:** All samples are treated individually and analysed
    sequentially.
@@ -64,17 +64,17 @@ the call to SPAdes, e.g. for assembling single cell genomes.
 
 .. _extassembly:
 Analyzing user-supplied assemblies or bins
-==========================================
+------------------------------------------
 
 An user-supplied assembly can be passed to SqueezeMeta with the flag
-``-extassembly <your_assembly.fasta>``. The contigs in that fasta file
+``-m extassembly -r <your_assembly.fasta>``. The contigs in that fasta file
 will be analyzed by the SqueezeMeta pipeline starting from step 2.
 With this, you will be able to annotate your assembly, estimate its
 abundance in your metagenomes/metatranscriptomes, and perform binning on it.
 
 Additionally, a set of pre-existing genomes and bins can be passed to
-SqueezeMeta with the flag ``-extbins <path_to_dir_with_bins>``. This will
-work similarly to ``-extassembly``, but SqueezeMeta will treat each fasta
+SqueezeMeta with the flag ``-m extbins -r <path_to_dir_with_bins>``. This will
+work similarly to ``-m extassembly``, but SqueezeMeta will treat each fasta
 file in the input directory as an individual bin.
 
 .. _metatranscriptomics:
