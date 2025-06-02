@@ -64,13 +64,15 @@ Usage: SqueezeMeta.pl -m <mode> -p <project name> -s <samples file> -f <sequence
 
 Arguments:
 
- Mandatory parameters:
+  Mandatory parameters:
    -m <mode>: Mode (sequential, coassembly, merged, seqmerge) (REQUIRED)
    -s|-samples <samples file>: Samples file (REQUIRED)
    -f|-seq <sequence dir>: fastq/fasta read files' directory (REQUIRED)
-   -p <project name>: Project name (REQUIRED except when in the sequential mode)
-  
- Restarting
+
+  Output:
+   -p <project path>: Output project path (default: SQM)
+
+  Restarting
    --restart: Restarts the given project where it stopped (project must be speciefied with -p option) (will NOT overwite previous results, unless --force-overwrite is also provided)
    -step <step number>: In combination with --restart, restarts the project starting in the given step number (combine with --force_overwrite to regenerate results)
    --force_overwrite: Do not check for previous results, and overwrite existing ones
@@ -195,6 +197,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 
 #-- Set some default values
 
+if(!$projectdir) { $projectdir = "SQM"; }
 if(!$numthreads) { $numthreads=12; }
 if(!$canumem) { $canumem="NF"; }
 if(!$mincontiglen) { $mincontiglen=200; }
@@ -256,8 +259,6 @@ else {
 	if(!$rawfastq)  { $dietext.="MISSING ARGUMENT: -f|-seq: Fastq read files' directory\n"; }
 	if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 	if(!$mode)      { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged)\n"; }
-	if(($mode!~/sequential$/i) && (!$projectdir)) { $dietext.="MISSING ARGUMENT: -p: Project name\n"; }
-	if(($mode=~/sequential$/i) && ($projectdir))  { $dietext.="Please DO NOT specify project name in sequential mode. The name will be read from the samples in the samples file $equivfile\n"; }
 	if($mode!~/sequential|coassembly|merged|seqmerge/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are sequential, coassembly, merged or seqmerge\n"; }
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are bowtie, bwa, minimap2-ont, minimap2-pb or minimap2-sr\n"; }
 	# if($assembler!~/megahit|spades|rnaspades|canu|flye/i) { $dietext.="UNRECOGNIZED assembler $assembler (valid ones are megahit, spades, canu or flye)\n"; }
@@ -282,8 +283,8 @@ if($taxbinmode ne "s") { warn "\n-taxbinmode has been deprecated and will be ign
 $projectdir = abs_path($projectdir);
 $projectname = (split '/', $projectdir)[-1];
 my $syslogfile="$projectdir/syslog";
-if (($mode!~/sequential$/i) && (-d $projectdir) && (!$restart)) { print RED; print "Project name $projectdir already exists. Please remove it or change the project name\n"; print RESET; die; } 
-elsif(!$restart && $mode ne "sequential") { system("mkdir $projectdir"); }
+if ((-d $projectdir) && (!$restart)) { print RED; print "Project path $projectdir already exists. Please remove it or change the project path\n"; print RESET; die; } 
+system("mkdir $projectdir");
 
 my(%allsamples,%ident,%noassembly,%pairsample);
 my($sample,$file,$iden,$mapreq);
@@ -391,12 +392,12 @@ else {      #-- FOR SEQUENTIAL MODE
 			pipeline();
 			
 			}
-		else { die "  Directory structure and conf files created. Exiting\n"; }  #-- If --empty invoked
 		close outfile4;  #-- Closing log file for the sample
 		close outfile3;	  #-- Closing progress file for the sample
 	 		
 				
-		}	
+		}
+	if($empty) { die "Directory structure and conf files created. Exiting\n"; }
 
 
 }                        #------ END

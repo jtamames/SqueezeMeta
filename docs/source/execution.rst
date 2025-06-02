@@ -37,6 +37,12 @@ Mandatory parameters
 [-f|-seq <path>]
     Fastq read files directory (REQUIRED)
 
+Output
+------
+
+[-p <string>]
+    Output path, the basename will be used as the project name (default: ``SQM``)
+
 Restarting
 ----------
 

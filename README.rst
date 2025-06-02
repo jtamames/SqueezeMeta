@@ -353,14 +353,15 @@ Arguments
 [-m <sequential|coassembly|merged|seqmerge>]
     Mode: See *Choosing an assembly strategy*. (REQUIRED)
 
-[-p <string>]
-    Project name (REQUIRED in coassembly and merged modes)
-
 [-s|samples <path>]
     Samples file (REQUIRED)
 
 [-f|-seq <path>]
     Fastq read files’ directory (REQUIRED)
+
+**Output**
+[-p <string>]
+    Output path, the basename will be used as the project name (default: ``SQM``)
 
 **Restarting**
 
