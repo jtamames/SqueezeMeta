@@ -34,6 +34,7 @@ plotFunctions
         ignore_unmapped = TRUE,
         ignore_unclassified = TRUE,
         gradient_col = c("ghostwhite", "dodgerblue4"),
+        rescale_percent = FALSE,
         base_size = 11,
         metadata_groups = NULL
       )
@@ -89,6 +90,12 @@ plotFunctions
    |                            | the low and high ends of the color     |
    |                            | gradient (default                      |
    |                            | ``c("ghostwhite", "dodgerblue4")``).   |
+   +----------------------------+----------------------------------------+
+   | ``rescale_percent``        | logical. Calculate percent counts over |
+   |                            | the number of reads in the input       |
+   |                            | object, instead of over the total      |
+   |                            | number of reads in the original        |
+   |                            | project (default ``FALSE``).           |
    +----------------------------+----------------------------------------+
    | ``base_size``              | numeric. Base font size (default       |
    |                            | ``11``).                               |

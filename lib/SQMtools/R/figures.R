@@ -167,6 +167,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{TRUE}).
 #' @param ignore_unclassified logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).
 #' @param gradient_col A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).
+#' @param rescale_percent logical. Calculate percent counts over the number of reads in the input object, instead of over the total number of reads in the original project (default \code{FALSE}).
 #' @param base_size numeric. Base font size (default \code{11}).
 #' @param metadata_groups list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).
 #' @return a ggplot2 plot object.
@@ -175,7 +176,7 @@ plotBars = function(data, label_x = 'Samples', label_y = 'Abundances', label_fil
 #' data(Hadza)
 #' plotFunctions(Hadza)
 #' @export
-plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25, fun = NULL, samples = NULL, display_function_names = TRUE, ignore_unmapped = TRUE, ignore_unclassified = TRUE, gradient_col = c('ghostwhite', 'dodgerblue4'), base_size = 11, metadata_groups = NULL)
+plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25, fun = NULL, samples = NULL, display_function_names = TRUE, ignore_unmapped = TRUE, ignore_unclassified = TRUE, gradient_col = c('ghostwhite', 'dodgerblue4'), rescale_percent = FALSE, base_size = 11, metadata_groups = NULL)
     {
     if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM, SQMbunch or a SQMlite object') }
     if (!fun_level %in% names(SQM$functions))
@@ -217,7 +218,14 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25,
     # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df.
     if(count == 'percent')
         {
-        percents = 100 * t(t(SQM[['functions']][[fun_level]][['abund']]) / colSums(SQM[['functions']][[fun_level]][['abund']]))
+	if(rescale_percent)
+            {
+            total_counts = colSums(SQM[['functions']][[fun_level]][['abund']])
+        } else
+            {
+            total_counts = SQM$total_reads
+            }
+        percents = 100 * t(t(SQM[['functions']][[fun_level]][['abund']]) / total_counts)
 	percents[is.na(percents)] = 0 # the line above will generate NAs if some sample has 0 total counts (can happen if this is a subset)
         data = as.data.frame(percents)
         }else { data = as.data.frame(SQM[['functions']][[fun_level]][[count]]) }

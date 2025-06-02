@@ -15,6 +15,7 @@ plotFunctions(
   ignore_unmapped = TRUE,
   ignore_unclassified = TRUE,
   gradient_col = c("ghostwhite", "dodgerblue4"),
+  rescale_percent = FALSE,
   base_size = 11,
   metadata_groups = NULL
 )
@@ -39,6 +40,8 @@ plotFunctions(
 \item{ignore_unclassified}{logical. Don't include unclassified ORFs in the plot (default \code{TRUE}).}
 
 \item{gradient_col}{A vector of two colors representing the low and high ends of the color gradient (default \code{c("ghostwhite", "dodgerblue4")}).}
+
+\item{rescale_percent}{logical. Calculate percent counts over the number of reads in the input object, instead of over the total number of reads in the original project (default \code{FALSE}).}
 
 \item{base_size}{numeric. Base font size (default \code{11}).}
 
