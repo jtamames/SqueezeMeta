@@ -18,9 +18,6 @@ our $auxdir = dirname(__FILE__);
 do "$auxdir/../../scripts/SqueezeMeta_conf.pl";
 our($databasepath,$numthreads);
 
-my $tempdir=".";
-my $resultpath=".";
-
 my $lca_db="$databasepath/LCA_tax/taxid.db";
 
 my @ranks=('species','genus','family','order','class','phylum','superkingdom');
@@ -36,8 +33,10 @@ my $bhitforced=0;	#-- Forces that assignment cannot differ from best hit
 
 my $outname;
 my $infile=$ARGV[0];
-my $outname=$infile;
+my $resultpath = dirname($infile);
+my $outname = basename($infile);
 $outname=~s/\.m8//;
+my $tempdir = $resultpath;
 if($ARGV[1]) { $numthreads=$ARGV[1]; } else { $numthreads=12; }
 
 my(%provhits,%providen,%giden,%accum,%accumnofilter,%parents);

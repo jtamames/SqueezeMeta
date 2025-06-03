@@ -152,7 +152,7 @@ my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGi
 my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
 my @ranklist=('k','p','c','o','f','g','s');
 
-my $resultsdir="$pwd/$project";
+my $resultsdir="$project";
 # print "----$resultsdir---\n";
 my @fields=split(/\//, $resultsdir);
 my $project=$fields[-1];
