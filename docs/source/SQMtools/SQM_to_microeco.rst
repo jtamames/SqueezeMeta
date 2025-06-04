@@ -17,7 +17,7 @@ SQM_to_microeco
 
    This function will convert the selected features from a SQM object
    into an object of the ``microtable`` class from the
-   `microeco <https://chiliubio.github.io/microeco>`__ package. When
+   `microeco <https://chiliubio.github.io/microeco/>`__ package. When
    possible, it will also include the taxonomy of the included features
    (for functional classifications, the taxonomy table will instead
    include the description of each feature ID). Optionally, it accepts a
@@ -64,7 +64,7 @@ SQM_to_microeco
    |                                | raw abundances, ``"percent"`` for  |
    |                                | percentages, ``"bases"`` for raw   |
    |                                | base counts, ``"cov"`` for         |
-   |                                | coverages, code"cpm" for coverages |
+   |                                | coverages, ``"cpm"`` for coverages |
    |                                | per million reads, ``"tpm"`` for   |
    |                                | TPM normalized values or           |
    |                                | ``"copy_number"`` for copy numbers |

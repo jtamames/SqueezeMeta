@@ -22,7 +22,7 @@ SQM_to_microeco(
 
 \item{features}{character. Either \code{"orfs"}, \code{"contigs"}, \code{"bins"}, any taxonomic rank included in \code{SQM$taxa} or any functional classication included in \code{SQM$functions} (default \code{"tax"}). Note that a given feature type might not be available in this objects (e.g. \code{"contigs"} in SQMlite objects originating from a SQM reads project).}
 
-\item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"cov"} for coverages, code{"cpm"} for coverages per million reads, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"abund"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
+\item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"bases"} for raw base counts, \code{"cov"} for coverages, \code{"cpm"} for coverages per million reads, \code{"tpm"} for TPM normalized values or \code{"copy_number"} for copy numbers (default \code{"abund"}). Note that a given count type might not available in this object (e.g. TPM or copy number in SQMlite objects originating from a SQM reads project).}
 
 \item{md}{data.frame. A optional data.frame containing metadata for the samples in the SQM object.}
 

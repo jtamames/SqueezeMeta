@@ -65,7 +65,7 @@ SQM_to_phyloseq
    |                                | raw abundances, ``"percent"`` for  |
    |                                | percentages, ``"bases"`` for raw   |
    |                                | base counts, ``"cov"`` for         |
-   |                                | coverages, code"cpm" for coverages |
+   |                                | coverages, ``"cpm"`` for coverages |
    |                                | per million reads, ``"tpm"`` for   |
    |                                | TPM normalized values or           |
    |                                | ``"copy_number"`` for copy numbers |

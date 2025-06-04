@@ -115,9 +115,10 @@ exportPathway
    .. rubric:: Value
       :name: value
 
-   A ``ggplot`` if ``split_samples = FALSE`` and the ``ggpattern``
-   package is installed, otherwise nothing. Additionally, Pathview
-   figures will be written in the directory specified by ``output_dir``.
+   A ``ggplot`` if ``split_samples = FALSE`` and the
+   `ggpattern <https://CRAN.R-project.org/package=ggpattern>`__ package
+   is installed, otherwise nothing. Additionally, Pathview figures will
+   be written in the directory specified by ``output_dir``.
 
    .. rubric:: See Also
       :name: see-also
