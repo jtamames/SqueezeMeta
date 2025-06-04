@@ -1,6 +1,6 @@
 #' Convert a SQM object into a microtable object from the \emph{microeco} package
 #'
-#' This function will convert the selected features from a SQM object into an object of the \code{\link[microeco]{microtable}} class from the \href{https://chiliubio.github.io/microeco}{microeco} package. When possible, it will also include the taxonomy of the included features (for functional classifications, the taxonomy table will instead include the description of each feature ID). Optionally, it accepts a meta table that will be passed as provided to \code{microtable$new}.  
+#' This function will convert the selected features from a SQM object into an object of the \code{\link[microeco]{microtable}} class from the \href{https://chiliubio.github.io/microeco/}{microeco} package. When possible, it will also include the taxonomy of the included features (for functional classifications, the taxonomy table will instead include the description of each feature ID). Optionally, it accepts a meta table that will be passed as provided to \code{microtable$new}.  
 #'  
 #'
 #' @param SQM A SQM, SQMbunch or SQMlite object.
@@ -21,17 +21,17 @@ SQM_to_microeco = function(SQM, features = 'genus', count = 'abund', md = NULL,
                            ignore_unclassified = FALSE, ignore_unmapped = FALSE,
                            bin_tax_source = 'SQM', include_seqs = FALSE)
     {
-    if(!require(microeco)) { stop('The `microeco` package must be installed in order to use this function') }
+    if(!requireNamespace("microeco")) { stop('The `microeco` package must be installed in order to use this function') }
     # We let argument checking be done by prepare_export_tables
     res = prepare_export_tables(SQM, features, count,
                                 nocds, no_partial_classifications, ignore_unclassified, ignore_unmapped,
                                 bin_tax_source, include_seqs)
     if(!is.null(res[['tax']])) { res[['tax']] = as.data.frame(res[['tax']]) }
     if(features=='orfs') { res[['seqs']] = NULL } # since microtable only accepts DNAStringSets
-    mt = microtable$new(otu_table = as.data.frame(res[['counts']]),
-		        tax_table = res[['tax']],
-		        rep_fasta = res[['seqs']],
-                        sample_table = md)
+    mt = microeco::microtable$new(otu_table = as.data.frame(res[['counts']]),
+		                  tax_table = res[['tax']],
+		                  rep_fasta = res[['seqs']],
+                                  sample_table = md)
     return(mt)
     }
 
@@ -58,20 +58,20 @@ SQM_to_phyloseq = function(SQM, features = 'genus', count = 'abund', md = NULL, 
                            ignore_unclassified = FALSE, ignore_unmapped = FALSE,
                            bin_tax_source = 'SQM', include_seqs = FALSE)
     {
-    if(!require(phyloseq)) { stop('The `phyloseq` package must be installed in order to use this function') }
+    if(!requireNamespace("phyloseq")) { stop('The `phyloseq` package must be installed in order to use this function') }
     # We let argument checking be done by prepare_export_tables
     res = prepare_export_tables(SQM, features, count,
                                 nocds, no_partial_classifications, ignore_unclassified, ignore_unmapped,
                                 bin_tax_source, include_seqs)
-    ps = phyloseq(otu_table(res[['counts']], taxa_are_rows = TRUE))
+    ps = phyloseq::phyloseq(phyloseq::otu_table(res[['counts']], taxa_are_rows = TRUE))
     if(!is.null(res[['tax' ]]))
         {
-        tt = tax_table(as.matrix(res[['tax']]))
+        tt = phyloseq::tax_table(as.matrix(res[['tax']]))
         rownames(tt) = rownames(res[['tax']]) # because phyloseq is dumb
-        ps = merge_phyloseq(ps, tt)
+        ps = phyloseq::merge_phyloseq(ps, tt)
         }
-    if(!is.null(res[['seqs']])) { ps = merge_phyloseq(ps, res[['seqs']]          ) }
-    if(!is.null(md)           ) { ps = merge_phyloseq(ps, sample_data(md)        ) }
+    if(!is.null(res[['seqs']])) { ps = phyloseq::merge_phyloseq(ps, res[['seqs']]          ) }
+    if(!is.null(md)           ) { ps = phyloseq::merge_phyloseq(ps, phyloseq::sample_data(md)        ) }
     return(ps)
     }
 

@@ -48,7 +48,7 @@ exportPathway(
 \item{output_suffix}{character. Suffix to be added to the output files (default \code{"pathview"}).}
 }
 \value{
-A \code{ggplot} if \code{split_samples = FALSE} and the \code{\link{ggpattern}} package is installed, otherwise nothing. Additionally, Pathview figures will be written in the directory specified by \code{output_dir}.
+A \code{ggplot} if \code{split_samples = FALSE} and the  \href{https://CRAN.R-project.org/package=ggpattern}{ggpattern} package is installed, otherwise nothing. Additionally, Pathview figures will be written in the directory specified by \code{output_dir}.
 }
 \description{
 This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \emph{Nucleic acids research}, 45:W501-W508). It will generate annotated KEGG pathway maps showing which reactions are present in the different samples. It will also generate legends with the color scales for each sample in separate png files.

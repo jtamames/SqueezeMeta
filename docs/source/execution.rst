@@ -25,11 +25,11 @@ Arguments
 Basic parameters
 --------------------
 
-[-m <sequential|coassembly|merged|seqmerge>]
+[-m <sequential|coassembly|merged|seqmerge|extassembly|extbins>]
     Mode: See :ref:`Assembly strategy` (REQUIRED)
 
 [-r|-reference <path>]
-    Path to a fasta file with contigs (if ``-m extassembly``) or to a directory containing external genomes/bins (one fasta file per genome/bin, if ``-m extbins``) (REQUIRED,- if ``-m extassembly`` or ``-m extbins``)
+    Path to a fasta file with contigs (if ``-m extassembly``) or to a directory containing external genomes/bins (one fasta file per genome/bin, if ``-m extbins``) (REQUIRED, if ``-m extassembly`` or ``-m extbins``)
 
 [-s|-samples <path>]
     Samples file, see :ref:`Samples file` (REQUIRED)
@@ -40,7 +40,7 @@ Basic parameters
 Output
 ------
 
-[-p <string>]
+[-p <path>]
     Output path, the basename will be used as the project name (default: ``SQM``)
 
 Restarting

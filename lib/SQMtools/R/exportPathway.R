@@ -1,3 +1,4 @@
+require(ggplot2)
 #' Export the functions of a SQM object into KEGG pathway maps
 #'
 #' This function is a wrapper for the pathview package (Luo \emph{et al.}, 2017. \emph{Nucleic acids research}, 45:W501-W508). It will generate annotated KEGG pathway maps showing which reactions are present in the different samples. It will also generate legends with the color scales for each sample in separate png files. 
@@ -15,7 +16,7 @@
 #' @param color_bins numeric. Number of bins used to generate the gradient in the color scale (default \code{10}).
 #' @param output_suffix character. Suffix to be added to the output files (default \code{"pathview"}).
 #' @param output_dir character. Directory in which to write the output files (default \code{"."}).
-#' @return A \code{ggplot} if \code{split_samples = FALSE} and the \code{\link{ggpattern}} package is installed, otherwise nothing. Additionally, Pathview figures will be written in the directory specified by \code{output_dir}.
+#' @return A \code{ggplot} if \code{split_samples = FALSE} and the  \href{https://CRAN.R-project.org/package=ggpattern}{ggpattern} package is installed, otherwise nothing. Additionally, Pathview figures will be written in the directory specified by \code{output_dir}.
 #' @seealso \code{\link{plotFunctions}} for plotting the most functions taxa of a SQM object.
 #' @examples
 #' \donttest{
@@ -32,6 +33,7 @@
 #'}
 #' @importFrom graphics plot rasterImage text
 #' @importFrom grDevices colorRampPalette dev.off png
+#' @importFrom utils installed.packages
 #' @export
 exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL, split_samples = FALSE, sample_colors = NULL, log_scale = FALSE, fold_change_groups = NULL, fold_change_colors = NULL, max_scale_value = NULL, color_bins = 10, output_dir = '.', output_suffix = 'pathview')
     {
@@ -215,10 +217,10 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
                 {
                 if(!is.null(names(fold_change_groups))) { group_names = names(fold_change_groups)
                 } else { group_names = c('Group 1', 'Group 2') }
-                scale_color = scale_color_gradient2(high = fold_change_colors[2],
+                scale_color = ggplot2::scale_color_gradient2(high = fold_change_colors[2],
                                                     mid = 'white',
                                                     low = fold_change_colors[1])
-                scale_fill = scale_fill_manual(values = fold_change_colors)
+                scale_fill = ggplot2::scale_fill_manual(values = fold_change_colors)
                 col_lab = sprintf('Log2FC %s', nice_label)
                 imgfile = sprintf('ko%s.%s.png', pathway_id, output_suffix)
             } else
@@ -232,8 +234,8 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
                     imgfile = sprintf('ko%s.%s.multi.png', pathway_id, output_suffix)
                     }
                 if(length(unique(sample_colors))==1) { high = sample_colors[1] } else { high = 'black' }
-                scale_color = scale_color_gradient(high = high, low = 'white')
-                scale_fill = scale_fill_manual(values = sample_colors)
+                scale_color = ggplot2::scale_color_gradient(high = high, low = 'white')
+                scale_fill = ggplot2::scale_fill_manual(values = sample_colors)
                 if(log_scale) { col_lab = sprintf('Log10 %s', nice_label) } else { col_lab = nice_label }
                 }
             # Put the image created by pathview into a ggplot with the right legend
@@ -253,25 +255,30 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
             imgfile_rand = sprintf('%s.png', tempfile())
             file.copy(from=imgfile, to=imgfile_rand)
 
+            val = Group = scale = x = NULL # to appease R CMD check (they are later used by ggplot2's aes in the context of df,
+                                           #  but that syntax bother's R CMD check bc it thinks they are undefined variables)
             # Now do the plot
-            ggp = ggplot(df, aes(x='a', y=val, fill=Group, col = scale)) + 
-                    geom_point() + geom_bar(stat='identity', width=0) +
-                    geom_tile_pattern(data = data.frame(x='a', val=0), mapping = aes(x=x, y=val), fill = 'white',
-                                        inherit.aes = FALSE, pattern='image', pattern_filename=imgfile_rand) +
+            ggp = ggplot2::ggplot(df, ggplot2::aes(x='a', y=val, fill=Group, col = scale)) + 
+                    ggplot2::geom_point() + ggplot2::geom_bar(stat='identity', width=0) +
+                    geom_tile_pattern(data = data.frame(x='a', val=0),
+                                      mapping = ggplot2::aes(x=x, y=val), fill = 'white', inherit.aes = FALSE,
+                                      pattern='image', pattern_filename=imgfile_rand) +
                     scale_color + scale_fill +
                     # Make sure that the legends appear in a consistent order
-                    guides(fill = guide_legend(order = 1)) +
-                    labs(color = col_lab) + 
+                    ggplot2::guides(fill = ggplot2::guide_legend(order = 1)) +
+                    ggplot2::labs(color = col_lab) + 
                     # We would use theme_void() to simplify, but also messes up legend position a bit so we do it manually
-                    theme(axis.line=element_blank(),axis.text.x=element_blank(),
-                          axis.text.y=element_blank(),axis.ticks=element_blank(),
-                          axis.title.x=element_blank(),
-                          axis.title.y=element_blank(),
-                          panel.background=element_blank(),
-                          panel.border=element_blank(),
-                          panel.grid.major=element_blank(),
-                          panel.grid.minor=element_blank(),
-                          plot.background=element_blank())
+                    ggplot2::theme(axis.line        = ggplot2::element_blank(),
+                                   axis.text.x      = ggplot2::element_blank(),
+                                   axis.text.y      = ggplot2::element_blank(),
+                                   axis.ticks       = ggplot2::element_blank(),
+                                   axis.title.x     = ggplot2::element_blank(),
+                                   axis.title.y     = ggplot2::element_blank(),
+                                   panel.background = ggplot2::element_blank(),
+                                   panel.border     = ggplot2::element_blank(),
+                                   panel.grid.major = ggplot2::element_blank(),
+                                   panel.grid.minor = ggplot2::element_blank(),
+                                   plot.background  = ggplot2::element_blank())
         } else
             {
             warning(sprintf('The `ggpattern` and `magick` packages need to be installed in order to produce a ggplot\n
