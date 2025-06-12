@@ -117,7 +117,7 @@ For further clarification, compare the following two assertions:
 
 In addition to this, when generating a subset the completeness and contamination of bins can be recalculated according to only the contigs present in the subset.
 
-The different subset functions have different default behaviour. As a rule of thumb, functions that expect to retrieve whole genomes after subsetting (`subsetTax`, `subsetBins`) will perform renormalization, while functions that retreive arbitrary parts of a genome (`subsetTax`, `subsetContigs`, `subsetORFs`) will recalculate bin statistics.
+The different subset functions have different default behaviour. As a rule of thumb, functions that expect to retrieve whole genomes after subsetting (`subsetTax`, `subsetBins`) will perform TPM and copy number rescaling, while functions that retreive arbitrary parts of a genome (`subsetContigs`, `subsetORFs`) will recalculate bin abundance and statistics.
 
 The default behaviour of each subset function is listed in the table below, but it can be controlled manually through the `rescale_tpm`, `rescale_copy_number` and `recalculate_bin_stats` arguments. 
 
@@ -125,7 +125,7 @@ The default behaviour of each subset function is listed in the table below, but 
 Method           rescale_tpm    rescale_copy_number    recalculate_bin_stats
 =============    ===========    ===================    =====================
 subsetSamples    N/A            N/A                    N/A
-subsetTax        TRUE           TRUE                   TRUE
+subsetTax        TRUE           TRUE                   FALSE
 subsetFun        FALSE          FALSE                  FALSE
 subsetBins       TRUE           TRUE                   N/A
 subsetContigs    FALSE          FALSE                  TRUE

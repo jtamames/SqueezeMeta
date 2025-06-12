@@ -6,8 +6,8 @@
 #' @param trusted_functions_only logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).
 #' @param ignore_unclassified_functions logical. If \code{FALSE}, ORFs with no functional classification will be aggregated together into an "Unclassified" category. If \code{TRUE}, they will be ignored (default \code{FALSE}).
 #' @param rescale_tpm logical. If \code{TRUE}, TPMs for KEGGs, COGs, and PFAMs will be recalculated (so that the TPMs in the subset actually add up to 1 million). Otherwise, per-function TPMs will be calculated by aggregating the TPMs of the ORFs annotated with that function, and will thus keep the scaling present in the parent object (default \code{TRUE}).
-#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the RecA/RadA coverages in the subset. Otherwise, RecA/RadA coverages will be taken from the parent object with the highest RecA/RadA coverages. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected bins or contigs}. If any SQM objects that are being combined contain a functional subset rather than a contig/bins subset, this parameter should be set to \code{FALSE}.
-#' @param recalculate_bin_stats logical. If \code{TRUE}, bin stats and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
+#' @param rescale_copy_number logical. If \code{TRUE}, copy numbers with be recalculated using the median single-copy gene coverages in the subset. Otherwise, single-copy gene coverages will be taken from the parent object. By default it is set to \code{TRUE}, which means that the returned copy numbers will represent the average copy number per function \emph{in the genomes of the selected bins or contigs}. If any SQM objects that are being combined contain a functional subset rather than a contig/bins subset, this parameter should be set to \code{FALSE}.
+#' @param recalculate_bin_stats logical. If \code{TRUE}, bin abundance, quality and taxonomy are recalculated based on the contigs present in the subsetted object (default \code{TRUE}).
 #' @return A SQM or SQMbunch object
 #' @seealso \code{\link{subsetFun}}, \code{\link{subsetTax}}, \code{\link{combineSQMlite}}
 #' @examples
@@ -122,7 +122,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
 	### Bins
         if(recalculate_bin_stats & (!('tax16S' %in% names(combSQM$orfs)) & 'markers' %in% names(combSQM$orfs)))
             {
-            warning('You requested to recalculate bin stats but 16S or marker gene info are missing. Will not recalculate bin stats')
+            warning('You requested to recalculate bin stats but 16S or marker gene info are missing. Will not recalculate completeness/contamination')
             }
 	# Table and Taxonomy
         extraBins                     = setdiff(rownames(SQM2$bins$table), rownames(SQM1$bins$table))
@@ -138,20 +138,31 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
             combSQM$bins$tax          = rbind(combSQM$bins$tax, SQM2$bins$tax[extraBins,,drop=FALSE])
             combSQM$bins$tax          = combSQM$bins$tax[rownames(combSQM$bins$table),,drop=FALSE]
             }
+        # Abundances
+        if(recalculate_bin_stats)
+            {
+            bin_abunds                = get.bin.abunds(combSQM)
+            combSQM$bins$abund        = bin_abunds[['abund']]
+            combSQM$bins$percent      = bin_abunds[['percent']]
+            combSQM$bins$bases        = bin_abunds[['bases']]
+            combSQM$bins$length       = bin_abunds[['length']]
+            combSQM$bins$cov          = bin_abunds[['cov']]
+            combSQM$bins$cpm          = bin_abunds[['cpm']]
+        } else
+            {
+            combSQM$bins$abund        = rbind(combSQM$bins$abund,   SQM2$bins$abund  [extraBins,,drop=FALSE])
+            combSQM$bins$percent      = rbind(combSQM$bins$percent, SQM2$bins$percent[extraBins,,drop=FALSE])
+            combSQM$bins$bases        = rbind(combSQM$bins$bases,   SQM2$bins$bases  [extraBins,,drop=FALSE])
+            combSQM$bins$length       = c    (combSQM$bins$length,  SQM2$bins$length [extraBins            ])
+            combSQM$bins$cov          = rbind(combSQM$bins$cov,     SQM2$bins$cov    [extraBins,,drop=FALSE])
+            combSQM$bins$cpm          = rbind(combSQM$bins$cpm,     SQM2$bins$cpm    [extraBins,,drop=FALSE])
+            }
+        # GTDB-tax
         if(!is.null(SQM1$bins$tax_gtdb) | !is.null(SQM2$bins$tax_gtdb))
             {
             combSQM$bins$tax_gtdb     = rbind(combSQM$bins$tax_gtdb, SQM2$bins$tax_gtdb[extraBins,,drop=FALSE])
             combSQM$bins$tax_gtdb     = combSQM$bins$tax_gtdb[rownames(combSQM$bins$table),,drop=FALSE]
             }
-        # Abundances
-        bin_abunds                    = get.bin.abunds(combSQM)
-        combSQM$bins$abund            = bin_abunds[['abund']]
-        combSQM$bins$percent          = bin_abunds[['percent']]
-        combSQM$bins$bases            = bin_abunds[['bases']]
-        combSQM$bins$length           = bin_abunds[['length']]
-        combSQM$bins$cov              = bin_abunds[['cov']]
-        combSQM$bins$cpm              = bin_abunds[['cpm']]
-
         }
 
     ### Taxonomy   
@@ -229,21 +240,32 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
             {
             combSQM$functions[[method]]$tpm = ext_annots[[method]]$tpm
             }
-    }
-
+        }
+    
     ### COPY NUMBERS
-    combSQM$misc$single_copy_cov = get_median_single_copy_cov(combSQM)
-
-    if(any(is.na(combSQM$misc$single_copy_cov)) | rescale_copy_number) # use the largest and hope for the best
+    if(has_copy_numbers(SQM1) | has_copy_numbers(SQM2))
         {
-        combSQM$misc$single_copy_cov = pmax(SQM1$misc$single_copy_cov, SQM2$misc$single_copy_cov) 
-        }
-    for(method in names(combSQM$functions))
-        {
-        combSQM$functions[[method]]$copy_number = t(t(combSQM$functions[[method]]$cov) / combSQM$misc$single_copy_cov)
-        }
+        will_rescale_cg = FALSE
+        if(rescale_copy_number)
+            {
+            scg = get_median_single_copy_cov(combSQM) # this will emit a warning and return NA if we can't reliably calculate single copy gene coverage
+            if(!any(is.na(scg))) # we want to rescale AND can get get single copy coverage in all samples
+                {
+                will_rescale_cg = TRUE
+                combSQM$misc$single_copy_cov = scg
+                }
+            }
+        if(!will_rescale_cg)
+            {
+            warning('    Single copy gene coverage will not be recalculated. Instead, we will use the highest values present in the input objects')
+            combSQM$misc$single_copy_cov = pmax(SQM1$misc$single_copy_cov, SQM2$misc$single_copy_cov)
+            }
 
+        for(method in names(combSQM$functions))
+            {
+            combSQM$functions[[method]]$copy_number = t(t(combSQM$functions[[method]]$cov) / combSQM$misc$single_copy_cov)
+            }
+        }
     return(combSQM)
     }
-
 

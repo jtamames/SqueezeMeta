@@ -625,7 +625,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', trusted_functions_onl
         }
 
     ### COPY NUMBERS
-    SQM$misc$single_copy_cov = get_median_single_copy_cov(SQM)
+    SQM$misc$single_copy_cov = get_median_single_copy_cov(SQM) # this will emit a warning and return NA if we can't reliably calculate single copy gene coverage
     
     if(!any(is.na(SQM$misc$single_copy_cov)))
         {

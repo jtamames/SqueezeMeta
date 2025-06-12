@@ -31,7 +31,7 @@ subsetTax
         ignore_unclassified_functions = FALSE,
         rescale_tpm = TRUE,
         rescale_copy_number = TRUE,
-        recalculate_bin_stats = TRUE,
+        recalculate_bin_stats = FALSE,
         allow_empty = FALSE
       )
 
@@ -85,8 +85,9 @@ subsetTax
    +----------------------------------+----------------------------------+
    | ``rescale_copy_number``          | logical. If ``TRUE``, copy       |
    |                                  | numbers with be recalculated     |
-   |                                  | using the RecA/RadA coverages in |
-   |                                  | the subset. Otherwise, RecA/RadA |
+   |                                  | using the median single-copy     |
+   |                                  | gene coverages in the subset.    |
+   |                                  | Otherwise, single-copy gene      |
    |                                  | coverages will be taken from the |
    |                                  | parent object. By default it is  |
    |                                  | set to ``TRUE``, which means     |
@@ -96,11 +97,11 @@ subsetTax
    |                                  | function *per genome of the      |
    |                                  | selected taxon*.                 |
    +----------------------------------+----------------------------------+
-   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin stats  |
-   |                                  | and taxonomy are recalculated    |
-   |                                  | based on the contigs present in  |
-   |                                  | the subsetted object (default    |
-   |                                  | ``TRUE``).                       |
+   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin        |
+   |                                  | abundance, quality and taxonomy  |
+   |                                  | are recalculated based on the    |
+   |                                  | contigs present in the subsetted |
+   |                                  | object (default ``TRUE``).       |
    +----------------------------------+----------------------------------+
    | ``allow_empty``                  | (internal use only).             |
    +----------------------------------+----------------------------------+

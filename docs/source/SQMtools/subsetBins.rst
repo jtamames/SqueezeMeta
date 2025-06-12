@@ -76,8 +76,9 @@ subsetBins
    +----------------------------------+----------------------------------+
    | ``rescale_copy_number``          | logical. If ``TRUE``, copy       |
    |                                  | numbers with be recalculated     |
-   |                                  | using the RecA/RadA coverages in |
-   |                                  | the subset. Otherwise, RecA/RadA |
+   |                                  | using the median single-copy     |
+   |                                  | gene coverages in the subset.    |
+   |                                  | Otherwise, single-copy gene      |
    |                                  | coverages will be taken from the |
    |                                  | parent object. By default it is  |
    |                                  | set to ``TRUE``, which means     |
@@ -85,7 +86,7 @@ subsetBins
    |                                  | for each function will represent |
    |                                  | the average copy number of that  |
    |                                  | function *per genome of the      |
-   |                                  | selected bins*.                  |
+   |                                  | selected taxon*.                 |
    +----------------------------------+----------------------------------+
    | ``allow_empty``                  | (internal use only).             |
    +----------------------------------+----------------------------------+

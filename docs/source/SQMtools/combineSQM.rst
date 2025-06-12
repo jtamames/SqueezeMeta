@@ -89,28 +89,28 @@ combineSQM
    +----------------------------------+----------------------------------+
    | ``rescale_copy_number``          | logical. If ``TRUE``, copy       |
    |                                  | numbers with be recalculated     |
-   |                                  | using the RecA/RadA coverages in |
-   |                                  | the subset. Otherwise, RecA/RadA |
+   |                                  | using the median single-copy     |
+   |                                  | gene coverages in the subset.    |
+   |                                  | Otherwise, single-copy gene      |
    |                                  | coverages will be taken from the |
-   |                                  | parent object with the highest   |
-   |                                  | RecA/RadA coverages. By default  |
-   |                                  | it is set to ``TRUE``, which     |
-   |                                  | means that the returned copy     |
-   |                                  | numbers will represent the       |
-   |                                  | average copy number per function |
-   |                                  | *in the genomes of the selected  |
-   |                                  | bins or contigs*. If any SQM     |
-   |                                  | objects that are being combined  |
-   |                                  | contain a functional subset      |
-   |                                  | rather than a contig/bins        |
-   |                                  | subset, this parameter should be |
-   |                                  | set to ``FALSE``.                |
+   |                                  | parent object. By default it is  |
+   |                                  | set to ``TRUE``, which means     |
+   |                                  | that the returned copy numbers   |
+   |                                  | will represent the average copy  |
+   |                                  | number per function *in the      |
+   |                                  | genomes of the selected bins or  |
+   |                                  | contigs*. If any SQM objects     |
+   |                                  | that are being combined contain  |
+   |                                  | a functional subset rather than  |
+   |                                  | a contig/bins subset, this       |
+   |                                  | parameter should be set to       |
+   |                                  | ``FALSE``.                       |
    +----------------------------------+----------------------------------+
-   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin stats  |
-   |                                  | and taxonomy are recalculated    |
-   |                                  | based on the contigs present in  |
-   |                                  | the subsetted object (default    |
-   |                                  | ``TRUE``).                       |
+   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin        |
+   |                                  | abundance, quality and taxonomy  |
+   |                                  | are recalculated based on the    |
+   |                                  | contigs present in the subsetted |
+   |                                  | object (default ``TRUE``).       |
    +----------------------------------+----------------------------------+
 
    .. rubric:: Value

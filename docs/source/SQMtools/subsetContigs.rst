@@ -73,8 +73,9 @@ subsetContigs
    +----------------------------------+----------------------------------+
    | ``rescale_copy_number``          | logical. If ``TRUE``, copy       |
    |                                  | numbers with be recalculated     |
-   |                                  | using the RecA/RadA coverages in |
-   |                                  | the subset. Otherwise, RecA/RadA |
+   |                                  | using the median single-copy     |
+   |                                  | gene coverages in the subset.    |
+   |                                  | Otherwise, single-copy gene      |
    |                                  | coverages will be taken from the |
    |                                  | parent object. By default it is  |
    |                                  | set to ``FALSE``, which means    |
@@ -84,11 +85,11 @@ subsetContigs
    |                                  | function per genome in the       |
    |                                  | parent object.                   |
    +----------------------------------+----------------------------------+
-   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin stats  |
-   |                                  | and taxonomy are recalculated    |
-   |                                  | based on the contigs present in  |
-   |                                  | the subsetted object (default    |
-   |                                  | ``TRUE``).                       |
+   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin        |
+   |                                  | abundance, quality and taxonomy  |
+   |                                  | are recalculated based on the    |
+   |                                  | contigs present in the subsetted |
+   |                                  | object (default ``TRUE``).       |
    +----------------------------------+----------------------------------+
    | ``allow_empty``                  | (internal use only).             |
    +----------------------------------+----------------------------------+

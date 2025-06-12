@@ -61,3 +61,17 @@ get_median_single_copy_cov = function(SQM)
     return(cov)
     }
 
+
+has_copy_numbers = function(SQM)
+    {
+    has_copy_numbers = FALSE
+    for(method in names(SQM$functions))
+        {
+        if(!is.null(SQM$functions[[method]]$copy_number))
+            {
+            has_copy_numbers = TRUE
+            break
+            }
+        }
+    return(has_copy_numbers)
+    }
