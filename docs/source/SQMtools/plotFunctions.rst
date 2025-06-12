@@ -56,11 +56,12 @@ plotFunctions
    |                            | counts, ``"cpm"`` for coverages per    |
    |                            | million reads, ``"tpm"`` for TPM       |
    |                            | normalized values or ``"copy_number"`` |
-   |                            | for copy numbers (default ``"tpm"``).  |
-   |                            | Note that a given count type might not |
-   |                            | available in this object (e.g. TPM or  |
-   |                            | copy number in SQMlite objects         |
-   |                            | originating from a SQM reads project). |
+   |                            | for copy numbers (default              |
+   |                            | ``"copy_number"``). Note that a given  |
+   |                            | count type might not available in this |
+   |                            | object (e.g. TPM or copy number in     |
+   |                            | SQMlite objects originating from a SQM |
+   |                            | reads project).                        |
    +----------------------------+----------------------------------------+
    | ``N``                      | integer Plot the ``N`` most abundant   |
    |                            | functions (default ``25``).            |

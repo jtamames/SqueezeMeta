@@ -16,6 +16,7 @@ exportPathway(
   fold_change_colors = NULL,
   max_scale_value = NULL,
   color_bins = 10,
+  rescale_percent = FALSE,
   output_dir = ".",
   output_suffix = "pathview"
 )
@@ -42,6 +43,8 @@ exportPathway(
 \item{max_scale_value}{numeric. Maximum value to include in the color scale. By default it is the maximum value in the selected samples (if plotting abundances in samples) or the maximum absolute log2 fold-change (if plotting fold changes) (default \code{NULL}).}
 
 \item{color_bins}{numeric. Number of bins used to generate the gradient in the color scale (default \code{10}).}
+
+\item{rescale_percent}{logical. Calculate percent counts over the number of reads in the input object, instead of over the total number of reads in the original project (default \code{FALSE}).}
 
 \item{output_dir}{character. Directory in which to write the output files (default \code{"."}).}
 

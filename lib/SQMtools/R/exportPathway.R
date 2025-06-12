@@ -14,6 +14,7 @@ require(ggplot2)
 #' @param fold_change_colors character. An optional vector with the plotting colors of both groups in the fold-change plot. Will be ignored if \code{fold_change_group} is not provided. 
 #' @param max_scale_value numeric. Maximum value to include in the color scale. By default it is the maximum value in the selected samples (if plotting abundances in samples) or the maximum absolute log2 fold-change (if plotting fold changes) (default \code{NULL}).
 #' @param color_bins numeric. Number of bins used to generate the gradient in the color scale (default \code{10}).
+#' @param rescale_percent logical. Calculate percent counts over the number of reads in the input object, instead of over the total number of reads in the original project (default \code{FALSE}).
 #' @param output_suffix character. Suffix to be added to the output files (default \code{"pathview"}).
 #' @param output_dir character. Directory in which to write the output files (default \code{"."}).
 #' @return A \code{ggplot} if \code{split_samples = FALSE} and the  \href{https://CRAN.R-project.org/package=ggpattern}{ggpattern} package is installed, otherwise nothing. Additionally, Pathview figures will be written in the directory specified by \code{output_dir}.
@@ -35,11 +36,11 @@ require(ggplot2)
 #' @importFrom grDevices colorRampPalette dev.off png
 #' @importFrom utils installed.packages
 #' @export
-exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL, split_samples = FALSE, sample_colors = NULL, log_scale = FALSE, fold_change_groups = NULL, fold_change_colors = NULL, max_scale_value = NULL, color_bins = 10, output_dir = '.', output_suffix = 'pathview')
+exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL, split_samples = FALSE, sample_colors = NULL, log_scale = FALSE, fold_change_groups = NULL, fold_change_colors = NULL, max_scale_value = NULL, color_bins = 10, rescale_percent = FALSE, output_dir = '.', output_suffix = 'pathview')
     {
     ### Check params.
     if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM or a SQMlite object') }
-    if(!count %in% names(SQM$functions$KEGG)) # We could also add custom counts here by assigning e.g. a CLR matrix to
+    if(!count %in% c(names(SQM$functions$KEGG), 'percent')) # We could also add custom counts here by assigning e.g. a CLR matrix to
         {                                     #  SQM$functions$KEGG$clr
         stop('count must be "abund", "percent", "bases", "tpm" or "copy_number"')
         }
@@ -77,9 +78,21 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
     #if(count %in% c('percent', 'copy_number')) { pseudocount = 0.001 } else { pseudocount = 1 }
     if(!count %in% c('abund', 'bases')) { pseudocount = 0.001 } else { pseudocount = 1 }
     ### Select data matrix.
-    if(count=='percent') { mat = 100 * t(t(SQM$functions$KEGG$abund) / colSums(SQM$functions$KEGG$abund))
-    } else { mat = SQM$functions$KEGG[[count]] }
-
+    if(count == 'percent')
+        {
+	if(rescale_percent)
+            {
+            total_counts = colSums(SQM$functions$KEGG$abund)
+        } else
+            {
+            total_counts = SQM$total_reads
+            }
+        mat = 100 * t(t(SQM$functions$KEGG$abund) / total_counts)
+	mat[is.na(mat)] = 0 # the line above will generate NAs if some sample has 0 total counts (can happen if this is a subset)
+    } else
+        {
+        mat = SQM$functions$KEGG[[count]]
+        }
     ### Do stuff.
     if(!is.null(samples)) { mat = mat[,samples,drop=FALSE] }
 
