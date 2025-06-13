@@ -1,0 +1,6 @@
+conda-activate r-devtools 
+mamba update -c conda-forge --update-all
+R -e "devtools::document('SQMtools')"
+R CMD build --resave-data=best SQMtools/
+R CMD check --as-cran SQMtools_*.tar.gz
+rm -r SQMtools.Rcheck/
