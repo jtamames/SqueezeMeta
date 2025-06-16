@@ -6,7 +6,7 @@ project = 'SqueezeMeta'
 copyright = '2018, Javier Tamames & Fernando Puente-Sánchez'
 author = 'Javier Tamames & Fernando Puente-Sánchez'
 
-version = '1.7.0'
+version = open('../../VERSION').read().split(',')[0]
 release = version
 
 # -- General configuration
