@@ -145,7 +145,7 @@ prepare_export_tables = function(SQM, features, count,
         if(!'Unclassified' %in% rownames(counts))
             {
             # Create from scratch
-            counts['Unclassified',] = counts['No CDS',,drop=FALSE]
+            counts = rbind(counts, Unclassified = counts['No CDS',,drop=FALSE])
         } else
             {
             # Or add Unclassified and No CDS
@@ -164,7 +164,7 @@ prepare_export_tables = function(SQM, features, count,
         partials_abund = colSums(counts[partials,,drop=FALSE])
         if(!'Unclassified' %in% rownames(counts))
             {
-            counts['Unclassified',] = partials_abund
+            counts = rbind(counts, Unclassified = partials_abund)
         } else 
             {
             counts['Unclassified',] = counts['Unclassified',,drop=FALSE] + partials_abund
