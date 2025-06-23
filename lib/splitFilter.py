@@ -206,7 +206,7 @@ class SplitFilter():
                 if len(ops) != 1:
                     raise Exception('Either none or more than one relational operators in expression "{}"'.format(expr))
                 op = ops[0]
-                subject, value = [x.strip() for x in expr.split(op)]
+                subject, value = [x.strip() for x in expr.rsplit(op,1)]
                 if subject not in self.ALL_KEYWORDS:
                     raise Exception('Unknown keyword "{}" in expression "{}"'.format(subject, expr))
                 assert subject in self.ALL_KEYWORDS
