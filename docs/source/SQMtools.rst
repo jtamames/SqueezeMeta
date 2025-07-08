@@ -60,10 +60,12 @@ The SQMbunch object structure
 -----------------------------
 A *SQMbunch* object contains all the relevant information for several SqueezeMeta projects. It has a similar structure to a :ref:`SQM object <SQM object>`, but it lacks the ``orfs``, ``contigs`` and ``bins`` sections. Instead, it has a separate list named ``projects``, which contains individual *SQM* objects for each of the projects that were loaded.
 
+*SQMbunch* objects are meant to work with individual projects as if they were a single one, for the purpose of subsetting and visualization of aggregated taxonomic and functional profiles. This differs from working with a single co-assembly (or merged/seqmerge project) in that assemblies from different projects are not de-replicated, and instead each project contains its own set of potentially redundant contigs, ORFs and bins. For this reason, *SQMbunch* objects do not support subsetting based on orfs, contigs and bins, or plotting bin abundance profiles.
+
 .. _SQMlite object:
 The SQMlite object structure
 ----------------------------
-A *SQMlite* object contains aggregated taxonomic and functional tables. It has a similar structure to a :ref:`SQM object <SQM object>`, but it lacks the ``orfs``, ``contigs`` and ``bins`` sections.
+A *SQMlite* object contains aggregated taxonomic and functional tables. It has a similar structure to a :ref:`SQM object <SQM object>`, but it lacks the ``orfs``, ``contigs`` and ``bins`` sections. They do not support any kind of subsetting, although the :ref:`sqmreads2tables.py` script can be used beforehand with a custom query to generate a set of tables covering only certain taxa or functions.
 
 .. _SQMtools subset:
 Creating subsets of your data
@@ -153,7 +155,6 @@ Creating plots and exporting data
 
 - :doc:`SQMtools/plotTaxonomy`
 - :doc:`SQMtools/plotFunctions`
-- :doc:`SQMtools/plotBins`
 - :doc:`SQMtools/exportKrona`
 - :doc:`SQMtools/exportPathway`
 
@@ -162,6 +163,10 @@ The following functions work for *SQM* and *SQMbunch* objects only:
 - :doc:`SQMtools/exportORFs`
 - :doc:`SQMtools/exportContigs`
 - :doc:`SQMtools/exportBins`
+
+The following functions work for *SQM* objects only:
+
+- :doc:`SQMtools/plotBins`
 
 The following functions work with arbitrary tables/matrices:
 

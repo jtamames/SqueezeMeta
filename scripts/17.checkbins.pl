@@ -68,7 +68,7 @@ my $ecode = system $command;
 if($ecode!=0) { die "Error running command:    $command"; }
 
 if(!$nomarkers) {
-	print "\n  Extracting marker genes from  bins with CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n\n";
+	print "\n  Extracting marker genes from bins with CheckM (Parks et al 2015, Genome Res 25, 1043-55)\n\n";
 	$command = "$checkm_soft taxonomy_wf life Prokaryote $binresultsdir $markerdir -t $numthreads -x fa >> $syslogfile 2>&1";
 	print outsyslog "$command\n";
 	my $ecode = system $command;
