@@ -468,7 +468,11 @@ sub sqm_counter {
 	# Thread/children cleanup.
 	if($use_fork) {
 		for(my $thread=1; $thread<=$numthreads_counter; $thread++) {
-			my $finished = wait(); # wait till all the children have stopped
+			# As a side effect, wait will set up the error status of the child in the variable "$?"
+			my $child_pid = wait(); # wait till all the children have stopped
+                        if    ( $? == -1  ) { die "wait failed: $!\n"; }
+                        elsif ( $? & 0x7F ) { die "Child $child_pid killed by signal ".( $? & 0x7F )."\n"; }
+                        elsif ( $? >> 8   ) { die "Child $child_pid exited with error ".( $? >> 8 )."\n"; }
 			}
 		}
 	else { $_->join() for threads->list(); }
