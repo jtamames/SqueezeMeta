@@ -65,7 +65,7 @@ A *SQMbunch* object contains all the relevant information for several SqueezeMet
 .. _SQMlite object:
 The SQMlite object structure
 ----------------------------
-A *SQMlite* object contains aggregated taxonomic and functional tables. It has a similar structure to a :ref:`SQM object <SQM object>`, but it lacks the ``orfs``, ``contigs`` and ``bins`` sections. They do not support any kind of subsetting, although the :ref:`sqmreads2tables.py` script can be used beforehand with a custom query to generate a set of tables covering only certain taxa or functions.
+A *SQMlite* object contains aggregated taxonomic and functional tables. It has a similar structure to a :ref:`SQM object <SQM object>`, but it lacks the ``orfs``, ``contigs`` and ``bins`` sections. They do not support any kind of subsetting, although the :ref:`sqmreads2tables.py <sqmreads2tables>` script can be used beforehand with a custom query to generate a set of tables covering only certain taxa or functions.
 
 .. _SQMtools subset:
 Creating subsets of your data
@@ -105,7 +105,7 @@ Data renormalization on subsetting
 
 When generating a subset, the TPM and copy number of functions can be rescaled so it becomes relative to the reads included in the subset, instead of to the reads included in the original object.
 
-For example, upon loading a project into *SQMtools*, the copy number of each function represents the average number of copies of that function per genome in the whole community. If we then run `subsetTax` to select the contigs belonging to a taxa of interest, the copy numbers in the subsetted object will have a different interpretation depending on whether we rescale or not.
+For example, upon loading a project into *SQMtools*, the copy number of each function represents the average number of copies of that function per genome in the whole community. If we then run :doc:`SQMtools/subsetTax` to select the contigs belonging to a taxa of interest, the copy numbers in the subsetted object will have a different interpretation depending on whether we rescale or not.
 
 - **If no rescaling is performed**, the copy numbers in the subset will represent the average number of copies of each function in the full metagenome **that were coming from the taxa of interest**
 
@@ -119,9 +119,9 @@ For further clarification, compare the following two assertions:
 
 In addition to this, when generating a subset the completeness and contamination of bins can be recalculated according to only the contigs present in the subset.
 
-The different subset functions have different default behaviour. As a rule of thumb, functions that expect to retrieve whole genomes after subsetting (`subsetTax`, `subsetBins`) will perform TPM and copy number rescaling, while functions that retreive arbitrary parts of a genome (`subsetContigs`, `subsetORFs`) will recalculate bin abundance and statistics.
+The different subset functions have different default behaviour. As a rule of thumb, functions that expect to retrieve whole genomes after subsetting (:doc:`SQMtools/subsetTax`, :doc:`SQMtools/subsetBins`) will perform TPM and copy number rescaling, while functions that retreive arbitrary parts of a genome (:doc:`SQMtools/subsetContigs`, :doc:`SQMtools/subsetORFs`) will recalculate bin abundance and statistics.
 
-The default behaviour of each subset function is listed in the table below, but it can be controlled manually through the `rescale_tpm`, `rescale_copy_number` and `recalculate_bin_stats` arguments. 
+The default behaviour of each subset function is listed in the table below, but it can be controlled manually through the *rescale_tpm*, *rescale_copy_number* and *recalculate_bin_stats* arguments. 
 
 =============    ===========    ===================    =====================
 Method           rescale_tpm    rescale_copy_number    recalculate_bin_stats

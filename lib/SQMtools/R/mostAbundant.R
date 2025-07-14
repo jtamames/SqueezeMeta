@@ -32,11 +32,11 @@ mostAbundant = function(data, N = 10, items = NULL, others = FALSE, rescale = FA
 
     if(!is.null(items))  # User selects custom data.
         {
-        # Check that items selection is possible and user have not ask for unknown things!
-        if(any(!items %in% rownames(data)))
+        # Check that items selection is possible and user have not asked for unknown things!
+        if(bycol) { s = 'columns'; tgt = colnames(data) } else { s = 'rows'; tgt = rownames(data) }
+        if(any(!items %in% tgt))
             {
-            if(bycol) { s = 'columns' } else { s = 'rows' }
-            stop(sprintf('At least one of your custom items is not in the rows'))
+            stop(sprintf('At least one of your custom items is not in the %s', s))
             }
         } else
         {
