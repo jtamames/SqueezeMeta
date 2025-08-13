@@ -360,7 +360,7 @@ foreach my $thissample(keys %allsamples) {
 
 	my $totalreads=contigcov(\%lencontig,$thissample,$bamfile);
 	
-	system("rm $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
+	system("rm -f $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
 
 	#-- And then we call the counting
 	
