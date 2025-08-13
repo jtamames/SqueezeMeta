@@ -215,5 +215,11 @@ get_counts = function(SQMlist, features, count)
                     )
             )
         }
-    return(SQMlist[[count]])
+    counts = SQMlist[[count]]
+    if(counts %in% c('abund', 'bases'))
+        {
+        # Some may not be integers (if dealing with multi-function KEGG/COG), so force rounding
+        counts = round(counts)
+        }
+    return(counts)
     }
