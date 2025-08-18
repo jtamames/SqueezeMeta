@@ -266,7 +266,7 @@ else {
 	if(!$mode)      { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged, extassembly, extbins)\n"; }
 	if($mode!~/sequential|coassembly|merged|seqmerge|extassembly|extbins/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are `sequential`, `coassembly`, `merged`, `seqmerge`, `extassembly` and `extbins`\n"; }
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are `bowtie`, `bwa`, `minimap2-ont`, `minimap2-pb` or `minimap2-sr`\n"; }
-	if($newtaxdb) { if(-e "$newtaxdb.dmnd") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
+	if($newtaxdb) { if(-e "$newtaxdb") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
 	if($extassembly && $extbins) { $dietext.="`-extassembly` and `-extbins` can not be provided at the same time\n"; }
         if($nobins and $onlybins)    { $dietext.="`--nobins` and `--onlybins` can not be provided at the same time\n"; }
 	if($rawfastq=~/^\//) {} else { $rawfastq=abs_path($rawfastq); }

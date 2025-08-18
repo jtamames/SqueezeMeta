@@ -6,22 +6,7 @@ Advanced annotation
 Using a user-supplied database for taxonomic annotation
 =======================================================
 
-This feature was included in version 1.7 of SqueezeMeta. Instead of using the default GenBank nr databases, the user can provide a custom database for taxonomic annotation. This database must be provide as a fasta file, with the only requirement of being compliant with GenBank taxonomy and headers. That is, the sequence headers  must follow this format:
-
-::
-
- >MBO6898974.1 [Shimia sp.] [Rhodobacteraceae bacterium]
-
-Specifying the taxa between brackets, following an (arbitrary) accession number. As in the example above, any number of taxa can be given to each of the sequences (for instance, if the database is the result of clustering a bigger database, each of the (clustered) sequences can belong to several taxa, corresponding to the members of the cluster).
-
-The script make_custom_taxdb.pl must be used to format this database for usage with SqueezeMeta, as follows:
-
-::
-
- make_custom_taxdb.pl <directory_for_new_database> <db_fasta_file>
-
-Then, the directory containing the new database must be specified to SqueezeMeta.pl using the ``-db`` option. This will produce taxonomic annotations using the new database.
-
+Currently, we support using a subset of NCBI's nr database (e.g. obtained after clustering it with DIAMOND)
 
 .. _Using external function database:
 Using external databases for functional annotation
