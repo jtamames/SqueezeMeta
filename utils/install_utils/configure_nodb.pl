@@ -60,6 +60,9 @@ open(outfile2, ">$installpath/lib/checkm2/version/diamond_path.json") || die;
 print outfile2 $checkm2_dmnd_path;
 close outfile2;
 
+# We used to create the checkm2 manifest manually, but now we let the checkm2 from the environment do it directly
+system "checkm2 database --setdblocation $databasedir/uniref100.KO.1.dmnd";
+
 open(outfile3,">$installpath/scripts/SqueezeMeta_conf.pl") || die;
 open(infile1, "$installpath/scripts/SqueezeMeta_conf_original.pl") || die;
 while(<infile1>) {
