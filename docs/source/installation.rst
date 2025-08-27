@@ -94,7 +94,7 @@ disk space during the building process.
 Two directories will be generated after running either
 ``make_databases.pl`` or ``download_databases.pl``.
 
-- ``/download/path/db``, which contains the actua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l databases.
+- ``/download/path/db``, which contains the actual databases.
 - ``/download/path/test``, which contains data for a test run of SqueezeMeta.
 
 If the SqueezeMeta databases are already built in another location in
