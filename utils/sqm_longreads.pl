@@ -49,7 +49,7 @@ do "$scriptdir/parameters.pl";
 #-- Configuration variables from conf file
 our($databasepath);
 
-my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$nopartialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$fastnr,$euknofilter,$methodsfile,$evaluetax4,$minidentax4);
+my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$nopartialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$evaluetax4,$minidentax4);
 
 my $helpshort="Usage: SQM_longreads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -65,6 +65,7 @@ Arguments:
    
  Options:
    --fastnr: Run DIAMOND in --fast mode for taxonomic assignment (Default: no)
+   --fasternr: Run DIAMOND in --faster mode for taxonomic assignment (Default: no)
    --nocog: Skip COG assignment (Default: no)
    --nokegg: Skip KEGG assignment (Default: no)
    --nodiamond: Skip Diamond runs, assuming that you already did it (Default: no)
@@ -89,6 +90,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "e|evalue=f" => \$evalue,   
 		     "i|miniden=f" => \$miniden,
 		     "fastnr" => \$fastnr,
+		     "fasternr" => \$fasternr,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nodiamond" => \$nodiamond,   
@@ -928,7 +930,7 @@ sub run_blastx {
 	my $blastxout=shift;
 	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	my $blastx_command="$diamond_soft blastx -q $queryfile -p $numthreads -d $nr_db -f tab -F 15 --quiet --range-culling -b $blocksize -e $evalue --id $miniden --top 10 -o $blastxout -f 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen";	
-	if($fastnr) { $blastx_command .= " --fast"; }
+	if($fasternr) { $blastx_command .= " --faster "; } elsif($fastnr) { $blastx_command .= " --fast "; }
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	print "Running Diamond Blastx: $blastx_command**\n" if $verbose;

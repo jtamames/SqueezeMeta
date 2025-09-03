@@ -44,7 +44,7 @@ close inv;
 
 our $pwd=cwd();
 
-our($nodiamond,$fastnr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
+our($nodiamond,$fastnr,$fasternr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
 our($numsamples,$numthreads,$canumem,$mode,$reference,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$globalranking,$diamond_nr_options,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
 our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile,$nomarkers);
 our(%bindirs,%dasdir,%binscripts,%assemblers);
@@ -105,6 +105,7 @@ Arguments:
    --nokegg: Skip KEGG assignment (Default: no)
    --nopfam: Skip Pfam assignment  (Default: no)
    --fastnr: Run DIAMOND in `--fast` mode for taxonomic assignment (Default: no)
+   --fasternr: Run DIAMOND in `--faster` mode for taxonomic assignment (Default: no)
    --euk: Drop identity filters for eukaryotic annotation (Default: no)
    -consensus <value>: Minimum percentage of genes for a taxon needed for contig consensus (Default: 50)
    --D|--doublepass: First pass looking for genes using gene prediction, second pass using DIAMOND BlastX  (Default: no)
@@ -165,7 +166,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "nocog" => \$nocog,   
 		     "nokegg" => \$nokegg,   
 		     "nopfam" => \$nopfam,
-		     "fastnr" => \$fastnr,  
+		     "fastnr" => \$fastnr,
+                     "fasternr" => \$fasternr, 
 		     "euk" => \$euknofilter,
 		     "protclust" => \$protclust,
 		     "extdb=s" => \$opt_db, 
@@ -215,6 +217,7 @@ if(!$nocog)            { $nocog=0; }
 if(!$nokegg)           { $nokegg=0; }
 if(!$nopfam)           { $nopfam=0; }
 if(!$fastnr)           { $fastnr=0; }
+if(!$fasternr)         { $fasternr=0; }
 if(!$euknofilter)      { $euknofilter=0; }
 if(!$doublepass)       { $doublepass=0; }
 if(!$nobins)           { $nobins=0; }
@@ -344,7 +347,7 @@ my $pdir;
 my %conf=('version',$version,'mode',$mode,'projectname',$projectname,'userdir',$rawfastq,
   'blocksize',$blocksize,'globalranking', $globalranking, 'nodiamond',$nodiamond,'singletons',
    $singletons,'nocog',$nocog,'nokegg',$nokegg, 'diamond_nr_options', $diamond_nr_options,
-  'nopfam',$nopfam,'fastnr',$fastnr,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'nomarkers',$nomarkers,
+  'nopfam',$nopfam,'fastnr',$fastnr,'fasternr',$fasternr,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'nomarkers',$nomarkers,
   'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
   'norename',$norename,'mapper',$mapper,'mapping_options',$mapping_options,'cleaning',$cleaning,
   'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
@@ -940,7 +943,7 @@ sub pipeline {
 
     #-------------------------------- STEP19: Make contig table		
 
-	if(($rpoint<=19) && (!$onlybins) && ((!$test) || ($test>=19))) {
+	if(($rpoint<=19) && ((!$test) || ($test>=19))) {
 		my $wsize=checksize($contigtable);
             	if(($wsize>=2) && (!$force_overwrite)) { print "Contig table in $contigtable already found, skipping step 19\n"; }
 		else {		
@@ -1095,6 +1098,7 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		elsif($_=~/^\$diamond_nr_options/){ print outfile5 "\$diamond_nr_options = \"$conf{diamond_nr_options}\";\n";}
 		elsif($_=~/^\$nodiamond/)       { print outfile5 "\$nodiamond       = $conf{nodiamond};\n";           }
 		elsif($_=~/^\$fastnr/)          { print outfile5 "\$fastnr          = $conf{fastnr};\n";              }
+		elsif($_=~/^\$fasternr/)        { print outfile5 "\$fasternr        = $conf{fasternr};\n";            }
 		elsif($_=~/^\$singletons/)      { print outfile5 "\$singletons      = $conf{singletons};\n";          }
 		elsif($_=~/^\$nocog/)           { print outfile5 "\$nocog           = $conf{nocog};\n";               }
 		elsif($_=~/^\$nokegg/)          { print outfile5 "\$nokegg          = $conf{nokegg};\n";              }

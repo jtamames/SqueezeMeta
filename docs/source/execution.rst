@@ -112,6 +112,9 @@ Annotation
 [-–fastnr]
     Run DIAMOND in ``-–fast`` mode for taxonomic assignment
 
+[-–fasternr]
+    Run DIAMOND in ``-–faster`` mode for taxonomic assignment
+
 [-–euk]
     Drop identity filters for eukaryotic annotation (Default: no). This is recommended for analyses in which the eukaryotic
     population is relevant, as it will yield more annotations.

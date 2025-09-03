@@ -41,6 +41,9 @@ Options
 [-–fastnr]
     Run DIAMOND in ``-–fast`` mode for taxonomic assignment
 
+[-–fasternr]
+    Run DIAMOND in ``-–faster`` mode for taxonomic assignment
+
 [–-nocog]
     Skip COG assignment
 
@@ -144,6 +147,9 @@ Options
 """""""
 [-–fastnr]
     Run DIAMOND in ``-–fast`` mode for taxonomic assignment
+
+[-–fasternr]
+    Run DIAMOND in ``-–faster`` mode for taxonomic assignment
 
 [–-nocog]
     Skip COG assignment
