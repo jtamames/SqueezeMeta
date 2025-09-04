@@ -775,7 +775,7 @@ class MinPath:
 			if os.path.exists(mapfile):
 				file = open(mapfile, "r")
 				for aline in file:
-					m = re.match('^[^\d]+(?P<id>\d+)', aline)
+					m = re.match(r'^[^\d]+(?P<id>\d+)', aline)
 					if m:
 						id = m.group('id')
 						idx = self.pathList.index(id)
