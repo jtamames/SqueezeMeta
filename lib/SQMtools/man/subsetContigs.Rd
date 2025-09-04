@@ -7,6 +7,7 @@
 subsetContigs(
   SQM,
   contigs,
+  tax_source = "contigs",
   trusted_functions_only = FALSE,
   ignore_unclassified_functions = FALSE,
   rescale_tpm = FALSE,
@@ -19,6 +20,8 @@ subsetContigs(
 \item{SQM}{SQM object to be subsetted.}
 
 \item{contigs}{character. Vector of contigs to be selected.}
+
+\item{tax_source}{character, source data used for the taxonomy tables present in \code{SQM$taxa}, either \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy). Default \code{"contigs"}.}
 
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).}
 

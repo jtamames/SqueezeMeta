@@ -8,6 +8,8 @@ mostAbundant(
   data,
   N = 10,
   items = NULL,
+  extra_items = NULL,
+  ignore = NULL,
   others = FALSE,
   rescale = FALSE,
   bycol = FALSE
@@ -18,7 +20,11 @@ mostAbundant(
 
 \item{N}{integer Number of rows to return (default \code{10}).}
 
-\item{items}{Character vector. Custom row names to return. If provided, it will override \code{N} (default \code{NULL}).}
+\item{items}{character vector. Custom row names to return. If provided, it will override \code{N} and \code{extra_items} (default \code{NULL}).}
+
+\item{extra_items}{character vector. Extra row names to return on top of the N most abundant (default \code{NULL})}
+
+\item{ignore}{character. Custom row names to drop before abundance calculation.}
 
 \item{others}{logical. If \code{TRUE}, an extra row will be returned containing the aggregated abundances of the elements not selected with \code{N} or \code{items} (default \code{FALSE}).}
 

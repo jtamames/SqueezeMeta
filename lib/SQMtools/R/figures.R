@@ -288,11 +288,13 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25,
 #' @param rank Taxonomic rank to plot (default \code{phylum}).
 #' @param count character. Either \code{"percent"} for percentages, or \code{"abund"} for raw abundances (default \code{"percent"}).
 #' @param N integer Plot the \code{N} most abundant taxa (default \code{15}).
+#' @param tax_source character. Source of taxonomic annotations, can be \code{"orfs"}, \code{"contigs"}, \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy) (default: use the `tax_source` from the input object).
 #' @param tax character. Custom taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant taxa, and include the result in the plot (default \code{TRUE}).
 #' @param nocds character. Either \code{"treat_separately"} to treat reads annotated as No CDS separately, \code{"treat_as_unclassified"} to treat them as Unclassified or \code{"ignore"} to ignore them in the plot (default \code{"treat_separately"}).
 #' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{FALSE}).
 #' @param ignore_unclassified logical. Don't include unclassified reads in the plot (default \code{FALSE}).
+#' @param ignore_nobin. Ignore reads not mapping to any bin when \code{tax_source} is \code{bins}, \code{bins_gtdb} or \code{bins_sqm} (default \code{FALSE}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
 #' @param no_partial_classifications logical. Treat reads not fully classified at the requested level (e.g. "Unclassified Bacteroidota" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).
 #' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
@@ -308,20 +310,18 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25,
 #' # Taxonomic distribution of amino acid metabolism ORFs at the family level.
 #' plotTaxonomy(Hadza.amin, "family")
 #' @export
-plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = NULL, others = TRUE, samples = NULL, nocds = 'treat_separately', ignore_unmapped = FALSE, ignore_unclassified = FALSE, no_partial_classifications = FALSE, rescale = FALSE, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
+plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_source = NULL, tax = NULL, others = TRUE, samples = NULL, nocds = 'treat_separately',
+                        ignore_unmapped = FALSE, ignore_unclassified = FALSE, ignore_nobin = FALSE, no_partial_classifications = FALSE,
+                        rescale = FALSE, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
     {
     if(!inherits(SQM, c('SQM', 'SQMbunch', 'SQMlite'))) { stop('The first argument must be a SQM, SQMbunch, or a SQMlite object') }
-    if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'))
+    if (!rank %in% c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'bin'))
         {
         stop('Select rank among "superkingdom", "phylum", "class", "order", "family", "genus" or "species". and count between \'percent\' or \'abund\'')
         }
-    if (!count %in% c('abund', 'percent'))
+    if (!count %in% c('abund', 'percent') & rank != 'bin')
         {
         stop('count must be either "abund" or "percent"')
-        }
-    if ('Other' %in% rownames(SQM[['taxa']][[rank]][[count]]))
-        {
-        stop('One of your taxa is called "Other", please change its name')
         }
     if (is.null(tax) & N <= 0)
         {
@@ -334,14 +334,10 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         }
     if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
 
-    #if(!is.null(ignore_taxa)) 
-    #    {
-    #    remove_taxa = rep(TRUE, length(ignore_taxa))
-    #    names(remove_taxa) = ignore_taxa
-    #    }
     check.samples(SQM, samples)
 
-    data0 = SQM[['taxa']][[rank]][[count]]
+    if(is.null(tax_source)) { tax_source = SQM$misc$tax_source }
+    if(rank != 'bin') { data0 = get_tax_abund(SQM, tax_source, rank, count) } else { data0 = data0 = SQM[['bins']][[count]] }
     # First collapse partial classifications if required
     if(no_partial_classifications)
         {
@@ -349,16 +345,15 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         unclassified_counts = colSums(data0[unclassified,,drop=FALSE])
 	data0 = rbind(data0[!unclassified,,drop=FALSE], 'Unclassified' = unclassified_counts)
         }
+    data0 = as.data.frame(data0)
 
-    # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df
-    data = as.data.frame(data0)
-    data = mostAbundant(data, N = N, items = tax, others = others, rescale = rescale)
+##    # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df
+##    data = as.data.frame(data0)
+##    data = mostAbundant(data, N = N, items = tax, others = others, rescale = rescale)
 
     # Verify whether there are Unclassified or Unmapped or No CDS
 
-
-
-    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = FALSE}
+##    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = FALSE}
     if((nocds == 'ignore'| nocds == 'treat_as_unclassified') & !('No CDS' %in% rownames(data))) { nocds = 'treat_separately' }
     # Convert No CDS options in logical values
     if (nocds == 'treat_separately') 
@@ -373,18 +368,26 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         }
     if(ignore_unclassified & !('Unclassified' %in% rownames(data)) & nocds != 'treat_as_unclassified') {ignore_unclassified = FALSE}
 
-    ignore_cases = c('Unmapped' = ignore_unmapped, 'Unclassified' = ignore_unclassified, 'No CDS' = ignore_nocds)
+    ignore_cases = c('Unmapped' = ignore_unmapped, 'Unclassified' = ignore_unclassified, 'No CDS' = ignore_nocds, 'No bin' = ignore_nobin)
+
+    ignore_cases = ignore_cases[names(ignore_cases) %in% rownames(data0)]
+
+    data = mostAbundant(data0, N = N, items = tax,
+                        extra_items = names(ignore_cases)[!ignore_cases], # include but treat separately
+                        ignore = names(ignore_cases)[ignore_cases], # fully ignore
+                        others = others, rescale = rescale)
+
     #if (!is.null(ignore_taxa)) {ignore_cases = c(ignore_cases, remove_taxa)}
     
     # any(ignore_cases) => return T if at least one of the cases is T and we should ignore it
     # remove unmapped/noCDS/Unclassified taxa (only possible when not custom items)
     # Add as many taxa as needed to recover N taxa excluding any of the special cases
-    if ( any(ignore_cases) & is.null(tax)  & N != 0 )
-        { # We overwrite data from scratch!
-        data = as.data.frame(data0) # Pick more taxa to complete N
-        # how many taxa should we replace?
-        rr = sum(ignore_cases) # count T cases
-        data = mostAbundant(data, N = N + rr, items = tax, others = others, rescale = FALSE) # Create the data table again
+##    if ( any(ignore_cases) & is.null(tax)  & N != 0 )
+##        { # We overwrite data from scratch!
+##        data = as.data.frame(data0) # Pick more taxa to complete N
+##        # how many taxa should we replace?
+##        rr = sum(ignore_cases) # count T cases
+##        data = mostAbundant(data, N = N + rr, items = tax, others = others, rescale = FALSE) # Create the data table again
         # If nocds == 'treat_as_unclassified' => Unclassified = Unclassified + nocds
         if (nocds == 'treat_as_unclassified') 
             {
@@ -393,14 +396,14 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
                 data['Unclassified', ] = data['Unclassified', ] + data['No CDS', ]
                 } else {data['Unclassified', ] = data['No CDS', ]}
             }
-	# Remove ignore_cases = TRUE
-        for (i in 1:length(ignore_cases))
-            {
-            if (ignore_cases[i])
-                { data = data[rownames(data) != names(ignore_cases)[i], , drop = FALSE] } # Remove  ignore cases
-            }
-        data = mostAbundant(data, items = rownames(data), others = FALSE, rescale = rescale) # Renormalize/Others
-        }
+##	# Remove ignore_cases = TRUE
+##        for (i in 1:length(ignore_cases))
+##            {
+##            if (ignore_cases[i])
+##                { data = data[rownames(data) != names(ignore_cases)[i], , drop = FALSE] } # Remove  ignore cases
+##            }
+##        data = mostAbundant(data, items = rownames(data), others = FALSE, rescale = rescale) # Renormalize/Others
+##        }
 
 
     #print(data)
@@ -430,20 +433,22 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         }else
         {
             # Use default colors from the beginning. User does not care about colors
-            if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'Unclassified', 'Unmapped', 'No CDS'), , drop=F])]
+            if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'Unclassified', 'Unmapped', 'No CDS', 'No bin'), , drop=F])]
             }else{ color = NULL }
         }
 
     # Add others color
-    if (others & !is.null(color))
+    if ('Other' %in% rownames(data))
         {
-        color = c('#F5DEB3', color)
+        if(!is.null(color)) { color = c(color, '#F5DEB3') }
+        niceOrder = c(rownames(data)[rownames(data)!='Other'], 'Other')
+        data = data[niceOrder,,drop=FALSE]
         }
 
     # Add NoCDS color and put No CDS at the bottom
     if('No CDS' %in% rownames(data))
         {
-        if(!is.null(color)) { color = c(color, 'azure2') }
+        if(!is.null(color)) { color = c(color, 'azure1') }
         niceOrder = c(rownames(data)[rownames(data)!='No CDS'], 'No CDS')
         data = data[niceOrder,,drop=FALSE]
         }
@@ -451,11 +456,18 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
     # Add unclassified color and put Unclassified at the bottom
     if('Unclassified' %in% rownames(data))
         {
-        if(!is.null(color)) { color = c(color, 'azure3') }
+        if(!is.null(color)) { color = c(color, 'azure2') }
         niceOrder = c(rownames(data)[rownames(data)!='Unclassified'], 'Unclassified')
         data = data[niceOrder,,drop=FALSE]
         }
 
+    # Add No bin color and put No bin at the bottom
+    if('No bin' %in% rownames(data))
+    {
+        if(!is.null(color)) { color = c(color, 'azure3') }
+        niceOrder = c(rownames(data)[rownames(data)!='No bin'], 'No bin')
+        data = data[niceOrder,,drop=FALSE]
+    }
     # Add unmapped color and put Unmapped at the bottom
     if('Unmapped' %in% rownames(data))
         {
@@ -463,7 +475,6 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
         niceOrder = c(rownames(data)[rownames(data)!='Unmapped'], 'Unmapped')
         data = data[niceOrder,,drop=FALSE]
         }
-
 
 
 
@@ -485,14 +496,18 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 
 #' Barplot of the most abundant bins in a SQM object
 #'
-#' This function selects the most abundant bins across all samples in a SQM object and represents their abundances in a barplot. Alternatively, a custom set of bins can be represented.
+#' This function selects the most abundant bins across all samples in a SQM object and represents their abundances in a barplot. It can also plot their aggregated abundances at higher taxonomic ranks. Alternatively, a custom set of bins/taxa can be represented.
 #' @param SQM A SQM object.
+#' @param rank Taxonomic rank to plot (default \code{bin}).
+#' @param N integer Plot the \code{N} most abundant bins/taxa (default \code{15}).
+#' @param tax_source character. Source of taxonomic annotations, can be \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy) (default: \code{"bins"}.
 #' @param count character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"cov"} for coverages, or \code{"cpm"} for coverages per million reads (default \code{"percent"}).
 #' @param N integer Plot the \code{N} most abundant bins (default \code{15}).
-#' @param bins character. Custom bins to plot. If provided, it will override \code{N} (default \code{NULL}).
+#' @param tax character. Custom bins/taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant bins, and include the result in the plot (default \code{TRUE}).
 #' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{FALSE}).
 #' @param ignore_nobin logical. Don't include reads which are not in a bin in the plot (default \code{FALSE}).
+#' @param no_partial_classifications logical. Treat reads not fully classified at the requested level (e.g. "Unclassified Bacteroidota" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
 #' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
 #' @param color Vector with custom colors for the different features. If empty, we will use our own hand-picked pallete if N<=15, and the default ggplot2 palette otherwise (default \code{NULL}).
@@ -505,122 +520,40 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax = N
 #' data(Hadza)
 #' # Bins distribution.
 #' plotBins(Hadza)
+#' # Aggregated bin taxonomy
+#' plotBins(Hadza, rank = 'order')
+#'
 #' @export
-plotBins = function(SQM, count = 'percent', N = 15, bins = NULL, others = TRUE, samples = NULL, ignore_unmapped = FALSE, ignore_nobin = FALSE, rescale = FALSE, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
-{
+plotBins = function(SQM, rank = 'bin', count = 'percent', N = 15, tax_source = 'bins', bins = NULL, tax = NULL,
+                    others = TRUE, samples = NULL, ignore_unmapped = FALSE, ignore_nobin = FALSE, no_partial_classifications = FALSE,
+                    rescale = FALSE, color = NULL, base_size = 11, max_scale_value = NULL, metadata_groups = NULL)
+    {
     if(!inherits(SQM, c('SQM'))) { stop('The first argument must be a SQM object') }
     if (!count %in% c('abund', 'percent', 'cov', 'cpm'))
-    {
-        stop('count must be either "abund", "percent", "cov", "cpm"')
-    }
+        {
+        stop('`count` must be either "abund", "percent", "cov", "cpm"')
+        }
     if(is.null(SQM[['bins']]))
-    {
+        {
         stop('This project contains no bins!')
-    }
-    if ('Other' %in% rownames(SQM[['bins']][[count]]))
-    {
-        stop('One of your bin is called "Other", please change its name')
-    }
+        }
+    if(!tax_source %in% c('bins', 'bins_gtdb', 'bins_sqm'))
+        {
+        stop('`tax_source` must be either "bins", "bins_gtdb" or "bins_sqm"')
+        }
+    if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
     if (is.null(bins) & N <= 0)
-    {
+        {
         warning(sprintf('We can\'t plot N = %s? bins Continuing with default values', N))
         N = 15
-    }
-    if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
+        }
+    
     check.samples(SQM, samples)
 
-    data0 = SQM[['bins']][[count]]
-
-    # Work with samples in rows (like vegan). Tranposition converts a df into list again, need to cast it to df
-    data = as.data.frame(data0)
-    data = mostAbundant(data, N = N, items = bins, others = others, rescale = rescale)
-
-    # Verify whether there are no_bin or Unmapped
-
-    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = FALSE}
-    if(ignore_nobin & !('No_bin' %in% rownames(data))) {ignore_nobin = FALSE}
-
-    ignore_cases = c('Unmapped' = ignore_unmapped, 'No_bin' = ignore_nobin)
-
-    # remove unmapped/No_bin items (only possible when not custom items)
-    # Add as many bins as needed to recover N bins excluding any of the special cases
-    if ( any(ignore_cases) & is.null(bins)  & N != 0 )
-    { # We overwrite data from scratch!
-        data = as.data.frame(data0) # Pick more bins to complete N
-        # how many bins should we replace?
-        rr = sum(ignore_cases) # count T cases
-        data = mostAbundant(data, N = N + rr, items = bins, others = others, rescale = FALSE) # Create the data table again
-        # Remove ignore_cases = TRUE
-        for (i in 1:length(ignore_cases))
-        {
-            if (ignore_cases[i])
-            { data = data[rownames(data) != names(ignore_cases)[i], , drop = FALSE] } # Remove  ignore cases
-        }
-        data = mostAbundant(data, items = rownames(data), others = FALSE, rescale = rescale) # Renormalize/Others
+    if(!is.null(bins) & is.null(tax)) { tax = bins }
+    return(plotTaxonomy(SQM, rank = rank, count = count, N = N,
+                        tax_source = tax_source, tax = tax, others = others, samples = samples,
+                        nocds = 'ignore', ignore_unmapped = ignore_unmapped, ignore_unclassified = FALSE,
+                        ignore_nobin = ignore_nobin, no_partial_classifications = no_partial_classifications,
+                        rescale = rescale, color = color, base_size = base_size, max_scale_value = max_scale_value, metadata_groups = metadata_groups))
     }
-
-    #print(data)
-    defaultColors = c(
-        '#97B065', '#B93838', '#83AAF0', '#E2AA48', '#A9A3D2',
-        '#797900', '#F4BCE6', '#84F4F6', '#9AD63B', '#A285F5',
-        '#D2B48C', '#4EA24E', '#465569', '#9C669C', '#6495ED')
-    # Colors to plot. Checks.
-    if (!is.null(color))
-    {
-        # Try to use user colors
-        # Check if the user is trying to trick us
-        if(!(is.null(bins)) & length(color) == length(bins) )
-        {
-            # User passes colors for bin
-            color = color
-        }else if(is.null(bins) & length(color) == N)
-        {
-            # User passes colors for the N most abundant bins, use them
-            color = color
-        }else
-        {
-            # User passes less/more colors than bins, use default colors.
-            warning('You passed less/more colors than bins Using default colors')
-            color = defaultColors
-        }
-    }else
-    {
-        # Use default colors from the beginning. User does not care about colors
-        if(N <= length(defaultColors)) { color = defaultColors[1:nrow(data[!rownames(data) %in% c('Other', 'No_bin', 'Unmapped'), , drop=FALSE])]
-        }else{ color = NULL }
-    }
-
-    # Add others color
-    if (others & !is.null(color))
-    {
-        color = c('#F5DEB3', color)
-    }
-
-    # Add No_bin color and put Unclassified at the bottom
-    if('No_bin' %in% rownames(data))
-    {
-        if(!is.null(color)) { color = c(color, 'azure3') }
-        niceOrder = c(rownames(data)[rownames(data)!='No_bin'], 'No_bin')
-        data = data[niceOrder,,drop=FALSE]
-    }
-
-    # Add unmapped color and put Unmapped at the bottom
-    if('Unmapped' %in% rownames(data))
-    {
-        if(!is.null(color)) { color = c(color, 'azure4') }
-        niceOrder = c(rownames(data)[rownames(data)!='Unmapped'], 'Unmapped')
-        data = data[niceOrder,,drop=FALSE]
-    }
-
-    # If requested, plot only the selected samples
-    if(!is.null(samples)) { data = data[,samples,drop=FALSE] }
-    if (!is.null(metadata_groups))
-    {
-        if(sum(sapply(metadata_groups, length)) != ncol(data))
-        {stop('metadata_groups must contain the same samples that your SQM object. If you want to select some samples, you can use the flag samples and a metadata_groups list that includes all the selected samples')}
-    }
-    # Plot
-    nice_label = c(abund='Raw abundance', percent = 'Percentage', cov = 'Coverage', cpm = 'Coverage per million reads')[count]
-    p = plotBars(data, label_y = nice_label, color = color, label_fill = NULL, base_size = base_size, max_scale_value = max_scale_value, metadata_groups = metadata_groups)
-    return(p)
-}

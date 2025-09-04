@@ -6,13 +6,17 @@
 \usage{
 plotBins(
   SQM,
+  rank = "bin",
   count = "percent",
   N = 15,
+  tax_source = "bins",
   bins = NULL,
+  tax = NULL,
   others = TRUE,
   samples = NULL,
   ignore_unmapped = FALSE,
   ignore_nobin = FALSE,
+  no_partial_classifications = FALSE,
   rescale = FALSE,
   color = NULL,
   base_size = 11,
@@ -23,11 +27,15 @@ plotBins(
 \arguments{
 \item{SQM}{A SQM object.}
 
+\item{rank}{Taxonomic rank to plot (default \code{bin}).}
+
 \item{count}{character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"cov"} for coverages, or \code{"cpm"} for coverages per million reads (default \code{"percent"}).}
 
 \item{N}{integer Plot the \code{N} most abundant bins (default \code{15}).}
 
-\item{bins}{character. Custom bins to plot. If provided, it will override \code{N} (default \code{NULL}).}
+\item{tax_source}{character. Source of taxonomic annotations, can be \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy) (default: \code{"bins"}.}
+
+\item{tax}{character. Custom bins/taxa to plot. If provided, it will override \code{N} (default \code{NULL}).}
 
 \item{others}{logical. Collapse the abundances of least abundant bins, and include the result in the plot (default \code{TRUE}).}
 
@@ -36,6 +44,8 @@ plotBins(
 \item{ignore_unmapped}{logical. Don't include unmapped reads in the plot (default \code{FALSE}).}
 
 \item{ignore_nobin}{logical. Don't include reads which are not in a bin in the plot (default \code{FALSE}).}
+
+\item{no_partial_classifications}{logical. Treat reads not fully classified at the requested level (e.g. "Unclassified Bacteroidota" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).}
 
 \item{rescale}{logical. Re-scale results to percentages (default \code{FALSE}).}
 
@@ -51,12 +61,15 @@ plotBins(
 a ggplot2 plot object.
 }
 \description{
-This function selects the most abundant bins across all samples in a SQM object and represents their abundances in a barplot. Alternatively, a custom set of bins can be represented.
+This function selects the most abundant bins across all samples in a SQM object and represents their abundances in a barplot. It can also plot their aggregated abundances at higher taxonomic ranks. Alternatively, a custom set of bins/taxa can be represented.
 }
 \examples{
 data(Hadza)
 # Bins distribution.
 plotBins(Hadza)
+# Aggregated bin taxonomy
+plotBins(Hadza, rank = 'order')
+
 }
 \seealso{
 \code{\link{plotTaxonomy}} for plotting the most abundant taxa of a SQM object; \code{\link{plotBars}} and \code{\link{plotHeatmap}} for plotting barplots or heatmaps with arbitrary data.

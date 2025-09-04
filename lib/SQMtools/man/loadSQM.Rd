@@ -7,6 +7,7 @@
 loadSQM(
   project_path,
   tax_mode = "prokfilter",
+  tax_source = "contigs",
   trusted_functions_only = FALSE,
   single_copy_genes = "MGOGs",
   load_sequences = TRUE,
@@ -18,13 +19,15 @@ loadSQM(
 
 \item{tax_mode}{character, which taxonomic classification should be loaded? SqueezeMeta applies the identity thresholds described in \href{https://pubmed.ncbi.nlm.nih.gov/24589583/}{Luo \emph{et al.}, 2014}. Use \code{allfilter} for applying the minimum identity threshold to all taxa, \code{prokfilter} for applying the threshold to Bacteria and Archaea, but not to Eukaryotes, and \code{nofilter} for applying no thresholds at all (default \code{prokfilter}).}
 
+\item{tax_source}{character, source data used for the taxonomy tables present in \code{SQM$taxa}, either \code{"orfs"}, \code{"contigs"}, \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy). Default \code{"contigs"}.}
+
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}). Will only have an effect if \code{project_path} is not a zip file, and \code{project_path/results/tables} is not already present.}
 
-\item{single_copy_genes}{character, source of single copy genes for copy number normalization, either \code{RecA} (COG0468, RecA/RadA), \code{MGOGs} (COGs for 10 single copy and housekeeping genes, Salazar, G \emph{et al.} 2019), \code{MGKOs} (KOs for 10 single copy and housekeeping genes, Salazar, G \emph{et al.}, 2019) or \code{USiCGs} (KOs for 15 single copy genes, Carr \emph{et al.}, 2013. Table S1). For \code{MGOGs}, \code{MGKOs} and \code{USiCGs}, the median coverage of a set of single copy genes will be used for normalization. Default \code{MGOGs}.}
+\item{single_copy_genes}{character, source of single copy genes for copy number normalization, either \code{"RecA"} (COG0468, RecA/RadA), \code{"MGOGs"} (COGs for 10 single copy and housekeeping genes, Salazar, G \emph{et al.} 2019), \code{"MGKOs"} (KOs for 10 single copy and housekeeping genes, Salazar, G \emph{et al.}, 2019) or \code{"USiCGs"} (KOs for 15 single copy genes, Carr \emph{et al.}, 2013. Table S1). For \code{"MGOGs"}, \code{"MGKOs"} and \code{"USiCGs"}, the median coverage of a set of single copy genes will be used for normalization. Default \code{"MGOGs"}.}
 
 \item{load_sequences}{logical. If \code{TRUE}, contig and orf sequences will be loaded in the SQM object. Setting it to \code{FALSE} will reduce memory usage. Default \code{TRUE}.}
 
-\item{engine}{character. Engine used to load the ORFs and contigs tables. Either \code{data.frame} or \code{data.table} (significantly faster if your project is large). Default \code{data.table}.}
+\item{engine}{character. Engine used to load the ORFs and contigs tables. Either \code{"data.frame"} or \code{"data.table"} (significantly faster if your project is large). Default \code{"data.table"}.}
 }
 \value{
 SQM object containing the parsed project. If more than one path is provided in \code{project_path} this function will return a SQMbunch object instead. The structure of this object is similar to that of a SQMlite object (see \code{\link{loadSQMlite}}) but with an extra entry named \code{projects} that contains one SQM object for input project. SQM and SQMbunch objects will otherwise behave similarly when used with the subset and plot functions from this package.
@@ -56,7 +59,8 @@ The SQM object is a nested list which contains the following information:
                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab orfs              \tab samples        \tab tpm                \cr
                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab sequences          \cr
                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab orfs              \tab tax. ranks     \tab taxonomy           \cr
-                    \tab \bold{$tax16S}            \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab 16S rRNA taxonomy       \cr
+                    \tab \bold{$tax16S}            \tab                      \tab \emph{character vector} \tab orfs              \tab (n/a)          \tab 16S rRNA taxonomy  \cr
+                    \tab \bold{$tax_abund}         \tab                      \tab See SQM$taxa            \tab                   \tab                \tab                    \cr
                     \tab \bold{$markers}           \tab                      \tab \emph{list}             \tab orfs              \tab (n/a)          \tab CheckM1 markers    \cr
 \bold{$contigs}     \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab contigs           \tab misc. data     \tab misc. data         \cr
                     \tab \bold{$abund}             \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab abundances (reads) \cr
@@ -66,6 +70,7 @@ The SQM object is a nested list which contains the following information:
                     \tab \bold{$tpm}               \tab                      \tab \emph{numeric matrix}   \tab contigs           \tab samples        \tab tpm                \cr
                     \tab \bold{$seqs}              \tab                      \tab \emph{character vector} \tab contigs           \tab (n/a)          \tab sequences          \cr
                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab contigs           \tab tax. ranks     \tab taxonomies         \cr
+                    \tab \bold{$tax_abund}         \tab                      \tab See SQM$taxa            \tab                   \tab                \tab                    \cr
                     \tab \bold{$bins}              \tab                      \tab \emph{character matrix} \tab contigs           \tab bin. methods   \tab bins               \cr
 $bins               \tab \bold{$table}             \tab                      \tab \emph{dataframe}        \tab bins              \tab misc. data     \tab misc. data         \cr
                     \tab \bold{$length}            \tab                      \tab \emph{numeric vector}   \tab bins              \tab (n/a)          \tab length             \cr
@@ -75,7 +80,9 @@ $bins               \tab \bold{$table}             \tab                      \ta
                     \tab \bold{$cov}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab coverages          \cr
                     \tab \bold{$cpm}               \tab                      \tab \emph{numeric matrix}   \tab bins              \tab samples        \tab covs. / 10^6 reads \cr
                     \tab \bold{$tax}               \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab taxonomy           \cr
+                    \tab \bold{$tax_abund}         \tab                      \tab See SQM$taxa            \tab                   \tab                \tab                    \cr
                     \tab \bold{$tax_gtdb}          \tab                      \tab \emph{character matrix} \tab bins              \tab tax. ranks     \tab GTDB taxonomy      \cr
+                    \tab \bold{$tax_abund_gtdb}    \tab                      \tab See SQM$taxa            \tab                   \tab                \tab                    \cr
 \bold{$taxa}        \tab \bold{$superkingdom}      \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab abundances (reads) \cr
                     \tab                           \tab \bold{$percent}      \tab \emph{numeric matrix}   \tab superkingdoms     \tab samples        \tab percentages        \cr
                     \tab \bold{$phylum}            \tab \bold{$abund}        \tab \emph{numeric matrix}   \tab phyla             \tab samples        \tab abundances (reads) \cr

@@ -9,14 +9,43 @@ aggregate_bin = function(SQM)
     }
 
 
-#' @importFrom stats aggregate
-aggregate_taxa = function(SQM, rank, tax_source)
+aggregate_taxa = function(SQM, tax_source = 'bins', allow_missing_annots = FALSE)
     {
-    stopifnot(tax_source %in% c('contigs', 'orfs'))
-    if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object')}
-    res = aggregate(data.table::data.table(SQM[[tax_source]][['abund']]), by=list(SQM[[tax_source]][['tax']][,rank]), FUN=sum)
+    tk = get_tax_keys(SQM, tax_source)
+    tax_source = tk[1]
+    tax_key = tk[2]
+    tax = SQM[[tax_source]][[tax_key]]
+    abunds = SQM[[tax_source]][['abund']]
+    ranks = colnames(tax)
+    res = list()
+    for(rank in ranks)
+        {
+        aggr = aggregate_taxa_rank(SQM, abunds, tax, rank, allow_missing_annots)
+        percents = 100 * t(t(aggr) / SQM$total_reads)
+        res[[rank]] = list(abund = aggr, percent = percents)
+        }
+    return(res)
+    }
+
+
+#' @importFrom stats aggregate
+aggregate_taxa_rank = function(SQM, abunds, tax, rank, allow_missing_annots = FALSE)
+    {
+    missing_annots = setdiff(rownames(abunds), rownames(tax))
+    missing_abunds = setdiff(rownames(tax), rownames(abunds))
+    stopifnot(length(missing_abunds)==0)
+    if(length(missing_annots))
+        {
+        # Some things like "Unclassified" or "No bin" may not be in our tax list
+        # But we still want to aggregate and re-add them later
+        stopifnot(allow_missing_annots)
+        extra_abunds = abunds[missing_annots,,drop=F]
+        abunds = abunds[!rownames(abunds) %in% missing_annots,,drop=F]
+        }
+    res = aggregate(data.table::data.table(abunds), by=list(tax[,rank]), FUN=sum)
     rownames(res) = res[,1] # SQM$misc$tax_names_long[[rank]][res[,1]]
     res = res[,-1,drop=FALSE]
+    if(length(missing_annots)) { res = rbind(res, extra_abunds) }
     return(as.matrix(res))
     }
 

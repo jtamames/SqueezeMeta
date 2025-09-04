@@ -6,7 +6,12 @@
 \usage{
 subsetBins(
   SQM,
-  bins,
+  bins = NULL,
+  rank = NULL,
+  tax = NULL,
+  min_completeness = NULL,
+  max_contamination = NULL,
+  tax_source = "bins",
   trusted_functions_only = FALSE,
   ignore_unclassified_functions = FALSE,
   rescale_tpm = TRUE,
@@ -17,7 +22,17 @@ subsetBins(
 \arguments{
 \item{SQM}{SQM object to be subsetted.}
 
-\item{bins}{character. Vector of bins to be selected.}
+\item{bins}{character. Vector of bins to be selected. If provided, will override \code{rank}, \code{tax}, \code{min_completeness} and \code{max_contamination}.}
+
+\item{rank}{character. The taxonomic rank from which to select the desired taxa (\code{superkingdom}, \code{phylum}, \code{class}, \code{order}, \code{family}, \code{genus}, \code{species})}
+
+\item{tax}{character. A taxon or vector of taxa to be selected.}
+
+\item{min_completeness}{numeric. Discard bins with completeness lower than this value (default \code{NULL}).}
+
+\item{max_contamination}{numeric. Discard bins with contamination higher than this value (default \code{NULL}).}
+
+\item{tax_source}{character, source data used for taxonomic subsetting (if \code{rank} and \code{tax} are provided) and for the aggregate taxonomy tables present in \code{SQM$taxa}, either \code{"orfs"}, \code{"contigs"}, \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy). If using \code{bins_gtdb}, note that GTDB taxonomy may differ from the NCBI taxonomy used throughout the rest of SqueezeMeta. Default \code{"bins"}.}
 
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).}
 
@@ -42,6 +57,16 @@ topBinNames = rownames(Hadza$bins$table)[order(Hadza$bins$table[,"Completeness"]
                                          decreasing=TRUE)][1:2]
 # Subset with the most complete bin.
 topBin = subsetBins(Hadza, topBinNames[1])
+
+# Subset with all the bins over 90\% completeness
+over90 = subsetBins(Hadza, min_completeness = 90)
+
+# Subset with bins from the Phascolarctobacterium genus using SqueezeMeta's taxonomy
+phasco = subsetBins(Hadza, tax_source = "bins", rank = "genus", tax = "Phascolarctobacterium")
+
+# Subset with binsfrom the Bacteroidota phylum using GTDB taxonomy
+bact = subsetBins(Hadza, tax_source = "bins_gtdb", rank = "phylum", tax = "p__Bacteroidota")
+
 }
 \seealso{
 \code{\link{subsetContigs}}, \code{\link{subsetORFs}}

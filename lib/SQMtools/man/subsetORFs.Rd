@@ -22,7 +22,7 @@ subsetORFs(
 
 \item{orfs}{character. Vector of ORFs to be selected.}
 
-\item{tax_source}{character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}).}
+\item{tax_source}{character, source data used for the taxonomy tables present in \code{SQM$taxa}, either \code{"orfs"}, \code{"contigs"}, \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy). Default \code{"orfs"}.}
 
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).}
 

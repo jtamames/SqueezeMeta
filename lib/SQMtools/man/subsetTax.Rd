@@ -8,6 +8,7 @@ subsetTax(
   SQM,
   rank,
   tax,
+  tax_source = NULL,
   trusted_functions_only = FALSE,
   ignore_unclassified_functions = FALSE,
   rescale_tpm = TRUE,
@@ -22,6 +23,8 @@ subsetTax(
 \item{rank}{character. The taxonomic rank from which to select the desired taxa (\code{superkingdom}, \code{phylum}, \code{class}, \code{order}, \code{family}, \code{genus}, \code{species})}
 
 \item{tax}{character. A taxon or vector of taxa to be selected.}
+
+\item{tax_source}{character, source data used for feature selection, and to generate the taxonomy tables present in \code{SQM$taxa}, either \code{"orfs"}, \code{"contigs"}, \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy). When \code{"bins"}, \code{"bins_gtdb"} or \code{"bins_sqm"}, this function will select the bins from the desired taxa, otherwise it will select the contigs from the desired taxa. If using \code{"bins_gtdb"}, note that GTDB taxonomy may differ from the NCBI taxonomy used throughout the rest of SqueezeMeta. Default \code{"contigs"}, unless the project was created with the `--onlybins` flag, where it will be \code{"bins_gtdb"} if GTDB taxonomy is available for the bins.}
 
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).}
 
@@ -39,7 +42,7 @@ subsetTax(
 SQM or SQMbunch object containing only the requested taxon.
 }
 \description{
-Create a SQM or SQMbunch object containing only the contigs with a given consensus taxonomy, the ORFs contained in them and the bins that contain them.
+Create a SQM or SQMbunch object containing only the contigs/bins with a given consensus taxonomy, as well as the ORFs contained in them.
 }
 \examples{
 data(Hadza)

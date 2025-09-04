@@ -17,7 +17,7 @@ combineSQM(
 \arguments{
 \item{...}{an arbitrary number of SQM objects. Alternatively, a single list containing an arbitrary number of SQM objects.}
 
-\item{tax_source}{character. Features used for calculating aggregated abundances at the different taxonomic ranks. Either \code{"orfs"} or \code{"contigs"} (default \code{"orfs"}). If the objects being combined contain a subset of taxa or bins, this parameter can be set to \code{TRUE}.}
+\item{tax_source}{character, source data used for the taxonomy tables present in \code{SQM$taxa}, either \code{"orfs"}, \code{"contigs"}, \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy). Default \code{"orfs"}. If the objects being combined contain a subset of taxa or bins, we recommend adjusting this parameter.}
 
 \item{trusted_functions_only}{logical. If \code{TRUE}, only highly trusted functional annotations (best hit + best average) will be considered when generating aggregated function tables. If \code{FALSE}, best hit annotations will be used (default \code{FALSE}).}
 

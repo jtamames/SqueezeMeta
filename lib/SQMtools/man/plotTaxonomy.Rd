@@ -9,12 +9,14 @@ plotTaxonomy(
   rank = "phylum",
   count = "percent",
   N = 15,
+  tax_source = NULL,
   tax = NULL,
   others = TRUE,
   samples = NULL,
   nocds = "treat_separately",
   ignore_unmapped = FALSE,
   ignore_unclassified = FALSE,
+  ignore_nobin = FALSE,
   no_partial_classifications = FALSE,
   rescale = FALSE,
   color = NULL,
@@ -31,6 +33,8 @@ plotTaxonomy(
 \item{count}{character. Either \code{"percent"} for percentages, or \code{"abund"} for raw abundances (default \code{"percent"}).}
 
 \item{N}{integer Plot the \code{N} most abundant taxa (default \code{15}).}
+
+\item{tax_source}{character. Source of taxonomic annotations, can be \code{"orfs"}, \code{"contigs"}, \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy) (default: use the `tax_source` from the input object).}
 
 \item{tax}{character. Custom taxa to plot. If provided, it will override \code{N} (default \code{NULL}).}
 
@@ -55,6 +59,8 @@ plotTaxonomy(
 \item{max_scale_value}{numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).}
 
 \item{metadata_groups}{list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).}
+
+\item{ignore_nobin.}{Ignore reads not mapping to any bin when \code{tax_source} is \code{bins}, \code{bins_gtdb} or \code{bins_sqm} (default \code{FALSE}).}
 }
 \value{
 a ggplot2 plot object.

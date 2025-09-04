@@ -53,6 +53,7 @@ combineSQMlite_ = function(SQM1, SQM2)
             combSQM$functions[[method]][[count]] = merge_numeric_matrices(SQM1$functions[[method]][[count]], SQM2$functions[[method]][[count]])
             }
         }
+    if(length(combSQM$functions)==0) { combSQM$functions = NULL }
 
     ### Combine misc info
     combSQM$misc = list()

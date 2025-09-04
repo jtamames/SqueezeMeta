@@ -4,20 +4,22 @@
 \alias{subsetSamples}
 \title{Filter results by sample}
 \usage{
-subsetSamples(SQM, samples, remove_missing = TRUE)
+subsetSamples(SQM, samples, remove_missing = TRUE, new_sample_names = NULL)
 }
 \arguments{
-\item{SQM}{SQM object to be subsetted.}
+\item{SQM}{SQM or SQMlite object to be subsetted.}
 
 \item{samples}{character. Samples to be included in the subset.}
 
 \item{remove_missing}{bool. If \code{TRUE}, ORFs, contigs, bins, taxa and functions absent from the selected samples will be removed from the subsetted object (default \code{TRUE}).}
+
+\item{new_sample_names}{character. New sample names to be included in the subset (default \code{NULL}).}
 }
 \value{
-SQM object containing only the requested samples.
+SQM or SQMlite object containing only the requested samples.
 }
 \description{
-Create a SQM object containing only samples specified by the user, and the ORFs, contigs, bins, taxa and functions present in those samples.
+Create a SQM or SQMlite object containing only samples specified by the user, and the ORFs, contigs, bins, taxa and functions present in those samples.
 }
 \seealso{
 \code{\link{subsetTax}}, \code{\link{subsetFun}}, \code{\link{subsetORFs}}, \code{\link{combineSQM}}. The most abundant items of a particular table contained in a SQM object can be selected with \code{\link{mostAbundant}}.

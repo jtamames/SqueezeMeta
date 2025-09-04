@@ -38,6 +38,24 @@ read.namedvector.zip = function(project_path, file_path, type = 'text', engine =
     return(res)
     }
 
+#' @importFrom utils tail
+#' @importFrom zip unzip
+#' @importFrom Biostrings readDNAStringSet readBStringSet
+read.fasta.zip = function(project_path, file_path, type = 'DNA')
+    {
+    zipmode = endsWith(project_path, '.zip')
+    if(zipmode)
+        {
+        unzip(project_path, file_path, exdir = tempdir(), junkpaths = TRUE)
+        f = tail(unlist(strsplit(file_path, split = '/')), 1)
+    } else
+        {
+        f = sprintf('%s/%s', project_path, file_path)
+        }
+    if(type=='DNA') { res = readDNAStringSet(f) } else if (type == 'AA') { res = readBStringSet(f) }
+    if(zipmode) { unlink(f) }
+    return(res)
+    }
 
 #' Return a vector with the row-wise minima of a matrix or dataframe.
 #' @export
@@ -160,3 +178,4 @@ list.files.zip = function(project_path, dir_path)
     }
 
 rowMedians = function(x) apply(x, 1, median, na.rm=TRUE)
+            

@@ -46,7 +46,7 @@ exportBins = function(SQM, output_dir = "")
             next
             }
         bins = unique(proj$contigs$bins[,1])
-        bins = bins[bins != 'No_bin']
+        bins = bins[bins != 'No bin']
         for(b in bins)
             {
             contigs  = rownames(proj$contigs$bins)[proj$contigs$bins[,1]==b]

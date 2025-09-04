@@ -89,13 +89,15 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
      
     SQM                           = list()
 
-    allFiles                      = strsplit(list.files(tables_path), '.', fixed=TRUE)
+    allFiles                      = list.files(tables_path)
     if(length(allFiles) == 0)
         {
         stop(sprintf('Directory "%s" does not seem to contain valid SqueezeMeta tables', tables_path))
         }
-    
-    project_name                  = allFiles[sapply(allFiles, function(x) x[2] == 'superkingdom' & x[3] =='allfilter' & x[4] == 'abund' & x[5] == 'tsv')][[1]][1]
+   
+    allfilter.abund.suffix        = '\\.superkingdom.allfilter.abund.tsv$'
+    allfilter.abund.file          = allFiles[grepl(allfilter.abund.suffix, allFiles)][1]
+    project_name                  = gsub(allfilter.abund.suffix, '', allfilter.abund.file)
     SQM$misc                      = list()
     SQM$misc$project_name         = project_name
 

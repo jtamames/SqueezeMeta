@@ -192,7 +192,7 @@ prepare_export_tables = function(SQM, features, count,
             # Change rank names to fit microeco defaults
             colnames(tax) = c('Domain', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species')[1:ncol(tax)]
             }
-        # Add extra rows for things like "Unmapped" and "No_bin"
+        # Add extra rows for things like "Unmapped" and "No bin"
         extra_rows = setdiff(rownames(counts), rownames(tax))
         for(rn in extra_rows)
             {

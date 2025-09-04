@@ -75,10 +75,9 @@ Creating subsets of your data
 - Functions working for *SQM* and *SQMbunch* objects:
     - :doc:`SQMtools/subsetTax`: select data from the requested taxon
     - :doc:`SQMtools/subsetFun`: select data from the requested function/s
-
+    - :doc:`SQMtools/subsetBins`: select data from the requested bins (filtering by quality and taxonomy; direct selection by bin name will work for *SQM* objects only)
 - Functions working for *SQM* objects only:
     - :doc:`SQMtools/subsetSamples`: select the requested samples
-    - :doc:`SQMtools/subsetBins`: select data from the requested bins
     - :doc:`SQMtools/subsetContigs`: select arbitrary contigs
     - :doc:`SQMtools/subsetORFs`: select arbitrary ORFs
 
@@ -93,12 +92,12 @@ would return a new *SQM* or *SQMbunch* object containing only the information fr
 Subsetting involves the following steps:
 
 - Determining which ORFs, contigs and bins are to be included in the subsetted object
-- Recalculating aggregated taxonomic and functional tables based on the selected ORFs/contigs
-- If requested, renormalize certain functional abundance metrics to make them relative to the data included in the subset (see below)
+- Recalculating aggregated taxonomic and functional tables based on the selected ORFs/contigs/bins
+- If requested, renormalize certain functional abundance metrics to make them relative to the data included in the subset
 - Recalculate bin abundance metrics based on the selected contigs. If requested, also recalculate bin completeness/contamination
 
 .. note::
-  *SQMlite* objects can not be subsetted. This means that results coming from :ref:`sqm_reads.pl <sqm_reads>` and :ref:`sqm_longreads.pl <sqm_longreads>` can also not be subsetted within SQMtools. However, a similar effect can by first filtering the results with the the ``--query`` parameter of the :ref:`sqmreads2tables.py <sqmreads2tables>` script, and then loading the resulting tables into SQMtools with :doc:`SQMtools/loadSQMlite`.
+  *SQMlite* objects can only be subsetted by sample. This means that results coming from :ref:`sqm_reads.pl <sqm_reads>` and :ref:`sqm_longreads.pl <sqm_longreads>` can not be subsetted by taxa or function within SQMtools. However, a similar effect can by first filtering the results with the the ``--query`` parameter of the :ref:`sqmreads2tables.py <sqmreads2tables>` script, and then loading the resulting tables into SQMtools with :doc:`SQMtools/loadSQMlite`.
 
 Data renormalization on subsetting
 ----------------------------------
@@ -119,20 +118,22 @@ For further clarification, compare the following two assertions:
 
 In addition to this, when generating a subset the completeness and contamination of bins can be recalculated according to only the contigs present in the subset.
 
+Finally, the taxonomy aggregate tables can be recalculated based on the abundance/taxonomies of orfs, contigs or bins (using SqueezeMeta's or GTDB-Tk annotations if available), respectively.
+
 The different subset functions have different default behaviour. As a rule of thumb, functions that expect to retrieve whole genomes after subsetting (:doc:`SQMtools/subsetTax`, :doc:`SQMtools/subsetBins`) will perform TPM and copy number rescaling, while functions that retreive arbitrary parts of a genome (:doc:`SQMtools/subsetContigs`, :doc:`SQMtools/subsetORFs`) will recalculate bin abundance and statistics.
 
-The default behaviour of each subset function is listed in the table below, but it can be controlled manually through the *rescale_tpm*, *rescale_copy_number* and *recalculate_bin_stats* arguments. 
+The default behaviour of each subset function is listed in the table below, but it can be controlled manually through the *tax_source*, *rescale_tpm*, *rescale_copy_number* and *recalculate_bin_stats* arguments. 
 
-=============    ===========    ===================    =====================
-Method           rescale_tpm    rescale_copy_number    recalculate_bin_stats
-=============    ===========    ===================    =====================
-subsetSamples    N/A            N/A                    N/A
-subsetTax        TRUE           TRUE                   FALSE
-subsetFun        FALSE          FALSE                  FALSE
-subsetBins       TRUE           TRUE                   N/A
-subsetContigs    FALSE          FALSE                  TRUE
-subsetORFs       FALSE          FALSE                  TRUE
-=============    ===========    ===================    =====================
+=============    ==========    ===========    ===================    =====================
+Method           tax_source    rescale_tpm    rescale_copy_number    recalculate_bin_stats
+=============    ==========    ===========    ===================    =====================
+subsetSamples    N/A           N/A            N/A                    N/A
+subsetTax        contigs       TRUE           TRUE                   FALSE
+subsetFun        orfs          FALSE          FALSE                  FALSE
+subsetBins       bins          TRUE           TRUE                   N/A
+subsetContigs    contigs       FALSE          FALSE                  TRUE
+subsetORFs       orfs          FALSE          FALSE                  TRUE
+=============    ==========    ===========    ===================    =====================
 
 .. note::
    Completeness and contamination statistics are initially calculated using CheckM2, but upon subsetting they are recalculated using a re-implementation of the CheckM1 algorithm over root marker genes. This can give an idea on how adding/removing certain contigs affects the completeness of a bin, but should be considered as less reliable than manually running CheckM2 again.
