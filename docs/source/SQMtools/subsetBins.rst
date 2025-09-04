@@ -25,7 +25,12 @@ subsetBins
 
       subsetBins(
         SQM,
-        bins,
+        bins = NULL,
+        rank = NULL,
+        tax = NULL,
+        min_completeness = NULL,
+        max_contamination = NULL,
+        tax_source = "bins",
         trusted_functions_only = FALSE,
         ignore_unclassified_functions = FALSE,
         rescale_tpm = TRUE,
@@ -40,7 +45,46 @@ subsetBins
    | ``SQM``                          | SQM object to be subsetted.      |
    +----------------------------------+----------------------------------+
    | ``bins``                         | character. Vector of bins to be  |
-   |                                  | selected.                        |
+   |                                  | selected. If provided, will      |
+   |                                  | override ``rank``, ``tax``,      |
+   |                                  | ``min_completeness`` and         |
+   |                                  | ``max_contamination``.           |
+   +----------------------------------+----------------------------------+
+   | ``rank``                         | character. The taxonomic rank    |
+   |                                  | from which to select the desired |
+   |                                  | taxa (``superkingdom``,          |
+   |                                  | ``phylum``, ``class``,           |
+   |                                  | ``order``, ``family``,           |
+   |                                  | ``genus``, ``species``)          |
+   +----------------------------------+----------------------------------+
+   | ``tax``                          | character. A taxon or vector of  |
+   |                                  | taxa to be selected.             |
+   +----------------------------------+----------------------------------+
+   | ``min_completeness``             | numeric. Discard bins with       |
+   |                                  | completeness lower than this     |
+   |                                  | value (default ``NULL``).        |
+   +----------------------------------+----------------------------------+
+   | ``max_contamination``            | numeric. Discard bins with       |
+   |                                  | contamination higher than this   |
+   |                                  | value (default ``NULL``).        |
+   +----------------------------------+----------------------------------+
+   | ``tax_source``                   | character, source data used for  |
+   |                                  | taxonomic subsetting (if         |
+   |                                  | ``rank`` and ``tax`` are         |
+   |                                  | provided) and for the aggregate  |
+   |                                  | taxonomy tables present in       |
+   |                                  | ``SQM$taxa``, either ``"orfs"``, |
+   |                                  | ``"contigs"``, ``"bins"`` (GTDB  |
+   |                                  | bin taxonomy if available, SQM   |
+   |                                  | bin taxonomy otherwise),         |
+   |                                  | ``"bins_gtdb"`` (GTDB bin        |
+   |                                  | taxonomy) or ``"bins_sqm"`` (SQM |
+   |                                  | bin taxonomy). If using          |
+   |                                  | ``bins_gtdb``, note that GTDB    |
+   |                                  | taxonomy may differ from the     |
+   |                                  | NCBI taxonomy used throughout    |
+   |                                  | the rest of SqueezeMeta. Default |
+   |                                  | ``"bins"``.                      |
    +----------------------------------+----------------------------------+
    | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
    |                                  | highly trusted functional        |
@@ -112,3 +156,12 @@ subsetBins
                                                decreasing=TRUE)][1:2]
       # Subset with the most complete bin.
       topBin = subsetBins(Hadza, topBinNames[1])
+
+      # Subset with all the bins over 90% completeness
+      over90 = subsetBins(Hadza, min_completeness = 90)
+
+      # Subset with bins from the Phascolarctobacterium genus using SqueezeMeta's taxonomy
+      phasco = subsetBins(Hadza, tax_source = "bins", rank = "genus", tax = "Phascolarctobacterium")
+
+      # Subset with binsfrom the Bacteroidota phylum using GTDB taxonomy
+      bact = subsetBins(Hadza, tax_source = "bins_gtdb", rank = "phylum", tax = "p__Bacteroidota")

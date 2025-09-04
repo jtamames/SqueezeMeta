@@ -28,6 +28,7 @@ loadSQM
       loadSQM(
         project_path,
         tax_mode = "prokfilter",
+        tax_source = "contigs",
         trusted_functions_only = FALSE,
         single_copy_genes = "MGOGs",
         load_sequences = TRUE,
@@ -57,6 +58,16 @@ loadSQM
    |                            | for applying no thresholds at all      |
    |                            | (default ``prokfilter``).              |
    +----------------------------+----------------------------------------+
+   | ``tax_source``             | character, source data used for the    |
+   |                            | taxonomy tables present in             |
+   |                            | ``SQM$taxa``, either ``"orfs"``,       |
+   |                            | ``"contigs"``, ``"bins"`` (GTDB bin    |
+   |                            | taxonomy if available, SQM bin         |
+   |                            | taxonomy otherwise), ``"bins_gtdb"``   |
+   |                            | (GTDB bin taxonomy) or ``"bins_sqm"``  |
+   |                            | (SQM bin taxonomy). Default            |
+   |                            | ``"contigs"``.                         |
+   +----------------------------+----------------------------------------+
    | ``trusted_functions_only`` | logical. If ``TRUE``, only highly      |
    |                            | trusted functional annotations (best   |
    |                            | hit + best average) will be considered |
@@ -70,18 +81,19 @@ loadSQM
    +----------------------------+----------------------------------------+
    | ``single_copy_genes``      | character, source of single copy genes |
    |                            | for copy number normalization, either  |
-   |                            | ``RecA`` (COG0468, RecA/RadA),         |
-   |                            | ``MGOGs`` (COGs for 10 single copy and |
-   |                            | housekeeping genes, Salazar, G *et     |
-   |                            | al.* 2019), ``MGKOs`` (KOs for 10      |
+   |                            | ``"RecA"`` (COG0468, RecA/RadA),       |
+   |                            | ``"MGOGs"`` (COGs for 10 single copy   |
+   |                            | and housekeeping genes, Salazar, G *et |
+   |                            | al.* 2019), ``"MGKOs"`` (KOs for 10    |
    |                            | single copy and housekeeping genes,    |
    |                            | Salazar, G *et al.*, 2019) or          |
-   |                            | ``USiCGs`` (KOs for 15 single copy     |
+   |                            | ``"USiCGs"`` (KOs for 15 single copy   |
    |                            | genes, Carr *et al.*, 2013. Table S1). |
-   |                            | For ``MGOGs``, ``MGKOs`` and           |
-   |                            | ``USiCGs``, the median coverage of a   |
+   |                            | For ``"MGOGs"``, ``"MGKOs"`` and       |
+   |                            | ``"USiCGs"``, the median coverage of a |
    |                            | set of single copy genes will be used  |
-   |                            | for normalization. Default ``MGOGs``.  |
+   |                            | for normalization. Default             |
+   |                            | ``"MGOGs"``.                           |
    +----------------------------+----------------------------------------+
    | ``load_sequences``         | logical. If ``TRUE``, contig and orf   |
    |                            | sequences will be loaded in the SQM    |
@@ -90,9 +102,9 @@ loadSQM
    +----------------------------+----------------------------------------+
    | ``engine``                 | character. Engine used to load the     |
    |                            | ORFs and contigs tables. Either        |
-   |                            | ``data.frame`` or ``data.table``       |
+   |                            | ``"data.frame"`` or ``"data.table"``   |
    |                            | (significantly faster if your project  |
-   |                            | is large). Default ``data.table``.     |
+   |                            | is large). Default ``"data.table"``.   |
    +----------------------------+----------------------------------------+
 
    .. rubric:: Value
@@ -161,6 +173,10 @@ loadSQM
    |         |         |         | vector* |         |         | t       |
    |         |         |         |         |         |         | axonomy |
    +---------+---------+---------+---------+---------+---------+---------+
+   |         | **$tax_ |         | See     |         |         |         |
+   |         | abund** |         | S       |         |         |         |
+   |         |         |         | QM$taxa |         |         |         |
+   +---------+---------+---------+---------+---------+---------+---------+
    |         | **$ma   |         | *list*  | orfs    | (n/a)   | CheckM1 |
    |         | rkers** |         |         |         |         | markers |
    +---------+---------+---------+---------+---------+---------+---------+
@@ -194,6 +210,10 @@ loadSQM
    |         | *       |         | *ch     | contigs | tax.    | tax     |
    |         | *$tax** |         | aracter |         | ranks   | onomies |
    |         |         |         | matrix* |         |         |         |
+   +---------+---------+---------+---------+---------+---------+---------+
+   |         | **$tax_ |         | See     |         |         |         |
+   |         | abund** |         | S       |         |         |         |
+   |         |         |         | QM$taxa |         |         |         |
    +---------+---------+---------+---------+---------+---------+---------+
    |         | **      |         | *ch     | contigs | bin.    | bins    |
    |         | $bins** |         | aracter |         | methods |         |
@@ -230,9 +250,17 @@ loadSQM
    |         | *$tax** |         | aracter |         | ranks   | axonomy |
    |         |         |         | matrix* |         |         |         |
    +---------+---------+---------+---------+---------+---------+---------+
+   |         | **$tax_ |         | See     |         |         |         |
+   |         | abund** |         | S       |         |         |         |
+   |         |         |         | QM$taxa |         |         |         |
+   +---------+---------+---------+---------+---------+---------+---------+
    |         | **$tax  |         | *ch     | bins    | tax.    | GTDB    |
    |         | _gtdb** |         | aracter |         | ranks   | t       |
    |         |         |         | matrix* |         |         | axonomy |
+   +---------+---------+---------+---------+---------+---------+---------+
+   |         | **$ta   |         | See     |         |         |         |
+   |         | x_abund |         | S       |         |         |         |
+   |         | _gtdb** |         | QM$taxa |         |         |         |
    +---------+---------+---------+---------+---------+---------+---------+
    | **      | **$     | **$     | *       | superk  | samples | abu     |
    | $taxa** | superki | abund** | numeric | ingdoms |         | ndances |

@@ -14,9 +14,8 @@ subsetTax
    .. rubric:: Description
       :name: description
 
-   Create a SQM or SQMbunch object containing only the contigs with a
-   given consensus taxonomy, the ORFs contained in them and the bins
-   that contain them.
+   Create a SQM or SQMbunch object containing only the contigs/bins with
+   a given consensus taxonomy, as well as the ORFs contained in them.
 
    .. rubric:: Usage
       :name: usage
@@ -27,6 +26,7 @@ subsetTax
         SQM,
         rank,
         tax,
+        tax_source = NULL,
         trusted_functions_only = FALSE,
         ignore_unclassified_functions = FALSE,
         rescale_tpm = TRUE,
@@ -50,6 +50,34 @@ subsetTax
    +----------------------------------+----------------------------------+
    | ``tax``                          | character. A taxon or vector of  |
    |                                  | taxa to be selected.             |
+   +----------------------------------+----------------------------------+
+   | ``tax_source``                   | character, source data used for  |
+   |                                  | feature selection, and to        |
+   |                                  | generate the taxonomy tables     |
+   |                                  | present in ``SQM$taxa``, either  |
+   |                                  | ``"orfs"``, ``"contigs"``,       |
+   |                                  | ``"bins"`` (GTDB bin taxonomy if |
+   |                                  | available, SQM bin taxonomy      |
+   |                                  | otherwise), ``"bins_gtdb"``      |
+   |                                  | (GTDB bin taxonomy) or           |
+   |                                  | ``"bins_sqm"`` (SQM bin          |
+   |                                  | taxonomy). When ``"bins"``,      |
+   |                                  | ``"bins_gtdb"`` or               |
+   |                                  | ``"bins_sqm"``, this function    |
+   |                                  | will select the bins from the    |
+   |                                  | desired taxa, otherwise it will  |
+   |                                  | select the contigs from the      |
+   |                                  | desired taxa. If using           |
+   |                                  | ``"bins_gtdb"``, note that GTDB  |
+   |                                  | taxonomy may differ from the     |
+   |                                  | NCBI taxonomy used throughout    |
+   |                                  | the rest of SqueezeMeta. Default |
+   |                                  | ``"contigs"``, unless the        |
+   |                                  | project was created with the     |
+   |                                  | '–onlybins' flag, where it will  |
+   |                                  | be ``"bins_gtdb"`` if GTDB       |
+   |                                  | taxonomy is available for the    |
+   |                                  | bins.                            |
    +----------------------------------+----------------------------------+
    | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
    |                                  | highly trusted functional        |

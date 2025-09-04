@@ -46,12 +46,16 @@ subsetORFs
    | ``orfs``                         | character. Vector of ORFs to be  |
    |                                  | selected.                        |
    +----------------------------------+----------------------------------+
-   | ``tax_source``                   | character. Features used for     |
-   |                                  | calculating aggregated           |
-   |                                  | abundances at the different      |
-   |                                  | taxonomic ranks. Either          |
-   |                                  | ``"orfs"`` or ``"contigs"``      |
-   |                                  | (default ``"orfs"``).            |
+   | ``tax_source``                   | character, source data used for  |
+   |                                  | the taxonomy tables present in   |
+   |                                  | ``SQM$taxa``, either ``"orfs"``, |
+   |                                  | ``"contigs"``, ``"bins"`` (GTDB  |
+   |                                  | bin taxonomy if available, SQM   |
+   |                                  | bin taxonomy otherwise),         |
+   |                                  | ``"bins_gtdb"`` (GTDB bin        |
+   |                                  | taxonomy) or ``"bins_sqm"`` (SQM |
+   |                                  | bin taxonomy). Default           |
+   |                                  | ``"orfs"``.                      |
    +----------------------------------+----------------------------------+
    | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
    |                                  | highly trusted functional        |

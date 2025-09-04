@@ -25,6 +25,7 @@ subsetContigs
       subsetContigs(
         SQM,
         contigs,
+        tax_source = "contigs",
         trusted_functions_only = FALSE,
         ignore_unclassified_functions = FALSE,
         rescale_tpm = FALSE,
@@ -41,6 +42,16 @@ subsetContigs
    +----------------------------------+----------------------------------+
    | ``contigs``                      | character. Vector of contigs to  |
    |                                  | be selected.                     |
+   +----------------------------------+----------------------------------+
+   | ``tax_source``                   | character, source data used for  |
+   |                                  | the taxonomy tables present in   |
+   |                                  | ``SQM$taxa``, either ``"bins"``  |
+   |                                  | (GTDB bin taxonomy if available, |
+   |                                  | SQM bin taxonomy otherwise),     |
+   |                                  | ``"bins_gtdb"`` (GTDB bin        |
+   |                                  | taxonomy) or ``"bins_sqm"`` (SQM |
+   |                                  | bin taxonomy). Default           |
+   |                                  | ``"contigs"``.                   |
    +----------------------------------+----------------------------------+
    | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
    |                                  | highly trusted functional        |

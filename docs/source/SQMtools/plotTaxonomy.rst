@@ -28,12 +28,14 @@ plotTaxonomy
         rank = "phylum",
         count = "percent",
         N = 15,
+        tax_source = NULL,
         tax = NULL,
         others = TRUE,
         samples = NULL,
         nocds = "treat_separately",
         ignore_unmapped = FALSE,
         ignore_unclassified = FALSE,
+        ignore_nobin = FALSE,
         no_partial_classifications = FALSE,
         rescale = FALSE,
         color = NULL,
@@ -59,6 +61,17 @@ plotTaxonomy
    +--------------------------------+------------------------------------+
    | ``N``                          | integer Plot the ``N`` most        |
    |                                | abundant taxa (default ``15``).    |
+   +--------------------------------+------------------------------------+
+   | ``tax_source``                 | character. Source of taxonomic     |
+   |                                | annotations, can be ``"orfs"``,    |
+   |                                | ``"contigs"``, ``"bins"`` (GTDB    |
+   |                                | bin taxonomy if available, SQM bin |
+   |                                | taxonomy otherwise),               |
+   |                                | ``"bins_gtdb"`` (GTDB bin          |
+   |                                | taxonomy) or ``"bins_sqm"`` (SQM   |
+   |                                | bin taxonomy) (default: use the    |
+   |                                | 'tax_source' from the input        |
+   |                                | object).                           |
    +--------------------------------+------------------------------------+
    | ``tax``                        | character. Custom taxa to plot. If |
    |                                | provided, it will override ``N``   |
@@ -129,6 +142,11 @@ plotTaxonomy
    |                                | c('sample1', sample2'), 'G2' =     |
    |                                | c('sample3', 'sample4')) default   |
    |                                | ``NULL``).                         |
+   +--------------------------------+------------------------------------+
+   | ``ignore_nobin.``              | Ignore reads not mapping to any    |
+   |                                | bin when ``tax_source`` is         |
+   |                                | ``bins``, ``bins_gtdb`` or         |
+   |                                | ``bins_sqm`` (default ``FALSE``).  |
    +--------------------------------+------------------------------------+
 
    .. rubric:: Value

@@ -47,16 +47,19 @@ combineSQM
    |                                  | list containing an arbitrary     |
    |                                  | number of SQM objects.           |
    +----------------------------------+----------------------------------+
-   | ``tax_source``                   | character. Features used for     |
-   |                                  | calculating aggregated           |
-   |                                  | abundances at the different      |
-   |                                  | taxonomic ranks. Either          |
-   |                                  | ``"orfs"`` or ``"contigs"``      |
-   |                                  | (default ``"orfs"``). If the     |
-   |                                  | objects being combined contain a |
-   |                                  | subset of taxa or bins, this     |
-   |                                  | parameter can be set to          |
-   |                                  | ``TRUE``.                        |
+   | ``tax_source``                   | character, source data used for  |
+   |                                  | the taxonomy tables present in   |
+   |                                  | ``SQM$taxa``, either ``"orfs"``, |
+   |                                  | ``"contigs"``, ``"bins"`` (GTDB  |
+   |                                  | bin taxonomy if available, SQM   |
+   |                                  | bin taxonomy otherwise),         |
+   |                                  | ``"bins_gtdb"`` (GTDB bin        |
+   |                                  | taxonomy) or ``"bins_sqm"`` (SQM |
+   |                                  | bin taxonomy). Default           |
+   |                                  | ``"orfs"``. If the objects being |
+   |                                  | combined contain a subset of     |
+   |                                  | taxa or bins, we recommend       |
+   |                                  | adjusting this parameter.        |
    +----------------------------------+----------------------------------+
    | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
    |                                  | highly trusted functional        |
