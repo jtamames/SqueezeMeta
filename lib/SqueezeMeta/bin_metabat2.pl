@@ -36,6 +36,11 @@ do "$projectdir/parameters.pl";
 
 our($contigsfna,$contigcov,$bindir,$metabat_soft,$jgi_summ_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$contigslen,$mappingfile,$methodsfile,$maxchimerism14,$mingenes14,$smallnoannot14,%bindirs,$syslogfile,$numthreads);
 
+#-- Override numthreads if requested
+
+my $numthreads_override=$ARGV[1];
+if($numthreads_override) { $numthreads = $numthreads_override; }
+
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 

@@ -44,6 +44,11 @@ do "$projectdir/parameters.pl";
 our($datapath,$userdir,$bowtieref,$bowtie2_build_soft,$project,$samtools_soft,$contigsfna,$mappingfile,$mapcountfile,$mode,$resultpath,$contigcov,$bowtie2_x_soft, $mappingstat,$nobins,
     $mapper, $mapping_options, $cleaning, $bwa_soft, $minimap2_soft, $gff_file,$tempdir,$numthreads,$scriptdir,$mincontiglen,$doublepass,$contigslen,$gff_file_blastx,$methodsfile,$syslogfile,$keepsam10);
 
+#-- Override numthreads if requested
+
+my $numthreads_override=$ARGV[2];
+if($numthreads_override) { $numthreads = $numthreads_override; }
+
 my $verbose=0;
 
 my $fastqdir="$datapath/raw_fastq";

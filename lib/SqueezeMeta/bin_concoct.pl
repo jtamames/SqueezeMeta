@@ -38,6 +38,11 @@ do "$projectpath/parameters.pl";
 
 our($samtools_soft, $concoct_dir,$databasepath,$contigsfna,$singletons,$contigcov,$tempdir,$interdir,$mappingfile,$datapath,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
+#-- Override numthreads if requested
+
+my $numthreads_override=$ARGV[1];
+if($numthreads_override) { $numthreads = $numthreads_override; }
+
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 my $bindir="$interdir/binners/concoct";

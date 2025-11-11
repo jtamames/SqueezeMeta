@@ -37,6 +37,11 @@ do "$projectdir/parameters.pl";
 
 our($datapath,$databasepath,$resultpath,$interdir,$binresultsdir,$binners,$aafile,$contigsfna,$contigcov,$dastool_soft,$alllog,$tempdir,$methodsfile,$score_tres15,$numthreads,$syslogfile);
 
+#-- Override numthreads if requested
+
+my $numthreads_override=$ARGV[1];
+if($numthreads_override) { $numthreads = $numthreads_override; }
+
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 my $daspath="$interdir/binners/DAS";

@@ -40,6 +40,11 @@ do "$projectdir/parameters.pl";
 
 our($datapath,$taxlist,$binresultsdir,$checkm_soft,$checkm2_soft,$alllog,$resultpath,$tempdir,$minsize17,$numthreads,$interdir,$methodsfile,$syslogfile,$checkmfile,$nomarkers,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile);
 
+#-- Override numthreads if requested
+
+my $numthreads_override=$ARGV[1];
+if($numthreads_override) { $numthreads = $numthreads_override; }
+
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 print "  Evaluating bins with CheckM2 (Chklovski et al 2023, Nat Met 20, 1203-12)\n\n";

@@ -39,6 +39,11 @@ do "$projectpath/parameters.pl";
 
 our($databasepath,$resultpath,$interdir,$contigsfna,%binscripts,$contigcov,$maxbin_soft,$alllog,$tempdir,$numthreads,$mappingfile,$binners,$methodsfile,$syslogfile);
 
+#-- Override numthreads if requested
+
+my $numthreads_override=$ARGV[1];
+if($numthreads_override) { $numthreads = $numthreads_override; }
+
 my $finaltrace;
 my @binner=split(/\,/,$binners);
 
@@ -66,7 +71,7 @@ foreach my $tbinner(@binner) { #-- For all the specified binners
 	my $scriptname=$binscripts{$tbinner};
 	if(!$scriptname) { print RED; print "WARNING in STEP14 -> No binner found for $tbinner\n"; print RESET; $finaltrace.="WARNING in STEP15: No binner found for $tbinner\n"; next; }
 	print "  Running $tbinner from $scriptname\n";
-	my $ecode = system("LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$installpath/lib perl $scriptname $projectpath >> $tempdir/$project.log");
+	my $ecode = system("LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$installpath/lib perl $scriptname $projectpath $numthreads >> $tempdir/$project.log");
 	if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
 	
 	#-- Check the bins, to verify that all is correct (there are at least some bins)

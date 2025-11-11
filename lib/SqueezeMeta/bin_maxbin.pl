@@ -38,6 +38,11 @@ do "$projectdir/parameters.pl";
 
 our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$contigslen,$interdir,$singletons,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
+#-- Override numthreads if requested
+
+my $numthreads_override=$ARGV[1];
+if($numthreads_override) { $numthreads = $numthreads_override; }
+
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
 my $mingenes=1;		#-- Threshold for excluding small contigs (few genes than this)
 my $smallnoannot=1;	#-- For excluding contigs with just one gene an no annotation
