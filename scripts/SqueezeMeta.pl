@@ -900,7 +900,7 @@ sub pipeline {
 					if($ecode!=0) { print RED; print "Stopping in STEP17 -> $scriptname\n"; print RESET; die; }
 					my $binmethod="DAS";
 					my $wsize=checksize($checkmfile);
-					if($wsize<4) {
+					if($wsize<2) {
 						print RED; print "Can't find $checkmfile\nStopping in STEP17 -> $scriptname\n"; print RESET; die; }
 					if($gtdbtk) {
 						my $wsize=checksize($checkmfile);
