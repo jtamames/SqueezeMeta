@@ -205,7 +205,7 @@ type of multi-metagenome support. These modes are:
 
 -  **Merged mode**: if many big samples are available, co-assembly could
    crash because of memory requirements. This mode achieves a comparable
-   resul with a procedure inspired by `the one used by Benjamin Tully for
+   result with a procedure inspired by `the one used by Benjamin Tully for
    analysing TARA Oceans data <https://dx.doi.org/10.17504/protocols.io.hfqb3mw>`_.
    Briefly, samples are assembled individually and the resulting contigs are
    merged in a single co-assembly. Then the analysis proceeds as in the
@@ -227,7 +227,7 @@ type of multi-metagenome support. These modes are:
 
 Note that the *merged* and *seqmerge* modes work well as a substitute of
 coassembly for running small datasets in computers with low memory
-(e.g. 16 Gb) but are very slow for analising large datasets (>10
+(e.g. 16 Gb) but are very slow for analysing large datasets (>10
 samples) even in workstations with plenty of resources. Still, setting
 ``-contiglen`` to 1000 or higher can make *seqmerge* a viable strategy
 even in those cases. Otherwise, we recommend to use either the
@@ -247,7 +247,7 @@ additional flags to the *spades.py* call. This can be used in
 conjunction with ``–assembly options`` when one wants to fully customize
 the call to SPAdes, e.g. for assembling single cell genomes.
 
-Analizing user-supplied assemblies or bins
+Analyzing user-supplied assemblies or bins
 ------------------------------------------
 
 An user-supplied assembly can be passed to SqueezeMeta with the flags

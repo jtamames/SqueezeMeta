@@ -42,7 +42,7 @@ type of multi-metagenome support. These modes are:
 .. note::
   Note that the *merged* and *seqmerge* modes work well as a substitute of
   coassembly for running small datasets in computers with low memory
-  (e.g. 16 Gb) but are very slow for analising large datasets (>10
+  (e.g. 16 Gb) but are very slow for analyzing large datasets (>10
   samples) even in workstations with plenty of resources. Still, setting
   ``-contiglen`` to 1000 or higher can make *seqmerge* a viable strategy
   even in those cases. Otherwise, we recommend to use either the
@@ -81,7 +81,7 @@ file in the input directory as an individual bin.
 Analyzing metatranscriptomes
 ============================
 SqueezeMeta can be used for de-novo metatranscriptomic assembly, annotation
-and quantification. Usage is similar as when analizing metagenomes, though
+and quantification. Usage is similar as when analyzing metagenomes, though
 we recommend to also provide the ``--nobins`` to skip binning.  
 
 Regarding the choice of assembler, we have obtained good results with rnaSPAdes
