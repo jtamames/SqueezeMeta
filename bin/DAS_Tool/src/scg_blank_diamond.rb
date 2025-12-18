@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby -w
 
 # The MIT License (MIT)
 # Copyright (c) 2016 Alexander J Probst
@@ -76,7 +76,7 @@ File.open(File.join(output_dir,File.basename(input_file)+".scg"), "w") do |file|
     line.chomp!
     temp = line.split(/\t/)
     query, sbjct = temp[0], temp[1]
-    aln_len, sbjct_len = temp[3], temp[5]
+    aln_len, sbjct_len = temp[3].to_i, temp[5].to_i
     if lookup_h[sbjct] && aln_len > (sbjct_len*0.5)
       file.puts "#{query.split[0]}\t#{lookup_h[sbjct]}"
     end

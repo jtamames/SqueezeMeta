@@ -37,7 +37,6 @@ outputs:
         - pandas >=0.11.0
         - biopython >=1.62b
         - scikit-learn >=0.18.0
-        #- nose >=1.3.0
         - gsl
         - samtools
         - blas=*=mkl # To avoid openmp
@@ -58,7 +57,7 @@ outputs:
         - pandas >=0.11.0
         - biopython >=1.62b
         - scikit-learn >=0.18.0
-        #- nose >=1.3.0
+        - nose >=1.3.0
         - gsl # last time I checked we need v2.7 from conda-forge (the one from anaconda will fail)
         - samtools
         - blas=*=mkl # To avoid openblas which causes trouble with CONCOCT

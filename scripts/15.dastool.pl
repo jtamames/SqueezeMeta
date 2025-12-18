@@ -108,7 +108,7 @@ if($numbinmethods==1) {		#-- If there is just one result, simply copy the fasta 
 
 else { 				#-- Otherwise, run DAS tool to combine results
 	
-	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins 1 --score_threshold $score_tres15 --search_engine diamond -t $numthreads -o $daspath/$projectname --db_directory $databasepath";
+	my $das_command="$dastool_soft -i $tables -l $methods -c $contigsfna --write_bins --score_threshold $score_tres15 --search_engine diamond -t $numthreads -o $daspath/$projectname --dbDirectory $databasepath";
  
 	print "Running DAS Tool (Sieber et al 2018, Nat Microbiol 3(7), 836-43) for $methods\n";
 	print outsyslog "Running DAS Tool for $methods: $das_command\n";

@@ -139,7 +139,7 @@ $minpath_soft       = "python3 $installpath/bin/MinPath1.4.py";
 $canu_soft          = "$installpath/bin/canu-2.2/bin/canu";
 $flye_soft          = "$installpath/bin/Flye-2.9/bin/flye";
 $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
-$dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=$installpath/bin:\$PATH $installpath/bin/DAS_Tool/DAS_Tool";
+$dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=\$PATH:$installpath/bin $installpath/bin/DAS_Tool/DAS_Tool";
 $kmerdb_soft        = "kmer-db";
 $aragorn_soft       = "$installpath/bin/aragorn";
 $mothur_soft        = "mothur";
