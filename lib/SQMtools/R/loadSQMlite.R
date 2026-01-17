@@ -101,7 +101,14 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
     SQM$misc                      = list()
     SQM$misc$project_name         = project_name
 
-    message('Loading taxonomies\n')                                   
+    ### Check that this is a valid SQM project.
+    if(is.null(project_name))
+        {
+        stop(sprintf('Directory "%s" does not seem to contain valid SqueezeMeta tables', tables_path))
+        }
+
+
+    message('Loading taxonomies\n')
     SQM$taxa                      = list()
     SQM$taxa$superkingdom         = list()
     SQM$taxa$phylum               = list()
@@ -109,15 +116,8 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
     SQM$taxa$order                = list()
     SQM$taxa$family               = list()
     SQM$taxa$genus                = list()
-    SQM$taxa$species              = list()
+    SQM$taxa$species              = list() 
 
-    ### Check that this is a valid SQM project.
-    if(is.null(project_name))
-        {
-        stop(sprintf('Directory "%s" does not seem to contain valid SqueezeMeta tables', tables_path))
-        }
-
-    
     SQM$taxa$superkingdom$abund   = as.matrix(read.table(sprintf('%s/%s.superkingdom.%s.abund.tsv', tables_path, project_name, tax_mode),
                                                          header=TRUE, sep='\t', row.names=1, check.names=FALSE))
     SQM$taxa$phylum$abund         = as.matrix(read.table(sprintf('%s/%s.phylum.%s.abund.tsv', tables_path, project_name, tax_mode),
@@ -209,8 +209,8 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
 
     message('Loading functions\n')
     SQM$functions                           = list()
-
-    
+ 
+    allFiles                                = strsplit(list.files(tables_path), '.', fixed=TRUE)
     funAbundFiles                           = allFiles[sapply(allFiles, function(x) x[1] == project_name & x[3] == 'abund' & x[4] == 'tsv')]
     funMethods                              = sapply(funAbundFiles, function(x) x[2])
 
@@ -248,6 +248,7 @@ loadSQMlite = function(tables_path, tax_mode = 'allfilter')
  
     ### Finish.
     SQM$misc$samples = colnames(SQM$tax$superkingdom$abund) # This should contain all samples, user is responsible for inconsistencies in the data.
+    SQM$total_reads = colSums(SQM$tax$superkingdom$abund)
     class(SQM)       = 'SQMlite'
     return(SQM)
 
