@@ -79,6 +79,7 @@ outputs:
         - r-doMC
         - r-data.table==1.17.8
         - r-zip==2.3.3
+        - r-docopt==0.7.2
         - bioconductor-pathview==1.46.0
         - tree==2.2.1
         - readline==8.2

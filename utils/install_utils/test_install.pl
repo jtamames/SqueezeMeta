@@ -106,7 +106,6 @@ if(!$ecode) {
 	check_R_library("data.table");
 	check_R_library("reshape2");
 	check_R_library("pathview");
-	check_R_library("DASTool");
 	check_R_library("SQMtools");
 	#check_R_library("madeToFail");
 }

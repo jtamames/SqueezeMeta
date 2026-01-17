@@ -82,6 +82,7 @@ outputs:
         - r-doMC
         - r-data.table
         - r-zip
+        - r-docopt
         - bioconductor-pathview
         - tree
         - readline=8
