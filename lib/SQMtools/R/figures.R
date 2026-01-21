@@ -337,7 +337,17 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_sou
     check.samples(SQM, samples)
 
     if(is.null(tax_source)) { tax_source = SQM$misc$tax_source }
-    if(rank != 'bin') { data0 = get_tax_abund(SQM, tax_source, rank, count) } else { data0 = data0 = SQM[['bins']][[count]] }
+
+    if(inherits(SQM, c('SQMlite', 'SQMbunch')))
+        {
+        data0 = SQM$taxa[[rank]][[count]]
+    } else if (rank != 'bin')
+        {
+        data0 = get_tax_abund(SQM, tax_source, rank, count)
+    } else
+        {
+        data0 = data0 = SQM[['bins']][[count]]
+    }
     # First collapse partial classifications if required
     if(no_partial_classifications)
         {
@@ -354,19 +364,32 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_sou
     # Verify whether there are Unclassified or Unmapped or No CDS
 
 ##    if(ignore_unmapped & !('Unmapped' %in% rownames(data))) {ignore_unmapped = FALSE}
-    if((nocds == 'ignore'| nocds == 'treat_as_unclassified') & !('No CDS' %in% rownames(data))) { nocds = 'treat_separately' }
+    if((nocds == 'ignore'| nocds == 'treat_as_unclassified') & !('No CDS' %in% rownames(data0))) { nocds = 'treat_separately' }
     # Convert No CDS options in logical values
     if (nocds == 'treat_separately') 
         { 
         ignore_nocds = FALSE 
-        } else if (nocds == 'ignore') 
+    } else if (nocds == 'ignore') 
         { 
         ignore_nocds = TRUE 
-        } else if (nocds == 'treat_as_unclassified') 
+    } else if (nocds == 'treat_as_unclassified') 
         { 
         ignore_nocds = TRUE # at the end we ignore this class 'cause they're included in ignore_unclassified 
         }
-    if(ignore_unclassified & !('Unclassified' %in% rownames(data)) & nocds != 'treat_as_unclassified') {ignore_unclassified = FALSE}
+
+    if (nocds == 'treat_as_unclassified' & 'No CDS' %in% rownames(data0))
+        {
+        if (('Unclassified' %in% rownames(data0)))
+            {
+            data0['Unclassified', ] = data0['Unclassified', ] + data0['No CDS', ]
+        } else
+            {
+            data0['Unclassified', ] = data0['No CDS', ]
+            }
+        data0 = data0[rownames(data0) != 'No CDS', ]
+        }
+
+    #if(ignore_unclassified & !('Unclassified' %in% rownames(data)) & nocds != 'treat_as_unclassified') {ignore_unclassified = FALSE}
 
     ignore_cases = c('Unmapped' = ignore_unmapped, 'Unclassified' = ignore_unclassified, 'No CDS' = ignore_nocds, 'No bin' = ignore_nobin)
 
@@ -377,36 +400,6 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_sou
                         ignore = names(ignore_cases)[ignore_cases], # fully ignore
                         others = others, rescale = rescale)
 
-    #if (!is.null(ignore_taxa)) {ignore_cases = c(ignore_cases, remove_taxa)}
-    
-    # any(ignore_cases) => return T if at least one of the cases is T and we should ignore it
-    # remove unmapped/noCDS/Unclassified taxa (only possible when not custom items)
-    # Add as many taxa as needed to recover N taxa excluding any of the special cases
-##    if ( any(ignore_cases) & is.null(tax)  & N != 0 )
-##        { # We overwrite data from scratch!
-##        data = as.data.frame(data0) # Pick more taxa to complete N
-##        # how many taxa should we replace?
-##        rr = sum(ignore_cases) # count T cases
-##        data = mostAbundant(data, N = N + rr, items = tax, others = others, rescale = FALSE) # Create the data table again
-        # If nocds == 'treat_as_unclassified' => Unclassified = Unclassified + nocds
-        if (nocds == 'treat_as_unclassified') 
-            {
-            if (('Unclassified' %in% rownames(data)))
-                {
-                data['Unclassified', ] = data['Unclassified', ] + data['No CDS', ]
-                } else {data['Unclassified', ] = data['No CDS', ]}
-            }
-##	# Remove ignore_cases = TRUE
-##        for (i in 1:length(ignore_cases))
-##            {
-##            if (ignore_cases[i])
-##                { data = data[rownames(data) != names(ignore_cases)[i], , drop = FALSE] } # Remove  ignore cases
-##            }
-##        data = mostAbundant(data, items = rownames(data), others = FALSE, rescale = rescale) # Renormalize/Others
-##        }
-
-
-    #print(data)
     defaultColors = c(
         '#97B065', '#B93838', '#83AAF0', '#E2AA48', '#A9A3D2',
         '#797900', '#F4BCE6', '#84F4F6', '#9AD63B', '#A285F5',
@@ -452,22 +445,23 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_sou
         niceOrder = c(rownames(data)[rownames(data)!='No CDS'], 'No CDS')
         data = data[niceOrder,,drop=FALSE]
         }
-    
-    # Add unclassified color and put Unclassified at the bottom
-    if('Unclassified' %in% rownames(data))
-        {
-        if(!is.null(color)) { color = c(color, 'azure2') }
-        niceOrder = c(rownames(data)[rownames(data)!='Unclassified'], 'Unclassified')
-        data = data[niceOrder,,drop=FALSE]
-        }
 
     # Add No bin color and put No bin at the bottom
     if('No bin' %in% rownames(data))
     {
-        if(!is.null(color)) { color = c(color, 'azure3') }
+        if(!is.null(color)) { color = c(color, 'azure2') }
         niceOrder = c(rownames(data)[rownames(data)!='No bin'], 'No bin')
         data = data[niceOrder,,drop=FALSE]
     }
+    
+    # Add unclassified color and put Unclassified at the bottom
+    if('Unclassified' %in% rownames(data))
+        {
+        if(!is.null(color)) { color = c(color, 'azure3') }
+        niceOrder = c(rownames(data)[rownames(data)!='Unclassified'], 'Unclassified')
+        data = data[niceOrder,,drop=FALSE]
+        }
+
     # Add unmapped color and put Unmapped at the bottom
     if('Unmapped' %in% rownames(data))
         {
@@ -475,8 +469,6 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_sou
         niceOrder = c(rownames(data)[rownames(data)!='Unmapped'], 'Unmapped')
         data = data[niceOrder,,drop=FALSE]
         }
-
-
 
     # If requested, plot only the selected samples
     if(!is.null(samples)) { data = data[,samples,drop=FALSE] }

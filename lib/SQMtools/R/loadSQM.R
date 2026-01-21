@@ -481,6 +481,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
     } else
         {
 	warning('    There are no binning results in your project. Skipping...')
+        has_gtdbtk = FALSE
 	}
 
     if(has_tax)
