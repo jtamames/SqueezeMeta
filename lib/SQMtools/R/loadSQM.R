@@ -396,7 +396,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
     if(load_sequences)
         {
         message('    sequences...')
-        SQM$contigs$seqs          = read.fasta.zip(project_path, sprintf('results/01.%s.fasta', project_name), type = 'DNA')
+        SQM$contigs$seqs          = read.namedvector.zip(project_path, sprintf('results/tables/%s.contig.sequences.tsv', project_name), type = 'DNA')
         SQM$contigs$seqs          = SQM$contigs$seqs[rownames(SQM$contigs$table)]
         }
 

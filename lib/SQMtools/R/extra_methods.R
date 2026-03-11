@@ -48,6 +48,7 @@ read.fasta.zip = function(project_path, file_path, type = 'DNA')
         {
         unzip(project_path, file_path, exdir = tempdir(), junkpaths = TRUE)
         f = tail(unlist(strsplit(file_path, split = '/')), 1)
+        f = sprintf('%s/%s', tempdir(), f)
     } else
         {
         f = sprintf('%s/%s', project_path, file_path)

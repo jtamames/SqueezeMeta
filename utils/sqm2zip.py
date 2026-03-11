@@ -28,7 +28,7 @@ from os import listdir
 from sys import exit, argv
 from subprocess import call
 import argparse
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 
 from sys import path
 utils_home = abspath(dirname(realpath(__file__)))
@@ -74,7 +74,7 @@ def main(args):
         target_files += [f'results/18.{project_name}.bintable', f'intermediate/18.{project_name}.contigsinbins']
 
     # ... and go for it
-    with ZipFile(output, 'w') as outzip:
+    with ZipFile(output, 'w', compression = ZIP_DEFLATED) as outzip:
         for f in target_files:
             outzip.write(f'{args.project_path}/{f}', arcname=f)
 
