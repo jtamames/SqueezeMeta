@@ -171,6 +171,7 @@ def main(args):
 
     ### Process samples
     def tax_file_to_dict(path, out_dict):
+        duplicates = 0
         with open(path) as infile:
             for line in infile:
                 fields = line.strip().split('\t')
@@ -184,8 +185,12 @@ def main(args):
                 else:
                     tax_string = fields[1] if fields[1] else 'n_Unclassified'
                 tax, tax_wranks = parse_tax_string(tax_string)
-                assert read not in out_dict
-                out_dict[read] = tax_wranks
+                if read in out_dict:
+                    duplicates += 1
+                else:
+                    out_dict[read] = tax_wranks
+        if duplicates:
+            print(f'{path}: {duplicates} reads had duplicate names and were ignored')
     
     # Go anti go!
     filterOK = []
@@ -228,6 +233,7 @@ def main(args):
 
         # Parse functions.
         for method in FUNMETHODS:
+            duplicates = 0
             fun_files = [f for f in listdir('{}/{}'.format(args.project_path, sample)) if f.endswith(method)]
             for fun_file in fun_files:
                 path = '{}/{}/{}'.format(args.project_path, sample, fun_file)
@@ -244,9 +250,13 @@ def main(args):
                             read = fields[0]
                         funs = fields[2] if args.trusted_functions else fields[1]
                         funs = funs.split(';')
-                        assert read not in read_fun[method]
-                        read_fun[method][read] = funs
-                        fun_reads.add(read)
+                        if read in read_fun[method]:
+                            duplicates += 1
+                        else:
+                            read_fun[method][read] = funs
+                            fun_reads.add(read)
+                if duplicates: 
+                    print(f'{path}: {duplicates} reads had duplicate names and were ignored') 
         if longreads:
             # Get all fun reads even if they are not annotated
             with open('{}/{}.out.allreads'.format(args.project_path, project_name)) as infile:
