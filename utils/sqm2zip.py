@@ -52,7 +52,7 @@ def main(args):
             exit(1)
 
     ### Check whether we need to create the tables for this project
-    if not exists(f'{args.project_path}/results/tables/{project_name}.phylum.nofilter.abund.tsv'):
+    if not int(perlVars['$onlybins']) and not exists(f'{args.project_path}/results/tables/{project_name}.phylum.nofilter.abund.tsv'):
         print(f'Generating tabular outputs for project in {args.project_path}')
         sqm2tables_args = ['python3', f'{utils_home}/sqm2tables.py', args.project_path, f'{args.project_path}/results/tables']
         if args.trusted_functions:
@@ -65,10 +65,13 @@ def main(args):
     target_files = ['creator.txt',
                     'SqueezeMeta_conf.pl',
                     f'results/10.{project_name}.mappingstat',
-                    f'results/13.{project_name}.orftable',
                     f'results/19.{project_name}.contigtable']
 
-    target_files += [f'results/tables/{f}' for f in listdir(f'{args.project_path}/results/tables')]
+    if int(perlVars['$onlybins']):
+        target_files.append(f'results/01.{project_name}.fasta')
+    else:
+        target_files.append(f'results/13.{project_name}.orftable')
+        target_files += [f'results/tables/{f}' for f in listdir(f'{args.project_path}/results/tables')]
 
     if not int(perlVars['$nobins']) and exists(perlVars['$bintable']):
         target_files += [f'results/18.{project_name}.bintable', f'intermediate/18.{project_name}.contigsinbins']
@@ -77,8 +80,6 @@ def main(args):
     with ZipFile(output, 'w', compression = ZIP_DEFLATED) as outzip:
         for f in target_files:
             outzip.write(f'{args.project_path}/{f}', arcname=f)
-
-
 
 
 
