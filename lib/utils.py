@@ -3,6 +3,7 @@ Part of the SqueezeMeta distribution. 25/03/2018 Original version, (c) Fernando 
 python utilities for working with SqueezeMeta results
 """
 
+from functools import cache
 from collections import defaultdict
 from numpy import array, isnan, seterr
 from os import listdir
@@ -371,6 +372,7 @@ def parse_bin_table(bin_table):
     return bin_tpm, bin_tax, bin_tax_wranks
 
 
+@cache
 def parse_tax_string(taxString, emptyClassString = 'Unclassified'):
     """
     Parse a taxonomy string as reported by the fun3 algorithm in SqueezeMeta

@@ -61,7 +61,7 @@ mostAbundant = function(data, N = 10, items = NULL, extra_items = NULL,
                 N = total_items - length(extra_items)
                 others = FALSE
             }
-        data2 = data[!rownames(data) %in% extra_items,]
+        data2 = data[!rownames(data) %in% extra_items,,drop=FALSE]
         items = names(sort(rowSums(data2), decreasing = TRUE)[1:N])
         items = c(items, extra_items)
         }
