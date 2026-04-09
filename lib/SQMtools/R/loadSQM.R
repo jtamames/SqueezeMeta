@@ -474,6 +474,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
             rownames(SQM$bins$tax_gtdb) = rownames(SQM$bins$table)
             colnames(SQM$bins$tax_gtdb) = c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
             #colnames(SQM$bins$tax_gtdb) = colnames(SQM$bins$tax)
+            SQM$bins$tax_gtdb = fix_gtdbtk_tax(SQM$bins$tax_gtdb)
             SQM$bins$tax_abund_gtdb = aggregate_taxa(SQM, 'bins_gtdb', allow_missing_annots = TRUE)
             }
         goodcols = c('Method', 'Num contigs', 'GC perc', 'Tax 16S', 'Disparity', 'Completeness','Contamination')

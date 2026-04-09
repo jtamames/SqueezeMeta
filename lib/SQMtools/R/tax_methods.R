@@ -34,10 +34,38 @@ get_tax_keys = function(SQM, tax_source, taxa_abunds = FALSE)
     return(c(tax_source, tax_key))
     }
 
+
 get_preferred_tax = function(SQM)
     {
     tk = get_tax_keys(SQM, SQM$misc$tax_source, taxa_abunds = TRUE)
     tax_source = tk[1]
     tax_key = tk[2]
     return(SQM[[tax_source]][[tax_key]])
+    }
+
+
+fix_gtdbtk_tax = function(tax_table)
+    {
+    for(bin in rownames(tax_table))
+        {
+        taxvec = tax_table[bin,]
+        newtaxvec = c()
+        last_tax = NA
+        prefixes = c('d__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__')
+        for(i in seq_along(prefixes))
+            {
+            tax = gsub(prefixes[i], '', taxvec[i])
+            if(i==1) { last_tax = gsub('^Unclassified', '', tax) }
+            if(nchar(tax) == 0)
+                {
+                tax = sprintf('Unclassified %s', last_tax)
+            } else
+                {
+                last_tax = tax
+                }
+            newtaxvec = c(newtaxvec, tax)
+            }
+        tax_table[bin,] = newtaxvec
+        }
+    return(tax_table)
     }
