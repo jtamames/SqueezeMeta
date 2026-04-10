@@ -210,7 +210,8 @@ def main(args):
         else:
             parse_table('{}/results/tables/{}.KO.abund.tsv'.format(projPath, projName), KOabund)
             if not args.sqmreads:
-                parse_table('{}/results/tables/{}.KO.copyNumber.tsv'.format(projPath, projName), KOcopy)
+                if isfile('{}/results/tables/{}.KO.copyNumber.tsv'.format(projPath, projName)):
+                    parse_table('{}/results/tables/{}.KO.copyNumber.tsv'.format(projPath, projName), KOcopy)
                 parse_table('{}/results/tables/{}.KO.tpm.tsv'.format(projPath, projName), KOtpm)
 
 
@@ -220,7 +221,8 @@ def main(args):
         else:
             parse_table('{}/results/tables/{}.COG.abund.tsv'.format(projPath, projName), COGabund)
             if not args.sqmreads:
-                parse_table('{}/results/tables/{}.COG.copyNumber.tsv'.format(projPath, projName), COGcopy)
+                if isfile('{}/results/tables/{}.COG.copyNumber.tsv'.format(projPath, projName)):
+                    parse_table('{}/results/tables/{}.COG.copyNumber.tsv'.format(projPath, projName), COGcopy)
                 parse_table('{}/results/tables/{}.COG.tpm.tsv'.format(projPath, projName), COGtpm)
 
 
@@ -230,7 +232,8 @@ def main(args):
                 hasPFAM = False
             else:
                 parse_table('{}/results/tables/{}.PFAM.abund.tsv'.format(projPath, projName), PFAMabund)
-                parse_table('{}/results/tables/{}.PFAM.copyNumber.tsv'.format(projPath, projName), PFAMcopy)
+                if isfile('{}/results/tables/{}.PFAM.copyNumber.tsv'.format(projPath, projName)):
+                    parse_table('{}/results/tables/{}.PFAM.copyNumber.tsv'.format(projPath, projName), PFAMcopy)
                 parse_table('{}/results/tables/{}.PFAM.tpm.tsv'.format(projPath, projName), PFAMtpm)
 
         for method in custom_thissample: # Add custom annotation methods!
@@ -285,19 +288,22 @@ def main(args):
 
     if hasKEGG:
         write_feature_dict(sampleNames, KOabund, prefix + 'KO.abund.tsv')
-        if not args.sqmreads: 
-            write_feature_dict(sampleNames, KOcopy, prefix + 'KO.copyNumber.tsv')
+        if not args.sqmreads:
+            if KOcopy:
+                write_feature_dict(sampleNames, KOcopy, prefix + 'KO.copyNumber.tsv')
             write_feature_dict(sampleNames, KOtpm, prefix + 'KO.tpm.tsv')
 
     if hasCOG:
         write_feature_dict(sampleNames, COGabund, prefix + 'COG.abund.tsv')
         if not args.sqmreads:
-            write_feature_dict(sampleNames, COGcopy, prefix + 'COG.copyNumber.tsv')
+            if COGcopy:
+                write_feature_dict(sampleNames, COGcopy, prefix + 'COG.copyNumber.tsv')
             write_feature_dict(sampleNames, COGtpm, prefix + 'COG.tpm.tsv')
 
     if not args.sqmreads and hasPFAM:
         write_feature_dict(sampleNames, PFAMabund, prefix + 'PFAM.abund.tsv')
-        write_feature_dict(sampleNames, PFAMcopy, prefix + 'PFAM.copyNumber.tsv')
+        if PFAMcopy:
+            write_feature_dict(sampleNames, PFAMcopy, prefix + 'PFAM.copyNumber.tsv')
         write_feature_dict(sampleNames, PFAMtpm, prefix + 'PFAM.tpm.tsv')
 
     for method in customFunMethods: # Write custom annotation methods!
@@ -341,6 +347,7 @@ def parse_table(path, targetDict):
 
 def write_feature_dict(sampleNames, featureDict, outName):
     df = DataFrame.from_dict(featureDict).fillna(0)
+    sampleNames = [s for s in sampleNames if s in df.columns] # we may lack copy number info for some samples
     df = df.sort_index()
     df = df[sampleNames]
     df.to_csv(outName, sep='\t')
