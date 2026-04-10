@@ -470,10 +470,18 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
             }
         if(has_gtdbtk)
             {
-            SQM$bins$tax_gtdb = as.data.frame(t(data.frame(strsplit(SQM$bins$table[,'Tax GTDB-Tk'], ';'))))
+            SQM$bins$tax_gtdb = as.matrix(t(data.frame(strsplit(SQM$bins$table[,'Tax GTDB-Tk'], ';'))))
+            # If nothing is classified by gtdbtk we will not get enough columns so add them there
+            missing_cols = 7 - ncol(SQM$bins$tax_gtdb)
+            for(i in rep(1,missing_cols)) # replacement for python's range
+                {
+                # We could attempt to add more info rather than just "Unclassified"
+                # e.g. "Unclassified blah"
+                # but in practice it should not make a difference
+                SQM$bins$tax_gtdb = cbind(SQM$bins$tax_gtdb, 'Unclassified')
+                }
             rownames(SQM$bins$tax_gtdb) = rownames(SQM$bins$table)
             colnames(SQM$bins$tax_gtdb) = c('superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
-            #colnames(SQM$bins$tax_gtdb) = colnames(SQM$bins$tax)
             SQM$bins$tax_gtdb = fix_gtdbtk_tax(SQM$bins$tax_gtdb)
             SQM$bins$tax_abund_gtdb = aggregate_taxa(SQM, 'bins_gtdb', allow_missing_annots = TRUE)
             }
