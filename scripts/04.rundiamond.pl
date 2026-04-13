@@ -111,7 +111,7 @@ if(!$nocog) {
 
 if(!$nokegg) {
 	if((!$nodiamond) || ($nodiamond && !$keggfound)) {
-		$command="$diamond_soft blastp -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
+		$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
 		print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for KEGG\n";
 		print outsyslog "Running Diamond for KEGG: $command\n";
 		my $ecode = system $command;

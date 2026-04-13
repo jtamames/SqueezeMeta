@@ -184,7 +184,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "g|global_ranking=i" => \$globalranking,
 		     "diamond_nr_options=s" => \$diamond_nr_options,
 		     "e|evalue=f" => \$evalue,   
-		     "minidentity=f" => \$miniden,   
+		     "minidentity=f" => \$miniden,
+			 "consensus=f" => \$consensus,
 		     "assembly_options=s" => \$assembler_options,
 		     "norename" => \$norename,
 		     "restart" => \$restart,
@@ -199,7 +200,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "verbose" => \$verbose,
 		     "v" => \$ver,
 		     "h" => \$hel
-		    ) or die "Run `SqueezeMeta.pl -h` for a list of valid arguments\n";
+		    ) or warn "Run `SqueezeMeta.pl -h` for a list of valid arguments\n";
 
 #-- Set some default values
 
