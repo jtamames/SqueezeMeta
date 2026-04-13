@@ -16,8 +16,6 @@
 #'
 #' @keywords datasets
 #'
-#' @source \href{http://eggnogdb.embl.de/#/app/results?seqid=P0A7G6&target_nogs=COG0468#COG0468_datamenu}{EggNOG Database}.
-#'
 #' @examples
 #' data(Hadza)
 #' data(RecA)
