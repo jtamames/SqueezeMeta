@@ -295,7 +295,7 @@ exportPathway = function(SQM, pathway_id, count = 'copy_number', samples = NULL,
         } else
             {
             warning(sprintf('The `ggpattern` and `magick` packages need to be installed in order to produce a ggplot\n
-                             However, the image files were written to %s', output_dir))
+                             However, the image files were written to "%s"', output_dir))
             }
         }
     if(is.null(ggp)) { return(invisible(NULL)) } else { return(ggp) }

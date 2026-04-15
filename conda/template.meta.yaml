@@ -1,7 +1,9 @@
 {% set name = "squeezemeta-dev" %}
-{% set version_match = load_file_regex(load_file = "../../VERSION",
+{% set version_match = load_file_regex(config = None,
+                                       load_file = "../../VERSION",
                                        regex_pattern = '^[^,]*',
-                                       from_recipe_dir = True) %}
+                                       from_recipe_dir = True,
+                                       recipe_dir = 'master') %}
 {% set version = version_match[0] %}
 {% set py_version = "3.12.11" %}
 {% set pl_version = "5.32.1" %}
@@ -84,6 +86,8 @@ outputs:
         - r-zip
         - r-docopt
         - bioconductor-pathview
+        - r-magick
+        - r-ggpattern
         - tree
         - readline=8
         - krona

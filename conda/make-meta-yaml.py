@@ -169,8 +169,9 @@ def main(args):
                 out += line
 
     # Render jinja2 template if working with an env file, since conda does not support jinja2 in those
-    if args.env:
-        out = jinja2.Template(out).render().strip()
+    if args.env: # also make jinja2 aware of the load_file_regex function from conda_build
+        from conda_build.jinja_context import load_file_regex
+        out = jinja2.Template(out).render(load_file_regex=load_file_regex).strip()
     
     # Finally print it to stdout
     print(out)
