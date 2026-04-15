@@ -14,6 +14,7 @@ def main(args):
 
     excluded_pkgs = {'squeezemeta',
                      'squeezemeta-dev',
+                     'jinja2',
                      '_libgcc_mutex',
                      '_openmp_mutex',
                      '_r-mutex',

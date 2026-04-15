@@ -5,7 +5,7 @@ python3 make-meta-yaml.py --git-tag develop --dev --ignore-extra-dependencies --
 conda create --file dev.yaml
 # Now load the environment and create a meta.yaml file with fixed package versions
 conda activate squeezemeta-xxxxxx
-conda install conda-build
+conda install jinja2
 python3 make-meta-yaml.py --git-tag develop --dev > dev/meta.yaml
 
  
