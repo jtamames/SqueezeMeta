@@ -52,6 +52,8 @@ software packages for the different steps of the analysis:
 Detailed information about the different steps of the pipeline can be
 found in the `documentation <https://squeezemeta.readthedocs.io>`_.
 
+NEW: Now you can inspect the results of SqueezeMeta using our interactive viewer `Watermelon:  <https://github.com/jtamames/Watermelon>`_.
+
 *************
 Documentation
 *************
