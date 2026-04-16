@@ -7,6 +7,8 @@
 SqueezeMeta: a fully automated metagenomics pipeline, from reads to bins
 ************************************************************************
 
+**NEW:** Now you can inspect the results of SqueezeMeta using our interactive viewer `Watermelon  <https://github.com/jtamames/Watermelon>`_.
+
 **SqueezeMeta** is a fully automatic pipeline for
 metagenomics/metatranscriptomics, covering all steps of the analysis.
 SqueezeMeta includes multi-metagenome support allowing the co-assembly
@@ -51,8 +53,6 @@ software packages for the different steps of the analysis:
 
 Detailed information about the different steps of the pipeline can be
 found in the `documentation <https://squeezemeta.readthedocs.io>`_.
-
-**NEW:** Now you can inspect the results of SqueezeMeta using our interactive viewer `Watermelon  <https://github.com/jtamames/Watermelon>`_.
 
 *************
 Documentation
