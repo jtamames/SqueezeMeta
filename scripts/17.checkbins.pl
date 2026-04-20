@@ -86,7 +86,7 @@ print outmet "Bin statistics were computed using CheckM2 (Chklovski et al, Nat M
 
 if($gtdbtk) {
 	print "\n  Running GTDB-Tk to classify the bins\n";
-	my $command = "GTDBTK_DATA_PATH=$gtdbtk_data_path gtdbtk classify_wf --genome_dir $binresultsdir --out_dir $gtdbtktemp -x fa --cpus $numthreads --mash_db $gtdbtk_data_path >> $syslogfile 2>&1";
+	my $command = "GTDBTK_DATA_PATH=$gtdbtk_data_path gtdbtk classify_wf --genome_dir $binresultsdir --out_dir $gtdbtktemp -x fa --cpus $numthreads >> $syslogfile 2>&1";
 	print outsyslog "$command\n";
 	my $ecode = system $command;
 	if($ecode!=0) { die "Error running command:    $command"; }

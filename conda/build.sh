@@ -18,7 +18,7 @@ cpanm Linux::MemInfo -L $PREFIX
 $PYTHON -m pip install https://files.pythonhosted.org/packages/39/d0/0bb235071b241f7294bfacc54623a98afddf855ba36807a8dae1717b5694/mOTUlizer-0.2.4.tar.gz # we let mOTUlizer pull also igraph
 $PYTHON -m pip install --no-deps https://files.pythonhosted.org/packages/5c/3a/8729cac4fac0b3af6e91c5c5a542bfb0268cbdf53d0fe6fde7417b49de6f/speedict-0.3.12-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 $PYTHON -m pip install --no-deps https://files.pythonhosted.org/packages/22/46/16da52fd09105dc2f9e29028e4971eeeab6b4a1ebcee17c837b7b09c24b2/superpang-1.3.1.tar.gz
-$PYTHON -m pip install --no-deps https://files.pythonhosted.org/packages/c6/bd/b66510b12e1b143fcd6fd45a78a8c50cf8750e95d98ebcb5b496421ab279/gtdbtk-2.4.0.tar.gz
+$PYTHON -m pip install --no-deps https://files.pythonhosted.org/packages/8c/86/3e58e4af7aab2bf4d819390bbfa74688fc93b06483534948465a18dcf7f5/gtdbtk-2.7.1.tar.gz
 ## Check that we won't break anything when manually moving libraries
 #if [ -d $PREFIX/lib/perl5/5.32/site_perl/ ]; then exit 1; fi # This would fail on purpose
 if [ -d $PREFIX/lib/perl5/5.32/site_perl/Linux ]; then exit 1; fi

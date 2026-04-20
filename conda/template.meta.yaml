@@ -42,7 +42,7 @@ outputs:
         - gsl
         - samtools
         - blas=*=mkl # To avoid openmp
-        - readline=8
+        - readline=8.3
         - pydantic >=1.9.2,<2.0a1 # Add gtdb-tk, mOTUlizer and superpang python reqs in build
         - tqdm >=4.35.0           #  since they will be installed with pip but we'd rather have their deps installed through conda
         - dendropy >=4.1.0
@@ -89,7 +89,7 @@ outputs:
         - r-magick
         - r-ggpattern
         - tree
-        - readline=8
+        - readline=8.3
         - krona
         # SQUEEZEMETA BINARIES
         - spades
@@ -101,7 +101,6 @@ outputs:
         - pplacer
         - prodigal
         - pydantic >=1.9.2,<2.0a1
-        - mash
         - libopenblas
         - fasttree
         - hmmer
