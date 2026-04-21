@@ -200,7 +200,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "verbose" => \$verbose,
 		     "v" => \$ver,
 		     "h" => \$hel
-		    ) or warn "Run `SqueezeMeta.pl -h` for a list of valid arguments\n";
+		    ) or die "Run `SqueezeMeta.pl -h` for a list of valid arguments\n";
 
 #-- Set some default values
 
