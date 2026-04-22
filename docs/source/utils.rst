@@ -86,6 +86,9 @@ Options
 [--ignore-unclassified]
     Ignore reads without assigned functions for TPM calculation
 
+[--skip-sequences]
+    Do not write output tables with DNA/RNA/AA sequences
+
 [--force-overwrite]
     Write results even if the output file already exists
 

@@ -64,13 +64,22 @@ def main(args):
     ### Which files will we include?
     target_files = ['creator.txt',
                     'SqueezeMeta_conf.pl',
+                    f'results/01.{project_name}.fasta',
                     f'results/10.{project_name}.mappingstat',
                     f'results/19.{project_name}.contigtable']
 
-    if int(perlVars['$onlybins']):
-        target_files.append(f'results/01.{project_name}.fasta')
-    else:
+    if not int(perlVars['$onlybins']): # we should have ORFs and tables
         target_files.append(f'results/13.{project_name}.orftable')
+        if exists(perlVars['$rnafile']):
+            target_files.append(f'results/02.{project_name}.rnas')
+        if exists(perlVars['$trnafile']):
+            target_files.append(f'results/02.{project_name}.trnas')
+        if exists(perlVars['$aafile']):
+            target_files.append(f'results/03.{project_name}.faa')
+        if exists(perlVars['$trnafile']):
+            target_files.append(f'results/02.{project_name}.trnas.fasta')
+        if exists(perlVars['$fna_blastx']):
+            target_files.append(f'results/08.{project_name}.blastx.fna')
         target_files += [f'results/tables/{f}' for f in listdir(f'{args.project_path}/results/tables')]
 
     if not int(perlVars['$nobins']) and exists(perlVars['$bintable']):

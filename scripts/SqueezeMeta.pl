@@ -1022,7 +1022,7 @@ sub pipeline {
 			print outfile4 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
 			print BLUE "[",$currtime->pretty,"]: STEP22 -> MAKING SUMMARY TABLES: $scriptname\n"; print RESET;
 			if($verbose) { print " (Finally, we will produce summary tables with taxonomic and functional profiles\n"; }
-			my $ecode = system("python $installpath/utils/$scriptname $projectdir $resultpath/tables --force-overwrite");
+			my $ecode = system("python $installpath/utils/$scriptname $projectdir $resultpath/tables --force-overwrite --skip-sequences");
 			if($ecode!=0)        { print RED; print "Stopping in STEP22 -> $scriptname\n"; print RESET; die; }
 			my $wsize=checksize($contigout);
 			if($wsize<1)        { print RED; print "Stopping in STEP21 -> $scriptname. File $contigout is empty!\n"; print RESET; die; }

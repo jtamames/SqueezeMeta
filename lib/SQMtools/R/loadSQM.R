@@ -316,8 +316,35 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
         if(load_sequences)
             { 
             message('    sequences...')
-            SQM$orfs$seqs            = read.namedvector.zip(project_path, sprintf('results/tables/%s.orf.sequences.tsv', project_name),
-                                                        type = 'AA', engine=engine)
+            orfs_vecfile     = sprintf('results/tables/%s.orf.sequences.tsv', project_name)
+            orfs_aafasta     = sprintf('results/03.%s.faa'                  , project_name)
+            orfs_rnafasta    = sprintf('results/02.%s.rnas'                 , project_name)
+            orfs_trnafasta   = sprintf('results/02.%s.trnas.fasta'          , project_name)
+            orfs_blastxfasta = sprintf('results/08.%s.blastx.fna'           , project_name)
+            if(file.exists.zip(project_path, orfs_vecfile))
+                {
+                SQM$orfs$seqs      = read.namedvector.zip(project_path, orfs_vecfile, 
+                                                          type = 'AA', engine=engine)
+                SQM$orfs$seqs=SQM$orfs$seqs[rownames(SQM$orfs$table)]
+            } else if(file.exists.zip(project_path, orfs_aafasta))
+                {
+                SQM$orfs$seqs = BStringSet()
+                for(f in c(orfs_aafasta, orfs_rnafasta, orfs_trnafasta, orfs_blastxfasta))
+                    {
+                    if(file.exists.zip(project_path, f))
+                         {
+                         fas = read.fasta.zip(project_path, f, type = 'AA')
+                         # Remove everything after first whitespace from header
+                         names(fas) = gsub('\t.*$','', names(fas))
+                         names(fas) = gsub(' .*$','', names(fas))
+                         # In case there are duplicates, we will keep RNA over AA
+                         SQM$orfs$seqs = SQM$orfs$seqs[!names(SQM$orfs$seqs) %in% names(fas)]
+                         SQM$orfs$seqs = c(SQM$orfs$seqs, fas)
+                         }
+                    }
+                SQM$orfs$seqs        = SQM$orfs$seqs[rownames(SQM$orfs$table)]
+            } else
+                warning('ORFs sequence file is not present, ommiting...') 
             }
         
         if(has_tax)
@@ -396,14 +423,20 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
     if(load_sequences)
         {
         message('    sequences...')
-	if(onlybins)
-		{
-        	SQM$contigs$seqs  = read.fasta.zip(project_path, sprintf('results/01.%s.fasta', project_name), type = 'DNA')
-	} else
-		{
-		SQM$contigs$seqs  = read.namedvector.zip(project_path, sprintf('results/tables/%s.contig.sequences.tsv', project_name), type = 'DNA')
-		}
-        SQM$contigs$seqs          = SQM$contigs$seqs[rownames(SQM$contigs$table)]
+        contigs_vecfile = sprintf('results/tables/%s.contig.sequences.tsv', project_name)
+        contigs_fasta   = sprintf('results/01.%s.fasta'                   , project_name)
+        if(file.exists.zip(project_path, contigs_fasta))
+            {
+            SQM$contigs$seqs  = read.fasta.zip(project_path, contigs_fasta, type = 'DNA')
+            SQM$contigs$seqs  = SQM$contigs$seqs[rownames(SQM$contigs$table)]
+        } else if(file.exists.zip(contigs_vecfile))
+            {
+            SQM$contigs$seqs  = read.namedvector.zip(project_path, contigs_vecfile, type = 'DNA')
+            SQM$contigs$seqs  = SQM$contigs$seqs[rownames(SQM$contigs$table)]
+        }else
+            {
+            warning('Contigs sequence file is not present, ommiting...')
+            }
         }
 
     if(has_tax)

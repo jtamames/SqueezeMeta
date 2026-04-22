@@ -16,6 +16,7 @@ OPTIONS:
     --ignore-unclassified: Ignore reads without assigned functions in
         TPM calculation
     --sqm2anvio: Write the required files for sqm2anvio
+    --skip-sequences: Do not write output tables with DNA/RNA/AA sequences
     --force-overwrite: Write results even if the output directory
         already exists
     --doc: show this documentation
@@ -177,9 +178,11 @@ def main(args):
 
 
     if not args.sqm2anvio:
-        fna_blastx = perlVars['$fna_blastx'] if doublepass else None
-        write_orf_seqs(orfs['abundances'].keys(), perlVars['$aafile'], fna_blastx, perlVars['$rnafile'], perlVars['$trnafile'] + '.fasta', prefix + 'orf.sequences.tsv')
-        write_contig_seqs(perlVars['$contigsfna'], prefix + 'contig.sequences.tsv')
+
+        if not args.skip_sequences:
+            fna_blastx = perlVars['$fna_blastx'] if doublepass else None
+            write_orf_seqs(orfs['abundances'].keys(), perlVars['$aafile'], fna_blastx, perlVars['$rnafile'], perlVars['$trnafile'] + '.fasta', prefix + 'orf.sequences.tsv')
+            write_contig_seqs(perlVars['$contigsfna'], prefix + 'contig.sequences.tsv')
 
         write_row_dict(TAXRANKS, orf_tax_nofilter, prefix + 'orf.tax.nofilter.tsv')
         write_row_dict(TAXRANKS, orf_tax_prokfilter, prefix + 'orf.tax.prokfilter.tsv')
@@ -220,6 +223,7 @@ def parse_args():
     parser.add_argument('output_dir', type=str, help='Output directory')
     parser.add_argument('--trusted-functions', action='store_true', help='Include only ORFs with highly trusted KEGG and COG assignments in aggregated functional tables')
     parser.add_argument('--ignore-unclassified', action='store_true', help='Ignore ORFs without assigned functions in TPM calculation')
+    parser.add_argument('--skip-sequences', action='store_true', help='Do not write output tables with DNA/RNA/AA sequences')
     parser.add_argument('--sqm2anvio', action='store_true', help='Write the required files for sqm2anvio')
     parser.add_argument('--force-overwrite', action='store_true', help='Write results even if the output directory already exists')
     parser.add_argument('--doc', action='store_true', help='Show documentation')
