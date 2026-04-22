@@ -1,13 +1,13 @@
 ### Create meta.yaml from template with undefined package versions
 # Create conda env file from the template
-python3 make-meta-yaml.py --git-tag develop --dev --ignore-extra-dependencies --env > dev.yaml
+python3 make-meta-yaml.py --git-tag develop --keep-template-versions --ignore-extra-dependencies --env --dev > dev.yaml
 # Solve full environment from the template
 conda create --file dev.yaml
 # Now load the environment and create a meta.yaml file with fixed package versions
 conda activate squeezemeta-xxxxxx
 conda install jinja2
 python3 make-meta-yaml.py --git-tag develop --dev > dev/meta.yaml
+conda deactivate
 
- 
 ### From meta.yaml with fixed package versions
 conda build -c conda-forge -c bioconda --override-channels dev/

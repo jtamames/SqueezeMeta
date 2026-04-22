@@ -81,11 +81,10 @@ if(!$nomarkers) {
 }
 
 
-open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
-print outmet "Bin statistics were computed using CheckM2 (Chklovski et al, Nat Met 20, 1203-12)\n";
+print outmet "Bin statistics were computed using CheckM2 (Chklovski et al, Nat Met 2023, 1203-12)\n";
 
 if($gtdbtk) {
-	print "\n  Running GTDB-Tk to classify the bins\n";
+	print "\n  Running GTDB-Tk to classify the bins (Chaumeil et al, 2022, Bioinformatics 38, 5315-16,\n";
 	my $command = "GTDBTK_DATA_PATH=$gtdbtk_data_path gtdbtk classify_wf --genome_dir $binresultsdir --out_dir $gtdbtktemp -x fa --cpus $numthreads >> $syslogfile 2>&1";
 	print outsyslog "$command\n";
 	my $ecode = system $command;

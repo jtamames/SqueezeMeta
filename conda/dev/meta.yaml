@@ -49,7 +49,7 @@ outputs:
         - python-igraph
       run:
         - python=={{ py_version }}
-        - setuptools==80.9.0
+        - setuptools==82.0.1
         - cython==3.2.4
         - numpy==1.26.4
         - scipy==1.17.1
@@ -86,7 +86,7 @@ outputs:
         - r-magick==2.9.0
         - r-ggpattern==1.3.1
         - tree==2.3.2
-        - readline==8.2
+        - readline==8.3
         - krona==2.8.1
         - spades==4.2.0
         - mothur==1.25.0
@@ -95,11 +95,11 @@ outputs:
         - bowtie2==2.5.5
         - pplacer==1.1.alpha19
         - prodigal==2.6.3
-        - pydantic==2.11.7
+        - pydantic==1.10.22
         - libopenblas==0.3.32
         - fasttree==2.2.0
         - hmmer==3.4
-        - tqdm==4.67.1
+        - tqdm==4.67.3
         - skani==0.3.1
         - graph-tool==2.98
         - minimap2==2.30
@@ -117,7 +117,6 @@ outputs:
         - lightgbm==4.6.0
         - absl-py==2.4.0
         - adwaita-icon-theme==49.0
-        - annotated-types==0.7.0
         - aom==3.9.1
         - argcomplete==3.6.3
         - arpack==3.9.1
@@ -156,7 +155,6 @@ outputs:
         - cairomm-1.16==1.16.2
         - cffi==2.0.0
         - charset-normalizer==3.4.7
-        - colorama==0.4.6
         - contourpy==1.3.3
         - coreutils==9.5
         - cuda-version==13.2
@@ -409,7 +407,6 @@ outputs:
         - pthread-stubs==0.4
         - pycairo==1.29.0
         - pycparser==2.22
-        - pydantic-core==2.33.2
         - pygments==2.20.0
         - pygobject==3.54.5
         - pyparsing==3.3.2
@@ -489,7 +486,7 @@ outputs:
         - six==1.17.0
         - snappy==1.2.2
         - sparsehash==2.0.4
-        - sqlite==3.32.3
+        - sqlite==3.53.0
         - svt-av1==4.0.1
         - tabixpp==1.1.2
         - tbb==2022.3.0
@@ -506,7 +503,6 @@ outputs:
         - tomlkit==0.14.0
         - tornado==6.5.5
         - typing-extensions==4.15.0
-        - typing-inspection==0.4.2
         - typing_extensions==4.15.0
         - tzdata==2025c
         - unicodedata2==17.0.1
