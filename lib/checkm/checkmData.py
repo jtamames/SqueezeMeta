@@ -22,7 +22,8 @@
 import os
 import sys
 import logging
-from pkg_resources import resource_filename
+#from pkg_resources import resource_filename
+from importlib import resources as importlib_resources
 import json
 
 import checkm.manifestManager as mm
@@ -36,7 +37,9 @@ class DBConfig(object):
     """
     def __init__(self):
         self.logger = logging.getLogger()
-        self.configFile = os.path.abspath(resource_filename('checkm', 'DATA_CONFIG'))
+        ref = importlib_resources.files('checkm') / 'DATA_CONFIG'
+        with importlib_resources.as_file(ref) as path:
+            self.configFile = os.path.abspath(path)
         self.values = self.getConfig()
 
 #-----------------------------------------------------------------------------
