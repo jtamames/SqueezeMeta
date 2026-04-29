@@ -88,6 +88,7 @@ outputs:
         - tree==2.3.2
         - readline==8.3
         - krona==2.8.1
+        - fastp==1.1.0
         - spades==4.2.0
         - mothur==1.25.0
         - kmer-db==2.3.1

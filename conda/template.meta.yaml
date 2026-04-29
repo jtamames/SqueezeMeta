@@ -91,6 +91,7 @@ outputs:
         - tree
         - readline=8.3
         - krona
+        - fastp
         # SQUEEZEMETA BINARIES
         - spades
         - mothur

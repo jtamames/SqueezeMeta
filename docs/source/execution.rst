@@ -59,10 +59,11 @@ Filtering
 ---------
 
 [-–cleaning]
-    Filters the input reads with Trimmomatic
-
+    Preprocesses the input reads prior to entering the pipeline
+[-cleaning_method <trimmomatic|fastp>]
+    Preprocessing method (default ``trimmomatic``)
 [-cleaning_options <string>]
-    Options for Trimmomatic (default: ``"LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"``).
+    Extra options for the preprocessing software (default for *trimmomatic*: ``"LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"``, default for *fastp*: none).
     Please provide all options as a single quoted string
 
 Assembly

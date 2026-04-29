@@ -45,8 +45,8 @@ close inv;
 our $pwd=cwd();
 
 our($nodiamond,$fastnr,$fasternr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
-our($numsamples,$numthreads,$canumem,$mode,$reference,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$globalranking,$diamond_nr_options,$evalue,$miniden,$assembler_options,$cleaning,$cleaningoptions,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
-our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile,$nomarkers);
+our($numsamples,$numthreads,$canumem,$mode,$reference,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$globalranking,$diamond_nr_options,$evalue,$miniden,$assembler_options,$cleaning,$cleaning_method,$cleaning_options,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
+our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$fastp_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile,$nomarkers);
 our(%bindirs,%dasdir,%binscripts,%assemblers);
 
 #-- Load the database path from SqueezeMeta_conf.pl so we can use it to check that the databases are in place
@@ -78,9 +78,10 @@ Arguments:
    -step <step number>: In combination with `--restart`, restarts the project starting in the given step number (combine with `--force_overwrite` to regenerate results)
    --force_overwrite: Do not check for previous results, and overwrite existing ones
    
- Filtering: 
-   --cleaning: Filters with Trimmomatic (Default: No)
-   -cleaning_options <string>: Options for Trimmomatic (Default:LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30)
+ Filtering:
+   --cleaning: Preprocesses reads prior to entering the pipeline (Default: No)
+   -cleaning_method <string>: Preprocessing method <trimmomatic, fastp> (Default: trimmomatic)
+   -cleaning_options <string>: Options for the preprocessing software (Default for trimmomatic: "LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; Default for fastp: none)
    
  Assembly: 
    -a: assembler <megahit, spades, rnaspades, spades-base, canu, flye> (Default: megahit)
@@ -192,7 +193,8 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "step=i" => \$rpoint,
 		     "force_overwrite" => \$force_overwrite,
 		     "cleaning" => \$cleaning,
-		     "cleaning_options=s" => \$cleaningoptions,
+                     "cleaning_method=s" => \$cleaning_method,
+		     "cleaning_options=s" => \$cleaning_options,
 		     "mapping_options=s" => \$mapping_options,
                      "minion" => \$minion,
 		     "test=i" => \$test,
@@ -233,8 +235,6 @@ if(!$nometabat)        { $nometabat=0; }
 if(!$norename)         { $norename=0; }
 if(!$force_overwrite)  { $force_overwrite=0; }
 if(!$restart)          { $restart=0; }
-if(!$cleaningoptions)  { $cleaningoptions="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30"; }
-if(!$cleaning)         { $cleaning=0; $cleaningoptions=""; } 
 if($consensus)         { $consensus/=100; }
 if($reference)         { $reference=abs_path($reference); }
 
@@ -250,6 +250,12 @@ if($lowmem) { $blocksize=3; $canumem=15; }
 
 if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
 
+#-- Set up cleaning options
+if(!$cleaning_method) { $cleaning_method="trimmomatic"; }
+if(!$cleaning) { $cleaning=0; $cleaning_options=""; }
+elsif($cleaning_method eq "trimmomatic" && !$cleaning_options) {
+	$cleaning_options="LEADING:8 TRAILING:8 SLIDINGWINDOW:10:15 MINLEN:30";
+	}
 
 #-- Check if we have all the needed options
 my($dietext,$finaltrace);
@@ -269,6 +275,8 @@ else {
 	if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 	if(!$mode)      { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged, extassembly, extbins)\n"; }
 	if($mode!~/sequential|coassembly|merged|seqmerge|extassembly|extbins/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are `sequential`, `coassembly`, `merged`, `seqmerge`, `extassembly` and `extbins`\n"; }
+	print("$cleaning_method\n");
+	if($cleaning_method!~/trimmomatic|fastp/i) { $dietext.="UNRECOGNIZED preprocessing method $cleaning_method (valid ones are `trimmomatic` and `fastp`\n"; }
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are `bowtie`, `bwa`, `minimap2-ont`, `minimap2-pb` or `minimap2-sr`\n"; }
 	if($newtaxdb) { if(-e "$newtaxdb") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }
 	if($extassembly && $extbins) { $dietext.="`-extassembly` and `-extbins` can not be provided at the same time\n"; }
@@ -350,8 +358,8 @@ my %conf=('version',$version,'mode',$mode,'projectname',$projectname,'userdir',$
    $singletons,'nocog',$nocog,'nokegg',$nokegg, 'diamond_nr_options', $diamond_nr_options,
   'nopfam',$nopfam,'fastnr',$fastnr,'fasternr',$fasternr,'euknofilter',$euknofilter,'doublepass',$doublepass,'nobins',$nobins,'onlybins',$onlybins,'binners',$binners,'nomarkers',$nomarkers,
   'gtdbtk',$gtdbtk,'gtdbtk_data_path', $gtdbtk_data_path,
-  'norename',$norename,'mapper',$mapper,'mapping_options',$mapping_options,'cleaning',$cleaning,
-  'cleaningoptions',$cleaningoptions,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
+  'norename',$norename,'mapper',$mapper,'mapping_options',$mapping_options,'cleaning',$cleaning,'cleaning_method',$cleaning_method,
+  'cleaning_options',$cleaning_options,'consensus',$consensus,'numthreads',$numthreads,'mincontiglen',$mincontiglen,
   'assembler',$assembler,'canumem',$canumem,'contigid',$contigid,'assembler_options',$assembler_options,
   'extassembly',$extassembly,'extbins',$extbins, 'opt_db',$opt_db,'samples',$equivfile,'commandline',$commandline,
   'miniden',$miniden, 'evalue',$evalue,'taxbinmode',$taxbinmode,'overwrite',$force_overwrite,'newtaxdb',$newtaxdb);
@@ -1013,9 +1021,9 @@ sub pipeline {
 
     #-------------------------------- STEP22: Make summary tables
 	if($rpoint<=22  && (!$onlybins) && ((!$test) || ($test>=22))) {
-		my $contigout="$resultpath/tables/$projectname.contig.sequences.tsv";
-		my $wsize=checksize($contigout);
-		if(($wsize>0) && (!$force_overwrite)) { print "Results in $contigout already found, skipping step 22\n"; }
+		my $out16S="$resultpath/tables/$projectname.orf.16S.tsv";
+		my $wsize=checksize($out16S);
+		if(($wsize>0) && (!$force_overwrite)) { print "Results in $out16S already found, skipping step 22\n"; }
 		else {
 			my $scriptname="sqm2tables.py";
 			print outfile3 "22\t$scriptname\n";
@@ -1024,8 +1032,8 @@ sub pipeline {
 			if($verbose) { print " (Finally, we will produce summary tables with taxonomic and functional profiles\n"; }
 			my $ecode = system("python $installpath/utils/$scriptname $projectdir $resultpath/tables --force-overwrite --skip-sequences");
 			if($ecode!=0)        { print RED; print "Stopping in STEP22 -> $scriptname\n"; print RESET; die; }
-			my $wsize=checksize($contigout);
-			if($wsize<1)        { print RED; print "Stopping in STEP21 -> $scriptname. File $contigout is empty!\n"; print RESET; die; }
+			my $wsize=checksize($out16S);
+			if($wsize<1)        { print RED; print "Stopping in STEP21 -> $scriptname. File $out16S is empty!\n"; print RESET; die; }
 			}
 	}
 
@@ -1116,7 +1124,8 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
 		elsif($_=~/^\$mapper/)          { print outfile5 "\$mapper          = \"$conf{mapper}\";\n";          }
 		elsif($_=~/^\$mapping_options/) { print outfile5 "\$mapping_options = \"$conf{mapping_options}\";\n"; }
 		elsif($_=~/^\$cleaning\b/)      { print outfile5 "\$cleaning        = $conf{cleaning};\n";            }
-		elsif($_=~/^\$cleaningoptions/) { print outfile5 "\$cleaningoptions = \"$conf{cleaningoptions}\";\n"; }
+		elsif($_=~/^\$cleaning_method/) { print outfile5 "\$cleaning_method = $conf{cleaning_method};\n";     }
+		elsif($_=~/^\$cleaning_options/) { print outfile5 "\$cleaning_options = \"$conf{cleaning_options}\";\n"; }
 		elsif($_=~/^\$gtdbtk_data_path/) {
 			if($conf{gtdbtk_data_path}) { print outfile5 "\$gtdbtk_data_path = \"$conf{gtdbtk_data_path}\";\n"; }
 			else { print outfile5 "$_\n"; }
@@ -1251,11 +1260,18 @@ sub cleaning  {
 	my($par1files,$par2files)=0;
 	my($par1name,$par2name);
 	my %prepsamples;
+	my $fastpdir="$projectdir/results/fastp";
 
 	#-- NOW FILTERING READS
 	
-	print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n  Parameters: $cleaningoptions\n";
-	my $trimmomatic_command;
+	if($cleaning_method eq "trimmomatic") {
+		print "  Running trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20) for quality filtering\n  Parameters: $cleaning_options\n";
+		}
+	elsif($cleaning_method eq "fastp") {
+		print "  Running fastp (Chen et al 2018, Bioinformatics 34(17):i884-90\n  Extra parameters: $cleaning_options\n  Reports can be found in $fastpdir\n\n";
+		system "mkdir $fastpdir";
+		}
+	my $cleaning_command;
 	open(infile4,$equivfile) or do { print RED; print "Can't open samples file (-s) in $equivfile. Please check if that is the correct file, it is present tin that location, and you have reading permissions\n"; print RESET; die; };
 	if($cleaning) {
 		while(<infile4>) {
@@ -1288,14 +1304,33 @@ sub cleaning  {
 					$par2name        = "$rawfastq/".$prepsamples{$ts}{pair2}[$i];
 					$trimmedpar2name = "$newuserdir/".$prepsamples{$ts}{pair2}[$i];
 					}
-				if(-e $par2name) { $trimmomatic_command="$trimmomatic_soft PE -threads $numthreads -phred33 $par1name $par2name $trimmedpar1name $trimmedpar1name.removed $trimmedpar2name $trimmedpar2name.removed $cleaningoptions > /dev/null 2>&1"; }
-				else { $trimmomatic_command="$trimmomatic_soft SE -threads $numthreads -phred33 $par1name $trimmedpar1name $cleaningoptions > /dev/null 2>&1"; }
-				print outfile4 "Running trimmomatic: $trimmomatic_command";
-				my $ecode = system $trimmomatic_command;
-				if($ecode!=0) { die "Error running command:    $trimmomatic_command"; }
+				if(-e $par2name) {
+					if($cleaning_method eq "trimmomatic") {
+						$cleaning_command="$trimmomatic_soft PE -threads $numthreads -phred33 $par1name $par2name $trimmedpar1name $trimmedpar1name.removed $trimmedpar2name $trimmedpar2name.removed $cleaning_options > /dev/null 2>&1";
+						}
+					elsif($cleaning_method eq "fastp") {
+						$cleaning_command="$fastp_soft -i $par1name -I $par2name -o $trimmedpar1name -O $trimmedpar2name -w $numthreads -j $fastpdir/$ts.json -h $fastpdir/$ts.fastp.html $cleaning_options > /dev/null 2>&1";
+						}
+					}
+				else {
+					if($cleaning_method eq "trimmomatic") {
+						$cleaning_command="$trimmomatic_soft SE -threads $numthreads -phred33 $par1name $trimmedpar1name -j $fastpdir/$ts.json -h $fastpdir/$ts.fastp.html $cleaning_options > /dev/null 2>&1";
+						}
+					elsif($cleaning_method eq "fastp") {
+						$cleaning_command="$fastp_soft -i $par1name -o $trimmedpar1name -w $numthreads $cleaning_options > /dev/null 2>&1";
+						}	
+					}	
+				print outfile4 "Running trimmomatic: $cleaning_command";
+				my $ecode = system $cleaning_command;
+				if($ecode!=0) { die "Error running command:    $cleaning_command"; }
 				}
 			}
-		print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
+		if($cleaning_method eq "trimmomatic") {
+			print outmet "Quality filtering was done using Trimmomatic (Bolger et al 2014, Bioinformatics 30(15):2114-20)\n";
+			}
+		elsif($cleaning_method eq "fastp") {
+			print outmet "Quality filtering was done using fastp (Chen et al 2018, Bioinformatics 34(17):i884-90\n";
+			}
 		}
 	}
 
