@@ -33,11 +33,3 @@ echo "export PERL5LIB=\$CONDA_PREFIX/lib/perl5/5.32/site_perl/:\$CONDA_PREFIX/li
 echo "export PERL5LIB=\`echo \$PERL5LIB | sed -e \"s,\$CONDA_PREFIX.*\:,,\"\`" > $PREFIX/etc/conda/deactivate.d/deactivate-perl.sh
 chmod +x $PREFIX/etc/conda/activate.d/activate-perl.sh
 chmod +x $PREFIX/etc/conda/deactivate.d/deactivate-perl.sh
-# fix libs for samtools and mothur
-cd $PREFIX/lib
-ln -s libncurses.so.6 libncurses.so.5 
-ln -s libtinfo.so.6 libtinfo.so.5
-ln -s libreadline.so.8 libreadline.so.6
-cp libboost_iostreams.so libboost_iostreams.so.1.85.0
-cp libboost_system.so libboost_system.so.1.85.0
-cp libboost_filesystem.so libboost_filesystem.so.1.85.0
