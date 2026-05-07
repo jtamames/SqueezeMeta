@@ -120,7 +120,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         #    Taxonomy
         combSQM$contigs$tax            = rbind(combSQM$contigs$tax, SQM2$contigs$tax[extraContigs,,drop=FALSE])
         combSQM$contigs$tax            = combSQM$contigs$tax[rownames(combSQM$contigs$table),,drop=FALSE]
-        combSQM$tax_abund              = aggregate_taxa(combSQM, 'contigs')
+        combSQM$contigs$tax_abund      = aggregate_taxa(combSQM, 'contigs')
         }
     #    Binning info
     if('bins' %in% names(combSQM))
@@ -185,7 +185,7 @@ combineSQM_ = function(SQM1, SQM2, tax_source = 'orfs', trusted_functions_only =
         }
 
     ### Taxonomy
-    if(!is.null(combSQM$tax))
+    if(!is.null(combSQM$taxa))
         {
         if(combSQM$misc$onlybins & !tax_source %in% c('bins', 'bins_gtdb', 'bins_sqm')) { combSQM$misc$tax_source = 'bins' }
         combSQM$taxa = get_preferred_tax(combSQM)

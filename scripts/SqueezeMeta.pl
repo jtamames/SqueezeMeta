@@ -1320,7 +1320,7 @@ sub cleaning  {
 						$cleaning_command="$fastp_soft -i $par1name -o $trimmedpar1name -w $numthreads $cleaning_options > /dev/null 2>&1";
 						}	
 					}	
-				print outfile4 "Running trimmomatic: $cleaning_command";
+				print outfile4 "Running $cleaning_method: $cleaning_command";
 				my $ecode = system $cleaning_command;
 				if($ecode!=0) { die "Error running command:    $cleaning_command"; }
 				}
