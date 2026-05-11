@@ -108,7 +108,7 @@ my(%genesincontigs,%genespos,%long_gen,@genes_ordered);
 if(-e $gff_file) {
         #-- Get ORF info from gff file
 	print "  Reading orf info from $gff_file\n";
-	open(infile2,$gff_file) || die "Can't open gff file $gff_file for reading\n";
+	open(infile2,$gff_file) || warn "Can't open gff file $gff_file for reading\n";
 	while(<infile2>) {
 	        chomp;
 	        next if(!$_ || ($_=~/^\#/));

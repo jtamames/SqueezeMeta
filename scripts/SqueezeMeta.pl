@@ -475,6 +475,10 @@ sub pipeline {
 		}
 
 	close(outfile4); open(outfile4,">>$syslogfile");
+	my $scriptname="earlymap.pl";
+	my $ecode = system("perl $scriptdir/$scriptname $projectdir");
+	runstats($projectdir,$scriptdir,$rpoint);
+	
 	}
 			
     #-------------------------------- STEP2: Run RNA prediction
@@ -497,6 +501,7 @@ sub pipeline {
 			if($wsize<2)    { error_out(2,$scriptname,$masked); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}	
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP3: Run gene prediction
@@ -517,6 +522,7 @@ sub pipeline {
 			if($wsize<2)    { error_out(3,$scriptname,$aafile); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP4: Run Diamond for taxa and functions
@@ -538,6 +544,7 @@ sub pipeline {
 			if($wsize<1)    { error_out(4,$scriptname,$taxdiamond); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP5: Run hmmer for PFAM annotation
@@ -560,6 +567,7 @@ sub pipeline {
 				}
 		}
 	outfile4->autoflush;		
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP6: LCA algorithm for taxa annotation
@@ -581,6 +589,7 @@ sub pipeline {
 			if($wsize<1)    { error_out(6,$scriptname,$lcaresult); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}		
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP7: fun3 for COGs, KEGG and PFAM annotation
@@ -632,6 +641,7 @@ sub pipeline {
 			}
 		}
 	close(outfile4); open(outfile4,">>$syslogfile");
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP8: Blastx on the unannotated parts of the contigs
@@ -655,6 +665,7 @@ sub pipeline {
 				}
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 		
 
@@ -677,6 +688,7 @@ sub pipeline {
 			if($wsize<1)         { error_out(9,$scriptname,$alllog); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP10: Mapping of reads onto contigs for abundance calculations
@@ -699,6 +711,7 @@ sub pipeline {
 			if($wsize!=$ns) { error_out(10,$scriptname,$mappingstat); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP11: Count of taxa abundances
@@ -719,6 +732,7 @@ sub pipeline {
 			if($wsize<2)         { error_out(11,$scriptname,$mcountfile); }
 			close(outfile4); open(outfile4,">>$syslogfile");
 		}		
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP12: Count of function abundances
@@ -748,6 +762,7 @@ sub pipeline {
 			}
 			close(outfile4); open(outfile4,">>$syslogfile");
 		}
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP13: Generation of the gene table
@@ -769,6 +784,7 @@ sub pipeline {
 			if($verbose) { print " (Now we already have a GENE TABLE)\n"; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 			
     #-------------------------------- STEP14: Running binning methods 		
@@ -801,6 +817,7 @@ sub pipeline {
 				my $ecode = system("perl $scriptdir/$scriptname $projectdir >> $tempdir/$projectname.log");
 				if($ecode!=0){ print RED; print "ERROR in STEP14 -> $scriptname\n"; print RESET; }
 				}
+	runstats($projectdir,$scriptdir,$rpoint);
 		}
 		
 			
@@ -841,6 +858,7 @@ sub pipeline {
 					}
 				close(outfile4); open(outfile4,">>$syslogfile");
 				}
+	runstats($projectdir,$scriptdir,$rpoint);
 		}
 			
     #-------------------------------- STEP16: Taxonomic annotation for the bins (consensus of contig annotations)		
@@ -878,6 +896,7 @@ sub pipeline {
 				}
 			else{ print RED; print "Skipping BIN TAX ASSIGNMENT: DAS_Tool did not predict bins.\n"; print RESET; }
 			close(outfile4); open(outfile4,">>$syslogfile");
+	runstats($projectdir,$scriptdir,$rpoint);
 		}
 
 			
@@ -911,6 +930,7 @@ sub pipeline {
 					}
 				}
 			else { print RED; print"Skipping CHECKM: DAS_Tool did not predict bins.\n"; print RESET; }
+	runstats($projectdir,$scriptdir,$rpoint);
 		}
 
 			
@@ -937,6 +957,7 @@ sub pipeline {
 			else { print RED; print "Skipping BIN TABLE CREATION: (You already know: DAS_Tool did not predict bins.)\n"; print RESET; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 	 }
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 
     #-------------------------------- STEP19: Make contig table		
@@ -958,6 +979,7 @@ sub pipeline {
 			if($verbose) { print " (Now we have a CONTIG TABLE)\n"; }
 			close(outfile4); open(outfile4,">>$syslogfile");
 			}
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 
     #-------------------------------- STEP20: Pathways in bins          
@@ -984,6 +1006,7 @@ sub pipeline {
 			else{ print("Skipping MINPATH: DAS_Tool did not predict bins.\n") ; }
 		}
 		close(outfile4); open(outfile4,">>$syslogfile");
+	runstats($projectdir,$scriptdir,$rpoint);
 	}
 
 
@@ -992,9 +1015,7 @@ sub pipeline {
 	if($rpoint<=21  && ((!$test) || ($test>=21))) {
 		my $statfile="$resultpath/21.$projectname.stats";
 		my $wsize=checksize($statfile);
-            	if(($wsize>2) && (!$force_overwrite)) { print "Statistics in $statfile already found, skipping step 21\n"; }
-		else {		
-			my $scriptname="21.stats.pl";
+ 			my $scriptname="21.stats.pl";
 			print outfile3 "21\t$scriptname\n";
 			$currtime=timediff();
 			print outfile4 "[",$currtime->pretty,"]: STEP21 -> $scriptname\n";
@@ -1004,7 +1025,6 @@ sub pipeline {
 			if($ecode!=0)        { print RED; print "Stopping in STEP21 -> $scriptname\n"; print RESET; die; }
 			my $wsize=checksize($statfile);
 			if($wsize<10)        { print RED; print "Stopping in STEP21 -> $scriptname. File $statfile is empty!\n"; print RESET; die; }
-			}
 	}
 
 
@@ -1231,7 +1251,12 @@ sub writeconf {			#-- Create directories and files, write the SqueeeMeta_conf fi
                 }
         close outfile0;
         close infile0;
-
+	
+		#--Creation of stats file
+		
+	my $resultfile="$resultpath/21.$projectname.stats";
+	open(outstats,">$resultfile") || die "Can't open $resultfile for writing\n";
+	close outstats;
 
 	}
 
@@ -1304,4 +1329,13 @@ sub checksize {
 		}
 	else { $wsize=0; }
 	return $wsize;
+	}
+
+
+sub runstats {	
+	my $projectdir=shift;
+	my $scriptdir=shift;
+	my $step=shift;
+	my $scriptname="21.stats.pl";
+	my $ecode = system("perl $scriptdir/$scriptname $projectdir $step");
 	}

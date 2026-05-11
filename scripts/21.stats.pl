@@ -25,6 +25,7 @@ else
 our $installpath = abs_path("$scriptdir/..");
 
 my $projectdir=$ARGV[0];
+my $stepnum=$ARGV[1];
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -41,7 +42,7 @@ my(%sampledata,%opt,%abundance);
 my %pluralrank=('superkingdom','superkingdoms','phylum','phyla','class','classes','order','orders','family','families','genus','genera','species','species');
 
 my $resultfile="$resultpath/21.$project.stats";
-open(outfile1,">$resultfile") || die "Can't open $resultfile for writing\n";
+open(outfile1,">$resultfile");
 
 	#-- Read list of external databases
 	
@@ -60,7 +61,7 @@ if($opt_db) {
 my @ranks=('k','p','c','o','f','g','s');
 my %equirank=('k','superkingdom','p','phylum','c','class','o','order','f','family','g','genus','s','species');
 my($totalbases,$totalreads,$singletoncount);
-open(infile1,$mappingstat) || warn "Can't open $mappingstat\n";
+open(infile1,$mappingstat);
 while(<infile1>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -72,13 +73,15 @@ while(<infile1>) {
 	}
 close infile1;
 
+
+
 	#-- Statistics on contigs with prinseq
 	
 my(%contigs,%contax);
 my $command="$prinseq_soft -stats_info -stats_assembly -stats_len -fasta $contigsfna > $tempdir/stats.txt";
 my $ecode = system $command;
 if($ecode!=0) { warn "Error running command:    $command"; }
-open(infile2,"$tempdir/stats.txt") || warn "Can't open $tempdir/stats.txt\n";
+open(infile2,"$tempdir/stats.txt");
 while(<infile2>) {
 	chomp;
 	next if(!$_ || ($_=~/^\#/));
@@ -92,10 +95,12 @@ while(<infile2>) {
 	}
 close infile2;	
 
+
+
 	#-- Statistics on contigs (disparity, assignment..)
 
 if(!$onlybins) {
-	open(infile3,$contigtable) || warn "Can't open $contigtable\n";
+	open(infile3,$contigtable);
 	while(<infile3>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -117,7 +122,7 @@ if(!$onlybins) {
 my %singletonsample;
 if($singletons) {		#-- Count singleton raw reads
 	my $singletonlist="$interdir/01.$projectname.singletons";
-	open(infile0,$singletonlist) || die "Cannot open singleton list in $singletonlist\n";
+	open(infile0,$singletonlist);
 	while(<infile0>) {
 		chomp;
 		next if !$_;
@@ -134,7 +139,7 @@ my $header;
 my @head;
 my %genes;
 if(!$onlybins) {
-	open(infile4,$mergedfile) || warn "Can't open $mergedfile\n";
+	open(infile4,$mergedfile);
 	while(<infile4>) {
 		chomp;
 		next if(!$_ || ($_=~/^\#/));
@@ -185,7 +190,7 @@ if(!$onlybins) {
 	close infile4;
 
 
-	open(infile4,$mcountfile)  || warn "Can't open $mcountfile\n";
+	open(infile4,$mcountfile);
 	my $cheader=<infile4>;
 	chomp $cheader;
 	my @chead=split(/\t/,$cheader);
@@ -211,7 +216,7 @@ my %bins;
 if(!$nobins) {
 	my $header;
 	if(-e $bintable) {
-		open(infile5,$bintable) || warn "Can't open $bintable\n";
+		open(infile5,$bintable);
 		while(<infile5>) {
 			chomp;
 			next if(!$_ || ($_=~/^\#/));
@@ -251,7 +256,7 @@ if(!$nobins) {
 	#-- Date of the start of the run
 
 my $startdate;
-open(infile6,"$projectdir/syslog") || warn "Can't open syslog file in $projectdir/syslog\n";
+open(infile6,"$projectdir/syslog");
 while(<infile6>) {
 	chomp;
 	if($_=~/^Run started/) { $startdate=$_; }
