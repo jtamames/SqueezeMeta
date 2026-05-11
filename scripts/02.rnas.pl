@@ -101,7 +101,7 @@ foreach my $kingdom(keys %king) {
 	while(<infile2>) {
 		chomp;
 		if($_=~/^\>([^ ]+)/) { 
-			my $contigname=$1; 
+			my $contigname=$1;
 			if($current) {
 
 				#-- Masking with 'N's
@@ -115,14 +115,25 @@ foreach my $kingdom(keys %king) {
 				if($rna{$current}{$rns}{molecule}=~/16S/) { print outfile4 ">$rna{$current}{$rns}{name}\t$rna{$current}{$rns}{molecule};$current|$rns;$rna{$current}{$rns}{kingdom}\n$rnaseq\n"; } 
 				}
 			}
-			if($current) { print outfile3 ">$current\n$seq\n"; }	
+			if($current) { print outfile3 ">$current\n$seq\n"; }
 			$seq="";
-			$current=$contigname;     
+			$current=$contigname;
 		}
 		else { $seq.=$_; }
 	}
 
-	print outfile3 ">$current\n$seq\n";	
+	# last seq
+	foreach my $rns(sort keys %{ $rna{$current} }) {
+		my ($init,$end)=split(/\-/,$rns);
+		my $longr=($end-$init)+1;
+		my $replace=('N' x $longr);
+		my $rnaseq=substr($seq,$init-1,$longr,$replace);
+		print outfile2 ">$rna{$current}{$rns}{name}\t$rna{$current}{$rns}{molecule};$current|$rns;$rna{$current}{$rns}{kingdom}\n$rnaseq\n";
+		if($rna{$current}{$rns}{molecule}=~/16S/) { print outfile4 ">$rna{$current}{$rns}{name}\t$rna{$current}{$rns}{molecule};$current|$rns;$rna{$current}{$rns}{kingdom}\n$rnaseq\n"; }
+	}
+	print outfile3 ">$current\n$seq\n";
+
+	# close
 	close infile2;
 	close outfile2;
 	close outfile3;
