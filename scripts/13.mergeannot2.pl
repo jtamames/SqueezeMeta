@@ -30,99 +30,13 @@ tie %orfdata,"Tie::IxHash";
 tie %mapping,"Tie::IxHash";
 tie %samples,"Tie::IxHash";
 
-	#-- CREATING GENE TABLE
-
-open(syslogfile,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
-print "  Creating table in $mergedfile\n";
-print syslogfile "  Creating table in $mergedfile\n";
-open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
-
-	#-- Headers
-
-open(infile1,$mappingfile) || die "Can't open samples file in $mappingfile\n";
-while(<infile1>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	$_=~s/\r//g;
-	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-	$samples{$sample}=1; 
-	}
-close infile1;
-
-print outfile1 "#--Created by $0, ",scalar localtime,"\n";
-print outfile1 "ORF ID\tContig ID\tMolecule\tMethod\tLength NT\tLength AA\tGC perc\tGene name\tTax\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
-if($opt_db) {
-	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
-	while(<infile0>) {
-		chomp;
-		next if(!$_ || ($_=~/\#/));
-		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		print outfile1 "\t$dbname\t$dbname NAME";
-		}
-	close infile0;
-	}
-
-foreach my $cnt(keys %samples) { 
-	print outfile1 "\tTPM $cnt";
-	}
-foreach my $cnt(keys %samples) { 
-	print outfile1 "\tCoverage $cnt";
-	}
-foreach my $cnt(keys %samples) { 
-	print outfile1 "\tRaw read count $cnt";
-	}
-foreach my $cnt(keys %samples) { 
-	print outfile1 "\tRaw base count $cnt"; 
-	}	
-print outfile1 "\tHits"; 
-if($seqsinfile13) { print outfile1 "\tAASEQ"; }
-print outfile1 "\n";
-
-
-	#-- CREATING GENE TABLE
-
-open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
-
-	#-- Headers
-
-open(infile1,$mappingfile) || die "Can't open samples file in $mappingfile\n";
-while(<infile1>) {
-	chomp;
-	next if(!$_ || ($_=~/^\#/));
-	$_=~s/\r//g;
-	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
-	$samples{$sample}=1; 
-	}
-close infile1;
-
-print outfile1 "#--Created by $0, ",scalar localtime,"\n";
-print outfile1 "ORF ID\tContig ID\tMolecule\tMethod\tLength NT\tLength AA\tGC perc\tGene name\tTax\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
-if($opt_db) {
-	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
-	while(<infile0>) {
-		chomp;
-		next if(!$_ || ($_=~/\#/));
-		my($dbname,$extdb,$dblist)=split(/\t/,$_);
-		print outfile1 "\t$dbname\t$dbname NAME";
-		}
-	close infile0;
-	}
-
-foreach my $cnt(keys %samples) { print outfile1 "\tTPM $cnt"; }
-foreach my $cnt(keys %samples) { print outfile1 "\tCoverage $cnt"; }
-foreach my $cnt(keys %samples) { print outfile1 "\tRaw read count $cnt"; }
-foreach my $cnt(keys %samples) { print outfile1 "\tRaw base count $cnt"; }
-print outfile1 "\tHits"; 
-if($seqsinfile13) { print outfile1 "\tAASEQ"; }
-print outfile1 "\n";
-
 
 	#-- Reading gff for getting the list of ORFs
 
 my $gff;
 my %ingff;
 if($doublepass) { $gff=$gff_file_blastx; } else { $gff=$gff_file; }
-open(infile1,$gff) || die "Can't open gff file $gff\n";
+open(infile1,$gff) || warn "Can't open gff file $gff\n";
 print "  Reading GFF in $gff\n";
 print syslogfile "  Reading GFF in $gff\n";
 while(<infile1>) {
@@ -137,7 +51,7 @@ close infile1;
 print "  Reading Diamond hits\n";
 print syslogfile "  Reading Diamond hits from $taxdiamond\n";
 my(%provi,$lasto);
-open(infile1,$taxdiamond) || die "Can't open diamond result in $taxdiamond\n";
+open(infile1,$taxdiamond) || warn "Can't open diamond result in $taxdiamond\n";
 while(<infile1>) {
 	chomp;
 	next if !$_;
@@ -219,7 +133,7 @@ if($opt_db) {
 
 	#-- Reading aa sequences 
 
-open(infile3,$aafile) || die "I need the protein sequences from the prediction\n";
+open(infile3,$aafile) || warn "I need the protein sequences from the prediction\n";
 print "  Reading aa sequences\n";
 print syslogfile "  Reading aa sequences from $aafile\n";
 my($thisorf,$aaseq);
@@ -256,7 +170,7 @@ print "  Reading nt sequences\n";
 print syslogfile "  Reading nt sequences\n";
 my($thisorf,$ntseq);
 foreach my $thisntfile(@ntfiles) {
-	open(infile3,$thisntfile) || die "I need the nucleotide sequences in file $thisntfile\n";
+	open(infile3,$thisntfile) || warn "I need the nucleotide sequences in file $thisntfile\n";
 	while(<infile3>) {
 		chomp;
 		if($_=~/^\>([^ ]+)/) {		#-- If we are reading a new ORF, store the data for the last one
@@ -356,7 +270,7 @@ if($euknofilter) {	#-- Remove filters for Eukaryotes
 	my $eukinput=$taxfile;
 	$eukinput=~s/\.wranks/\.noidfilter\.wranks/;
 	print syslogfile "  Reading ORF information without euk filters from $eukinput\n";
-	open(infile5,$eukinput) || die "Can't open $eukinput\n";
+	open(infile5,$eukinput) || warn "Can't open $eukinput\n";
 	while(<infile5>) {		#-- Looping on the ORFs
 		chomp;
 		next if(!$_ || ($_=~/\#/));
@@ -548,132 +462,199 @@ if(!$nopfam) {
 	close infile11; 
 }           			       
   
+  
+	#-- CREATING GENE TABLE
+
+open(outfile1,">$mergedfile") || die "Can't open $mergedfile for writing\n";
+
+	#-- Headers
+
+open(infile1,$mappingfile) || die "Can't open samples file in $mappingfile\n";
+while(<infile1>) {
+	chomp;
+	next if(!$_ || ($_=~/^\#/));
+	$_=~s/\r//g;
+	my ($sample,$file,$iden,$mapreq)=split(/\t/,$_);
+	$samples{$sample}=1; 
+	}
+close infile1;
+
+print outfile1 "#--Created by $0, ",scalar localtime,"\n";
+print outfile1 "ORF ID\tContig ID\tMolecule\tMethod\tLength NT\tLength AA\tGC perc\tGene name\tTax\tKEGG ID\tKEGGFUN\tKEGGPATH\tCOG ID\tCOGFUN\tCOGPATH\tPFAM";
+if($opt_db) {
+	open(infile0,$opt_db) || warn "Can't open EXTDB file $opt_db\n"; 
+	while(<infile0>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/));
+		my($dbname,$extdb,$dblist)=split(/\t/,$_);
+		print outfile1 "\t$dbname\t$dbname NAME";
+		}
+	close infile0;
+	}
+
+
+  
+  
 	#-- Reading RPKM, TPM coverage values for the ORFs in the different samples
 
-my %tempstore;
-my $lastorf;
-print "  Reading RPKMs and Coverages\n";
-print syslogfile"  Reading RPKMs and Coverages from $mapcountfile\n";
+if(-z $mapcountfile) {    #-- In case we don have mapping information, for instance for sqm_annot.pl
+	print "\n  WARNING: No info on mapping found\n";
+	print outfile1 "\n";  
 
-#-- Sorting the mapcount table is needed for reading it with low memory consumption. This is done in step10 but it is here for compatibility with previous versions
-
-open(infile12,$mapcountfile) || warn "Can't open mapping file $mapcountfile\n";
-$_=<infile12>;
-if($_!~/SORTED TABLE/) {
-	print "    (Sorting mapcount table first)\n";
-	my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
-	system($command);
-	}	
-close infile12;
-
-open(infile12,$mapcountfile) || warn "Can't open mapping file $mapcountfile\n";
-while(<infile12>) {
-	chomp;
-	next if(!$_ || ($_=~/\#/) || ($_=~/^Gen/));
-	my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$tpm,$idfile)=split(/\t/,$_);
-	
-
-	#-- We start writing the table while reading mapcount, to avoid storing that many data in memory
-
-
-	if(!$lastorf) { $lastorf=$orf; }
-	if($orf eq $lastorf) {
-		$tempstore{$idfile}{rawreads}=$rawreads;
-		$tempstore{$idfile}{rawbases}=$rawbases;
-		$tempstore{$idfile}{rpkm}=$rpkm;
-		$tempstore{$idfile}{coverage}=$coverage;
-		$tempstore{$idfile}{tpm}=$tpm;
+	foreach my $lastorf(keys %orfdata) {
+		my($cogprint,$keggprint,$optprint);
+		my $ctg=$lastorf;
+		$ctg=~s/\_\d+\-\d+$//;
+		my $funcogm=$orfdata{$lastorf}{cog};
+		my $funkeggm=$orfdata{$lastorf}{kegg};
+		if($orfdata{$lastorf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
+		if($orfdata{$lastorf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
+		printf outfile1 "$lastorf\t$ctg\t$orfdata{$lastorf}{molecule}\t$orfdata{$lastorf}{method}\t$orfdata{$lastorf}{lengthnt}\t$orfdata{$lastorf}{length}\t%.2f\t$orfdata{$lastorf}{name}\t$orfdata{$lastorf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$lastorf}{pfam}",$orfdata{$lastorf}{gc};
+		if($opt_db) { 
+			foreach my $topt(sort keys %optlist) { 
+				my $funoptdb=$orfdata{$lastorf}{$topt};
+				if($orfdata{$lastorf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
+				print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
+				}
+			}
+		print outfile1 "\n";	
 		}
-	else {		
+	}
+
+else {
+	foreach my $cnt(keys %samples) { print outfile1 "\tTPM $cnt"; }
+	foreach my $cnt(keys %samples) { print outfile1 "\tCoverage $cnt"; }
+	foreach my $cnt(keys %samples) { print outfile1 "\tRaw read count $cnt"; }
+	foreach my $cnt(keys %samples) { print outfile1 "\tRaw base count $cnt"; }
+	print outfile1 "\tHits"; 
+	print outfile1 "\n";  
+	my %tempstore;
+	my $lastorf;
+	print "  Reading RPKMs and Coverages\n";
+	print syslogfile"  Reading RPKMs and Coverages from $mapcountfile\n";
+
+	#-- Sorting the mapcount table is needed for reading it with low memory consumption. This is done in step10 but it is here for compatibility with previous versions
+
+	open(infile12,$mapcountfile) || warn "Can't open mapping file $mapcountfile\n";
+	$_=<infile12>;
+	if($_!~/SORTED TABLE/) {
+		print "    (Sorting mapcount table first)\n";
+		my $command="sort -t _ -k 2 -k 3 -n $mapcountfile > $tempdir/mapcount.temp; mv $tempdir/mapcount.temp $mapcountfile";
+		system($command);
+		}	
+	close infile12;
+
+	open(infile12,$mapcountfile) || warn "Can't open mapping file $mapcountfile\n";
+	while(<infile12>) {
+		chomp;
+		next if(!$_ || ($_=~/\#/) || ($_=~/^Gen/));
+		my($orf,$longg,$rawreads,$rawbases,$rpkm,$coverage,$tpm,$idfile)=split(/\t/,$_);
+	
 
 		#-- We start writing the table while reading mapcount, to avoid storing that many data in memory
 
-		my($cogprint,$keggprint,$optprint,$string);
-		my $ctg=$lastorf;
-		$ctg=~s/\_\d+\-\d+$//;
-		if($ingff{$lastorf}) {
-			my $funcogm=$orfdata{$lastorf}{cog};
-			my $funkeggm=$orfdata{$lastorf}{kegg};
-			if($orfdata{$lastorf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
-			if($orfdata{$lastorf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
-			printf outfile1 "$lastorf\t$ctg\t$orfdata{$lastorf}{molecule}\t$orfdata{$lastorf}{method}\t$orfdata{$lastorf}{lengthnt}\t$orfdata{$lastorf}{length}\t%.2f\t$orfdata{$lastorf}{name}\t$orfdata{$lastorf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$lastorf}{pfam}",$orfdata{$lastorf}{gc};
-			if($opt_db) { 
-				foreach my $topt(sort keys %optlist) { 
-					my $funoptdb=$orfdata{$lastorf}{$topt};
-					if($orfdata{$lastorf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
-					print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
-					}
-				}
-	
-			#-- Abundance values, looping for samples
-		
-			foreach my $tsam(keys %samples) {
-				my $sdat=$tempstore{$tsam}{tpm} || "0"; print outfile1 "\t$sdat";
-				}
-			foreach my $tsam(keys %samples) {
-				my $sdat=$tempstore{$tsam}{coverage} || "0"; print outfile1 "\t$sdat";
-				}
-			foreach my $tsam(keys %samples) {
-				my $sdat=$tempstore{$tsam}{rawreads} || "0"; print outfile1 "\t$sdat";
-				}
-			foreach my $tsam(keys %samples) {
-				my $sdat=$tempstore{$tsam}{rawbases} || "0"; print outfile1 "\t$sdat";
-				}
-	
-			#-- Diamond hits
-		
-			if($blasthits{$lastorf}) { print outfile1 "\t$blasthits{$lastorf}"; } else { print outfile1 "\t0"; } 
 
-			#-- aa sequences (if requested)
-
-			if($seqsinfile13) { print outfile1 "\t$orfdata{$lastorf}{aaseq}"; }
-			print outfile1 "\n";
+		if(!$lastorf) { $lastorf=$orf; }
+		if($orf eq $lastorf) {
+			$tempstore{$idfile}{rawreads}=$rawreads;
+			$tempstore{$idfile}{rawbases}=$rawbases;
+			$tempstore{$idfile}{rpkm}=$rpkm;
+			$tempstore{$idfile}{coverage}=$coverage;
+			$tempstore{$idfile}{tpm}=$tpm;
 			}
-		$lastorf=$orf;
-		%tempstore=();
-		$tempstore{$idfile}{rawreads}=$rawreads;
-		$tempstore{$idfile}{rawbases}=$rawbases;
-		$tempstore{$idfile}{rpkm}=$rpkm;
-		$tempstore{$idfile}{coverage}=$coverage;
-		$tempstore{$idfile}{tpm}=$tpm;
-		}
-	}
-close infile12;	     
+		else {		
 
-#-- Don't forget the last ORF...
+			#-- We start writing the table while reading mapcount, to avoid storing that many data in memory
 
-my($cogprint,$keggprint,$optprint);
-my $ctg=$lastorf;
-$ctg=~s/\_\d+\-\d+$//;
-my $funcogm=$orfdata{$lastorf}{cog};
-my $funkeggm=$orfdata{$lastorf}{kegg};
-if($orfdata{$lastorf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
-if($orfdata{$lastorf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
-printf outfile1 "$lastorf\t$ctg\t$orfdata{$lastorf}{molecule}\t$orfdata{$lastorf}{method}\t$orfdata{$lastorf}{lengthnt}\t$orfdata{$lastorf}{length}\t%.2f\t$orfdata{$lastorf}{name}\t$orfdata{$lastorf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$lastorf}{pfam}",$orfdata{$lastorf}{gc};
-if($opt_db) { 
-	foreach my $topt(sort keys %optlist) { 
-		my $funoptdb=$orfdata{$lastorf}{$topt};
-		if($orfdata{$lastorf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
-		print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
+			my($cogprint,$keggprint,$optprint,$string);
+			my $ctg=$lastorf;
+			$ctg=~s/\_\d+\-\d+$//;
+			if($ingff{$lastorf}) {
+				my $funcogm=$orfdata{$lastorf}{cog};
+				my $funkeggm=$orfdata{$lastorf}{kegg};
+				if($orfdata{$lastorf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
+				if($orfdata{$lastorf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
+				printf outfile1 "$lastorf\t$ctg\t$orfdata{$lastorf}{molecule}\t$orfdata{$lastorf}{method}\t$orfdata{$lastorf}{lengthnt}\t$orfdata{$lastorf}{length}\t%.2f\t$orfdata{$lastorf}{name}\t$orfdata{$lastorf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$lastorf}{pfam}",$orfdata{$lastorf}{gc};
+				if($opt_db) { 
+					foreach my $topt(sort keys %optlist) { 
+						my $funoptdb=$orfdata{$lastorf}{$topt};
+						# print "--$funoptdb--$opt{$funoptdb}{fun}--\n";
+						if($orfdata{$lastorf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
+						print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
+						}
+					}
+	
+				#-- Abundance values, looping for samples
+		
+				foreach my $tsam(keys %samples) {
+					my $sdat=$tempstore{$tsam}{tpm} || "0"; print outfile1 "\t$sdat";
+					}
+				foreach my $tsam(keys %samples) {
+					my $sdat=$tempstore{$tsam}{coverage} || "0"; print outfile1 "\t$sdat";
+					}
+				foreach my $tsam(keys %samples) {
+					my $sdat=$tempstore{$tsam}{rawreads} || "0"; print outfile1 "\t$sdat";
+					}
+				foreach my $tsam(keys %samples) {
+					my $sdat=$tempstore{$tsam}{rawbases} || "0"; print outfile1 "\t$sdat";
+					}
+	
+				#-- Diamond hits
+		
+				if($blasthits{$lastorf}) { print outfile1 "\t$blasthits{$lastorf}"; } else { print outfile1 "\t0"; } 
+
+				#-- aa sequences (if requested)
+
+				if($seqsinfile13) { print outfile1 "\t$orfdata{$lastorf}{aaseq}"; }
+				print outfile1 "\n";
+				}
+			$lastorf=$orf;
+			%tempstore=();
+			$tempstore{$idfile}{rawreads}=$rawreads;
+			$tempstore{$idfile}{rawbases}=$rawbases;
+			$tempstore{$idfile}{rpkm}=$rpkm;
+			$tempstore{$idfile}{coverage}=$coverage;
+			$tempstore{$idfile}{tpm}=$tpm;
+			}
 		}
+	close infile12;	     
+
+	#-- Don't forget the last ORF...
+
+	my($cogprint,$keggprint,$optprint);
+	my $ctg=$lastorf;
+	$ctg=~s/\_\d+\-\d+$//;
+	my $funcogm=$orfdata{$lastorf}{cog};
+	my $funkeggm=$orfdata{$lastorf}{kegg};
+	if($orfdata{$lastorf}{cogaver}) { $cogprint="$funcogm*"; } else { $cogprint="$funcogm"; }
+	if($orfdata{$lastorf}{keggaver}) { $keggprint="$funkeggm*"; } else { $keggprint="$funkeggm"; }
+	printf outfile1 "$lastorf\t$ctg\t$orfdata{$lastorf}{molecule}\t$orfdata{$lastorf}{method}\t$orfdata{$lastorf}{lengthnt}\t$orfdata{$lastorf}{length}\t%.2f\t$orfdata{$lastorf}{name}\t$orfdata{$lastorf}{tax}\t$keggprint\t$kegg{$funkeggm}{fun}\t$kegg{$funkeggm}{path}\t$cogprint\t$cog{$funcogm}{fun}\t$cog{$funcogm}{path}\t$orfdata{$lastorf}{pfam}",$orfdata{$lastorf}{gc};
+	if($opt_db) { 
+		foreach my $topt(sort keys %optlist) { 
+			my $funoptdb=$orfdata{$lastorf}{$topt};
+			if($orfdata{$lastorf}{$topt."baver"}) { $optprint="$funoptdb*"; } else { $optprint="$funoptdb"; }
+			print outfile1 "\t$optprint\t$opt{$funoptdb}{fun}"; 
+			}
+		}
+	
+	foreach my $tsam(keys %samples) {
+		my $sdat=$tempstore{$tsam}{tpm} || "0"; print outfile1 "\t$sdat";
+		}
+	foreach my $tsam(keys %samples) {
+		my $sdat=$tempstore{$tsam}{coverage} || "0"; print outfile1 "\t$sdat";
+		}
+	foreach my $tsam(keys %samples) {
+		my $sdat=$tempstore{$tsam}{rawreads} || "0"; print outfile1 "\t$sdat";
+		}
+	foreach my $tsam(keys %samples) {
+		my $sdat=$tempstore{$tsam}{rawbases} || "0"; print outfile1 "\t$sdat";
+		}
+	
+	if($blasthits{$lastorf}) { print outfile1 "\t$blasthits{$lastorf}"; } else { print outfile1 "\t0"; } 
+	if($seqsinfile13) { print outfile1 "\t$orfdata{$lastorf}{aaseq}"; }
+	print outfile1 "\n";
 	}
 	
-foreach my $tsam(keys %samples) {
-	my $sdat=$tempstore{$tsam}{tpm} || "0"; print outfile1 "\t$sdat";
-	}
-foreach my $tsam(keys %samples) {
-	my $sdat=$tempstore{$tsam}{coverage} || "0"; print outfile1 "\t$sdat";
-	}
-foreach my $tsam(keys %samples) {
-	my $sdat=$tempstore{$tsam}{rawreads} || "0"; print outfile1 "\t$sdat";
-	}
-foreach my $tsam(keys %samples) {
-	my $sdat=$tempstore{$tsam}{rawbases} || "0"; print outfile1 "\t$sdat";
-	}
-	
-if($blasthits{$lastorf}) { print outfile1 "\t$blasthits{$lastorf}"; } else { print outfile1 "\t0"; } 
-if($seqsinfile13) { print outfile1 "\t$orfdata{$lastorf}{aaseq}"; }
-print outfile1 "\n";
 close outfile1;
 
 print "============\nGENE TABLE CREATED: $mergedfile\n============\n\n";
