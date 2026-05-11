@@ -275,7 +275,6 @@ else {
 	if(!$equivfile) { $dietext.="MISSING ARGUMENT: -s|-samples: Samples file\n"; }
 	if(!$mode)      { $dietext.="MISSING ARGUMENT: -m: Run mode (sequential, coassembly, merged, extassembly, extbins)\n"; }
 	if($mode!~/sequential|coassembly|merged|seqmerge|extassembly|extbins/i) { $dietext.="UNRECOGNIZED mode $mode (valid ones are `sequential`, `coassembly`, `merged`, `seqmerge`, `extassembly` and `extbins`\n"; }
-	print("$cleaning_method\n");
 	if($cleaning_method!~/trimmomatic|fastp/i) { $dietext.="UNRECOGNIZED preprocessing method $cleaning_method (valid ones are `trimmomatic` and `fastp`\n"; }
 	if($mapper!~/bowtie|bwa|minimap2-ont|minimap2-pb|minimap2-sr/i) { $dietext.="UNRECOGNIZED mapper $mapper (valid ones are `bowtie`, `bwa`, `minimap2-ont`, `minimap2-pb` or `minimap2-sr`\n"; }
 	if($newtaxdb) { if(-e "$newtaxdb") {}  else { $dietext.="New taxonomy database specified in $newtaxdb not found\n"; } }

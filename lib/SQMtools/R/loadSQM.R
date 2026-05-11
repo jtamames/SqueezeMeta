@@ -332,15 +332,15 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
                 for(f in c(orfs_aafasta, orfs_rnafasta, orfs_trnafasta, orfs_blastxfasta))
                     {
                     if(file.exists.zip(project_path, f))
-                         {
-                         fas = read.fasta.zip(project_path, f, type = 'AA')
-                         # Remove everything after first whitespace from header
-                         names(fas) = gsub('\t.*$','', names(fas))
-                         names(fas) = gsub(' .*$','', names(fas))
-                         # In case there are duplicates, we will keep RNA over AA
-                         SQM$orfs$seqs = SQM$orfs$seqs[!names(SQM$orfs$seqs) %in% names(fas)]
-                         SQM$orfs$seqs = c(SQM$orfs$seqs, fas)
-                         }
+                        {
+                        fas = read.fasta.zip(project_path, f, type = 'AA')
+                        # Remove everything after first whitespace from header
+                        names(fas) = gsub('\t.*$','', names(fas))
+                        names(fas) = gsub(' .*$','', names(fas))
+                        # In case there are duplicates, we will keep RNA over AA
+                        SQM$orfs$seqs = SQM$orfs$seqs[!names(SQM$orfs$seqs) %in% names(fas)]
+                        SQM$orfs$seqs = c(SQM$orfs$seqs, fas)
+                        }
                     }
                 SQM$orfs$seqs        = SQM$orfs$seqs[rownames(SQM$orfs$table)]
             } else
