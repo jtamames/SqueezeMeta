@@ -569,9 +569,6 @@ Options
 [--min-contigs-length <int>]
     Minimum length of contigs (default: ``0``)
 
-[--min-mean-coverage <float>]
-    Minimum mean coverage for contigs (default: ``0``)
-
 [--skip-SNV-profiling]
     Skip the profiling of single nucleotide variants
 
@@ -635,7 +632,7 @@ Options
     Extra arguments for anvi-interactive, surrounded by quotes (e.g. ``--extra-anvio-args "--taxonomic-level t_phylum --title Parrot"``
 
 [-s <yolo|safe>]
-    By default, the script uses an in-house method to subset the anvi’o databases. It's ~5x quicker than using ``anvi-split`` in anvi’o5, and works well for us. However, the night is dark and full of bugs, so if you feel that your anvi’o view is missing some information, you can call the script with ``-s safe`` parameter. This will call ``anvi-split`` which should be much safer than our hacky solution (default: ``yolo``)
+    Kept for backwards compatibility, will use ``safe`` regardless
 
 [--doc]
     Print the documentation

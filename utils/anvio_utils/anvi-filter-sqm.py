@@ -36,14 +36,6 @@ OPTIONS:
   --extra-anvio-args "extra args". Extra arguments must be surrounded
   by quotes.
      e.g. --extra-anvio-args "--taxonomic-level t_phylum --title Parrot"
-     
-- By default, the script uses an in-house method to subset the anvi'o
-  databases. It's ~5x quicker than using anvi-split in anvio5, and works well for
-  us. However, the night is dark and full of bugs, so if you feel that
-  your anvi'o view is missing some information, you can call the script
-  with "-s safe" parameter. This will call anvi-split which should be
-  much safer than our hacky solution.
-
 
 
 QUERY SYNTAX:
@@ -114,6 +106,7 @@ from sys import argv
 from subprocess import call
 from os import devnull
 DEVNULL = open(devnull, 'wb')
+import warnings
 
 from splitFilter import SplitFilter
 from subsetAnvio import subset_anvio
@@ -323,6 +316,9 @@ def parse_args():
     parser.add_argument('--doc', action='store_true', help='Show documentation')
     args = parser.parse_args()
     args.query = ' '.join(args.query)
+    if args.split_mode == 'yolo':
+        args.split_mode = 'safe'
+        warnings.warn('Split mode "yolo" has been deprecated. Will use "safe" istead', DeprecationWarning)
     return args
  
 

@@ -26,7 +26,7 @@ else
         {
         $scriptdir = abs_path(dirname(__FILE__));
         }
-our $installpath = abs_path("$scriptdir/..");
+our $installpath = abs_path("$scriptdir/../..");
 
 my $pwd=cwd();
 my $projectpath=$ARGV[0];

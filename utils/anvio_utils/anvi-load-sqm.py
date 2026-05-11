@@ -14,14 +14,12 @@ Run this script in the project directory:
     
 USAGE: anvi-load-sqm.py [-h] -p PROJECT -o OUTPUT [--num-threads NUM_THREADS]
                         [--run-HMMS] [--run-scg-taxonomy] [--min-contig-length MIN_CONTIG_LENGTH]
-                        [--min-mean-coverage MIN_MEAN_COVERAGE]
                         [--skip-SNV-profiling] [--profile-SCVs] [--force-overwrite] [--doc]
        -p PROJECT, --project PROJECT          Name of the SQM project. E.g. Hadza16 (REQUIRED)
        -o OUTPUT                              Path to the output directory (REQUIRED)
        --num-threads         NUM_THREADS      Number of threads
        --run-HMMS                             Run anvi-run-hmms command from anvi'o for identifying single-copy core genes
        --min-contig-length  MIN_CONTIG_LENGTH Minimum length of contigs
-       --min-mean-coverage  MIN_MEAN_COVERAGE Minimum mean coverage for contigs
        --skip-SNV-profiling                   To skip the profiling of SNV
        --profile-SCVs                         Perform characterization of codon frequencies in genes
        --run-scg-taxonomy                     Just for anvio 6. Perform taxonomic assignation of single-copy core genes
@@ -72,7 +70,6 @@ def parse_arguments():
     general.add_argument('--run-HMMS', action = 'store_true', help = 'Run anvi-run-hmms command from anvi\'o for identifying single-copy core genes')
     general.add_argument('--run-scg-taxonomy', action = 'store_true', help = 'Run anvi-run-scg-taxonomy command from anvi\'o for identifying taxonomy of single-copy core genes.'+'\n'+ 'This flag is available for version anvio 6, not anvio 5.'+'\n'+'Note that if it is the first time you use it, it would be necessary to run the command anvi-setup-scg-databases to set up the database (more info: http://merenlab.org/2019/10/08/anvio-scg-taxonomy/')
     general.add_argument('--min-contig-length', default = 0, type=int, help = 'Minimum length of contigs')  
-    general.add_argument('--min-mean-coverage', default = 0, type=int, help = 'Minimum mean coverage for contigs')
     general.add_argument('--skip-SNV-profiling', action = 'store_true', help = 'To skip the profiling of SNV')
     general.add_argument('--profile-SCVs', action = 'store_true', help = 'Perform characterization of codon frequencies in genes')
     general.add_argument('--force-overwrite', action = 'store_true', help = 'Force overwrite if the output directory already exists')
@@ -274,7 +271,7 @@ def create_contigsDB(project, contigs, genes, functions, tax_genes, tax_contigs,
     if logfile:
         logfile.write('1.5. TAXONOMY have been loaded')
 
-def create_profileDB(project, outputDir, min_contig_length, min_mean_coverage, num_threads, skip_SNV_profiling, profile_SCVs, version, logfile = None):
+def create_profileDB(project, outputDir, min_contig_length, num_threads, skip_SNV_profiling, profile_SCVs, version, logfile = None):
     """ Make profiles.db. Load bam files, important: distinguish number of samples """
     print('Loading bam files')
     samples = [f for f in os.listdir('{}/data/bam'.format(project)) if f.endswith('.bam')]
@@ -299,7 +296,7 @@ def create_profileDB(project, outputDir, min_contig_length, min_mean_coverage, n
         # Profile bam file
 
         profile_name = '{}/{}_temp'.format(outputDir,f.replace('.bam',''))
-        command_base = ['anvi-profile','-i',f_out, '-o', profile_name, '-c', '{}/CONTIGS.db'.format(outputDir), '--min-contig-length', min_contig_length ,'--min-mean-coverage', min_mean_coverage,'--num-threads' , num_threads,'--skip-hierarchical-clustering']
+        command_base = ['anvi-profile','-i',f_out, '-o', profile_name, '-c', '{}/CONTIGS.db'.format(outputDir), '--min-contig-length', min_contig_length ,'--num-threads' , num_threads,'--skip-hierarchical-clustering']
         if skip_SNV_profiling:
             command_base.append('--skip-SNV-profiling')
         if profile_SCVs:
@@ -416,7 +413,7 @@ def main(args):
     # Create CONTIGS.db
     create_contigsDB(args.project, contigs, genes, functions, tax_genes, tax_contigs, args.outputDir, args.run_HMMS, args.num_threads, args.run_scg_taxonomy, version, logfile)
     #Create PROFILE.db
-    create_profileDB(args.project, args.outputDir, args.min_contig_length, args.min_mean_coverage, args.num_threads, args.skip_SNV_profiling, args.profile_SCVs, version, logfile)                
+    create_profileDB(args.project, args.outputDir, args.min_contig_length, args.num_threads, args.skip_SNV_profiling, args.profile_SCVs, version, logfile)                
     #Load Bin collection
     load_bins(args.project, args.outputDir, logfile)    
 
