@@ -117,10 +117,17 @@ while(<infile1>) {
 		next; 
 		}
 	my @k=split(/\t/,$_);
+	my $comp=$k[8];
+	my $cont=$k[9]; 
+	if($header[9] eq "Completeness") {
+		# we may have one extra column if we have gtdbtk classifications
+		$comp=$k[9];
+		$cont=$k[10];
+		}
 	# next if($k[1] ne "DASTool");
 	$totalbins++;
-	next if($k[8]<$complete_cutoff);
-	next if($k[9]>$contamination_cutoff);
+	next if($comp<$complete_cutoff);
+	next if($cont>$contamination_cutoff);
 	$numbins++;
 	$k[2]=~s/\;$//; 
 	my @mtx=split(/\;/,$k[2]);
@@ -129,7 +136,7 @@ while(<infile1>) {
 	$binname=~s/\s+/\_/g;
 	$binname=~s/sp\./sp/g;
 	$newnames{$k[0]}=$binname;
-	$complete{$binname}=$k[8];
+	$complete{$binname}=$comp;
 	$tax{$binname}=$k[2];
 	for(my $pos=0; $pos<=$#k; $pos++) {
 		if($header[$pos]=~/$abunmethod (.*)/i) { 
@@ -138,7 +145,7 @@ while(<infile1>) {
 			$samcode{$corrdata}=1;
 			}
 		}
-	$contamination{$binname}=$k[9];
+	$contamination{$binname}=$cont;
 
 	if($k[2]=~/p\_([^;]+)/) { $phylo{$binname}{phylum}=$1; $countphylo{phylum}{$1}++; }
 	if($k[2]=~/g\_([^;]+)/) { $phylo{$binname}{genus}=$1; $countphylo{genus}{$1}++;}
