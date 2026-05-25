@@ -118,6 +118,7 @@ outputs:
         - nextflow
         - seqtk >=1.4
         - bedtools
+        - bc
         # POGENOM
         - vcflib >=1.0.1
         - picard

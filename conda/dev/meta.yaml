@@ -94,6 +94,7 @@ outputs:
         - kmer-db==2.3.1
         - metabat2==2.12.1
         - bowtie2==2.5.5
+        - flye==2.9.6
         - pplacer==1.1.alpha19
         - prodigal==2.6.3
         - pydantic==1.10.22
@@ -113,6 +114,7 @@ outputs:
         - vcflib==1.0.12
         - picard==3.4.0
         - freebayes==1.3.9
+        - bc==1.07.1
         - checkm2==1.1.0
         - tensorflow==2.17.0
         - lightgbm==4.6.0

@@ -138,7 +138,7 @@ $checkm_soft        = "PATH=$installpath/bin:$installpath/bin/pplacer:$installpa
 $checkm2_soft       = "checkm2";
 $minpath_soft       = "python3 $installpath/bin/MinPath1.4.py";
 $canu_soft          = "$installpath/bin/canu-2.2/bin/canu";
-$flye_soft          = "$installpath/bin/Flye-2.9/bin/flye";
+$flye_soft          = "flye";
 $trimmomatic_soft   = "java -jar $installpath/bin/trimmomatic-0.38.jar";
 $fastp_soft         = "fastp";
 $dastool_soft       = "LD_LIBRARY_PATH=$installpath/lib PATH=\$PATH:$installpath/bin $installpath/bin/DAS_Tool/DAS_Tool";
