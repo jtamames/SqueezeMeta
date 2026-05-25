@@ -79,7 +79,7 @@ def main(args):
         if exists(perlVars['$trnafile']):
             target_files.append(f'results/02.{project_name}.trnas.fasta')
         if exists(perlVars['$fna_blastx']):
-            target_files.append(f'results/08.{project_name}.blastx.fna')
+            target_files.append(f'intermediate/08.{project_name}.blastx.fna')
         target_files += [f'results/tables/{f}' for f in listdir(f'{args.project_path}/results/tables')]
 
     if not int(perlVars['$nobins']) and exists(perlVars['$bintable']):

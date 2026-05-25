@@ -320,7 +320,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
             orfs_aafasta     = sprintf('results/03.%s.faa'                  , project_name)
             orfs_rnafasta    = sprintf('results/02.%s.rnas'                 , project_name)
             orfs_trnafasta   = sprintf('results/02.%s.trnas.fasta'          , project_name)
-            orfs_blastxfasta = sprintf('results/08.%s.blastx.fna'           , project_name)
+            orfs_blastxfasta = sprintf('intermediate/08.%s.blastx.fna'      , project_name)
             if(file.exists.zip(project_path, orfs_vecfile))
                 {
                 SQM$orfs$seqs      = read.namedvector.zip(project_path, orfs_vecfile, 
