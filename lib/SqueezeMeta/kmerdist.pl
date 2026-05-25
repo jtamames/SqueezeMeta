@@ -86,7 +86,7 @@ my $ecode=system($command);
 if($ecode!=0) { die "Error running command:    $command"; }
 my $disttable="$kmertable.jaccard";
  if(-e $disttable) { system("rm $disttable"); }
-$command="$kmerdb_soft distance -t $numthreads $kmertable > /dev/null 2>&1";
+$command="$kmerdb_soft distance -t $numthreads jaccard $kmertable $disttable > /dev/null 2>&1";
 #print "$command\n";
 print "k-mer db: Calculating distances\n";
 my $ecode=system($command);
