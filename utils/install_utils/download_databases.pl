@@ -28,9 +28,10 @@ my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
 require "$libpath/install_utils/download_confirm.pl";
 require "$libpath/install_utils/get_host.pl";
-###
 
-my $host = get_host();
+### Get host
+my $host=$ARGV[1];
+if(!$host) { $host = get_host(); }
 
 ### Download test data
 print "\nDownloading and unpacking test data...\n\n";
@@ -42,4 +43,4 @@ download_confirm("SqueezeMetaDB.tar.gz", "SqueezeMetaDB.md5", $host, $download_d
 
 
 ### Finish configuration
-system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir");
+system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir $host");

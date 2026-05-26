@@ -48,9 +48,10 @@ my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
 require "$libpath/install_utils/download_confirm.pl";
 require "$libpath/install_utils/get_host.pl";
-###
 
-my $host = get_host();
+### Get host
+my $host=$ARGV[1];
+if(!$host) { $host = get_host(); }
 
 system("rm $download_dir/test.tar.gz $libpath/classifier.tar.gz $download_dir/db.tar.gz $download_dir/kegg.dmnd.gz > /dev/null 2>&1");
 
@@ -195,4 +196,4 @@ system("echo  \"Finished database creation on $timestamp.\" > $database_dir/DB_B
 
 
 ### Finish configuration.
-system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir");
+system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir $host");

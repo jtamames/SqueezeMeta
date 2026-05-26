@@ -28,15 +28,15 @@ my $installpath = abs_path("$dbscriptdir/../..");
 my $libpath = "$installpath/lib";
 require "$libpath/install_utils/download_confirm.pl";
 require "$libpath/install_utils/get_host.pl";
-###
+
+### Get host
+my $host=$ARGV[1];
+if(!$host) { $host = get_host(); }
 
 ###Check that the databases are present in the requested dir.
 unless(-e "$databasedir/nr.dmnd"){
 	die "The file $databasedir/nr.dmnd does not exist. Please check that you provided the right database directory. If you are running configure_nodb.pl directly, this probably means that you did not provide the right database directory. If this happened while running download_databases.pl or make_databases.pl, this probably means that your download got interrupted.\n\n";
 }	
-
-###Get host.
-my $host = get_host();
 
 ###Download rdp classifier.
 system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");

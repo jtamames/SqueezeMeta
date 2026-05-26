@@ -3,7 +3,7 @@ use warnings;
 
 sub get_host {
 	my %preferredhosts = ("http://andes.cnb.csic.es" => "SqueezeMeta/SQMhere");
-	my %fallbackhosts  = ("https://saco.csic.es"      => "s/ZFLcptDpWGxAT98/download?path=%2F&files=SQMhere");
+	my %fallbackhosts  = ("https://saco.csic.es"     => "public.php/dav/files/PiArL2o5adKmCDY/SQMhere");
 	my @goodhosts;
 	foreach my $host (keys %preferredhosts) {
 		my $ecode = system("wget -T10 -t1 -O/dev/null -q \"$host/$preferredhosts{$host}\"");

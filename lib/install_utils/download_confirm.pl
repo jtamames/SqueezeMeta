@@ -3,21 +3,21 @@ use warnings;
 use Digest::MD5 qw(md5_hex);
 
 my %host2urls;
-$host2urls{"https://saco.csic.es"}{"SQMhere"}                 = 's/ZFLcptDpWGxAT98/download?path=%2F&files=SQMhere';
-$host2urls{"https://saco.csic.es"}{"classifier.md5"}          = 's/ZFLcptDpWGxAT98/download?path=%2F&files=classifier.md5';
-$host2urls{"https://saco.csic.es"}{"classifier.tar.gz"}       = 's/ZFLcptDpWGxAT98/download?path=%2F&files=classifier.tar.gz';
-$host2urls{"https://saco.csic.es"}{"db.md5"}                  = 's/ZFLcptDpWGxAT98/download?path=%2F&files=db.md5';
-$host2urls{"https://saco.csic.es"}{"db.tar.gz"}               = 's/ZFLcptDpWGxAT98/download?path=%2F&files=db.tar.gz';
-$host2urls{"https://saco.csic.es"}{"kegg.db.md5"}             = 's/ZFLcptDpWGxAT98/download?path=%2F&files=kegg.db.md5';
-$host2urls{"https://saco.csic.es"}{"kegg.db.tar.gz"}          = 's/ZFLcptDpWGxAT98/download?path=%2F&files=kegg.db.tar.gz';
-$host2urls{"https://saco.csic.es"}{"silva.nr_v132.align.md5"} = 's/ZFLcptDpWGxAT98/download?path=%2F&files=silva.nr_v132.align.md5';
-$host2urls{"https://saco.csic.es"}{"silva.nr_v132.align.gz"}  = 's/ZFLcptDpWGxAT98/download?path=%2F&files=silva.nr_v132.align.gz';
-$host2urls{"https://saco.csic.es"}{"SqueezeMetaDB.md5"}       = 's/ZFLcptDpWGxAT98/download?path=%2F&files=SqueezeMetaDB.md5';
-$host2urls{"https://saco.csic.es"}{"SqueezeMetaDB.tar.gz"}    = 's/ZFLcptDpWGxAT98/download?path=%2F&files=SqueezeMetaDB.tar.gz';
-$host2urls{"https://saco.csic.es"}{"test.md5"}                = 's/ZFLcptDpWGxAT98/download?path=%2F&files=test.md5';
-$host2urls{"https://saco.csic.es"}{"test.tar.gz"}             = 's/ZFLcptDpWGxAT98/download?path=%2F&files=test.tar.gz';
-$host2urls{"https://saco.csic.es"}{"uniref100.KO.1.dmnd.md5"} = 's/ZFLcptDpWGxAT98/download?path=%2F&files=uniref100.KO.1.dmnd.md5';
-$host2urls{"https://saco.csic.es"}{"uniref100.KO.1.dmnd.gz"}  = 's/ZFLcptDpWGxAT98/download?path=%2F&files=uniref100.KO.1.dmnd.gz';
+$host2urls{"https://saco.csic.es"}{"SQMhere"}                 = 'public.php/dav/files/PiArL2o5adKmCDY/SQMhere';
+$host2urls{"https://saco.csic.es"}{"classifier.md5"}          = 'public.php/dav/files/PiArL2o5adKmCDY/classifier.md5';
+$host2urls{"https://saco.csic.es"}{"classifier.tar.gz"}       = 'public.php/dav/files/PiArL2o5adKmCDY/classifier.tar.gz';
+$host2urls{"https://saco.csic.es"}{"db.md5"}                  = 'public.php/dav/files/PiArL2o5adKmCDY/db.md5';
+$host2urls{"https://saco.csic.es"}{"db.tar.gz"}               = 'public.php/dav/files/PiArL2o5adKmCDY/db.tar.gz';
+$host2urls{"https://saco.csic.es"}{"kegg.db.md5"}             = 'public.php/dav/files/PiArL2o5adKmCDY/kegg.db.tar.gz';
+$host2urls{"https://saco.csic.es"}{"kegg.db.tar.gz"}          = 'public.php/dav/files/PiArL2o5adKmCDY/kegg.db.tar.gz';
+$host2urls{"https://saco.csic.es"}{"silva.nr_v132.align.md5"} = 'public.php/dav/files/PiArL2o5adKmCDY/silva.nr_v132.align.md5';
+$host2urls{"https://saco.csic.es"}{"silva.nr_v132.align.gz"}  = 'public.php/dav/files/PiArL2o5adKmCDY/silva.nr_v132.align.gz';
+$host2urls{"https://saco.csic.es"}{"SqueezeMetaDB.md5"}       = 'public.php/dav/files/PiArL2o5adKmCDY/SqueezeMetaDB.md5';
+$host2urls{"https://saco.csic.es"}{"SqueezeMetaDB.tar.gz"}    = 'public.php/dav/files/PiArL2o5adKmCDY/SqueezeMetaDB.tar.gz';
+$host2urls{"https://saco.csic.es"}{"test.md5"}                = 'public.php/dav/files/PiArL2o5adKmCDY/test.md5';
+$host2urls{"https://saco.csic.es"}{"test.tar.gz"}             = 'public.php/dav/files/PiArL2o5adKmCDY/test.tar.gz';
+$host2urls{"https://saco.csic.es"}{"uniref100.KO.1.dmnd.md5"} = 'public.php/dav/files/PiArL2o5adKmCDY/uniref100.KO.1.dmnd.md5';
+$host2urls{"https://saco.csic.es"}{"uniref100.KO.1.dmnd.gz"}  = 'public.php/dav/files/PiArL2o5adKmCDY/uniref100.KO.1.dmnd.gz';
 
 
 sub download_confirm {
