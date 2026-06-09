@@ -2,38 +2,36 @@
 summary.SQMlite
 ***************
 
-.. container::
+=============== ===============
+summary.SQMlite R Documentation
+=============== ===============
 
-   =============== ===============
-   summary.SQMlite R Documentation
-   =============== ===============
+summary method for class SQMlite
+--------------------------------
 
-   .. rubric:: summary method for class SQMlite
-      :name: summary.SQMlite
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Computes different statistics of the data contained in the SQMlite
+object.
 
-   Computes different statistics of the data contained in the SQMlite
-   object.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   ## S3 method for class 'SQMlite'
+   summary(object, ...)
 
-      ## S3 method for class 'SQMlite'
-      summary(object, ...)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
+========== ================================
+``object`` SQMlite object to be summarized.
+``...``    Additional parameters (ignored).
+========== ================================
 
-   ========== ================================
-   ``object`` SQMlite object to be summarized.
-   ``...``    Additional parameters (ignored).
-   ========== ================================
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
-
-   A list of summary statistics.
+A list of summary statistics.

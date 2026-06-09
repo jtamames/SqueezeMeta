@@ -150,7 +150,7 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs'
             message(sprintf('Loading project in %s', p))
 	    projs = c(projs, list(loadSQM_(p, tax_mode, tax_source, trusted_functions_only, single_copy_genes, load_sequences, engine)))
     }
-        SQM = combineSQM(projs)
+        SQM = combineSQM(projs, tax_source = tax_source)
         }
     return(SQM)
     }

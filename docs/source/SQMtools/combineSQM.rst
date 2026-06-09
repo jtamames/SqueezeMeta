@@ -2,140 +2,138 @@
 combineSQM
 **********
 
-.. container::
+========== ===============
+combineSQM R Documentation
+========== ===============
 
-   ========== ===============
-   combineSQM R Documentation
-   ========== ===============
+Combine several SQM objects
+---------------------------
 
-   .. rubric:: Combine several SQM objects
-      :name: combineSQM
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Combine an arbitrary number of SQM objects into a single SQM object (if
+the input objects contain the same samples, i.e. they come from the same
+SqueezeMeta run) or a single SQMbunch object. For combining results from
+sqm_reads.pl or sqm_longreads.pl please check ``combineSQMlite``. The
+parameters below (other than ...) will take only effect if the input
+objects contain the same samples. Otherwise the input objects will be
+taken as they are, with no recalculation of taxonomy, function or
+rescaling,
 
-   Combine an arbitrary number of SQM objects into a single SQM object
-   (if the input objects contain the same samples, i.e. they come from
-   the same SqueezeMeta run) or a single SQMbunch object. For combining
-   results from sqm_reads.pl or sqm_longreads.pl please check
-   ``combineSQMlite``. The parameters below (other than ...) will take
-   only effect if the input objects contain the same samples. Otherwise
-   the input objects will be taken as they are, with no recalculation of
-   taxonomy, function or rescaling,
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   combineSQM(
+     ...,
+     tax_source = "orfs",
+     trusted_functions_only = FALSE,
+     ignore_unclassified_functions = FALSE,
+     rescale_tpm = TRUE,
+     rescale_copy_number = TRUE,
+     recalculate_bin_stats = TRUE
+   )
 
-      combineSQM(
-        ...,
-        tax_source = "orfs",
-        trusted_functions_only = FALSE,
-        ignore_unclassified_functions = FALSE,
-        rescale_tpm = TRUE,
-        rescale_copy_number = TRUE,
-        recalculate_bin_stats = TRUE
-      )
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
++-----------------------------------+----------------------------------+
+| ``...``                           | an arbitrary number of SQM       |
+|                                   | objects. Alternatively, a single |
+|                                   | list containing an arbitrary     |
+|                                   | number of SQM objects.           |
++-----------------------------------+----------------------------------+
+| ``tax_source``                    | character, source data used for  |
+|                                   | the taxonomy tables present in   |
+|                                   | ``SQM$taxa``, either ``"orfs"``, |
+|                                   | ``"contigs"``, ``"bins"`` (GTDB  |
+|                                   | bin taxonomy if available, SQM   |
+|                                   | bin taxonomy otherwise),         |
+|                                   | ``"bins_gtdb"`` (GTDB bin        |
+|                                   | taxonomy) or ``"bins_sqm"`` (SQM |
+|                                   | bin taxonomy). Default           |
+|                                   | ``"orfs"``. If the objects being |
+|                                   | combined contain a subset of     |
+|                                   | taxa or bins, we recommend       |
+|                                   | adjusting this parameter.        |
++-----------------------------------+----------------------------------+
+| ``trusted_functions_only``        | logical. If ``TRUE``, only       |
+|                                   | highly trusted functional        |
+|                                   | annotations (best hit + best     |
+|                                   | average) will be considered when |
+|                                   | generating aggregated function   |
+|                                   | tables. If ``FALSE``, best hit   |
+|                                   | annotations will be used         |
+|                                   | (default ``FALSE``).             |
++-----------------------------------+----------------------------------+
+| ``ignore_unclassified_functions`` | logical. If ``FALSE``, ORFs with |
+|                                   | no functional classification     |
+|                                   | will be aggregated together into |
+|                                   | an "Unclassified" category. If   |
+|                                   | ``TRUE``, they will be ignored   |
+|                                   | (default ``FALSE``).             |
++-----------------------------------+----------------------------------+
+| ``rescale_tpm``                   | logical. If ``TRUE``, TPMs for   |
+|                                   | KEGGs, COGs, and PFAMs will be   |
+|                                   | recalculated (so that the TPMs   |
+|                                   | in the subset actually add up to |
+|                                   | 1 million). Otherwise,           |
+|                                   | per-function TPMs will be        |
+|                                   | calculated by aggregating the    |
+|                                   | TPMs of the ORFs annotated with  |
+|                                   | that function, and will thus     |
+|                                   | keep the scaling present in the  |
+|                                   | parent object (default           |
+|                                   | ``TRUE``).                       |
++-----------------------------------+----------------------------------+
+| ``rescale_copy_number``           | logical. If ``TRUE``, copy       |
+|                                   | numbers with be recalculated     |
+|                                   | using the median single-copy     |
+|                                   | gene coverages in the subset.    |
+|                                   | Otherwise, single-copy gene      |
+|                                   | coverages will be taken from the |
+|                                   | parent object. By default it is  |
+|                                   | set to ``TRUE``, which means     |
+|                                   | that the returned copy numbers   |
+|                                   | will represent the average copy  |
+|                                   | number per function *in the      |
+|                                   | genomes of the selected bins or  |
+|                                   | contigs*. If any SQM objects     |
+|                                   | that are being combined contain  |
+|                                   | a functional subset rather than  |
+|                                   | a contig/bins subset, this       |
+|                                   | parameter should be set to       |
+|                                   | ``FALSE``.                       |
++-----------------------------------+----------------------------------+
+| ``recalculate_bin_stats``         | logical. If ``TRUE``, bin        |
+|                                   | abundance, quality and taxonomy  |
+|                                   | are recalculated based on the    |
+|                                   | contigs present in the subsetted |
+|                                   | object (default ``TRUE``).       |
++-----------------------------------+----------------------------------+
 
-   +----------------------------------+----------------------------------+
-   | ``...``                          | an arbitrary number of SQM       |
-   |                                  | objects. Alternatively, a single |
-   |                                  | list containing an arbitrary     |
-   |                                  | number of SQM objects.           |
-   +----------------------------------+----------------------------------+
-   | ``tax_source``                   | character, source data used for  |
-   |                                  | the taxonomy tables present in   |
-   |                                  | ``SQM$taxa``, either ``"orfs"``, |
-   |                                  | ``"contigs"``, ``"bins"`` (GTDB  |
-   |                                  | bin taxonomy if available, SQM   |
-   |                                  | bin taxonomy otherwise),         |
-   |                                  | ``"bins_gtdb"`` (GTDB bin        |
-   |                                  | taxonomy) or ``"bins_sqm"`` (SQM |
-   |                                  | bin taxonomy). Default           |
-   |                                  | ``"orfs"``. If the objects being |
-   |                                  | combined contain a subset of     |
-   |                                  | taxa or bins, we recommend       |
-   |                                  | adjusting this parameter.        |
-   +----------------------------------+----------------------------------+
-   | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
-   |                                  | highly trusted functional        |
-   |                                  | annotations (best hit + best     |
-   |                                  | average) will be considered when |
-   |                                  | generating aggregated function   |
-   |                                  | tables. If ``FALSE``, best hit   |
-   |                                  | annotations will be used         |
-   |                                  | (default ``FALSE``).             |
-   +----------------------------------+----------------------------------+
-   | `                                | logical. If ``FALSE``, ORFs with |
-   | `ignore_unclassified_functions`` | no functional classification     |
-   |                                  | will be aggregated together into |
-   |                                  | an "Unclassified" category. If   |
-   |                                  | ``TRUE``, they will be ignored   |
-   |                                  | (default ``FALSE``).             |
-   +----------------------------------+----------------------------------+
-   | ``rescale_tpm``                  | logical. If ``TRUE``, TPMs for   |
-   |                                  | KEGGs, COGs, and PFAMs will be   |
-   |                                  | recalculated (so that the TPMs   |
-   |                                  | in the subset actually add up to |
-   |                                  | 1 million). Otherwise,           |
-   |                                  | per-function TPMs will be        |
-   |                                  | calculated by aggregating the    |
-   |                                  | TPMs of the ORFs annotated with  |
-   |                                  | that function, and will thus     |
-   |                                  | keep the scaling present in the  |
-   |                                  | parent object (default           |
-   |                                  | ``TRUE``).                       |
-   +----------------------------------+----------------------------------+
-   | ``rescale_copy_number``          | logical. If ``TRUE``, copy       |
-   |                                  | numbers with be recalculated     |
-   |                                  | using the median single-copy     |
-   |                                  | gene coverages in the subset.    |
-   |                                  | Otherwise, single-copy gene      |
-   |                                  | coverages will be taken from the |
-   |                                  | parent object. By default it is  |
-   |                                  | set to ``TRUE``, which means     |
-   |                                  | that the returned copy numbers   |
-   |                                  | will represent the average copy  |
-   |                                  | number per function *in the      |
-   |                                  | genomes of the selected bins or  |
-   |                                  | contigs*. If any SQM objects     |
-   |                                  | that are being combined contain  |
-   |                                  | a functional subset rather than  |
-   |                                  | a contig/bins subset, this       |
-   |                                  | parameter should be set to       |
-   |                                  | ``FALSE``.                       |
-   +----------------------------------+----------------------------------+
-   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin        |
-   |                                  | abundance, quality and taxonomy  |
-   |                                  | are recalculated based on the    |
-   |                                  | contigs present in the subsetted |
-   |                                  | object (default ``TRUE``).       |
-   +----------------------------------+----------------------------------+
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
+A SQM or SQMbunch object
 
-   A SQM or SQMbunch object
+See Also
+~~~~~~~~
 
-   .. rubric:: See Also
-      :name: see-also
+``subsetFun``, ``subsetTax``, ``combineSQMlite``
 
-   ``subsetFun``, ``subsetTax``, ``combineSQMlite``
+Examples
+~~~~~~~~
 
-   .. rubric:: Examples
-      :name: examples
+.. code:: R
 
-   .. code:: R
-
-      data(Hadza)
-      # Select Carbohydrate metabolism ORFs in Bacteroidota,
-      #  and Amino acid metabolism ORFs in Proteobacteria
-      bact = subsetTax(Hadza, "phylum", "Bacteroidota")
-      bact.carb = subsetFun(bact, "Carbohydrate metabolism")
-      baci = subsetTax(Hadza, "phylum", "Bacillota")
-      baci.amins = subsetFun(baci, "Amino acid metabolism")
-      bact.carb_proteo.amins = combineSQM(bact.carb, baci.amins, rescale_copy_number=FALSE)
+   data(Hadza)
+   # Select Carbohydrate metabolism ORFs in Bacteroidota,
+   #  and Amino acid metabolism ORFs in Proteobacteria
+   bact = subsetTax(Hadza, "phylum", "Bacteroidota")
+   bact.carb = subsetFun(bact, "Carbohydrate metabolism")
+   baci = subsetTax(Hadza, "phylum", "Bacillota")
+   baci.amins = subsetFun(baci, "Amino acid metabolism")
+   bact.carb_proteo.amins = combineSQM(bact.carb, baci.amins, rescale_copy_number=FALSE)

@@ -60,7 +60,7 @@ The SQMbunch object structure
 -----------------------------
 A *SQMbunch* object contains all the relevant information for several SqueezeMeta projects. It has a similar structure to a :ref:`SQM object <SQM object>`, but it lacks the ``orfs``, ``contigs`` and ``bins`` sections. Instead, it has a separate list named ``projects``, which contains individual *SQM* objects for each of the projects that were loaded.
 
-*SQMbunch* objects are meant to work with individual projects as if they were a single one, for the purpose of subsetting and visualization of aggregated taxonomic and functional profiles. This differs from working with a single co-assembly (or merged/seqmerge project) in that assemblies from different projects are not de-replicated, and instead each project contains its own set of potentially redundant contigs, ORFs and bins. For this reason, *SQMbunch* objects do not support subsetting based on orfs, contigs and bins, or plotting bin abundance profiles.
+*SQMbunch* objects are meant to work with individual projects as if they were a single one, for the purpose of subsetting and visualization of aggregated taxonomic and functional profiles. This differs from working with a single co-assembly (or merged/seqmerge project) in that assemblies from different projects are not de-replicated, and instead each project contains its own set of potentially redundant contigs, ORFs and bins. For this reason, *SQMbunch* objects do not support subsetting based on orfs, contigs and bin names, or plotting bin abundance profiles (although it supports filtering bins based on quality and/or taxonomy, and can contain aggregated taxonomy counts based on bin taxonomies).
 
 .. _SQMlite object:
 The SQMlite object structure

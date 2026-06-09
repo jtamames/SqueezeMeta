@@ -2,45 +2,41 @@
 seqvec2fasta
 ************
 
-.. container::
+============ ===============
+seqvec2fasta R Documentation
+============ ===============
 
-   ============ ===============
-   seqvec2fasta R Documentation
-   ============ ===============
+Print a named vector of sequences as a fasta-formatted string
+-------------------------------------------------------------
 
-   .. rubric:: Print a named vector of sequences as a fasta-formatted
-      string
-      :name: seqvec2fasta
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Print a named vector of sequences as a fasta-formatted string
 
-   Print a named vector of sequences as a fasta-formatted string
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   seqvec2fasta(seqvec, output_name = "")
 
-      seqvec2fasta(seqvec, output_name = "")
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
++-----------------+----------------------------------------------------+
+| ``seqvec``      | vector. The vector to be written as a fasta        |
+|                 | string.                                            |
++-----------------+----------------------------------------------------+
+| ``output_name`` | A connection, or a character string naming the     |
+|                 | file to print to. If "" (the default), sequences   |
+|                 | will be printed to the standard output connection. |
++-----------------+----------------------------------------------------+
 
-   +-----------------+---------------------------------------------------+
-   | ``seqvec``      | vector. The vector to be written as a fasta       |
-   |                 | string.                                           |
-   +-----------------+---------------------------------------------------+
-   | ``output_name`` | A connection, or a character string naming the    |
-   |                 | file to print to. If "" (the default), sequences  |
-   |                 | will be printed to the standard output            |
-   |                 | connection.                                       |
-   +-----------------+---------------------------------------------------+
+Examples
+~~~~~~~~
 
-   .. rubric:: Examples
-      :name: examples
+.. code:: R
 
-   .. code:: R
-
-      data(Hadza)
-      seqvec2fasta(Hadza$orfs$seqs[1:10])
+   data(Hadza)
+   seqvec2fasta(Hadza$orfs$seqs[1:10])

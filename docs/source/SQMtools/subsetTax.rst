@@ -2,155 +2,153 @@
 subsetTax
 *********
 
-.. container::
+========= ===============
+subsetTax R Documentation
+========= ===============
 
-   ========= ===============
-   subsetTax R Documentation
-   ========= ===============
+Filter results by taxonomy
+--------------------------
 
-   .. rubric:: Filter results by taxonomy
-      :name: subsetTax
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Create a SQM or SQMbunch object containing only the contigs/bins with a
+given consensus taxonomy, as well as the ORFs contained in them.
 
-   Create a SQM or SQMbunch object containing only the contigs/bins with
-   a given consensus taxonomy, as well as the ORFs contained in them.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   subsetTax(
+     SQM,
+     rank,
+     tax,
+     tax_source = NULL,
+     trusted_functions_only = FALSE,
+     ignore_unclassified_functions = FALSE,
+     rescale_tpm = TRUE,
+     rescale_copy_number = TRUE,
+     recalculate_bin_stats = FALSE,
+     allow_empty = FALSE
+   )
 
-      subsetTax(
-        SQM,
-        rank,
-        tax,
-        tax_source = NULL,
-        trusted_functions_only = FALSE,
-        ignore_unclassified_functions = FALSE,
-        rescale_tpm = TRUE,
-        rescale_copy_number = TRUE,
-        recalculate_bin_stats = FALSE,
-        allow_empty = FALSE
-      )
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
++-----------------------------------+----------------------------------+
+| ``SQM``                           | SQM object to be subsetted.      |
++-----------------------------------+----------------------------------+
+| ``rank``                          | character. The taxonomic rank    |
+|                                   | from which to select the desired |
+|                                   | taxa (``superkingdom``,          |
+|                                   | ``phylum``, ``class``,           |
+|                                   | ``order``, ``family``,           |
+|                                   | ``genus``, ``species``)          |
++-----------------------------------+----------------------------------+
+| ``tax``                           | character. A taxon or vector of  |
+|                                   | taxa to be selected.             |
++-----------------------------------+----------------------------------+
+| ``tax_source``                    | character, source data used for  |
+|                                   | feature selection, and to        |
+|                                   | generate the taxonomy tables     |
+|                                   | present in ``SQM$taxa``, either  |
+|                                   | ``"orfs"``, ``"contigs"``,       |
+|                                   | ``"bins"`` (GTDB bin taxonomy if |
+|                                   | available, SQM bin taxonomy      |
+|                                   | otherwise), ``"bins_gtdb"``      |
+|                                   | (GTDB bin taxonomy) or           |
+|                                   | ``"bins_sqm"`` (SQM bin          |
+|                                   | taxonomy). When ``"bins"``,      |
+|                                   | ``"bins_gtdb"`` or               |
+|                                   | ``"bins_sqm"``, this function    |
+|                                   | will select the bins from the    |
+|                                   | desired taxa, otherwise it will  |
+|                                   | select the contigs from the      |
+|                                   | desired taxa. If using           |
+|                                   | ``"bins_gtdb"``, note that GTDB  |
+|                                   | taxonomy may differ from the     |
+|                                   | NCBI taxonomy used throughout    |
+|                                   | the rest of SqueezeMeta. Default |
+|                                   | ``"contigs"``, unless the        |
+|                                   | project was created with the     |
+|                                   | '–onlybins' flag, where it will  |
+|                                   | be ``"bins_gtdb"`` if GTDB       |
+|                                   | taxonomy is available for the    |
+|                                   | bins.                            |
++-----------------------------------+----------------------------------+
+| ``trusted_functions_only``        | logical. If ``TRUE``, only       |
+|                                   | highly trusted functional        |
+|                                   | annotations (best hit + best     |
+|                                   | average) will be considered when |
+|                                   | generating aggregated function   |
+|                                   | tables. If ``FALSE``, best hit   |
+|                                   | annotations will be used         |
+|                                   | (default ``FALSE``).             |
++-----------------------------------+----------------------------------+
+| ``ignore_unclassified_functions`` | logical. If ``FALSE``, ORFs with |
+|                                   | no functional classification     |
+|                                   | will be aggregated together into |
+|                                   | an "Unclassified" category. If   |
+|                                   | ``TRUE``, they will be ignored   |
+|                                   | (default ``FALSE``).             |
++-----------------------------------+----------------------------------+
+| ``rescale_tpm``                   | logical. If ``TRUE``, TPMs for   |
+|                                   | KEGGs, COGs, and PFAMs will be   |
+|                                   | recalculated (so that the TPMs   |
+|                                   | in the subset actually add up to |
+|                                   | 1 million). Otherwise,           |
+|                                   | per-function TPMs will be        |
+|                                   | calculated by aggregating the    |
+|                                   | TPMs of the ORFs annotated with  |
+|                                   | that function, and will thus     |
+|                                   | keep the scaling present in the  |
+|                                   | parent object. By default it is  |
+|                                   | set to ``TRUE``, which means     |
+|                                   | that the returned TPMs will be   |
+|                                   | scaled *by million of reads of   |
+|                                   | the selected taxon*.             |
++-----------------------------------+----------------------------------+
+| ``rescale_copy_number``           | logical. If ``TRUE``, copy       |
+|                                   | numbers with be recalculated     |
+|                                   | using the median single-copy     |
+|                                   | gene coverages in the subset.    |
+|                                   | Otherwise, single-copy gene      |
+|                                   | coverages will be taken from the |
+|                                   | parent object. By default it is  |
+|                                   | set to ``TRUE``, which means     |
+|                                   | that the returned copy numbers   |
+|                                   | for each function will represent |
+|                                   | the average copy number of that  |
+|                                   | function *per genome of the      |
+|                                   | selected taxon*.                 |
++-----------------------------------+----------------------------------+
+| ``recalculate_bin_stats``         | logical. If ``TRUE``, bin        |
+|                                   | abundance, quality and taxonomy  |
+|                                   | are recalculated based on the    |
+|                                   | contigs present in the subsetted |
+|                                   | object (default ``TRUE``).       |
++-----------------------------------+----------------------------------+
+| ``allow_empty``                   | (internal use only).             |
++-----------------------------------+----------------------------------+
 
-   +----------------------------------+----------------------------------+
-   | ``SQM``                          | SQM object to be subsetted.      |
-   +----------------------------------+----------------------------------+
-   | ``rank``                         | character. The taxonomic rank    |
-   |                                  | from which to select the desired |
-   |                                  | taxa (``superkingdom``,          |
-   |                                  | ``phylum``, ``class``,           |
-   |                                  | ``order``, ``family``,           |
-   |                                  | ``genus``, ``species``)          |
-   +----------------------------------+----------------------------------+
-   | ``tax``                          | character. A taxon or vector of  |
-   |                                  | taxa to be selected.             |
-   +----------------------------------+----------------------------------+
-   | ``tax_source``                   | character, source data used for  |
-   |                                  | feature selection, and to        |
-   |                                  | generate the taxonomy tables     |
-   |                                  | present in ``SQM$taxa``, either  |
-   |                                  | ``"orfs"``, ``"contigs"``,       |
-   |                                  | ``"bins"`` (GTDB bin taxonomy if |
-   |                                  | available, SQM bin taxonomy      |
-   |                                  | otherwise), ``"bins_gtdb"``      |
-   |                                  | (GTDB bin taxonomy) or           |
-   |                                  | ``"bins_sqm"`` (SQM bin          |
-   |                                  | taxonomy). When ``"bins"``,      |
-   |                                  | ``"bins_gtdb"`` or               |
-   |                                  | ``"bins_sqm"``, this function    |
-   |                                  | will select the bins from the    |
-   |                                  | desired taxa, otherwise it will  |
-   |                                  | select the contigs from the      |
-   |                                  | desired taxa. If using           |
-   |                                  | ``"bins_gtdb"``, note that GTDB  |
-   |                                  | taxonomy may differ from the     |
-   |                                  | NCBI taxonomy used throughout    |
-   |                                  | the rest of SqueezeMeta. Default |
-   |                                  | ``"contigs"``, unless the        |
-   |                                  | project was created with the     |
-   |                                  | '–onlybins' flag, where it will  |
-   |                                  | be ``"bins_gtdb"`` if GTDB       |
-   |                                  | taxonomy is available for the    |
-   |                                  | bins.                            |
-   +----------------------------------+----------------------------------+
-   | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
-   |                                  | highly trusted functional        |
-   |                                  | annotations (best hit + best     |
-   |                                  | average) will be considered when |
-   |                                  | generating aggregated function   |
-   |                                  | tables. If ``FALSE``, best hit   |
-   |                                  | annotations will be used         |
-   |                                  | (default ``FALSE``).             |
-   +----------------------------------+----------------------------------+
-   | `                                | logical. If ``FALSE``, ORFs with |
-   | `ignore_unclassified_functions`` | no functional classification     |
-   |                                  | will be aggregated together into |
-   |                                  | an "Unclassified" category. If   |
-   |                                  | ``TRUE``, they will be ignored   |
-   |                                  | (default ``FALSE``).             |
-   +----------------------------------+----------------------------------+
-   | ``rescale_tpm``                  | logical. If ``TRUE``, TPMs for   |
-   |                                  | KEGGs, COGs, and PFAMs will be   |
-   |                                  | recalculated (so that the TPMs   |
-   |                                  | in the subset actually add up to |
-   |                                  | 1 million). Otherwise,           |
-   |                                  | per-function TPMs will be        |
-   |                                  | calculated by aggregating the    |
-   |                                  | TPMs of the ORFs annotated with  |
-   |                                  | that function, and will thus     |
-   |                                  | keep the scaling present in the  |
-   |                                  | parent object. By default it is  |
-   |                                  | set to ``TRUE``, which means     |
-   |                                  | that the returned TPMs will be   |
-   |                                  | scaled *by million of reads of   |
-   |                                  | the selected taxon*.             |
-   +----------------------------------+----------------------------------+
-   | ``rescale_copy_number``          | logical. If ``TRUE``, copy       |
-   |                                  | numbers with be recalculated     |
-   |                                  | using the median single-copy     |
-   |                                  | gene coverages in the subset.    |
-   |                                  | Otherwise, single-copy gene      |
-   |                                  | coverages will be taken from the |
-   |                                  | parent object. By default it is  |
-   |                                  | set to ``TRUE``, which means     |
-   |                                  | that the returned copy numbers   |
-   |                                  | for each function will represent |
-   |                                  | the average copy number of that  |
-   |                                  | function *per genome of the      |
-   |                                  | selected taxon*.                 |
-   +----------------------------------+----------------------------------+
-   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin        |
-   |                                  | abundance, quality and taxonomy  |
-   |                                  | are recalculated based on the    |
-   |                                  | contigs present in the subsetted |
-   |                                  | object (default ``TRUE``).       |
-   +----------------------------------+----------------------------------+
-   | ``allow_empty``                  | (internal use only).             |
-   +----------------------------------+----------------------------------+
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
+SQM or SQMbunch object containing only the requested taxon.
 
-   SQM or SQMbunch object containing only the requested taxon.
+See Also
+~~~~~~~~
 
-   .. rubric:: See Also
-      :name: see-also
+``subsetFun``, ``subsetContigs``, ``subsetSamples``, ``combineSQM``. The
+most abundant items of a particular table contained in a SQM object can
+be selected with ``mostAbundant``.
 
-   ``subsetFun``, ``subsetContigs``, ``subsetSamples``, ``combineSQM``.
-   The most abundant items of a particular table contained in a SQM
-   object can be selected with ``mostAbundant``.
+Examples
+~~~~~~~~
 
-   .. rubric:: Examples
-      :name: examples
+.. code:: R
 
-   .. code:: R
-
-      data(Hadza)
-      Hadza.Prevotella = subsetTax(Hadza, "genus", "Prevotella")
-      Hadza.Bacteroidota = subsetTax(Hadza, "phylum", "Bacteroidota")
+   data(Hadza)
+   Hadza.Prevotella = subsetTax(Hadza, "genus", "Prevotella")
+   Hadza.Bacteroidota = subsetTax(Hadza, "phylum", "Bacteroidota")

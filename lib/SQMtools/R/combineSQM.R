@@ -34,9 +34,20 @@ combineSQM = function(..., tax_source = 'orfs', trusted_functions_only = FALSE, 
         combSQM = Reduce(myFun, inSQM)
     } else
         {
+        has_content = FALSE
+        for(SQM in inSQM)
+            {
+            if(!is.null(nrow(SQM$contigs$table))) { has_content = TRUE }
+            }
+        if(!has_content)
+            {
+            stop('The resulting SQMbunch object is empty!')
+            }
 	combSQM = combineSQMlite(inSQM)
 	combSQM$projects = inSQM
 	names(combSQM$projects) = projNames
+        combSQM$misc$tax_source = tax_source
+        combSQM$taxa = get_preferred_tax(combSQM)
         class(combSQM) = 'SQMbunch'
         }
     return(combSQM)

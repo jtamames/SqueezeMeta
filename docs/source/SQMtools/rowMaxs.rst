@@ -2,36 +2,33 @@
 rowMaxs
 *******
 
-.. container::
+======= ===============
+rowMaxs R Documentation
+======= ===============
 
-   ======= ===============
-   rowMaxs R Documentation
-   ======= ===============
+Return a vector with the row-wise maxima of a matrix or dataframe.
+------------------------------------------------------------------
 
-   .. rubric:: Return a vector with the row-wise maxima of a matrix or
-      dataframe.
-      :name: rowMaxs
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Return a vector with the row-wise maxima of a matrix or dataframe.
 
-   Return a vector with the row-wise maxima of a matrix or dataframe.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   rowMaxs(table)
 
-      rowMaxs(table)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
+========= ====================
+``table`` matrix or dataframe.
+========= ====================
 
-   ========= ====================
-   ``table`` matrix or dataframe.
-   ========= ====================
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
-
-   a vector with the row-wise maxima.
+a vector with the row-wise maxima.

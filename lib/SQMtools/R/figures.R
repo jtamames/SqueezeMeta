@@ -328,6 +328,17 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_sou
         warning(sprintf('We can\'t plot N = %s? taxa. Continuing with default values', N))
         N = 15
         }
+    if(inherits(SQM, 'SQMlite'))
+        {
+        if(!is.null(tax_source)) { warning('Ignoring tax source as this is a SQMlite object') }
+    } else
+        {
+        if(is.null(tax_source)) { tax_source = SQM$misc$tax_source }
+        if(!tax_source %in% c('orfs', 'contigs', 'bins', 'bins_gtdb', 'bins_sqm'))
+            {
+            stop('`tax_source` must be either "orfs", "contigs", "bins", "bins_gtdb" or "bins_sqm"')
+            }
+        }
     if (!nocds %in% c('treat_separately', 'treat_as_unclassified', 'ignore'))
         {
         stop('Select nocds among "treat_separately", "treat_as_unclassified", "ignore"')
@@ -336,9 +347,7 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_sou
 
     check.samples(SQM, samples)
 
-    if(is.null(tax_source)) { tax_source = SQM$misc$tax_source }
-
-    if(inherits(SQM, c('SQMlite', 'SQMbunch')))
+    if(inherits(SQM, c('SQMlite')))
         {
         data0 = SQM$taxa[[rank]][[count]]
     } else if (rank != 'bin')

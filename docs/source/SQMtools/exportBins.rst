@@ -2,31 +2,29 @@
 exportBins
 **********
 
-.. container::
+========== ===============
+exportBins R Documentation
+========== ===============
 
-   ========== ===============
-   exportBins R Documentation
-   ========== ===============
+Export the bins of a SQM object
+-------------------------------
 
-   .. rubric:: Export the bins of a SQM object
-      :name: exportBins
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Export the bins of a SQM object
 
-   Export the bins of a SQM object
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   exportBins(SQM, output_dir = "")
 
-      exportBins(SQM, output_dir = "")
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
-
-   ============== =====================================================
-   ``SQM``        A SQM object.
-   ``output_dir`` Existing output directory to which to write the bins.
-   ============== =====================================================
+============== =====================================================
+``SQM``        A SQM object.
+``output_dir`` Existing output directory to which to write the bins.
+============== =====================================================

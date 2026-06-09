@@ -2,41 +2,39 @@
 subsetRand
 **********
 
-.. container::
+========== ===============
+subsetRand R Documentation
+========== ===============
 
-   ========== ===============
-   subsetRand R Documentation
-   ========== ===============
+Select random ORFs
+------------------
 
-   .. rubric:: Select random ORFs
-      :name: subsetRand
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Create a random subset of a SQM object.
 
-   Create a random subset of a SQM object.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   subsetRand(SQM, N)
 
-      subsetRand(SQM, N)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
+======= =========================================
+``SQM`` SQM object to be subsetted.
+``N``   numeric. number of random ORFs to select.
+======= =========================================
 
-   ======= =========================================
-   ``SQM`` SQM object to be subsetted.
-   ``N``   numeric. number of random ORFs to select.
-   ======= =========================================
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
+SQM object containing a random subset of ORFs.
 
-   SQM object containing a random subset of ORFs.
+See Also
+~~~~~~~~
 
-   .. rubric:: See Also
-      :name: see-also
-
-   ``subsetORFs``
+``subsetORFs``

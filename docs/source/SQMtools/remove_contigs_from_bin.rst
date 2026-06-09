@@ -2,47 +2,45 @@
 remove_contigs_from_bin
 ***********************
 
-.. container::
+======================= ===============
+remove_contigs_from_bin R Documentation
+======================= ===============
 
-   ======================= ===============
-   remove_contigs_from_bin R Documentation
-   ======================= ===============
+Remove contigs from a given bin
+-------------------------------
 
-   .. rubric:: Remove contigs from a given bin
-      :name: remove_contigs_from_bin
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Remove contigs from a given bin
 
-   Remove contigs from a given bin
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   remove_contigs_from_bin(SQM, bin, contigs)
 
-      remove_contigs_from_bin(SQM, bin, contigs)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
++-------------+--------------------------------------------------------+
+| ``SQM``     | A SQM object.                                          |
++-------------+--------------------------------------------------------+
+| ``bin``     | character. Name of the bin from which the contigs will |
+|             | be removed.                                            |
++-------------+--------------------------------------------------------+
+| ``contigs`` | character. Vector with the names of the contigs that   |
+|             | will be removed from the new bin.                      |
++-------------+--------------------------------------------------------+
 
-   +-------------+-------------------------------------------------------+
-   | ``SQM``     | A SQM object.                                         |
-   +-------------+-------------------------------------------------------+
-   | ``bin``     | character. Name of the bin from which the contigs     |
-   |             | will be removed.                                      |
-   +-------------+-------------------------------------------------------+
-   | ``contigs`` | character. Vector with the names of the contigs that  |
-   |             | will be removed from the new bin.                     |
-   +-------------+-------------------------------------------------------+
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
+SQM object with the new binning information, including recalculated bin
+statistics if possible.
 
-   SQM object with the new binning information, including recalculated
-   bin statistics if possible.
+See Also
+~~~~~~~~
 
-   .. rubric:: See Also
-      :name: see-also
-
-   ``find_redundant_contigs``, ``create_bin``
+``find_redundant_contigs``, ``create_bin``

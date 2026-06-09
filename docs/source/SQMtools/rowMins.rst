@@ -2,36 +2,33 @@
 rowMins
 *******
 
-.. container::
+======= ===============
+rowMins R Documentation
+======= ===============
 
-   ======= ===============
-   rowMins R Documentation
-   ======= ===============
+Return a vector with the row-wise minima of a matrix or dataframe.
+------------------------------------------------------------------
 
-   .. rubric:: Return a vector with the row-wise minima of a matrix or
-      dataframe.
-      :name: rowMins
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Return a vector with the row-wise minima of a matrix or dataframe.
 
-   Return a vector with the row-wise minima of a matrix or dataframe.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   rowMins(table)
 
-      rowMins(table)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
+========= ====================
+``table`` matrix or dataframe.
+========= ====================
 
-   ========= ====================
-   ``table`` matrix or dataframe.
-   ========= ====================
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
-
-   a vector with the row-wise minima.
+a vector with the row-wise minima.

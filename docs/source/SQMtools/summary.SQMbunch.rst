@@ -2,38 +2,36 @@
 summary.SQMbunch
 ****************
 
-.. container::
+================ ===============
+summary.SQMbunch R Documentation
+================ ===============
 
-   ================ ===============
-   summary.SQMbunch R Documentation
-   ================ ===============
+summary method for class SQMbunch
+---------------------------------
 
-   .. rubric:: summary method for class SQMbunch
-      :name: summary.SQMbunch
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Computes different statistics of the data contained in the SQMbunch
+object.
 
-   Computes different statistics of the data contained in the SQMbunch
-   object.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   ## S3 method for class 'SQMbunch'
+   summary(object, ...)
 
-      ## S3 method for class 'SQMbunch'
-      summary(object, ...)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
+========== =================================
+``object`` SQMbunch object to be summarized.
+``...``    Additional parameters (ignored).
+========== =================================
 
-   ========== =================================
-   ``object`` SQMbunch object to be summarized.
-   ``...``    Additional parameters (ignored).
-   ========== =================================
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
-
-   A list of summary statistics.
+A list of summary statistics.

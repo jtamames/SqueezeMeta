@@ -2,63 +2,61 @@
 exportKrona
 ***********
 
-.. container::
+=========== ===============
+exportKrona R Documentation
+=========== ===============
 
-   =========== ===============
-   exportKrona R Documentation
-   =========== ===============
+Export the taxonomy of a SQM object into a Krona Chart
+------------------------------------------------------
 
-   .. rubric:: Export the taxonomy of a SQM object into a Krona Chart
-      :name: exportKrona
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Generate a krona chart containing the full taxonomy from a SQM object.
 
-   Generate a krona chart containing the full taxonomy from a SQM
-   object.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   exportKrona(SQM, output_name = NA)
 
-      exportKrona(SQM, output_name = NA)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
++-----------------+----------------------------------------------------+
+| ``SQM``         | A SQM, SQMbunch or SQMlite object.                 |
++-----------------+----------------------------------------------------+
+| ``output_name`` | character. Name of the output file containing the  |
+|                 | Krona charts in html format (default               |
+|                 | ``"<project_name>.krona.html")``.                  |
++-----------------+----------------------------------------------------+
 
-   +-----------------+---------------------------------------------------+
-   | ``SQM``         | A SQM, SQMbunch or SQMlite object.                |
-   +-----------------+---------------------------------------------------+
-   | ``output_name`` | character. Name of the output file containing the |
-   |                 | Krona charts in html format (default              |
-   |                 | ``"<project_name>.krona.html")``.                 |
-   +-----------------+---------------------------------------------------+
+Details
+~~~~~~~
 
-   .. rubric:: Details
-      :name: details
+Original code was kindly provided by Giuseppe D'Auria
+(dauria_giu@gva.es).
 
-   Original code was kindly provided by Giuseppe D'Auria
-   (dauria_giu@gva.es).
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
+No return value, but a krona chart is produced in the current working
+directory.
 
-   No return value, but a krona chart is produced in the current working
-   directory.
+See Also
+~~~~~~~~
 
-   .. rubric:: See Also
-      :name: see-also
+``plotTaxonomy`` for plotting the most abundant taxa of a SQM object.
 
-   ``plotTaxonomy`` for plotting the most abundant taxa of a SQM object.
+Examples
+~~~~~~~~
 
-   .. rubric:: Examples
-      :name: examples
+.. code:: R
 
-   .. code:: R
 
-      data(Hadza)
-      # Check that kronatools is present.
-      ecode = system('ktImportText', ignore.stdout = TRUE, ignore.stderr = TRUE)
-      # If so, run.
-      if(ecode==0) { exportKrona(Hadza, output_name = file.path(tempdir(), "krona.html")) }
+   data(Hadza)
+   # Check that kronatools is present.
+   ecode = system('ktImportText', ignore.stdout = TRUE, ignore.stderr = TRUE)
+   # If so, run.
+   if(ecode==0) { exportKrona(Hadza, output_name = file.path(tempdir(), "krona.html")) }

@@ -2,126 +2,124 @@
 subsetContigs
 *************
 
-.. container::
+============= ===============
+subsetContigs R Documentation
+============= ===============
 
-   ============= ===============
-   subsetContigs R Documentation
-   ============= ===============
+Select contigs
+--------------
 
-   .. rubric:: Select contigs
-      :name: subsetContigs
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Create a SQM object containing only the requested contigs, the ORFs
+contained in them and the bins that contain them.
 
-   Create a SQM object containing only the requested contigs, the ORFs
-   contained in them and the bins that contain them.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   subsetContigs(
+     SQM,
+     contigs,
+     tax_source = "contigs",
+     trusted_functions_only = FALSE,
+     ignore_unclassified_functions = FALSE,
+     rescale_tpm = FALSE,
+     rescale_copy_number = FALSE,
+     recalculate_bin_stats = TRUE,
+     allow_empty = FALSE
+   )
 
-      subsetContigs(
-        SQM,
-        contigs,
-        tax_source = "contigs",
-        trusted_functions_only = FALSE,
-        ignore_unclassified_functions = FALSE,
-        rescale_tpm = FALSE,
-        rescale_copy_number = FALSE,
-        recalculate_bin_stats = TRUE,
-        allow_empty = FALSE
-      )
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
++-----------------------------------+----------------------------------+
+| ``SQM``                           | SQM object to be subsetted.      |
++-----------------------------------+----------------------------------+
+| ``contigs``                       | character. Vector of contigs to  |
+|                                   | be selected.                     |
++-----------------------------------+----------------------------------+
+| ``tax_source``                    | character, source data used for  |
+|                                   | the taxonomy tables present in   |
+|                                   | ``SQM$taxa``, either ``"bins"``  |
+|                                   | (GTDB bin taxonomy if available, |
+|                                   | SQM bin taxonomy otherwise),     |
+|                                   | ``"bins_gtdb"`` (GTDB bin        |
+|                                   | taxonomy) or ``"bins_sqm"`` (SQM |
+|                                   | bin taxonomy). Default           |
+|                                   | ``"contigs"``.                   |
++-----------------------------------+----------------------------------+
+| ``trusted_functions_only``        | logical. If ``TRUE``, only       |
+|                                   | highly trusted functional        |
+|                                   | annotations (best hit + best     |
+|                                   | average) will be considered when |
+|                                   | generating aggregated function   |
+|                                   | tables. If ``FALSE``, best hit   |
+|                                   | annotations will be used         |
+|                                   | (default ``FALSE``).             |
++-----------------------------------+----------------------------------+
+| ``ignore_unclassified_functions`` | logical. If ``FALSE``, ORFs with |
+|                                   | no functional classification     |
+|                                   | will be aggregated together into |
+|                                   | an "Unclassified" category. If   |
+|                                   | ``TRUE``, they will be ignored   |
+|                                   | (default ``FALSE``).             |
++-----------------------------------+----------------------------------+
+| ``rescale_tpm``                   | logical. If ``TRUE``, TPMs for   |
+|                                   | KEGGs, COGs, and PFAMs will be   |
+|                                   | recalculated (so that the TPMs   |
+|                                   | in the subset actually add up to |
+|                                   | 1 million). Otherwise,           |
+|                                   | per-function TPMs will be        |
+|                                   | calculated by aggregating the    |
+|                                   | TPMs of the ORFs annotated with  |
+|                                   | that function, and will thus     |
+|                                   | keep the scaling present in the  |
+|                                   | parent object (default           |
+|                                   | ``FALSE``).                      |
++-----------------------------------+----------------------------------+
+| ``rescale_copy_number``           | logical. If ``TRUE``, copy       |
+|                                   | numbers with be recalculated     |
+|                                   | using the median single-copy     |
+|                                   | gene coverages in the subset.    |
+|                                   | Otherwise, single-copy gene      |
+|                                   | coverages will be taken from the |
+|                                   | parent object. By default it is  |
+|                                   | set to ``FALSE``, which means    |
+|                                   | that the returned copy numbers   |
+|                                   | for each function will represent |
+|                                   | the average copy number of that  |
+|                                   | function per genome in the       |
+|                                   | parent object.                   |
++-----------------------------------+----------------------------------+
+| ``recalculate_bin_stats``         | logical. If ``TRUE``, bin        |
+|                                   | abundance, quality and taxonomy  |
+|                                   | are recalculated based on the    |
+|                                   | contigs present in the subsetted |
+|                                   | object (default ``TRUE``).       |
++-----------------------------------+----------------------------------+
+| ``allow_empty``                   | (internal use only).             |
++-----------------------------------+----------------------------------+
 
-   +----------------------------------+----------------------------------+
-   | ``SQM``                          | SQM object to be subsetted.      |
-   +----------------------------------+----------------------------------+
-   | ``contigs``                      | character. Vector of contigs to  |
-   |                                  | be selected.                     |
-   +----------------------------------+----------------------------------+
-   | ``tax_source``                   | character, source data used for  |
-   |                                  | the taxonomy tables present in   |
-   |                                  | ``SQM$taxa``, either ``"bins"``  |
-   |                                  | (GTDB bin taxonomy if available, |
-   |                                  | SQM bin taxonomy otherwise),     |
-   |                                  | ``"bins_gtdb"`` (GTDB bin        |
-   |                                  | taxonomy) or ``"bins_sqm"`` (SQM |
-   |                                  | bin taxonomy). Default           |
-   |                                  | ``"contigs"``.                   |
-   +----------------------------------+----------------------------------+
-   | ``trusted_functions_only``       | logical. If ``TRUE``, only       |
-   |                                  | highly trusted functional        |
-   |                                  | annotations (best hit + best     |
-   |                                  | average) will be considered when |
-   |                                  | generating aggregated function   |
-   |                                  | tables. If ``FALSE``, best hit   |
-   |                                  | annotations will be used         |
-   |                                  | (default ``FALSE``).             |
-   +----------------------------------+----------------------------------+
-   | `                                | logical. If ``FALSE``, ORFs with |
-   | `ignore_unclassified_functions`` | no functional classification     |
-   |                                  | will be aggregated together into |
-   |                                  | an "Unclassified" category. If   |
-   |                                  | ``TRUE``, they will be ignored   |
-   |                                  | (default ``FALSE``).             |
-   +----------------------------------+----------------------------------+
-   | ``rescale_tpm``                  | logical. If ``TRUE``, TPMs for   |
-   |                                  | KEGGs, COGs, and PFAMs will be   |
-   |                                  | recalculated (so that the TPMs   |
-   |                                  | in the subset actually add up to |
-   |                                  | 1 million). Otherwise,           |
-   |                                  | per-function TPMs will be        |
-   |                                  | calculated by aggregating the    |
-   |                                  | TPMs of the ORFs annotated with  |
-   |                                  | that function, and will thus     |
-   |                                  | keep the scaling present in the  |
-   |                                  | parent object (default           |
-   |                                  | ``FALSE``).                      |
-   +----------------------------------+----------------------------------+
-   | ``rescale_copy_number``          | logical. If ``TRUE``, copy       |
-   |                                  | numbers with be recalculated     |
-   |                                  | using the median single-copy     |
-   |                                  | gene coverages in the subset.    |
-   |                                  | Otherwise, single-copy gene      |
-   |                                  | coverages will be taken from the |
-   |                                  | parent object. By default it is  |
-   |                                  | set to ``FALSE``, which means    |
-   |                                  | that the returned copy numbers   |
-   |                                  | for each function will represent |
-   |                                  | the average copy number of that  |
-   |                                  | function per genome in the       |
-   |                                  | parent object.                   |
-   +----------------------------------+----------------------------------+
-   | ``recalculate_bin_stats``        | logical. If ``TRUE``, bin        |
-   |                                  | abundance, quality and taxonomy  |
-   |                                  | are recalculated based on the    |
-   |                                  | contigs present in the subsetted |
-   |                                  | object (default ``TRUE``).       |
-   +----------------------------------+----------------------------------+
-   | ``allow_empty``                  | (internal use only).             |
-   +----------------------------------+----------------------------------+
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
+SQM object containing only the selected contigs.
 
-   SQM object containing only the selected contigs.
+See Also
+~~~~~~~~
 
-   .. rubric:: See Also
-      :name: see-also
+``subsetORFs``
 
-   ``subsetORFs``
+Examples
+~~~~~~~~
 
-   .. rubric:: Examples
-      :name: examples
+.. code:: R
 
-   .. code:: R
-
-      data(Hadza)
-      # Which contigs have a GC content below 40?
-      lowGCcontigNames = rownames(Hadza$contigs$table[Hadza$contigs$table[,"GC perc"]<40,])
-      lowGCcontigs = subsetContigs(Hadza, lowGCcontigNames)
-      hist(lowGCcontigs$contigs$table[,"GC perc"])
+   data(Hadza)
+   # Which contigs have a GC content below 40?
+   lowGCcontigNames = rownames(Hadza$contigs$table[Hadza$contigs$table[,"GC perc"]<40,])
+   lowGCcontigs = subsetContigs(Hadza, lowGCcontigNames)
+   hist(lowGCcontigs$contigs$table[,"GC perc"])

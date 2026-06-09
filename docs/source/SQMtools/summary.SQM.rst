@@ -2,38 +2,35 @@
 summary.SQM
 ***********
 
-.. container::
+=========== ===============
+summary.SQM R Documentation
+=========== ===============
 
-   =========== ===============
-   summary.SQM R Documentation
-   =========== ===============
+summary method for class SQM
+----------------------------
 
-   .. rubric:: summary method for class SQM
-      :name: summary.SQM
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Computes different statistics of the data contained in the SQM object.
 
-   Computes different statistics of the data contained in the SQM
-   object.
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   ## S3 method for class 'SQM'
+   summary(object, ...)
 
-      ## S3 method for class 'SQM'
-      summary(object, ...)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
+========== ================================
+``object`` SQM object to be summarized.
+``...``    Additional parameters (ignored).
+========== ================================
 
-   ========== ================================
-   ``object`` SQM object to be summarized.
-   ``...``    Additional parameters (ignored).
-   ========== ================================
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
-
-   A list of summary statistics.
+A list of summary statistics.

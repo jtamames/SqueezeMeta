@@ -2,35 +2,32 @@
 exportContigs
 *************
 
-.. container::
+============= ===============
+exportContigs R Documentation
+============= ===============
 
-   ============= ===============
-   exportContigs R Documentation
-   ============= ===============
+Export the contigs of a SQM object
+----------------------------------
 
-   .. rubric:: Export the contigs of a SQM object
-      :name: exportContigs
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Export the contigs of a SQM object
 
-   Export the contigs of a SQM object
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   exportContigs(SQM, output_name = "")
 
-      exportContigs(SQM, output_name = "")
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
-
-   +-----------------+---------------------------------------------------+
-   | ``SQM``         | A SQM object.                                     |
-   +-----------------+---------------------------------------------------+
-   | ``output_name`` | A connection, or a character string naming the    |
-   |                 | file to print to. If "" (the default), sequences  |
-   |                 | will be printed to the standard output            |
-   |                 | connection.                                       |
-   +-----------------+---------------------------------------------------+
++-----------------+----------------------------------------------------+
+| ``SQM``         | A SQM object.                                      |
++-----------------+----------------------------------------------------+
+| ``output_name`` | A connection, or a character string naming the     |
+|                 | file to print to. If "" (the default), sequences   |
+|                 | will be printed to the standard output connection. |
++-----------------+----------------------------------------------------+

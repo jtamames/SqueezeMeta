@@ -33,15 +33,36 @@ combineSQMlite_ = function(SQM1, SQM2)
 
     ### Combine taxa
     combSQM$taxa = list()
-    for(rank in names(SQM1$taxa))
+    for(sourc in c('main', 'orfs', 'contigs', 'bins_sqm', 'bins_gtdb'))
         {
-        combSQM$taxa[[rank]] = list()
-	for(count in names(SQM1$taxa[[rank]]))
+        if(!has_tax(SQM1, sourc) | !has_tax(SQM2, sourc)) { next }
+        if(sourc == 'bins_sqm'  & is.null(combSQM$bins)) { combSQM$bins = list() }
+        if(sourc == 'bins_gtdb' & is.null(combSQM$bins)) { combSQM$bins = list() }
+
+        for(rank in names(SQM1$taxa))
             {
-            combSQM$taxa[[rank]][[count]] = merge_numeric_matrices(SQM1$taxa[[rank]][[count]], SQM2$taxa[[rank]][[count]])
+	    for(count in names(SQM1$taxa[[rank]]))
+                {
+                t1 = get_tax_abund(SQM1, sourc, rank, count)
+                t2 = get_tax_abund(SQM2, sourc, rank, count)
+                ma = merge_numeric_matrices(t1,t2)
+                if(sourc == 'main')
+                    {
+                    combSQM$taxa[[rank]][[count]] = ma
+                } else if (sourc == 'bins_gtdb')
+                    {
+                    combSQM$bins$tax_abund_gtdb[[rank]][[count]] = ma
+                } else if (sourc == 'bins_sqm')
+                    {
+                    combSQM$bins$tax_abund[[rank]][[count]] = ma
+                } else
+                    {
+                    combSQM[[sourc]][['tax_abund']][[rank]][[count]] = ma
+                    }
+                }
             }
         }
-
+      
     ### Combine functions
     combSQM$functions = list()
     common_methods = intersect(names(SQM1$functions), names(SQM2$functions))

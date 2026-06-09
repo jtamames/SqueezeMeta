@@ -2,36 +2,34 @@
 renameSamples
 *************
 
-.. container::
+============= ===============
+renameSamples R Documentation
+============= ===============
 
-   ============= ===============
-   renameSamples R Documentation
-   ============= ===============
+Change sample names
+-------------------
 
-   .. rubric:: Change sample names
-      :name: renameSamples
+Description
+~~~~~~~~~~~
 
-   .. rubric:: Description
-      :name: description
+Change the sample names of a SQM or SQMlite object
 
-   Change the sample names of a SQM or SQMlite object
+Usage
+~~~~~
 
-   .. rubric:: Usage
-      :name: usage
+.. code:: R
 
-   .. code:: R
+   renameSamples(SQM, new_sample_names)
 
-      renameSamples(SQM, new_sample_names)
+Arguments
+~~~~~~~~~
 
-   .. rubric:: Arguments
-      :name: arguments
+==================== ===========================
+``SQM``              SQM or SQMlite object
+``new_sample_names`` character. New sample names
+==================== ===========================
 
-   ==================== ===========================
-   ``SQM``              SQM or SQMlite object
-   ``new_sample_names`` character. New sample names
-   ==================== ===========================
+Value
+~~~~~
 
-   .. rubric:: Value
-      :name: value
-
-   SQM or SQMlite object with the new sample names
+SQM or SQMlite object with the new sample names
