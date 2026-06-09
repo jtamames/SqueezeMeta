@@ -235,5 +235,6 @@ List of functions and detailed documentation
 
 .. toctree::
    :glob:
+   :maxdepth: 1 
 
    SQMtools/*
