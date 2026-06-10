@@ -196,4 +196,4 @@ system("echo  \"Finished database creation on $timestamp.\" > $database_dir/DB_B
 
 
 ### Finish configuration.
-system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir $host");
+system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir");

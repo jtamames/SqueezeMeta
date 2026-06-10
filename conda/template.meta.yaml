@@ -94,6 +94,7 @@ outputs:
         - fastp
         # SQUEEZEMETA BINARIES
         - spades
+        - rdp_classifier
         - mothur
         - kmer-db
         - metabat2

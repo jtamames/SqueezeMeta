@@ -43,4 +43,4 @@ download_confirm("SqueezeMetaDB.tar.gz", "SqueezeMetaDB.md5", $host, $download_d
 
 
 ### Finish configuration
-system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir $host");
+system("perl $installpath/utils/install_utils/configure_nodb.pl $database_dir");

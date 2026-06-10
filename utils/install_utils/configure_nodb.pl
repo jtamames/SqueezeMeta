@@ -7,7 +7,7 @@ use Cwd 'abs_path';
 my $databasedir=abs_path($ARGV[0]);
 
 if(!$databasedir) { die "Usage: perl configure_nodb.pl <database dir>\n"; }
-print("\nMake sure that $databasedir contains all the database files (nr.dmnd, etc...)\n\n");
+print("\nMake sure that $databasedir contains all the database files (nr.dmnd, etc...)\n");
 
 
 ###scriptdir patch v2, Fernando Puente-Sánchez, 18-XI-2019
@@ -25,24 +25,11 @@ else
         $dbscriptdir = abs_path(dirname(__FILE__));
         }
 my $installpath = abs_path("$dbscriptdir/../..");
-my $libpath = "$installpath/lib";
-require "$libpath/install_utils/download_confirm.pl";
-require "$libpath/install_utils/get_host.pl";
-
-### Get host
-my $host=$ARGV[1];
-if(!$host) { $host = get_host(); }
 
 ###Check that the databases are present in the requested dir.
 unless(-e "$databasedir/nr.dmnd"){
 	die "The file $databasedir/nr.dmnd does not exist. Please check that you provided the right database directory. If you are running configure_nodb.pl directly, this probably means that you did not provide the right database directory. If this happened while running download_databases.pl or make_databases.pl, this probably means that your download got interrupted.\n\n";
 }	
-
-###Download rdp classifier.
-system("rm $libpath/classifier.tar.gz > /dev/null 2>&1");
-print("Downloading and unpacking RDP classifier...\n");
-download_confirm("classifier.tar.gz", "classifier.md5", $host, $libpath);
-system("cd $installpath/bin/; ln -s $libpath/classifier/classifier.jar . > /dev/null 2>&1"); # Add symlink
 
 ###Update configuration files to reflect new db path.
 print("\nUpdating configuration...\n");

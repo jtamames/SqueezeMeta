@@ -90,6 +90,7 @@ outputs:
         - krona==2.8.1
         - fastp==1.1.0
         - spades==4.2.0
+        - rdp_classifier==2.14
         - mothur==1.25.0
         - kmer-db==2.3.1
         - metabat2==2.12.1
