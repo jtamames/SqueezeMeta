@@ -13,7 +13,7 @@ subsetDispatch = function(f, SQM, ...)
 	    args$allow_empty = TRUE
             projs = c(projs, list(do.call(f, args)))
             }
-        subSQM = combineSQM(projs)
+        subSQM = combineSQM(projs, tax_source = list(...)[['tax_source']])
         }
     return(subSQM) 
     }
@@ -267,6 +267,7 @@ subsetTax = function(SQM, rank, tax, tax_source = NULL,
                      trusted_functions_only = FALSE, ignore_unclassified_functions = FALSE, rescale_tpm = TRUE, rescale_copy_number = TRUE,
                      recalculate_bin_stats = FALSE, allow_empty = FALSE)
     {
+    if(is.null(tax_source)) { if(SQM$misc$onlybins) { tax_source = 'bins_gtdb' } else { tax_source = 'contigs' } }
     return(subsetDispatch(subsetTax_, SQM, rank, tax, tax_source = tax_source,
 			  trusted_functions_only = trusted_functions_only, ignore_unclassified_functions = ignore_unclassified_functions,
 			  rescale_tpm = rescale_tpm, rescale_copy_number = rescale_copy_number, recalculate_bin_stats = recalculate_bin_stats,
@@ -276,7 +277,6 @@ subsetTax = function(SQM, rank, tax, tax_source = NULL,
 subsetTax_ = function(SQM, rank, tax, tax_source, trusted_functions_only, ignore_unclassified_functions, rescale_tpm, rescale_copy_number, recalculate_bin_stats, allow_empty)
     {
     if(!inherits(SQM, 'SQM')) { stop('The first argument must be a SQM object') }
-    if(is.null(tax_source)) { if(SQM$misc$onlybins) { tax_source = 'bins_gtdb' } else { tax_source = 'contigs' } }
     if(tax_source %in% c('bins', 'bins_gtdb', 'bins_sqm'))
         {
         subSQM = subsetBins(SQM, bins = NULL, rank = rank, tax = tax, min_completeness = NULL, max_contamination = NULL, tax_source = tax_source,

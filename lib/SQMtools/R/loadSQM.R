@@ -151,6 +151,8 @@ loadSQM = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs'
 	    projs = c(projs, list(loadSQM_(p, tax_mode, tax_source, trusted_functions_only, single_copy_genes, load_sequences, engine)))
     }
         SQM = combineSQM(projs, tax_source = tax_source)
+        # Consider it as an onlybins object as long as any project has the onlybins flag
+        SQM$misc$onlybins = any(sapply(SQM$projects, FUN = function(x) x$misc$onlybins))
         }
     return(SQM)
     }

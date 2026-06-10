@@ -288,7 +288,7 @@ else {
 			$dietext.="More info can be found at https://ecogenomics.github.io/GTDBTk/installing/index.html\n";
 			}
 		}
-	if($mode=~/extassembly|extbins/i and !$reference) { $dietext.="`-reference` needs to be specified when using `-m $mode`\n"; }
+	if($mode=~/extassembly|extbins/i and !$reference) { $dietext.="A valid path must be specified with `-reference` when using `-m $mode`\n"; }
 
 	if($dietext) { print BOLD "$helpshort"; print RESET; print RED; print "$dietext"; print RESET;  die; } 
 	
