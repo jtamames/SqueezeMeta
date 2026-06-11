@@ -1,6 +1,7 @@
+conda create -n r-devtools -c conda-forge -c bioconda r-devtools r-reshape2 r-ggplot2 bioconductor-pathview r-data.table bioconductor-biostrings r-vegan bioconductor-phyloseq 
 conda-activate r-devtools 
-mamba update -c conda-forge --update-all
+R -e "install.packages('microeco', repos='https://cloud.r-project.org')"
 R -e "devtools::document('SQMtools')"
 R CMD build --resave-data=best SQMtools/
-R CMD check --as-cran SQMtools_*.tar.gz
+R CMD check --as-cran SQMtools_*.tar.gz # will be unable to build the PDF because latex is a pain to make work in conda
 rm -r SQMtools.Rcheck/

@@ -19,3 +19,4 @@ LazyData: true
 BugReports: https://github.com/jtamames/SqueezeMeta/issues
 URL: https://github.com/jtamames/SqueezeMeta
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3

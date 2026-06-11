@@ -158,7 +158,7 @@ Examples
    over90 = subsetBins(Hadza, min_completeness = 90)
 
    # Subset with bins from the Phascolarctobacterium genus using SqueezeMeta's taxonomy
-   phasco = subsetBins(Hadza, tax_source = "bins", rank = "genus", tax = "Phascolarctobacterium")
+   phasco = subsetBins(Hadza, tax_source = "bins_sqm", rank = "genus", tax = "Phascolarctobacterium")
 
    # Subset with binsfrom the Bacteroidota phylum using GTDB taxonomy
-   bact = subsetBins(Hadza, tax_source = "bins_gtdb", rank = "phylum", tax = "p__Bacteroidota")
+   bact = subsetBins(Hadza, tax_source = "bins_gtdb", rank = "phylum", tax = "Bacteroidota")

@@ -330,10 +330,10 @@ subsetTax_ = function(SQM, rank, tax, tax_source, trusted_functions_only, ignore
 #' over90 = subsetBins(Hadza, min_completeness = 90)
 #'
 #' # Subset with bins from the Phascolarctobacterium genus using SqueezeMeta's taxonomy
-#' phasco = subsetBins(Hadza, tax_source = "bins", rank = "genus", tax = "Phascolarctobacterium")
+#' phasco = subsetBins(Hadza, tax_source = "bins_sqm", rank = "genus", tax = "Phascolarctobacterium")
 #'
 #' # Subset with binsfrom the Bacteroidota phylum using GTDB taxonomy
-#' bact = subsetBins(Hadza, tax_source = "bins_gtdb", rank = "phylum", tax = "p__Bacteroidota")
+#' bact = subsetBins(Hadza, tax_source = "bins_gtdb", rank = "phylum", tax = "Bacteroidota")
 #'
 #' @export
 subsetBins = function(SQM, bins = NULL, rank = NULL, tax = NULL, min_completeness = NULL, max_contamination = NULL, tax_source = 'bins',

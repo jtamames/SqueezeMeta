@@ -35,7 +35,9 @@ plotBins(
 
 \item{tax_source}{character. Source of taxonomic annotations, can be \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy) (default: \code{"bins"}.}
 
-\item{tax}{character. Custom bins/taxa to plot. If provided, it will override \code{N} (default \code{NULL}).}
+\item{bins}{character. Custom bins/taxa to plot. If provided, it will override \code{N} (default \code{NULL}).}
+
+\item{tax}{character. Custom bins/taxa to plot. If provided, it will override \code{N} and \code{bins} (default \code{NULL}).}
 
 \item{others}{logical. Collapse the abundances of least abundant bins, and include the result in the plot (default \code{TRUE}).}
 

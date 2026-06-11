@@ -69,9 +69,14 @@ Arguments
 |                                | or ``"bins_sqm"`` (SQM bin          |
 |                                | taxonomy) (default: ``"bins"``.     |
 +--------------------------------+-------------------------------------+
-| ``tax``                        | character. Custom bins/taxa to      |
+| ``bins``                       | character. Custom bins/taxa to      |
 |                                | plot. If provided, it will override |
 |                                | ``N`` (default ``NULL``).           |
++--------------------------------+-------------------------------------+
+| ``tax``                        | character. Custom bins/taxa to      |
+|                                | plot. If provided, it will override |
+|                                | ``N`` and ``bins`` (default         |
+|                                | ``NULL``).                          |
 +--------------------------------+-------------------------------------+
 | ``others``                     | logical. Collapse the abundances of |
 |                                | least abundant bins, and include    |

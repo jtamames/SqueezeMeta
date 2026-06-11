@@ -104,6 +104,11 @@ Arguments
 |                                | reads in the plot (default          |
 |                                | ``FALSE``).                         |
 +--------------------------------+-------------------------------------+
+| ``ignore_nobin``               | logical. Ignore reads not mapping   |
+|                                | to any bin when ``tax_source`` is   |
+|                                | ``bins``, ``bins_gtdb`` or          |
+|                                | ``bins_sqm`` (default ``FALSE``).   |
++--------------------------------+-------------------------------------+
 | ``no_partial_classifications`` | logical. Treat reads not fully      |
 |                                | classified at the requested level   |
 |                                | (e.g. "Unclassified Bacteroidota"   |
@@ -138,11 +143,6 @@ Arguments
 |                                | c('sample1', sample2'), 'G2' =      |
 |                                | c('sample3', 'sample4')) default    |
 |                                | ``NULL``).                          |
-+--------------------------------+-------------------------------------+
-| ``ignore_nobin.``              | Ignore reads not mapping to any bin |
-|                                | when ``tax_source`` is ``bins``,    |
-|                                | ``bins_gtdb`` or ``bins_sqm``       |
-|                                | (default ``FALSE``).                |
 +--------------------------------+-------------------------------------+
 
 Value

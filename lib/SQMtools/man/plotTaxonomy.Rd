@@ -48,6 +48,8 @@ plotTaxonomy(
 
 \item{ignore_unclassified}{logical. Don't include unclassified reads in the plot (default \code{FALSE}).}
 
+\item{ignore_nobin}{logical. Ignore reads not mapping to any bin when \code{tax_source} is \code{bins}, \code{bins_gtdb} or \code{bins_sqm} (default \code{FALSE}).}
+
 \item{no_partial_classifications}{logical. Treat reads not fully classified at the requested level (e.g. "Unclassified Bacteroidota" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).}
 
 \item{rescale}{logical. Re-scale results to percentages (default \code{FALSE}).}
@@ -59,8 +61,6 @@ plotTaxonomy(
 \item{max_scale_value}{numeric. Maximum value to include in the y axis. By default it is handled automatically by ggplot2 (default \code{NULL}).}
 
 \item{metadata_groups}{list. Split the plot into groups defined by the user: list('G1' = c('sample1', sample2'), 'G2' = c('sample3', 'sample4')) default \code{NULL}).}
-
-\item{ignore_nobin.}{Ignore reads not mapping to any bin when \code{tax_source} is \code{bins}, \code{bins_gtdb} or \code{bins_sqm} (default \code{FALSE}).}
 }
 \value{
 a ggplot2 plot object.

@@ -294,7 +294,7 @@ plotFunctions = function(SQM, fun_level = 'KEGG', count = 'copy_number', N = 25,
 #' @param nocds character. Either \code{"treat_separately"} to treat reads annotated as No CDS separately, \code{"treat_as_unclassified"} to treat them as Unclassified or \code{"ignore"} to ignore them in the plot (default \code{"treat_separately"}).
 #' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{FALSE}).
 #' @param ignore_unclassified logical. Don't include unclassified reads in the plot (default \code{FALSE}).
-#' @param ignore_nobin. Ignore reads not mapping to any bin when \code{tax_source} is \code{bins}, \code{bins_gtdb} or \code{bins_sqm} (default \code{FALSE}).
+#' @param ignore_nobin logical. Ignore reads not mapping to any bin when \code{tax_source} is \code{bins}, \code{bins_gtdb} or \code{bins_sqm} (default \code{FALSE}).
 #' @param samples character. Character vector with the names of the samples to include in the plot. Can also be used to plot the samples in a custom order. If not provided, all samples will be plotted (default \code{NULL}).
 #' @param no_partial_classifications logical. Treat reads not fully classified at the requested level (e.g. "Unclassified Bacteroidota" at the class level or below) as fully unclassified. This takes effect before \code{ignore_unclassified}, so if both are \code{TRUE} the plot will only contain fully classified contigs (default \code{FALSE}).
 #' @param rescale logical. Re-scale results to percentages (default \code{FALSE}).
@@ -502,9 +502,10 @@ plotTaxonomy = function(SQM, rank = 'phylum', count = 'percent', N = 15, tax_sou
 #' @param rank Taxonomic rank to plot (default \code{bin}).
 #' @param N integer Plot the \code{N} most abundant bins/taxa (default \code{15}).
 #' @param tax_source character. Source of taxonomic annotations, can be \code{"bins"} (GTDB bin taxonomy if available, SQM bin taxonomy otherwise), \code{"bins_gtdb"} (GTDB bin taxonomy) or \code{"bins_sqm"} (SQM bin taxonomy) (default: \code{"bins"}.
+#' @param bins character. Custom bins/taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
 #' @param count character. Either \code{"abund"} for raw abundances, \code{"percent"} for percentages, \code{"cov"} for coverages, or \code{"cpm"} for coverages per million reads (default \code{"percent"}).
 #' @param N integer Plot the \code{N} most abundant bins (default \code{15}).
-#' @param tax character. Custom bins/taxa to plot. If provided, it will override \code{N} (default \code{NULL}).
+#' @param tax character. Custom bins/taxa to plot. If provided, it will override \code{N} and \code{bins} (default \code{NULL}).
 #' @param others logical. Collapse the abundances of least abundant bins, and include the result in the plot (default \code{TRUE}).
 #' @param ignore_unmapped logical. Don't include unmapped reads in the plot (default \code{FALSE}).
 #' @param ignore_nobin logical. Don't include reads which are not in a bin in the plot (default \code{FALSE}).
@@ -543,15 +544,15 @@ plotBins = function(SQM, rank = 'bin', count = 'percent', N = 15, tax_source = '
         stop('`tax_source` must be either "bins", "bins_gtdb" or "bins_sqm"')
         }
     if(!is.null(max_scale_value) & !is.numeric(max_scale_value)) { stop('max_scale_value must be numeric') }
-    if (is.null(bins) & N <= 0)
+    if(!is.null(bins) & is.null(tax)) { tax = bins }
+    if (is.null(tax) & N <= 0)
         {
-        warning(sprintf('We can\'t plot N = %s? bins Continuing with default values', N))
+        warning(sprintf('We can\'t plot N = %s? bins/taxa Continuing with default values', N))
         N = 15
         }
     
     check.samples(SQM, samples)
 
-    if(!is.null(bins) & is.null(tax)) { tax = bins }
     return(plotTaxonomy(SQM, rank = rank, count = count, N = N,
                         tax_source = tax_source, tax = tax, others = others, samples = samples,
                         nocds = 'ignore', ignore_unmapped = ignore_unmapped, ignore_unclassified = FALSE,
