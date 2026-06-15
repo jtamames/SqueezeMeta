@@ -177,6 +177,7 @@ SqueezeMeta redistributes the following third-party software. Note that, for com
 
     - Work within the SQM directory structure
     - Add ``-dbdir`` as an additional command line argument
+    - Add ``--rna`` to the nhmmer command to avoid errors when guessing FASTA file alphabet
 
 - `aragorn <http://130.235.244.92/ARAGORN/>`_
 

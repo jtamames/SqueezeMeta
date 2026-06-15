@@ -74,7 +74,7 @@ my $fasta = shift @ARGV;
 $fasta && -r $fasta or err("Usage: $EXE <file.fasta>");
 
 msg("Scanning $fasta for $kdom rRNA genes... please wait");
-my $cmd = "$NHMMER --cpu $threads -E $evalue --w_length $MAXLEN -o /dev/null --tblout /dev/stdout \Q$hmmdb\E \Q$fasta\E";
+my $cmd = "$NHMMER --rna --cpu $threads -E $evalue --w_length $MAXLEN -o /dev/null --tblout /dev/stdout \Q$hmmdb\E \Q$fasta\E";
 msg("Command: $cmd");
 my @hits = qx($cmd 2>&1);
 
