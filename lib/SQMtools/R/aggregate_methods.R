@@ -97,12 +97,12 @@ aggregate_fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
     
     if(ignore_unclassified_functions)
         {
-        abund    = abund[rownames(abund)      !='Unclassified',]
-        bases    = bases[rownames(bases)      !='Unclassified',]
-        tpm      = tpm  [rownames(tpm)        !='Unclassified',]
-        coverage = coverage[rownames(coverage)!='Unclassified',]
-        lengths  = lengths[rownames(lengths)  !='Unclassified',]
-        copies   = copies[rownames(copies)    !='Unclassified',]
+        abund    = abund[rownames(abund)      !='Unclassified',,drop=FALSE]
+        bases    = bases[rownames(bases)      !='Unclassified',,drop=FALSE]
+        tpm      = tpm  [rownames(tpm)        !='Unclassified',,drop=FALSE]
+        coverage = coverage[rownames(coverage)!='Unclassified',,drop=FALSE]
+        lengths  = lengths[rownames(lengths)  !='Unclassified',,drop=FALSE]
+        copies   = copies[rownames(copies)    !='Unclassified',,drop=FALSE]
         }
 
     stopifnot(identical(rownames(abund), rownames(tpm)))
@@ -114,7 +114,7 @@ aggregate_fun = function(SQM, fun, trusted_functions_only, ignore_unclassified_f
     if(fun %in% c('KEGG', 'COG', 'PFAM', 'COGonly'))
         {
 	if(fun=='PFAM') { pattern = '];'
-	} else { pattern = ';' }	
+	} else { pattern = ';' }
         multiFuns = rownames(abund)[grepl(pattern, rownames(abund), fixed=TRUE)]
         for(mf in multiFuns)
             {

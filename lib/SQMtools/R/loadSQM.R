@@ -283,8 +283,10 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
     SQM$total_reads  = as.matrix(
                                  read.table(text = lines,
                                             header=TRUE, sep='\t', row.names=1, comment.char='')
-                                )[,'Total.reads']
-    SQM$misc$samples = names(SQM$total_reads)
+                                )[,'Total.reads',drop=FALSE]
+    SQM$misc$samples = rownames(SQM$total_reads)
+    SQM$total_reads = SQM$total_reads[,1]
+    names(SQM$total_reads) = SQM$misc$samples
 
     if(has_orfs)
         {
