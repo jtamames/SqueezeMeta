@@ -47,9 +47,9 @@ my $start_run = time();
 do "$scriptdir/SqueezeMeta_conf.pl";
 do "$scriptdir/parameters.pl";
 #-- Configuration variables from conf file
-our($databasepath);
+our($databasepath, $diamond_soft);
 
-my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$nopartialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$evaluetax4,$minidentax4);
+my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$nopartialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$evaluetax4,$minidentax4,$diamond_nr_options);
 
 my $helpshort="Usage: SQM_longreads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -76,7 +76,8 @@ Arguments:
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
    -n|-nopartialhits: Ignores partial hits in middle of the read (Default: no)
-   -c|-readlen <size>: Minimum length of reads (Default: 200)
+   -c|-readlen <size>: Minimum read length (Default: 200)
+   -diamond_nr_options <string>: Extra options to be passed when calling DIAMOND against the nr database
    --force_overwrite: Overwrite previous results
    -v|version: Print version
    -h: this help
@@ -100,6 +101,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "b|block_size=i" => \$blocksize,
 		     "n|nopartialhits" => \$nopartialhits,
 		     "c|readlen=i" => \$minreadlen,
+                     "diamond_nr_options=s" => \$diamond_nr_options,
 		     "force_overwrite=s" => \$force_overwrite,
 		     "v|version" => \$printversion,
 		     "h" => \$hel
@@ -147,7 +149,6 @@ my $verbose=0;
 my $nr_db="$databasepath/nr.dmnd";
 my $cog_db="$databasepath/eggnog";
 my $kegg_db="$databasepath/keggdb";
-my $diamond_soft="$installpath/bin/diamond";
 my $prinseq_soft="$installpath/bin/prinseq-lite.pl";
 my $coglist="$installpath/data/coglist.txt";    #-- COG equivalence file (COGid -> Function -> Functional class)
 my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
@@ -931,6 +932,7 @@ sub run_blastx {
 	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	my $blastx_command="$diamond_soft blastx -q $queryfile -p $numthreads -d $nr_db -f tab -F 15 --quiet --range-culling -b $blocksize -e $evalue --id $miniden --top 10 -o $blastxout -f 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen";	
 	if($fasternr) { $blastx_command .= " --faster "; } elsif($fastnr) { $blastx_command .= " --fast "; }
+        if($diamond_nr_options) { $blastx_command .= " $diamond_nr_options"; }
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	print "Running Diamond Blastx: $blastx_command**\n" if $verbose;

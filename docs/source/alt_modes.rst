@@ -73,6 +73,11 @@ Options
 [-miniden <float>]
     Identity percentage for discarding hits in DIAMOND run (default: *50*)
 
+[-diamond_nr_options <string>]
+    Extra options to be passed when calling DIAMOND against the nr database.
+    Please provide all the extra options as a single quoted string
+    (e.g. ``-diamond_nr_options "–opt1 foo –opt2 bar"``)
+
 .. _sqm_reads_output:
 Output
 ^^^^^^
@@ -184,6 +189,14 @@ Options
 
 [-n|-nopartialhits]
     Ignore partial hits if they occur at the middle of a long read
+
+[-c|-readlen <int>]
+    Minimum read length (default: ``200``)
+
+[-diamond_nr_options <string>]
+    Extra options to be passed when calling DIAMOND against the nr database.
+    Please provide all the extra options as a single quoted string
+    (e.g. ``-diamond_nr_options "–opt1 foo –opt2 bar"``)
 
 [--force_overwrite]
     Overwrite previous results

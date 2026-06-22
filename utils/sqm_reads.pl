@@ -44,9 +44,9 @@ my $start_run = time();
 
 do "$scriptdir/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
-our($databasepath);
+our($databasepath, $diamond_soft);
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$printversion);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$printversion,$diamond_nr_options);
 
 my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -71,6 +71,7 @@ Arguments:
    -e|-evalue: max evalue for discarding hits for Diamond run  (Default: 1e-03)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
+   -diamond_nr_options <string>: Extra options to be passed when calling DIAMOND against the nr database
    -v|version: Print version
    -h: this help
 
@@ -89,6 +90,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
+                     "diamond_nr_options=s" => \$diamond_nr_options,
 		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
@@ -129,7 +131,6 @@ tie %allsamples,"Tie::IxHash";
 my $nr_db="$databasepath/nr.dmnd";
 my $cog_db="$databasepath/eggnog";
 my $kegg_db="$databasepath/keggdb";
-my $diamond_soft="$installpath/bin/diamond";
 my $coglist="$installpath/data/coglist.txt";    #-- COG equivalence file (COGid -> Function -> Functional class)
 my $kegglist="$installpath/data/keggfun2.txt";  #-- KEGG equivalence file (KEGGid -> Function -> Functional class)
 my %ranks=('k',1,'p',1,'c',1,'o',1,'f',1,'g',1,'s',1);    #-- Only these taxa will be considered for output
@@ -239,6 +240,7 @@ foreach my $thissample(keys %allsamples) {
 		my $outfile_tax_nofilter="$thissampledir/$thisfile.tax_nofilter.wranks";
 		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b $blocksize -o $outfile";
 		if($fasternr) { $blastx_command .= " --faster "; } elsif($fastnr) { $blastx_command .= " --fast "; }
+                if($diamond_nr_options) { $blastx_command .= " $diamond_nr_options"; }
 		# print "Running BlastX: $blastx_command\n";
 		my %iblast;
 		if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
