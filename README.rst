@@ -80,7 +80,7 @@ it’s better to first set up the libmamba solver with
 
 and then use conda to install SqueezeMeta
 
-``conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.7 --no-channel-priority --override-channels``
+``conda create -n SqueezeMeta -c conda-forge -c bioconda -c fpusan squeezemeta=1.8 --no-channel-priority --override-channels``
 
 If you change ``squeezemeta`` to ``squeezemeta-dev`` you will instead
 get the latest development version. This will contain additional bugfixes
