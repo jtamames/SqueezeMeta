@@ -46,7 +46,7 @@ do "$scriptdir/SqueezeMeta_conf.pl";
 #-- Configuration variables from conf file
 our($databasepath, $diamond_soft);
 
-my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$printversion,$diamond_nr_options);
+my($numthreads,$project,$equivfile,$rawseqs,$evalue,$dietext,$blocksize,$currtime,$nocog,$nokegg,$opt_db,$hel,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$printversion,$diamond_temp_dir,$diamond_nr_options);
 
 my $helpshort="Usage: SQM_reads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -71,6 +71,7 @@ Arguments:
    -e|-evalue: max evalue for discarding hits for Diamond run  (Default: 1e-03)
    -t: Number of threads (Default: 12)
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
+   -diamond_temp_dir <string>: Directory to be used for temporary storage in all DIAMOND runs
    -diamond_nr_options <string>: Extra options to be passed when calling DIAMOND against the nr database
    -v|version: Print version
    -h: this help
@@ -90,6 +91,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "extdb=s" => \$opt_db, 
 		     "euk" => \$euknofilter,
                      "b|block_size=i" => \$blocksize,
+                     "diamond_temp_dir=s" => \$diamond_temp_dir,
                      "diamond_nr_options=s" => \$diamond_nr_options,
 		     "v|version" => \$printversion,
 		     "h" => \$hel
@@ -240,6 +242,7 @@ foreach my $thissample(keys %allsamples) {
 		my $outfile_tax_nofilter="$thissampledir/$thisfile.tax_nofilter.wranks";
 		my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $nr_db -e $evalue --quiet -f tab -b $blocksize -o $outfile";
 		if($fasternr) { $blastx_command .= " --faster "; } elsif($fastnr) { $blastx_command .= " --fast "; }
+		if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir "; }
                 if($diamond_nr_options) { $blastx_command .= " $diamond_nr_options"; }
 		# print "Running BlastX: $blastx_command\n";
 		my %iblast;
@@ -300,6 +303,7 @@ foreach my $thissample(keys %allsamples) {
 			if(-e $outfile) { print "Diamond result for COGs found in $outfile, skipping run\n"; }
 			else {
 				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+				if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir "; }
 				#print "Running BlastX: $blastx_command\n";
 				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; } 
 				else { 
@@ -336,6 +340,7 @@ foreach my $thissample(keys %allsamples) {
 			if(-e $outfile) { print "Diamond result for KEGG found in $outfile, skipping run\n"; }
 			else {
 				my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+				if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir "; }
 				#print "Running BlastX: $blastx_command\n";
 				if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
 				else { 
@@ -377,6 +382,7 @@ foreach my $thissample(keys %allsamples) {
 				else {
 					my $blastx_command="$diamond_soft blastx -q $rawseqs/$thisfile -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
 					#print "Running BlastX: $blastx_command\n";
+					if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir "; }
 					if($nodiamond) { print "   (Skipping Diamond run because of --nodiamond flag)\n"; }
 					else { 
 						print CYAN "[",$currtime->pretty,"]: Running Diamond for $extdbname\n"; print RESET;

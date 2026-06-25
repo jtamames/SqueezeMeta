@@ -46,7 +46,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$newtaxdb,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$fastnr,$diamond_nr_options,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir,$methodsfile,$syslogfile);
+our($datapath,$contigsfna,$mergedfile,$gff_file,$ntfile,$resultpath,$newtaxdb,$nr_db,$gff_file,$blocksize,$evaluetax4,$evaluefun4,$rnafile,$tempdir,$gff_file_blastx,$fna_blastx,$fun3tax,$fun3tax_blastx,$fun3kegg_blastx,$fun3cog_blastx,$opt_db,$numthreads,$scriptdir,$fun3cog,$fun3kegg,$fun3pfam,$diamond_soft,$fastnr,$diamond_temp_dir,$diamond_nr_options,$nocog,$nokegg,$nopfam,$cog_db,$kegg_db,$minidentax4,$minidenfun4,$interdir,$methodsfile,$syslogfile);
 
 
 my($header,$keggid,$cogid,$taxid,$pfamid,$maskedfile,$ntmerged,$cogfun,$keggfun,$optdbfun,$movecommands);
@@ -214,6 +214,7 @@ sub run_blastx {
 	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	my $blastx_command="$diamond_soft blastx -q $maskedfile -p $numthreads -d $nr_db -f tab -F 15 -k 0 --quiet --range-culling -b $blocksize -e $evaluetax4 --id $minidentax4 -o $blastxout";
 	if($fastnr) { $blastx_command .= " --fast "; }
+	if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir"; }
 	if($diamond_nr_options) { $blastx_command .= " $diamond_nr_options"; }
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
@@ -310,6 +311,7 @@ sub functions {
 	if(!$nocog) {
 		$cogfun="$tempdir/08.$project.fun3.blastx.cog.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogfun";
+		if($diamond_temp_dir) { $command .= " --tmpdir $diamond_temp_dir"; }
 		print "  Running Diamond blastx for COGS\n";
 		print outsyslog "Running Diamond blastx for COGS: $command\n";
 		my $ecode = system $command;
@@ -322,6 +324,7 @@ sub functions {
 	if(!$nokegg) {
 		$keggfun="$tempdir/08.$project.fun3.blastx.kegg.m8";
 		my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggfun";
+		if($diamond_temp_dir) { $command .= " --tmpdir $diamond_temp_dir"; }
 		print "  Running Diamond blastx for KEGG\n";
 		print outsyslog "Running Diamond blastx for KEGG: $command\n";
 		my $ecode = system $command;
@@ -339,6 +342,7 @@ sub functions {
 			my($dbname,$extdb,$dblist)=split(/\t/,$_);
 			$optdbfun="$tempdir/08.$project.fun3.blastx.$dbname.m8";
 			my $command="$diamond_soft blastx -q $ntmerged -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b 8 -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $optdbfun";
+			if($diamond_temp_dir) { $command .= " --tmpdir $diamond_temp_dir"; }
 			print "  Running Diamond blastx for OPTDB $dbname\n";
 			print outsyslog "Running Diamond blastx for $dbname: $command\n";
 			my $ecode = system $command;

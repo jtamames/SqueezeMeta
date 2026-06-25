@@ -108,6 +108,7 @@ $cleaning_method    = "trimmomatic";
 $cleaning_options   = "";
 $mapper             = "bowtie";
 $binners            = "metabat2,concoct";
+$diamond_temp_dir   = "";
 $diamond_nr_options = "";
 $mapping_options    = "";
 

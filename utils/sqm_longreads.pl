@@ -49,7 +49,7 @@ do "$scriptdir/parameters.pl";
 #-- Configuration variables from conf file
 our($databasepath, $diamond_soft);
 
-my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$nopartialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$evaluetax4,$minidentax4,$diamond_nr_options);
+my($numthreads,$project,$equivfile,$rawseqs,$miniden,$evalue,$minreadlen,$dietext,$blocksize,$nopartialhits,$force_overwrite,$currtime,$nocog,$nokegg,$opt_db,$hel,$printversion,$nodiamond,$fastnr,$fasternr,$euknofilter,$methodsfile,$evaluetax4,$minidentax4,$diamond_temp_dir,$diamond_nr_options);
 
 my $helpshort="Usage: SQM_longreads.pl -p <project name> -s <samples file> -f <raw fastq dir> [options]\n";
 
@@ -77,6 +77,7 @@ Arguments:
    -b|-block-size: block size for Diamond run against the nr database (Default: 8)
    -n|-nopartialhits: Ignores partial hits in middle of the read (Default: no)
    -c|-readlen <size>: Minimum read length (Default: 200)
+   -diamond_temp_dir <string>: Directory to be used for temporary storage in all DIAMOND runs
    -diamond_nr_options <string>: Extra options to be passed when calling DIAMOND against the nr database
    --force_overwrite: Overwrite previous results
    -v|version: Print version
@@ -101,6 +102,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "b|block_size=i" => \$blocksize,
 		     "n|nopartialhits" => \$nopartialhits,
 		     "c|readlen=i" => \$minreadlen,
+                     "diamond_temp_dir=s" => \$diamond_temp_dir,
                      "diamond_nr_options=s" => \$diamond_nr_options,
 		     "force_overwrite=s" => \$force_overwrite,
 		     "v|version" => \$printversion,
@@ -371,6 +373,7 @@ foreach my $thissample(keys %allsamples) {
 			print outsyslog "Starting COG annotation\n";
 			my $outfile="$thissampledir/$thisfile.cogs.m8";
 			my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $cog_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir "; }
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run for COGs because of --nodiamond flag)\n"; print outsyslog"   (Skipping Diamond run for COGs because of --nodiamond flag)\n"; } 
 			elsif((-s $outfile > 0)  && (!$force_overwrite)) { print "   COG Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   COG Diamond result found in $outfile, skipping Diamond\n"   } 
@@ -413,6 +416,7 @@ foreach my $thissample(keys %allsamples) {
 			$currtime=timediff();
 			my $outfile="$thissampledir/$thisfile.kegg.m8";
 			my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $kegg_db -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+			if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir "; }
 			#print "Running BlastX: $blastx_command\n";
 			if($nodiamond) { print "   (Skipping Diamond run for KEGG because of --nodiamond flag)\n"; print outsyslog "   (Skipping Diamond run for KEGG because of --nodiamond flag)\n"; }
 			elsif((-s $outfile > 0)  && (!$force_overwrite)) { print "   KEGG Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   KEGG Diamond result found in $outfile, skipping Diamond\n"   } 
@@ -458,6 +462,7 @@ foreach my $thissample(keys %allsamples) {
 				$currtime=timediff();
 				my $outfile="$thissampledir/$thisfile.$extdbname.m8";
 				my $blastx_command="$diamond_soft blastx -q $ntseqs -p $numthreads -d $extdb -e $evalue --query-cover $querycover --id $miniden --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outfile";
+				if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir "; }
 				#print "Running BlastX: $blastx_command\n";
 				if($nodiamond) { print "   (Skipping Diamond run for $extdbname because of --nodiamond flag)\n"; }
 				elsif((-s $outfile > 0)  && (!$force_overwrite)) { print "   $extdbname Diamond result found in $outfile, skipping Diamond\n"; print outsyslog "   $extdbname Diamond result found in $outfile, skipping Diamond\n"   } 
@@ -932,7 +937,8 @@ sub run_blastx {
 	print "  Running Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	my $blastx_command="$diamond_soft blastx -q $queryfile -p $numthreads -d $nr_db -f tab -F 15 --quiet --range-culling -b $blocksize -e $evalue --id $miniden --top 10 -o $blastxout -f 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen";	
 	if($fasternr) { $blastx_command .= " --faster "; } elsif($fastnr) { $blastx_command .= " --fast "; }
-        if($diamond_nr_options) { $blastx_command .= " $diamond_nr_options"; }
+	if($diamond_temp_dir) { $blastx_command .= " --tmpdir $diamond_temp_dir "; }
+	if($diamond_nr_options) { $blastx_command .= " $diamond_nr_options"; }
 	print outsyslog "Running Diamond BlastX: $blastx_command\n";
 	print outmet "Additional ORFs were obtained by Diamond BlastX (Buchfink et al 2015, Nat Methods 12, 59-60)\n";
 	print "Running Diamond Blastx: $blastx_command**\n" if $verbose;

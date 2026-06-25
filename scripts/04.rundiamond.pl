@@ -41,7 +41,7 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($aafile,$databasepath,$numthreads,$diamond_soft,$nodiamond,$nocog,$nokegg,$interdir,$tempdir,$newtaxdb,$cog_db,$kegg_db,$nr_db,$blocksize,$globalranking,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$fastnr,$fasternr,$diamond_nr_options,$opt_db,$resultpath,$methodsfile,$syslogfile);
+our($aafile,$databasepath,$numthreads,$diamond_soft,$nodiamond,$nocog,$nokegg,$interdir,$tempdir,$newtaxdb,$cog_db,$kegg_db,$nr_db,$blocksize,$globalranking,$evaluetax4,$minidentax4,$evaluefun4,$minidenfun4,$cogdiamond,$keggdiamond,$taxdiamond,$fastnr,$fasternr,$diamond_temp_dir,$diamond_nr_options,$opt_db,$resultpath,$methodsfile,$syslogfile);
 my $command;
 
 open(outmet,">>$methodsfile") || warn "Cannot open methods file $methodsfile for writing methods and references\n";
@@ -87,6 +87,7 @@ print outsyslog "  Working with taxonomy database in $nr_db\n";
 if(!$notax) {
 	$command =  "$diamond_soft $blastmode -q $aafile -p $numthreads -d $nr_db -e $evaluetax4 --id $minidentax4 -f tab -b $blocksize -g $globalranking -o $taxdiamond";
 	if($fasternr) { $command .= " --faster "; } elsif($fastnr) { $command .= " --fast "; }
+        if($diamond_temp_dir) { $command .= " --tmpdir $diamond_temp_dir"; }
 	if($diamond_nr_options) { $command .= " $diamond_nr_options"; }
 	$command .= " > $tempdir/diamond.nr.log 2>&1";
 	print " taxa";
@@ -100,6 +101,7 @@ if(!$notax) {
 
 if(!$nocog) {
 	$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $cog_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $cogdiamond";
+        if($diamond_temp_dir) { $command .= " --tmpdir $diamond_temp_dir"; }
 	print " COGS";
 	print outsyslog "Running Diamond for COGs: $command\n";
 	my $ecode = system $command;
@@ -112,6 +114,7 @@ if(!$nocog) {
 if(!$nokegg) {
 	if((!$nodiamond) || ($nodiamond && !$keggfound)) {
 		$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $kegg_db -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $keggdiamond";
+		if($diamond_temp_dir) { $command .= " --tmpdir $diamond_temp_dir"; }
 		print "   Running Diamond (Buchfink et al 2015, Nat Methods 12, 59-60) for KEGG\n";
 		print outsyslog "Running Diamond for KEGG: $command\n";
 		my $ecode = system $command;
@@ -133,6 +136,7 @@ if($opt_db) {
 		my($dbname,$extdb,$dblist)=split(/\t/,$_);
 		my $outdb="$interdir/04.$project.$dbname.diamond";
 		$command="$diamond_soft $blastmode -q $aafile -p $numthreads -d $extdb -e $evaluefun4 --id $minidenfun4 --quiet -b $blocksize -f 6 qseqid qlen sseqid slen pident length evalue bitscore qstart qend sstart send -o $outdb";
+		if($diamond_temp_dir) { $command .= " --tmpdir $diamond_temp_dir"; }
 		print " $dbname";
 		print outsyslog "Running Diamond for $dbname: $command\n";
 		my $ecode = system $command;

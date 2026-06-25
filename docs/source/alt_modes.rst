@@ -73,6 +73,9 @@ Options
 [-miniden <float>]
     Identity percentage for discarding hits in DIAMOND run (default: *50*)
 
+[-diamond_temp_dir <string>]
+    Directory to be used for temporary storage in all DIAMOND runs
+
 [-diamond_nr_options <string>]
     Extra options to be passed when calling DIAMOND against the nr database.
     Please provide all the extra options as a single quoted string
@@ -192,6 +195,9 @@ Options
 
 [-c|-readlen <int>]
     Minimum read length (default: ``200``)
+
+[-diamond_temp_dir <string>]
+    Directory to be used for temporary storage in all DIAMOND runs
 
 [-diamond_nr_options <string>]
     Extra options to be passed when calling DIAMOND against the nr database.
