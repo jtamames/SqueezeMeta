@@ -18,7 +18,7 @@ class DefaultValues():
     DIAMOND_PERCENT_ID = 30
     DIAMOND_EVALUE = 1e-05
 
-    DIAMOND_DEFAULT_CHUNK_SIZE = 500
+    DIAMOND_DEFAULT_CHUNK_SIZE = 250
 
     KO_FEATURE_VECTOR_CHUNK = 250
 
@@ -41,7 +41,7 @@ class DefaultValues():
     MODULE_DEFINITION_LOCATION = os.path.join(DATA_PATH, 'module_definitions.json')
 
     GENERAL_MODEL_COMP_LOCATION = os.path.join(MODEL_PATH, 'general_model_COMP.gbm')
-    SPECIFIC_MODEL_COMP_LOCATION = os.path.join(MODEL_PATH, 'specific_model_COMP.hd5')
+    SPECIFIC_MODEL_COMP_LOCATION = os.path.join(MODEL_PATH, 'specific_model_COMP.keras')
 
     MODEL_CONT_LOCATION = os.path.join(MODEL_PATH, 'model_CONT.gbm')
 #    SPECIFIC_MODEL_CONT_LOCATION = os.path.join(MODEL_PATH, 'specific_model_CONT.hd5')

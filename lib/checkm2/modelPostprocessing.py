@@ -28,16 +28,26 @@ class modelProcessor:
 
     def __calculate_sparse_CSM(self, A, B):
 
-        # Reshape is require to deal with scipy's deviation from numpy calculations
-        num = np.dot(A, B.T)
 
-        p1 = np.sqrt(np.sum(A.power(2), axis=1))[:, np.newaxis]
-        p1 = p1.reshape(p1.shape[0], p1.shape[1])
+        num = A.dot(B.T).toarray()
 
-        p2 = np.sqrt(np.sum(B.power(2), axis=1))[np.newaxis, :]
-        p2 = p2.reshape(p2.shape[0], p2.shape[1])
+        # Calculate L2 norms (safely handle zero vectors)
+        normA = np.sqrt(A.multiply(A).sum(axis=1)).A.flatten()
+        normB = np.sqrt(B.multiply(B).sum(axis=1)).A.flatten()
+    
+        # Avoid division by zero
+        normA[normA == 0] = 1
+        normB[normB == 0] = 1
 
-        return np.array( (num / (p1 * p2)).toarray() ) # FPS work with greater scipy version
+        # Reshape norms for broadcasting
+        p1 = normA.reshape(-1, 1)
+        p2 = normB.reshape(1, -1)
+
+        # Calculate cosine similarity
+        csm = num / (p1 * p2)
+
+        return csm
+
 
     def __calculate_cosine_similarity(self, feature_vector):
         # Todo - if input is big, we might need to chunk it so as not to overload RAM (depends on ref data size). 
@@ -103,6 +113,14 @@ class modelProcessor:
 
 
         csm_array = self.__calculate_cosine_similarity(csr_matrix(feature_vector))
+
+         # Ensure all inputs are dense arrays
+        if scipy.sparse.issparse(csm_array):
+            csm_array = np.array(csm_array).flatten()
+        if scipy.sparse.issparse(general_comp):
+            general_comp = np.array(general_comp).flatten()
+        if scipy.sparse.issparse(specific_comp):
+            specific_comp = np.array(specific_comp).flatten()
 
         mean_completeness = (general_comp + specific_comp) / 2
         completeness_AA_ratio = AA_counts / mean_completeness

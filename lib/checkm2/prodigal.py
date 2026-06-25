@@ -196,10 +196,8 @@ class ProdigalRunner():
     def checkForProdigal(self):
         """Check to see if Prodigal is on the system before we try to run it."""
 
-        # Assume that a successful prodigal -h returns 0 and anything
-        # else returns something non-zero
         try:
-            subprocess.call(['prodigal', '-h'], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+            subprocess.check_call(['prodigal', '-h'], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
         except:
             logging.error("Make sure prodigal is on your system path.")
             sys.exit(1)

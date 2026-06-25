@@ -149,6 +149,8 @@ class Predictor():
         results[['GenomeName', 'ProteinID']] = results['header'].str.split(diamond_search.separator, n=1, expand=True)
         results[['Ref100_hit', 'Kegg_annotation']] = results['annotation'].str.split('~', n=1, expand=True)
 
+
+
         ''' Get a list of default KO id's from data
             Available categories are the keys in DefaultValues.feature_ordering
             Here, returns an ordered set of KEGG ID's and sets to 0 

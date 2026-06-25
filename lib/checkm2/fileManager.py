@@ -42,17 +42,8 @@ class DiamondDB:
                 diamond_definition = json.load(f)
                 return diamond_definition
         except:
-            logging.warning('Could not open DIAMOND location definition file. Creating new file.')
-            db_ref_file = {"Type": "DIAMONDDB", "DBPATH": "Not Set"}
-            with open(diamond_location, 'w') as dl:
-                json.dump(db_ref_file, dl)
-            try:
-                with open(diamond_location) as f:
-                    diamond_definition = json.load(f)
-                    return diamond_definition
-            except Exception as e:
-                logging.error('Could not create new file: {}'.format(e))
-                sys.exit(1)
+            logging.warning('Could not open DIAMOND location definition file. Please set up database or provide database path. Exiting.')
+            sys.exit(1)
 
 
     def get_DB_location(self):
@@ -79,11 +70,13 @@ class DiamondDB:
             sys.exit(1)
 
 
-    def download_database(self, download_location):
+    def download_database(self, download_location, no_write_json_db):
 
         '''Uses a DOI link to automatically download, unpack and verify from zenodo.org'''
 
         logging.info("Command: Download database. Checking internal path information.")
+        if no_write_json_db:
+            logging.info('The --no_write_json_db flag was set. Will download database but NOT modify internal database path information. You will need to provide database path in the future.')
 
         diamond_location = DefaultValues.DB_LOCATION_DEFINITION
         
@@ -91,18 +84,22 @@ class DiamondDB:
             with open(diamond_location) as f:
                 diamond_definition = json.load(f)
         except:
-            logging.warning('Could not open DIAMOND location definition file. Creating new file.')
-            x = {"Type": "DIAMONDDB", "DBPATH": "Not Set"}
-            with open(diamond_location, 'w') as dl:
-                json.dump(x, dl)
-            try:
-                with open(diamond_location) as f:
-                    diamond_definition = json.load(f)
-            except Exception as e:
-                logging.error('Could not create new file: {}'.format(e))
-                sys.exit(1)
+            logging.warning('Could not open internal DIAMOND location definition file.')
+            if not no_write_json_db: 
+                logging.info('Writing new DIAMOND location definition file...')
+                x = {"Type": "DIAMONDDB", "DBPATH": "Not Set"}
+                with open(diamond_location, 'w') as dl:
+                    json.dump(x, dl)
+                try:
+                    with open(diamond_location) as f:
+                        diamond_definition = json.load(f)
+                except Exception as e:
+                    logging.error('Could not create new file: {}'.format(e))
+                    sys.exit(1)
         if diamond_definition['DBPATH'] != 'Not Set':
-            logging.warning('DIAMOND database found at {}. Overwriting previous database.'.format(diamond_definition['DBPATH']))
+            logging.warning('DIAMOND database found at {}.'.format(diamond_definition['DBPATH']))
+            if not no_write_json_db:
+                logging.info('Overwriting previous database')
             
         
         make_sure_path_exists(os.path.join(download_location, 'CheckM2_database'))
@@ -127,9 +124,9 @@ class DiamondDB:
             backpack_downloader.download_and_extract(download_location, DOI, progress_bar=True, no_check_version=False)
             
             diamond_definition['DBPATH'] = os.path.abspath(diamond_loc_final)
-
-            with open(diamond_location, 'w') as dd:
-                json.dump(diamond_definition, dd)
+            if not no_write_json_db:
+                with open(diamond_location, 'w') as dd:
+                    json.dump(diamond_definition, dd)
             
 
         else:
@@ -137,10 +134,15 @@ class DiamondDB:
             sys.exit(1)
 
         #do checksum
-        if versionControl.VersionControl().checksum_version_validate_DIAMOND():
+
+        if no_write_json_db:
+            location = os.path.abspath(diamond_loc_final)
+        else:
+            location = None
+        if versionControl.VersionControl().checksum_version_validate_DIAMOND(location):
             logging.info('Diamond DATABASE downloaded successfully! Consider running <checkm2 testrun> to verify everything works.')
         else:
-            logging.error('Could not verify successfull installation of reference database.')
+            logging.error('Could not verify successful installation of reference database.')
 
 
     def update_database(self):

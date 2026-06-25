@@ -4,12 +4,14 @@ from checkm2 import sequenceClasses
 from checkm2 import keggData
 
 import subprocess
+import shutil
 import os
 import sys
 from functools import reduce
 import tempfile
 import logging
 import pandas as pd
+
 
 
 '''Diamond only accepts single inputs, so we concat protein files and chunk them as input using tempfile'''
@@ -43,7 +45,7 @@ class DiamondRunner():
         # else returns something non-zero
 
         try:
-            subprocess.call(['diamond', 'help'], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+            subprocess.check_call(['diamond', 'help'], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
         except:
             logging.error("Make sure diamond is on your system path.")
             sys.exit(1)
@@ -69,6 +71,20 @@ class DiamondRunner():
         return reduce(lambda a, b: {**a, **b}, seq_list)
 
     def __call_diamond(self, seq_object, diamond_output):
+
+        try:
+            tmp_dir = tempfile.gettempdir()
+            total, used, free = shutil.disk_usage(tmp_dir)
+            free_gb = free / (2**30)  # Convert bytes to GB
+            logging.debug(f"Free space in {tmp_dir}: {free_gb:.2f} GB")
+            if free // (2**20) < 500:  # Convert bytes to MB
+                logging.error("Insufficient disk space in temp directory {tmp_dir} (need at least 500MB free)")
+                sys.exit(1)
+        except Exception as e:
+            logging.error(f"Error checking disk space: {e}")
+            sys.exit(1)
+
+
         with tempfile.NamedTemporaryFile() as temp_diamond_input:
 
             sequenceClasses.SeqReader().write_fasta(seq_object, temp_diamond_input.name)
@@ -85,7 +101,7 @@ class DiamondRunner():
                       "--subject-cover {} " \
                       "--id {} " \
                       "--evalue {} --block-size {} "\
-                      "--tmpdir {} --quiet"\
+                      "--tmpdir {} --quiet "\
                     .format(temp_diamond_input.name,
                             diamond_output,
                             self.threads,
@@ -98,7 +114,7 @@ class DiamondRunner():
                             diamond_working_dir.name)
 
                 logging.debug(cmd)
-                subprocess.call(cmd, shell=True)
+                subprocess.check_call(cmd, shell=True)
                 logging.debug('Finished Running DIAMOND')
             except Exception as e:
                 logging.error('An error occured while running DIAMOND: {}'.format(e))

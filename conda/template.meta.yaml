@@ -99,6 +99,15 @@ outputs:
         - kmer-db
         - metabat2
         - bowtie2
+        - diamond >=2.2.1
+        - flye
+        # CheckM2
+        - prodigal=2.6.3
+        - scikit-learn=1.6.1
+        - tensorflow=2.17
+        - lightgbm
+        - requests
+        - packaging
         # GTDBTK
         - pplacer
         - prodigal
@@ -124,10 +133,6 @@ outputs:
         - vcflib >=1.0.1
         - picard
         - freebayes
-        # CHECKM2
-        - checkm2
-        - tensorflow
-        - lightgbm
     build:
       noarch: generic
 
