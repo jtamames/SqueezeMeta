@@ -110,7 +110,7 @@ $command="python3 $concoct_dir/scripts/cut_up_fasta.py $contigsfna -c 10000 -o 0
 print outsyslog "\n  Cutting contigs in pieces!: $command\n";	
 system $command;	
 print "  Creating abundance table\n";	
-$command="PATH=$installpath/bin:\$PATH python3 $concoct_dir/scripts/concoct_coverage_table.py $bedfile $bamlist > $bindir/coverage_table.tsv";
+$command="python3 $concoct_dir/scripts/concoct_coverage_table.py $bedfile $bamlist > $bindir/coverage_table.tsv";
 print outsyslog "  Creating abundance table: $command\n";
 system($command);
 print "  Running concoct\n";
