@@ -105,7 +105,9 @@ while(<in>) {
 	my @e=split(/\t/,$_);
 	$files{$e[0]}=$e[1];
 	$type{$e[0]}=$e[2];
-	print out "$e[0]\t$e[1]\tpair1\n";
+	my $fname=$e[1];
+	$fname=~s/\.gz$//;
+	print out "$e[0]\t$fname\tpair1\n";
 	}
 close out;
 
@@ -119,45 +121,48 @@ my $diamond_command;
 foreach my $thissample(keys %files) {
 	print "Working with $thissample\n";
 	my $aafile=$files{$thissample};
+	if($aafile=~/\.gz$/) { system("gunzip $aafile"); $aafile=~s/\.gz$//; }
 	$project=$thissample;
 	my $typefile=$type{$thissample};
 	if($typefile=~/genome/i) {
-		system("cp $aadir/$aafile $project/results/01.$project.fasta");
-		$command="perl $scriptdir/02.rnas.pl $project; perl $scriptdir/03.run_prodigal.pl $project;";
+		my $command="cp $aadir/$aafile SQM/$project/results/01.$project.fasta";
+		system($command);
+		print "***$command***n";
+		$command="perl $scriptdir/02.rnas.pl SQM/$project; perl $scriptdir/03.run_prodigal.pl SQM/$project;";
 		my $ecode = system $command;
 		if($ecode!=0) { catch_error(); }
 		$blastmode="blastp";
 		}
 	elsif($typefile=~/aa/i) { 
-		system("cp $aadir/$aafile $project/results/03.$project.faa"); 
+		system("cp $aadir/$aafile SQM/$project/results/03.$project.faa"); 
 		$blastmode="blastp";
 	}
 	elsif($typefile=~/nt/i) { 
-		system("cp $aadir/$aafile $project/results/03.$project.faa"); 
+		system("cp $aadir/$aafile SQM/$project/results/03.$project.faa"); 
 		$blastmode="blastx";
 	}
-	$diamond_command="perl $scriptdir/04.rundiamond.pl $project $notax $blastmode";
-	$command="perl $scriptdir/04.rundiamond.pl $project $notax $blastmode";
+	$diamond_command="perl $scriptdir/04.rundiamond.pl SQM/$project $notax $blastmode";
+	$command="perl $scriptdir/04.rundiamond.pl SQM/$project $notax $blastmode";
 	my $ecode = system $command;
 	if($ecode!=0) { catch_error(); }
-	if($typefile=~/nt/i) { system("mv $project/results/03.$project.faa $project/results/03.$project.fna"); }
+	if($typefile=~/nt/i) { system("mv SQM/$project/results/03.$project.faa SQM/$project/results/03.$project.fna"); }
 
 	if(!$notax) { 
-		$command="perl $scriptdir/06.lca.pl $project"; 
+		$command="perl $scriptdir/06.lca.pl SQM/$project"; 
 		my $ecode = system $command; 
 		if($ecode!=0) { catch_error(); }
 		}
 	if((!$nocog) || (!$nokegg)) { 
-		$command="perl $scriptdir/07.fun3assign.pl $project"; 
+		$command="perl $scriptdir/07.fun3assign.pl SQM/$project"; 
 		my $ecode = system $command; 
 		if($ecode!=0) { catch_error(); }
 		}
 	}
 	
 print "\n";
-if(!$notax) { print "Taxonomic assignment stored in $project/results/06.$project.fun3.tax.wranks\n"; }
-if(!$nocog) { print "COG functional assignment stored in $project/results/07.$project.fun3.cog\n"; }	
-if(!$nokegg) { print "KEGG functional assignment stored in $project/results/07.$project.fun3.kegg\n"; }	
+if(!$notax) { print "Taxonomic assignment stored in SQM/$project/results/06.$project.fun3.tax.wranks\n"; }
+if(!$nocog) { print "COG functional assignment stored in SQM/$project/results/07.$project.fun3.cog\n"; }	
+if(!$nokegg) { print "KEGG functional assignment stored in SQM/$project/results/07.$project.fun3.kegg\n"; }	
 
 system("rm $tempsample");
 funclass();
@@ -196,7 +201,7 @@ sub funclass {
 
 	#-- Reading results
 	
-	my %fils=("COG","$project/results/07.$project.fun3.cog","KEGG","$project/results/07.$project.fun3.kegg");
+	my %fils=("COG","SQM/$project/results/07.$project.fun3.cog","KEGG","SQM/$project/results/07.$project.fun3.kegg");
 	foreach my $tcase(sort keys %fils) {
 		my $output=$fils{$tcase};
 		open(inc,$output) || die "Cannot open $tcase output in $output\n";
@@ -210,7 +215,7 @@ sub funclass {
 		close inc;
 		}
 	foreach my $tcase(sort keys %fils) {
-		my $outfile="$project/results/$tcase.summary";
+		my $outfile="SQM/$project/results/$tcase.summary";
 		open(out,">$outfile") || die "Cannot open output file $outfile\n";
 		print out "$tcase\tAbundance\tName\tFuction\tClass/Pathway\tORFs\n";
 		foreach my $tfun(sort { $accumc{$tcase}{$b}<=>$accumc{$tcase}{$a}; } keys %{ $accumc{$tcase} }) {
@@ -218,7 +223,54 @@ sub funclass {
 			}
 		close outfile;
 		print "$tcase summary created in $outfile\n";
-		}				
+		}
+		
+	#-- Summary for extdbs
+	
+	open(in,$opt_db) || die;
+	while(<in>) {
+		chomp;
+		next if !$_;
+		my($db,$dbfile,$dblist)=split(/\t/,$_);
+	
+
+		#-- Reading functions and pathways
+
+		open(infile2,$dblist) || warn "Missing DB equivalence file $dblist\n";
+		while(<infile2>) {
+			chomp;
+			next if(!$_ || ($_=~/\#/));
+			my @t=split(/\t/,$_);
+			$funs{$db}{$t[0]}{name}=$t[0];
+			$funs{$db}{$t[0]}{fun}=$t[1];
+			$funs{$db}{$t[0]}{path}=$t[2];
+			}
+		close infile2;
+	
+	
+			#-- Reading results
+	
+			my $output="SQM/$project/results/07.$project.fun3.$db";
+			open(inc,$output) || die "Cannot open $db output in $output\n";
+			while(<inc>) {
+				chomp;
+				next if(!$_ || ($_=~/^\#/));
+				my @k=split(/\t/,$_);
+				$funannot{$db}{$k[1]}.="$k[0];"; 
+				$accumc{$db}{$k[1]}++;
+				}
+			close inc;
+			my $outfile="SQM/$project/results/$db.summary";
+			open(out,">$outfile") || die "Cannot open output file $outfile\n";
+			print out "$db\tAbundance\tName\tFuction\tClass/Pathway\tORFs\n";
+			foreach my $tfun(sort { $accumc{$db}{$b}<=>$accumc{$db}{$a}; } keys %{ $accumc{$db} }) {
+			print out "$tfun\t$accumc{$db}{$tfun}\t$funs{$db}{$tfun}{name}\t$funs{$db}{$tfun}{fun}\t$funs{$db}{$tfun}{path}\t$funannot{$db}{$tfun}\n";
+				}
+			close outfile;
+			print "$db summary created in $outfile\n";
+
+		}
+	close in;									
 	}
 	
 
