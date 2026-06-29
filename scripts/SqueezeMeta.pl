@@ -696,8 +696,8 @@ sub pipeline {
 	if(($rpoint<=10) && ((!$test) || ($test>=10))) {
 		my $ns;
 		if($mode eq "sequential") { $ns = 1; } else { $ns = $numsamples; }
-		my $wsize = checksize($mappingstat);
-		if(($wsize == $ns) && (!$force_overwrite)) { print "Mapping file $mappingstat already found, skipping step 10\n"; }
+		my $wsize = checksize($mapcountfile);
+		if(($wsize == $ns) && (!$force_overwrite)) { print "Mapping file $mapcountfile already found, skipping step 10\n"; }
 		else {	
 			my $scriptname="10.mapsamples.pl";
 			print outfile3 "10\t$scriptname\n";

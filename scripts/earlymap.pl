@@ -49,8 +49,6 @@ my $verbose=0;
 my $fastqdir="$datapath/raw_fastq";
 my $bamdir="$datapath/bam";
 
-my $outfile=$mapcountfile;
-
 my $warnmes;
 
 if(-d $bamdir) {} else { system("mkdir $bamdir"); }
@@ -139,9 +137,6 @@ if(-e $contigcov) { system("rm $contigcov"); }
 open(outfile1,">$mappingstat") || die "Can't open mappingstat file $mappingstat for writing\n";	#-- File containing mapping statistics
 print outfile1 "#-- Created by $0, ",scalar localtime,"\n";
 print outfile1 "# Sample\tTotal reads\tMapped reads\tMapping perc\tTotal bases\n";
-open(outfile3,">$mapcountfile") || die "Can't open mapcount file $mapcountfile for writing\n";
-print outfile3 "# Created by $0 from $gff_file, ",scalar localtime,". SORTED TABLE\n";
-print outfile3 "Gen\tLength\tReads\tBases\tRPKM\tCoverage\tTPM\tSample\n";
 
 	#-- Now we start mapping the reads of each sample against the reference
 
