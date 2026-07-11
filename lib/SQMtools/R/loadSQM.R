@@ -433,7 +433,7 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
             {
             SQM$contigs$seqs  = read.fasta.zip(project_path, contigs_fasta, type = 'DNA')
             SQM$contigs$seqs  = SQM$contigs$seqs[rownames(SQM$contigs$table)]
-        } else if(file.exists.zip(contigs_vecfile))
+        } else if(file.exists.zip(project_path, contigs_vecfile))
             {
             SQM$contigs$seqs  = read.namedvector.zip(project_path, contigs_vecfile, type = 'DNA')
             SQM$contigs$seqs  = SQM$contigs$seqs[rownames(SQM$contigs$table)]
