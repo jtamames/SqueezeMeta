@@ -363,7 +363,7 @@ foreach my $thissample(keys %allsamples) {
 
 	#-- Calculating contig coverage/RPKM
 
-	my $totalreads=contigcov(\%lencontig,$thissample,$bamfile);
+	my ($totalreads,$mappedreads)=contigcov(\%lencontig,$thissample,$bamfile);
 	
 	system("rm -f $tempdir/$par1name $tempdir/$par2name");   #-- Delete unnecessary files
 
@@ -373,7 +373,7 @@ foreach my $thissample(keys %allsamples) {
 		print outsyslog "Calling sqm_counter: Sample $thissample, BAM $bamfile, Number of reads $totalreads\n";
         	sqm_counter(\@contigchunks,\@genes_ordered,\%long_gen,$thissample,$bamfile,
                             \@bed_chunk_files_contigs,\@count_chunk_files,\%sample_mapcount_files,
-                            $totalreads,$mapper,$verbose);
+                            $totalreads,$mappedreads,$mapper,$verbose);
 		}
 	}
 if($warnmes) { 
@@ -440,7 +440,7 @@ sub sqm_counter {
 	print "  Counting with sqm_counter: Opening $numthreads_counter threads\n";
 	my($contigchunks,$genes_ordered,$long_gen,$thissample,$bamfile,
            $bed_chunk_files_contigs,$count_chunk_files,$sample_mapcount_files,
-           $totalreadcount,$mapper)=@_;
+           $totalreads,$mappedreads,$mapper)=@_;
 	@contigchunks = @{$contigchunks};
 	@genes_ordered = @{$genes_ordered};
 	%long_gen = %{$long_gen};
@@ -517,8 +517,8 @@ sub sqm_counter {
 		next if(!$longt);
 		my $coverage=$accum{$currentgene}{bases}/$longt;
 		my ($rpkm, $tpm) = (0,0); # avoid divisions by zero if the BAM has no reads (can happen with custom flags)
-		if($totalreadcount) {
-			$rpkm=($accum{$currentgene}{reads}*1000000)/(($longt/1000)*$totalreadcount);  #-- Length of gene in Kbs
+		if($mappedreads) {
+			$rpkm=($accum{$currentgene}{reads}*1000000)/(($longt/1000)*$totalreads);  #-- Length of gene in Kbs
 			$tpm=$rpk{$currentgene}/$accumrpk;
 			}
 		printf outfileSM "$currentgene\t$longt\t$accum{$currentgene}{reads}\t$accum{$currentgene}{bases}\t%.3f\t%.3f\t%.3f\t$thissample\n",$rpkm,$coverage,$tpm;
@@ -627,7 +627,7 @@ sub contigcov {
 	my $thissample = $_[1];
 	my $bamfile = $_[2];
 	my %readcount;
-	my($mappedreads,$totalreadcount,$totalreadlength)=0;
+	my($mappedreads,$totalreads,$totalreadlength)=0;
 	open(outfile4,">>$contigcov") || die "Can't open contigcov file $contigcov for writing\n";
 
 	#-- Count bases mapped from the sam file
@@ -651,15 +651,15 @@ sub contigcov {
 			$readcount{$t[2]}{lon}+=length $t[9];
 			$mappedreads++;
 		}       
-		$totalreadcount++;
+		$totalreads++;
 		$totalreadlength+=length $t[9];
 	}
 	close infile4;
 
 	my $mapperc = 0; # avoid divisions by zero if the BAM has no reads (can happen with custom flags)
-	if($totalreadcount) { $mapperc=($mappedreads/$totalreadcount)*100; }
+	if($totalreads) { $mapperc=($mappedreads/$totalreads)*100; }
 	if($mapperc<50) { $warnmes=1; }
-	printf outfile1 "$thissample\t$totalreadcount\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics
+	printf outfile1 "$thissample\t$totalreads\t$mappedreads\t%.2f\t$totalreadlength\n",$mapperc;		#-- Mapping statistics
 
 	#-- Output RPKM/coverage values
 
@@ -679,14 +679,14 @@ sub contigcov {
 		next if(!$longt);
 		my $coverage=$readcount{$rc}{lon}/$longt;
 		my ($rpkm, $tpm) = (0,0);
-		if($totalreadcount) { # avoid divisions by zero if the BAM has no reads (can happen with custom flags)
-			$rpkm=($readcount{$rc}{reads}*1000000)/(($longt/1000)*$totalreadcount); #-- Length of contig in Kbs
+		if($mappedreads) { # avoid divisions by zero if the BAM has no reads (can happen with custom flags)
+			$rpkm=($readcount{$rc}{reads}*1000000)/(($longt/1000)*$totalreads); #-- Length of contig in Kbs
 			$tpm=$rp{$rc}/$accumrpk;
 			}
 		if(!$rpkm) { print outfile4 "$rc\t0\t0\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n"; } 
 		else { printf outfile4 "$rc\t%.2f\t%.1f\t%.1f\t$longt\t$readcount{$rc}{reads}\t$readcount{$rc}{lon}\t$thissample\n",$coverage,$rpkm,$tpm; }
 		}
 	close outfile4;	
-	return $totalreadcount;
+	return $totalreads,$mappedreads;
 }
 
