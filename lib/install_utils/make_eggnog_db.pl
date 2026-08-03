@@ -20,7 +20,7 @@ my $databasedir=$ARGV[0];			        #-- THIS MUST POINT TO THE DATABASES DIRECTO
 #my $databasedir="/media/mcm/jtamames/databases"; 	#-- THIS MUST POINT TO THE DATABASES DIRECTORY
 my $software_dir="$installpath/bin";		        #-- THIS MUST POINT TO THE DIAMOND DIRECTORY
 
-my $eggnogdb="http://eggnogdb.embl.de/download/eggnog_4.5";	#-- SITE FOR DOWLOADING DATA
+my $eggnogdb="http://eggnog5.embl.de/download/eggnog_4.5";	#-- SITE FOR DOWLOADING DATA
 my $outegg="$databasedir/eggnog4.fasta";
 
 my $command;
