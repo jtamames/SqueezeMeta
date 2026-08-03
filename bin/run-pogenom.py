@@ -105,7 +105,7 @@ def main(args):
                '--subsample', str(minCount),
                '--min_found', str(nSamples),
                '--genome_size', str(numLoci),
-               '--fst_perm', str(nReps)
+#               '--fst_perm', str(nReps)
                ]
     if GFF:
         with open(f'{tempDir}/standard_genetic_code.txt', 'w') as outfile:
