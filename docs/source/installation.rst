@@ -201,6 +201,8 @@ SqueezeMeta redistributes the following third-party software. Note that, for com
 - `CONCOCT <https://github.com/BinPro/CONCOCT>`_
 
     - Fix an error in transform.py with newer version of scikit-kearn
+    - Fix SintaxError in regular expression on newer python3 versions
+    - Fix pkg_resources.require being deprecated in newer python3 versions
 
 - `DAS Tool https://github.com/cmks/DAS_Tool>`_
 

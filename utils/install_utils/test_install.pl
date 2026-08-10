@@ -30,7 +30,7 @@ if(!-e "$installpath/scripts/SqueezeMeta_conf_original.pl") { die ("\nCRITICAL E
 
 do "$installpath/scripts/SqueezeMeta_conf_original.pl";
 
-our($spades_soft, $metabat_soft, $jgi_summ_soft, $samtools_soft, $bwa_soft, $minimap2_soft, $diamond_soft, $hmmer_soft, $cdhit_soft, $kmerdb_soft, $aragorn_soft, $mothur_soft, $flye_soft);
+our($spades_soft, $metabat_soft, $jgi_summ_soft, $samtools_soft, $bwa_soft, $minimap2_soft, $diamond_soft, $hmmer_soft, $cdhit_soft, $kmerdb_soft, $aragorn_soft, $mothur_soft, $flye_soft, $maxbin_soft, $metabat_soft, $concoct_dir);
 
 our $warnings;
 
@@ -128,6 +128,9 @@ check_command("$kmerdb_soft -h");
 check_command("$aragorn_soft -h");
 check_command("$mothur_soft -h");
 check_command("$flye_soft -h");
+check_command("$maxbin_soft -h");
+check_command("$metabat_soft -h");
+check_command("$concoct_dir/bin/concoct -h");
 system("rm -r $tmpdir > /dev/null 2>&1");
 
 

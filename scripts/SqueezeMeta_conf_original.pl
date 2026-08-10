@@ -117,7 +117,7 @@ $mapping_options    = "";
 
 $metabat_soft       = "metabat2";
 $jgi_summ_soft      = "jgi_summarize_bam_contig_depths";
-$maxbin_soft        = "$installpath/bin/MaxBin/run_MaxBin.pl";
+$maxbin_soft        = "perl $installpath/bin/MaxBin/run_MaxBin.pl";
 $concoct_dir        = "$installpath/bin/CONCOCT-1.1.0";
 $spades_soft        = "spades.py";
 $barrnap_soft       = "$installpath/bin/barrnap";

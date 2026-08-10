@@ -14,7 +14,7 @@ import argparse
 from collections import defaultdict, Counter
 import re
 
-CONTIG_PART_EXPR = re.compile("(.*)\.concoct_part_([0-9]*)")
+CONTIG_PART_EXPR = re.compile(r"(.*)\.concoct_part_([0-9]*)")
 
 def original_contig_name_special(s):
     n = s.split(".")[-1]
