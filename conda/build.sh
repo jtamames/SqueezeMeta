@@ -13,6 +13,8 @@ ln -s $SQM_DIR/bin/pogenom.pl .
 ln -s $SQM_DIR/bin/run-pogenom.py .
 ln -s $SQM_DIR/bin/checkm2 .
 R CMD INSTALL $SQM_DIR/lib/SQMtools
+cd $SQM_DIR/bin/CONCOCT-1.1.0/
+$PYTHON setup.py install
 cpanm Linux::MemInfo -L $PREFIX
 $PYTHON -m pip install https://files.pythonhosted.org/packages/39/d0/0bb235071b241f7294bfacc54623a98afddf855ba36807a8dae1717b5694/mOTUlizer-0.2.4.tar.gz # we let mOTUlizer pull also igraph
 $PYTHON -m pip install --no-deps https://files.pythonhosted.org/packages/5c/3a/8729cac4fac0b3af6e91c5c5a542bfb0268cbdf53d0fe6fde7417b49de6f/speedict-0.3.12-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl

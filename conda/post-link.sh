@@ -6,6 +6,3 @@ ln -s libreadline.so.8 libreadline.so.6
 cp libboost_iostreams.so libboost_iostreams.so.1.85.0
 cp libboost_system.so libboost_system.so.1.85.0
 cp libboost_filesystem.so libboost_filesystem.so.1.85.0
-# Install CONCOCT locally, ensures that we have the same math libraries that we'll have at runtime
-cd $PREFIX/SqueezeMeta/bin/CONCOCT-1.1.0/
-$PYTHON setup.py install
