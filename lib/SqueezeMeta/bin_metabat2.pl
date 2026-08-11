@@ -9,6 +9,8 @@ use lib ".";
 
 use File::Basename;
 use Cwd 'abs_path';
+use Getopt::Long;
+
 our $sqmlibdir;
 if(-l __FILE__)
         {
@@ -24,7 +26,7 @@ our $installpath = abs_path("$sqmlibdir/../..");
 
 my $pwd=cwd();
 
-my $projectdir=$ARGV[0];
+my $projectdir=shift @ARGV;
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -36,9 +38,12 @@ do "$projectdir/parameters.pl";
 
 our($contigsfna,$contigcov,$bindir,$metabat_soft,$jgi_summ_soft,$alllog,$datapath,$tempdir,$interdir,$singletons,$contigslen,$mappingfile,$methodsfile,$maxchimerism14,$mingenes14,$smallnoannot14,%bindirs,$syslogfile,$numthreads);
 
+#-- Handle positional args
+GetOptions( 'threads=i' => \my $numthreads_override
+          );
+
 #-- Override numthreads if requested
 
-my $numthreads_override=$ARGV[1];
 if($numthreads_override) { $numthreads = $numthreads_override; }
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";

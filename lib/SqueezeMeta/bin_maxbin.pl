@@ -6,6 +6,7 @@
 use strict;
 use Cwd;
 use lib ".";
+use Getopt::Long;
 
 $|=1;
 
@@ -25,7 +26,7 @@ else
 our $installpath = abs_path("$sqmlibdir/../..");
 
 my $pwd=cwd();
-my $projectdir=$ARGV[0];
+my $projectdir=shift @ARGV;
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -38,9 +39,12 @@ do "$projectdir/parameters.pl";
 
 our($databasepath,$contigsfna,%bindirs,$contigcov,$maxbin_soft,$alllog,$contigslen,$interdir,$singletons,$tempdir,$numthreads,$mappingfile,$methodsfile,$syslogfile);
 
+#-- Handle positional args
+GetOptions( 'threads=i' => \my $numthreads_override
+          );
+
 #-- Override numthreads if requested
 
-my $numthreads_override=$ARGV[1];
 if($numthreads_override) { $numthreads = $numthreads_override; }
 
 my $maxchimerism=0.1;	#-- Threshold for excluding chimeric contigs
@@ -161,7 +165,7 @@ foreach my $k(sort keys %tcontigs) { print outfile2 "$k\t0\n"; }
 close outfile2;
 close outfile1;
 
-my $command="perl $maxbin_soft -thread $numthreads -contig $tempfasta -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
+my $command="$maxbin_soft -thread $numthreads -contig $tempfasta -abund_list $abundlist -out $dirbin/maxbin -markerpath $databasepath/marker.hmm";
 print outsyslog "Running Maxbin: $command\n";
 print "  Running Maxbin (Wu et al 2016, Bioinformatics 32(4), 605-7)\n";
 my $ecode = system $command;

@@ -6,6 +6,7 @@
 use strict;
 use Cwd;
 use lib ".";
+use Getopt::Long;
 
 $|=1;
 
@@ -25,7 +26,7 @@ else
 our $installpath = abs_path("$scriptdir/..");
 
 my $pwd=cwd();
-my $projectdir=$ARGV[0];
+my $projectdir=shift @ARGV;
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -37,9 +38,11 @@ do "$projectdir/parameters.pl";
 
 our($datapath,$databasepath,$resultpath,$interdir,$binresultsdir,$binners,$aafile,$contigsfna,$contigcov,$dastool_soft,$alllog,$tempdir,$methodsfile,$score_tres15,$numthreads,$syslogfile);
 
-#-- Override numthreads if requested
+#-- Handle positional args
+GetOptions( 'threads=i' => \my $numthreads_override
+          );
 
-my $numthreads_override=$ARGV[1];
+#-- Override numthreads if requested
 if($numthreads_override) { $numthreads = $numthreads_override; }
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";

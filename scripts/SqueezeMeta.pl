@@ -786,7 +786,7 @@ sub pipeline {
     #-------------------------------- STEP14: Running binning methods 		
 	
 	 if(!$nobins) {	    
-	 	my $hayresults; 
+	 	my $hayresults=0; 
 		if(($rpoint<=14) && ((!$test) || ($test>=14)) && (!$extbins)) {
 			if($verbose) { print " (Now we will start creating bins for separating individual organisms in the community)\n"; }
 			my @binner=split(/\,/,$binners);
@@ -799,10 +799,11 @@ sub pipeline {
 				@binfiles=grep(/fasta$|fa$/,readdir indir1);
 				closedir indir1;
 				$firstfile="$dirbin/$binfiles[0]";
-				$wsize=checksize($firstfile);
-				if($wsize>=2) { $hayresults=1; last; }
+				# Check that there is at least one file and that it has content
+				if(scalar @binfiles) { $wsize=checksize($firstfile); }
+				if($wsize>=2) { $hayresults+=1; }
 			}
-           	 	if(($hayresults) && (!$force_overwrite)) { print "Binning results for $binners already found, skipping step 14\n"; }
+           	 	if(($hayresults==scalar @binner) && (!$force_overwrite)) { print "Binning results for $binners already found, skipping step 14\n"; }
 			else {
 				my $scriptname="14.runbinning.pl";
 				print outfile3 "14\t$scriptname\n";
