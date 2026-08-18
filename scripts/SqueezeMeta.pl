@@ -44,7 +44,7 @@ close inv;
 
 our $pwd=cwd();
 
-our($nodiamond,$fastnr,$fasternr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite)="0";
+our($nodiamond,$fastnr,$fasternr,$binners,$nocog,$nokegg,$nopfam,$singletons,$euknofilter,$opt_db,$nobins,$onlybins,$nomaxbin,$nometabat,$empty,$verbose,$lowmem,$minion,$consensus,$doublepass,$force_overwrite,$map95)="0";
 our($numsamples,$numthreads,$canumem,$mode,$reference,$mincontiglen,$contigid,$assembler,$extassembly,$extbins,$mapper,$projectdir,$userdir,$mapping_options,$projectname,$project,$equivfile,$rawfastq,$blocksize,$globalranking,$diamond_temp_dir,$diamond_nr_options,$evalue,$miniden,$assembler_options,$cleaning,$cleaning_method,$cleaning_options,$ver,$hel,$methodsfile,$test,$norename,$restart,$rpoint);
 our($binresultsdir,$databasepath,$extdatapath,$newtaxdb,$softdir,$datapath,$resultpath,$extpath,$tempdir,$interdir,$mappingfile,$protclust,$extdatapath,$contigsfna,$gff_file_blastx,$contigslen,$mcountfile,$checkmfile,$rnafile,$gff_file,$aafile,$ntfile,$daafile,$taxdiamond,$cogdiamond,$keggdiamond,$pfamhmmer,$fun3tax,$fun3kegg,$fun3cog,$fun3pfam,$allorfs,$alllog,$mapcountfile,$mappingstat,$contigcov,$contigtable,$mergedfile,$bintax,$bincov,$bintable,$contigsinbins,$coglist,$kegglist,$pfamlist,$taxlist,$nr_db,$cog_db,$kegg_db,$lca_db,$bowtieref,$pfam_db,$metabat_soft,$maxbin_soft,$spades_soft,$barrnap_soft,$bowtie2_build_soft,$bowtie2_x_soft,$bwa_soft,$minimap2_soft,$bedtools_soft,$diamond_soft,$hmmer_soft,$megahit_soft,$prinseq_soft,$prodigal_soft,$cdhit_soft,$toamos_soft,$minimus2_soft,$canu_soft,$trimmomatic_soft,$fastp_soft,$dastool_soft,$taxbinmode,$gtdbtk,$gtdbtk_data_path,$gtdbtkfile,$nomarkers);
 our(%bindirs,%dasdir,%binscripts,%assemblers);
@@ -85,7 +85,7 @@ Arguments:
    
  Assembly: 
    -a: assembler <megahit, spades, rnaspades, spades-base, canu, flye> (Default: megahit)
-   -assembly_options [options]: Extra options to be passed when calling the assembler
+   -assembly_options <string>: Extra options to be passed when calling the assembler
    -c|-contiglen <size>: Minimum length of contigs (Default: 200)
    --sg|--singletons: Add unassembled reads to the contig file, as if they were contigs
    -contigid <string>: Nomenclature for contigs (Default: assembler´s name)
@@ -94,6 +94,7 @@ Arguments:
  Mapping: 
    -map: mapping software <bowtie, bwa, minimap2-ont, minimap2-pb, minimap2-sr> (Default: bowtie) 
    -mapping_options <string>: Extra options to be passed when calling the mapper
+   --map95: use a 95% identity cutoff for mapping short reads to the reference. Equivalent to `-map bowtie -mapping_options "--ignore-quals --mp 1,1 --np 1 --rdg 0,1 --rfg 0,1 --score-min L,0,-0.05"`. Will override `-map` and `-mapping_options` (Default: no) 
 
  ONT support: 
    --minion: Run on MinION reads (assembler: canu; mapper: minimap2-ont; consensus: 20) (Default: no)
@@ -188,7 +189,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
 		     "diamond_nr_options=s" => \$diamond_nr_options,
 		     "e|evalue=f" => \$evalue,   
 		     "minidentity=f" => \$miniden,
-			 "consensus=f" => \$consensus,
+		     "consensus=f" => \$consensus,
 		     "assembly_options=s" => \$assembler_options,
 		     "norename" => \$norename,
 		     "restart" => \$restart,
@@ -198,6 +199,7 @@ my $result = GetOptions ("t=i" => \$numthreads,
                      "cleaning_method=s" => \$cleaning_method,
 		     "cleaning_options=s" => \$cleaning_options,
 		     "mapping_options=s" => \$mapping_options,
+                     "map95" => \$map95,
                      "minion" => \$minion,
 		     "test=i" => \$test,
 		     "empty" => \$empty,
@@ -247,10 +249,12 @@ if($newtaxdb) {
 	if($newtaxdb!~/\.dmnd$/) { $newtaxdb.=".dmnd"; }
 	}
 
-#-- Override settings if running on lowmem or MinION mode.
+#-- Override settings if running on lowmem, MinION or map95 modes.
 if($lowmem) { $blocksize=3; $canumem=15; }
 
 if($minion) { $assembler="canu"; $mapper="minimap2-ont"; }
+
+if($map95) { $mapper="bowtie"; $mapping_options="--ignore-quals --mp 1,1 --np 1 --rdg 0,1 --rfg 0,1 --score-min L,0,-0.05"; }
 
 #-- Set up cleaning options
 if(!$cleaning_method) { $cleaning_method="trimmomatic"; }

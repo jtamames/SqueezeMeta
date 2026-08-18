@@ -152,6 +152,11 @@ Mapping
     Please provide all the extra options as a single quoted string
     (e.g. ``-mapping_options "–opt1 foo –opt2 bar"``)
 
+[--map95]
+   Use a 95% identity cutoff for mapping short reads to the reference.
+   Equivalent to ``-map bowtie -mapping_options "--ignore-quals --mp 1,1 --np 1 --rdg 0,1 --rfg 0,1 --score-min L,0,-0.05"``.
+   Overrides ``-map`` and ``-mapping_options``
+
 Binning
 -------
 
