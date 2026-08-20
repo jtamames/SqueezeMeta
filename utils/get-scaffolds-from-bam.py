@@ -8,25 +8,24 @@ from dataclasses import dataclass
 
 from tqdm import tqdm
 from pysam import AlignmentFile
-import plotext as plt
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 @dataclass(slots=True)
 class Pair: # close enough to a mutable namedtuple
     """To store pairs mapping to two different references"""
-    query: str
-    edge: tuple[str, str]
-    ref: str
-    rstart: int
-    rlengthFull: int
-    riden: float
-    rqcov: float
-    nextref: str
-    nrstart: int
-    nrlengthFull: int
-    nriden: float
-    nrqcov: float
+    query: str             # Query pair
+    edge: tuple[str, str]  # The two references linked by the pair, lexicographically sorted
+    ref: str               # Reference 1
+    rstart: int            # Read mapping to Reference 1: where does mapping start in the reference 
+    rlengthFull: int       # Full length of Reference 1
+    riden: float           # Read mapping to Reference 1: % mapping identity
+    rqcov: float           # Read mapping to Reference 1: % of the read that maps
+    nextref: str           # Reference 2
+    nrstart: int           # Read mapping to Reference 2: where does mapping start in the reference
+    nrlengthFull: int      # Full length of Reference 2
+    nriden: float          # Read mapping to Reference 2: % mapping identity
+    nrqcov: float          # Read mapping to Reference 2: % of the read that maps
 
 #@profile
 def main(args):
@@ -48,8 +47,16 @@ def main(args):
 
         ref_lengths = dict(zip(samfile.references, samfile.lengths))
         mapped_reads = samfile.mapped
+        unmapped_reads = samfile.unmapped
 
-        for record in tqdm(samfile.fetch(), total = mapped_reads): # AlignmentFile.fetch() is already iterating through the mapped reads only
+        for record in tqdm(samfile.fetch(until_eof = True), total = mapped_reads + unmapped_reads):
+            # AlignmentFile.fetch will return pairs in which at least one mate has mapped
+            #  until_eof = True makes it return also fully unmapped pairs
+            #  I add this just so fetch goes through the total number of reads and I can track progress with tqdm
+            
+            # Skip if this read is unmapped
+            if not record.is_mapped:
+                continue
 
             if not record.has_tag('NM'):
                 # Some reads had no NM tag or CIGAR string even though they seemed to have reference name and reference start
@@ -62,12 +69,14 @@ def main(args):
             iden = round(100 * ( 1 - (record.get_tag('NM') / record.query_alignment_length) ), 2) # NM (edit distance to the template) / aligned length
             qcov = round(100 * record.query_alignment_length / record.query_length, 2) # Aligned length / read length
 
-            # Skip if the mate is unmapped
-            if record.mate_is_unmapped:
+            # If the mate is unmapped, skip unless indicated
+            if record.mate_is_unmapped and not args.add_unpaired_edges:
                 continue
 
             # If this pair is mapping to the same reference, store the insert size
-            if ref == nextref:
+            if ref == nextref and not record.mate_is_unmapped:
+                # We have to check that the mate is mapped, since it seems that when it is unmapped
+                #  ref and nextref are still the same
                 if added_isize < args.insert_size_reads:
                     insert_sizes.append( int(abs(rstart - nrstart)) )
                     added_isize += 1
@@ -75,17 +84,21 @@ def main(args):
             # Otherwise check if we haven't seen this pair before, and record it if that's the case
             elif query not in linker_pairs:
 
-                rlengthFull, nrlengthFull  = ref_lengths[ref], ref_lengths[nextref]
-
-                edge = tuple( sorted( (ref, nextref) ) )
+                rlengthFull = ref_lengths[ref] 
+                if record.mate_is_unmapped:
+                    nrlengthFull = 0
+                    edge = (ref, None)
+                else:
+                    nrlengthFull = ref_lengths[nextref]
+                    edge = tuple( sorted( (ref, nextref) ) )
 
                 pair = Pair(query = query, edge = edge,
                             ref = ref, rstart = rstart, rlengthFull = rlengthFull, riden = iden, rqcov = qcov,
-                            nextref = nextref, nrstart = nrstart, nrlengthFull = nrlengthFull, nriden = 0, nrqcov = 0)
+                            nextref = nextref, nrstart = nrstart, nrlengthFull = nrlengthFull, nriden = 100, nrqcov = 100)
 
                 linker_pairs[query] = pair
 
-            # If we have seen this pair before, record the reverse identity and query coverage
+            # If we have seen this pair before, record the identity and query coverage of the second mate
             else:
                 linker_pairs[query].nriden = iden
                 linker_pairs[query].nrqcov = qcov
@@ -99,24 +112,27 @@ def main(args):
     min_insert_size = min(insert_sizes) 
     nth_percentile_insert_size = quantiles(insert_sizes, n=100)[args.insert_size_percentile-1]
 
-    # Make a plot in the terminal
-    # plotext wants two iterables for the barplot, one with the bar names and one with the bar counts
-    # So we need to manually aggregate our data into bins
-    NBINS = 80
+    if not args.no_plot:
+        # Make a plot in the terminal
+        # plotext wants two iterables for the barplot, one with the bar names and one with the bar counts
+        # So we need to manually aggregate our data into bins
+
+        import plotext as plt
+        NBINS = 80
  
-    binsize = ceil( (nth_percentile_insert_size - min_insert_size + 1) / NBINS) # make sure it's at least 1
-    barplot_isize_ranges = [mean([min_insert_size + binsize*i, min_insert_size + binsize*(i+1)]) for i in range(NBINS)]
-    barplot_isize_counts = [0]*NBINS
-    for isize in insert_sizes:
-        if isize > nth_percentile_insert_size:
-            continue
-        bin_ = (isize - min_insert_size) // binsize
-        barplot_isize_counts[bin_] += 1
-    eprint()
-    plt.simple_bar(barplot_isize_ranges, barplot_isize_counts, title = 'Insert size distribution', width = plt.terminal_width() - 20)
-    #plt.show()
-    # Normally we'd use plt.show() here, but we hack it to be able to print to stderr
-    eprint(plt.active().monitor.matrix.canvas, add_timestamp = False)
+        binsize = ceil( (nth_percentile_insert_size - min_insert_size + 1) / NBINS) # make sure it's at least 1
+        barplot_isize_ranges = [mean([min_insert_size + binsize*i, min_insert_size + binsize*(i+1)]) for i in range(NBINS)]
+        barplot_isize_counts = [0]*NBINS
+        for isize in insert_sizes:
+            if isize > nth_percentile_insert_size:
+                continue
+            bin_ = (isize - min_insert_size) // binsize
+            barplot_isize_counts[bin_] += 1
+        eprint()
+        plt.simple_bar(barplot_isize_ranges, barplot_isize_counts, title = 'Insert size distribution', width = plt.terminal_width() - 20)
+        #plt.show()
+        # Normally we'd use plt.show() here, but we hack it to be able to print to stderr
+        eprint(plt.active().monitor.matrix.canvas, add_timestamp = False)
 
     eprint()
     eprint(f'Insert size Min: {min(insert_sizes)} | {args.insert_size_percentile}th percentile: {nth_percentile_insert_size} | Max: {max(insert_sizes)} | Mean: {mean_insert_size} | Std: {std_insert_size}')
@@ -133,8 +149,14 @@ def main(args):
 
         fwd_size = min(pair.rstart , pair.rlengthFull  - pair.rstart )
         rev_size = min(pair.nrstart, pair.nrlengthFull - pair.nrstart)
-        insert_size = fwd_size + rev_size
 
+        if pair.edge[1]:
+           insert_size = fwd_size + rev_size
+        else:
+           insert_size = fwd_size * 2 # if the mate was not mapped, assume rev_size == fwd_size
+
+        # Note that nriden and nrcov are 100 by default, so if this pair had an unmapped
+        #  mate the minimums below will correspond to the mapped one
         min_iden = min(pair.riden, pair.nriden)
         min_qcov = min(pair.rqcov, pair.nrqcov)
 
@@ -163,7 +185,8 @@ def main(args):
 
     eprint('Done')
     eprint(f'Mapped reads in BAM file: {mapped_reads}')
-    eprint(f'Reads with no NM tag: {missing_nm_tag}')
+    eprint(f'Unmapped reads in BAM file: {unmapped_reads}')
+    eprint(f'Mapped reads with no NM tag: {missing_nm_tag}')
     eprint(f'Pairs used for insert size calculation: {added_isize}')
     eprint(f'All scaffolding pairs: {len(linker_pairs)}')
     eprint(f'Good scaffolding pairs: {sum(edges.values())}')
@@ -195,6 +218,10 @@ def parse_args():
                         help = 'Reads used to calculate insert size distribution')
     parser.add_argument('-p', '--insert-size-percentile', type = int, default = 95,
                         help = 'Ignore pairs with an insert size above the nth percentile of the insert size distribution in the input BAM file')
+    parser.add_argument('-u', '--add-unpaired-edges', action = 'store_true',
+                        help = 'Include pairs which one unmapped mate in the scaffold graph')
+    parser.add_argument('-n', '--no-plot', action = 'store_true',
+                        help = 'Do not produce an insert size distribution plot')
     return parser.parse_args()
 
 if __name__ == '__main__':
