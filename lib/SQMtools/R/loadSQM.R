@@ -300,6 +300,17 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
         SQM$orfs$abund               = as.matrix(SQM$orfs$table[,grepl('Raw read count', colnames(SQM$orfs$table)),drop=FALSE])
         colnames(SQM$orfs$abund)     = gsub('Raw read count ', '', colnames(SQM$orfs$abund), fixed=TRUE)
         storage.mode(SQM$orfs$abund) = 'numeric'
+
+        # We may have extra samples in SQM$total_reads, since samples with 0 mapped reads will appear there but not elsewhere
+        non_mapped_samples           = setdiff(names(SQM$total_reads), colnames(SQM$orfs$abund))
+        if(length(non_mapped_samples)>0)
+            {
+            warning(sprintf('Samples %s had 0 reads mapped and were removed from the object', paste(non_mapped_samples, collapse=', ')))
+            SQM$total_reads  = SQM$total_reads [!names(SQM$total_reads ) %in% non_mapped_samples]
+            SQM$misc$samples = SQM$misc$samples[!names(SQM$misc$samples) %in% non_mapped_samples]
+            }
+
+        # Go on...
         SQM$orfs$bases               = as.matrix(SQM$orfs$table[,grepl('Raw base count', colnames(SQM$orfs$table)),drop=FALSE])
         colnames(SQM$orfs$bases)     = gsub('Raw base count ', '', colnames(SQM$orfs$abund), fixed=TRUE)
         storage.mode(SQM$orfs$bases) = 'numeric'
@@ -407,6 +418,16 @@ loadSQM_ = function(project_path, tax_mode = 'prokfilter', tax_source = 'contigs
     colnames(abund) = colnames(abund) = gsub('Raw read count ', '', abundcols, fixed = TRUE)
     SQM$contigs$abund             = abund
 
+    # We may have extra samples in SQM$total_reads, since samples with 0 mapped reads will appear there but not elsewhere
+    non_mapped_samples           = setdiff(names(SQM$total_reads), colnames(SQM$contigs$abund))
+    if(length(non_mapped_samples)>0)
+        {
+        warning(sprintf('Samples %s had 0 reads mapped and were removed from the object', paste(non_mapped_samples, collapse=', ')))
+        SQM$total_reads  = SQM$total_reads [!names(SQM$total_reads ) %in% non_mapped_samples]
+        SQM$misc$samples = SQM$misc$samples[!names(SQM$misc$samples) %in% non_mapped_samples]
+        }
+
+    # Go on...
     basescols = colnames(SQM$contigs$table)[grepl('Raw base count', colnames(SQM$contigs$table), fixed=TRUE)]
     bases = SQM$contigs$table[,basescols,drop=FALSE]
     for(col in basescols) { bases[,col] = as.numeric(bases[,col]) }
