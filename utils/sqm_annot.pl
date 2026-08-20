@@ -157,8 +157,6 @@ foreach my $thissample(keys %files) {
 		my $ecode = system $command; 
 		if($ecode!=0) { catch_error(); }
 		}
-	}
-	
 print "\n";
 if(!$notax) { print "Taxonomic assignment stored in SQM/$project/results/06.$project.fun3.tax.wranks\n"; }
 if(!$nocog) { print "COG functional assignment stored in SQM/$project/results/07.$project.fun3.cog\n"; }	
@@ -166,6 +164,9 @@ if(!$nokegg) { print "KEGG functional assignment stored in SQM/$project/results/
 
 system("rm $tempsample");
 funclass();
+
+	}
+	
 print "Have a nice day!\n";
 
 
