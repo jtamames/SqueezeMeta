@@ -42,7 +42,7 @@ my $version=<inv>;
 chomp $version;
 close inv;
 
-my($numthreads,$aadir,$project,$samplesfile,$notax,$nocog,$nokegg,$blastmode,$blocksize,$hel,$blockoption,$printversion,$opt_db);
+my($numthreads,$aadir,$project,$samplesfile,$notax,$nocog,$nokegg,$nopfam,$blastmode,$blocksize,$hel,$blockoption,$printversion,$opt_db,$databasepath);
 
 my $start_run = time();
 print BOLD "\nSQM_annot v$version - (c) J. Tamames, F. Puente-Sánchez CNB-CSIC, Madrid, SPAIN\n\nThis is part of the SqueezeMeta distribution (https://github.com/jtamames/SqueezeMeta)\nPlease cite: Tamames & Puente-Sanchez, Frontiers in Microbiology 10.3389 (2019). doi: https://doi.org/10.3389/fmicb.2018.03349\n\n"; print RESET;
@@ -62,6 +62,7 @@ Mandatory parameters:
    --notax: Skip taxonomic annotation
    --nocog: Skip COGs annotation
    --nofun: Skip KEGG annotation
+   --nopfam: Skip PFAM annotation
    -extdb <database file>: List of user-provided databases
    -version: Print version
    -h: this help
@@ -76,6 +77,7 @@ my $result = GetOptions ("t=i" => \($numthreads=12),
 		     "nocog" => \$nocog,
 		     "extdb=s" => \$opt_db, 
 		     "nokegg" => \$nokegg,
+                     "nopfam" => \$nopfam,
 		     "v|version" => \$printversion,
 		     "h" => \$hel
 		    );
@@ -146,6 +148,11 @@ foreach my $thissample(keys %files) {
 	my $ecode = system $command;
 	if($ecode!=0) { catch_error(); }
 	if($typefile=~/nt/i) { system("mv SQM/$project/results/03.$project.faa SQM/$project/results/03.$project.fna"); }
+        if(!$nopfam) {
+                $command="perl $scriptdir/05.run_hmmer.pl SQM/$project pfam_markers.hmm";
+                my $ecode = system $command;
+                if($ecode!=0) { catch_error(); }
+                }
 
 	if(!$notax) { 
 		$command="perl $scriptdir/06.lca.pl SQM/$project"; 
@@ -159,6 +166,7 @@ foreach my $thissample(keys %files) {
 		}
 print "\n";
 if(!$notax) { print "Taxonomic assignment stored in SQM/$project/results/06.$project.fun3.tax.wranks\n"; }
+if(!$nopfam) { print "Pfam functional assignment stored in SQM/$project/results/05.$project.fun3.pfam\n"; }
 if(!$nocog) { print "COG functional assignment stored in SQM/$project/results/07.$project.fun3.cog\n"; }	
 if(!$nokegg) { print "KEGG functional assignment stored in SQM/$project/results/07.$project.fun3.kegg\n"; }	
 
@@ -221,6 +229,33 @@ sub funclass {
 		print out "$tcase\tAbundance\tName\tFuction\tClass/Pathway\tORFs\n";
 		foreach my $tfun(sort { $accumc{$tcase}{$b}<=>$accumc{$tcase}{$a}; } keys %{ $accumc{$tcase} }) {
 			print out "$tfun\t$accumc{$tcase}{$tfun}\t$funs{$tcase}{$tfun}{name}\t$funs{$tcase}{$tfun}{fun}\t$funs{$tcase}{$tfun}{path}\t$funannot{$tcase}{$tfun}\n";
+			}
+		close outfile;
+		print "$tcase summary created in $outfile\n";
+		}
+
+	#-- Summary for PFAM
+	
+	my %fils=("PFAM","SQM/$project/intermediate/05.$project.pfam.hmm");
+	foreach my $tcase(sort keys %fils) {
+		my $output=$fils{$tcase};
+		open(inc,$output) || warn "Cannot open $tcase output in $output\n";
+		while(<inc>) {
+			chomp;
+			next if(!$_ || ($_=~/^\#/));
+			my @k=split(/\s+/,$_);
+			$funannot{$tcase}{$k[4]}.="$k[0];"; 
+			$accumc{$tcase}{$k[4]}++;
+			$funs{PFAM}{$k[4]}{name}=$k[3];
+			}
+		close inc;
+		}
+	foreach my $tcase(sort keys %fils) {
+		my $outfile="SQM/$project/results/$tcase.summary";
+		open(out,">$outfile") || die "Cannot open output file $outfile\n";
+		print out "$tcase\tAbundance\tName\tORFs\n";
+		foreach my $tfun(sort { $accumc{$tcase}{$b}<=>$accumc{$tcase}{$a}; } keys %{ $accumc{$tcase} }) {
+			print out "$tfun\t$accumc{$tcase}{$tfun}\t$funs{$tcase}{$tfun}{name}\t$funannot{$tcase}{$tfun}\n";
 			}
 		close outfile;
 		print "$tcase summary created in $outfile\n";

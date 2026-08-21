@@ -25,6 +25,7 @@ our $installpath = abs_path("$scriptdir/..");
 my $pwd=cwd();
 
 my $projectdir=$ARGV[0];
+my $pfamd=$ARGV[1];
 if(!$projectdir) { die "Please provide a valid project name or project path\n"; }
 if(-s "$projectdir/SqueezeMeta_conf.pl" <= 1) { die "Can't find SqueezeMeta_conf.pl in $projectdir. Is the project path ok?"; }
 do "$projectdir/SqueezeMeta_conf.pl";
@@ -35,11 +36,14 @@ do "$projectdir/parameters.pl";
 
 #-- Configuration variables from conf file
 
-our($hmmer_soft,$pfamhmmer,$numthreads,$pfam_db,$aafile,$evaluehmmer5,$methodsfile,$syslogfile);
+our($hmmer_soft,$pfamhmmer,$numthreads,$pfam_db,$aafile,$evaluehmmer5,$methodsfile,$syslogfile,$databasepath);
+
+if($pfamd) { $pfam_db="$databasepath/$pfamd"; }   #-- If we pass a new pfam DB (sqm_annot)
 
 open(outsyslog,">>$syslogfile") || warn "Cannot open syslog file $syslogfile for writing the program log\n";
 
 print "  Running HMMER3 (Eddy 2009, Genome Inform 23, 205-11) for Pfam\n";
+if($pfamd) { print "   Using custom Pfam DB in $pfam_db\n"; }
 my $command="$hmmer_soft --domtblout $pfamhmmer -E $evaluehmmer5 --cpu $numthreads $pfam_db $aafile > /dev/null 2>&1";
 print outsyslog "Running HMMER3 for Pfam: $command\n";
 my $ecode = system $command;
